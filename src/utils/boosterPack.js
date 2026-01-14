@@ -34,7 +34,8 @@ export function generateBoosterPack(cards, setCode) {
   const isSet4to6 = sets4to6.includes(setCode)
 
   // Separate cards by type and rarity
-  const leaders = cards.filter((card) => card.isLeader)
+  // Leaders: exclude Special rarity (Special leaders can only appear in foil slot)
+  const leaders = cards.filter((card) => card.isLeader && card.rarity !== 'Special')
   const bases = cards.filter((card) => card.isBase)
   const standardCards = cards.filter(
     (card) => !card.isLeader && !card.isBase
@@ -405,11 +406,15 @@ export function generateBoosterPack(cards, setCode) {
   }
 
   // 6. 1 Foil card (can be any rarity, including Special for sets 4-6)
-  // Foil can be from any card pool (including leaders and bases)
+  // Foil can be from any card pool (including bases, but NOT leaders)
   // BUT: Common bases CANNOT appear in foil slot
+  // Leaders CANNOT appear in foil slot
   // Special rarity can ONLY appear in foil slot and ONLY in sets 4-6
   // Special should appear at roughly the same rate as rare cards would naturally
   let foilPool = [...cards]
+  
+  // Remove leaders from foil pool (leaders cannot be foil)
+  foilPool = foilPool.filter((card) => !card.isLeader)
   
   // Remove common bases from foil pool (common bases cannot be foil)
   foilPool = foilPool.filter((card) => !(card.isBase && card.rarity === 'Common'))
@@ -454,20 +459,13 @@ export function generateBoosterPack(cards, setCode) {
     
     if (foilCard) {
       // Foil slot can be duplicate, so don't mark as selected
-      const isShowcase = foilCard.isLeader ? rollShowcase() : false
-      const isHyperspace = !isShowcase && rollHyperspace() // Hyperspace only if not showcase
+      // Leaders cannot be in foil slot, so no showcase check needed
+      const isHyperspace = rollHyperspace()
       
       let finalFoil = { ...foilCard }
       
-      // If showcase (leaders only), use showcase variant card
-      if (isShowcase) {
-        const showcaseCard = findVariantCard(foilCard, 'Showcase', cards)
-        if (showcaseCard) {
-          finalFoil = showcaseCard
-        }
-      }
-      // If hyperspace (and not showcase), use hyperspace variant card
-      else if (isHyperspace) {
+      // If hyperspace, use hyperspace variant card
+      if (isHyperspace) {
         const hyperspaceCard = findVariantCard(foilCard, 'Hyperspace', cards)
         if (hyperspaceCard) {
           finalFoil = hyperspaceCard
@@ -478,7 +476,7 @@ export function generateBoosterPack(cards, setCode) {
         ...finalFoil,
         isFoil: true,
         isHyperspace: isHyperspace,
-        isShowcase: isShowcase,
+        isShowcase: false, // Leaders can't be in foil slot, so no showcase
       })
     }
   }

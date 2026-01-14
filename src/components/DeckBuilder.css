@@ -25,6 +25,33 @@
   margin-top: 0.5rem;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.export-button {
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.export-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
 .deck-canvas {
   position: relative;
   min-height: calc(100vh - 300px);
@@ -32,11 +59,19 @@
     linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: none;
   border-radius: 12px;
   overflow: visible;
   cursor: default;
   margin-bottom: 2rem;
+}
+
+.section-border {
+  position: absolute;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .section-label {
@@ -97,23 +132,46 @@
   pointer-events: none;
 }
 
+/* 4x width border for leaders and bases (doubled again) */
+.canvas-card.leader::before,
+.canvas-card.base::before {
+  inset: -4px;
+  border-radius: 12px;
+}
+
 .canvas-card > * {
   border-radius: 8px;
   overflow: hidden;
 }
 
-.canvas-card:hover::before {
+.canvas-card:hover::before,
+.canvas-card.selected::before {
   opacity: 1;
 }
 
 .canvas-card:hover:not(.dragging) {
   transform: scale(1.05);
-  z-index: 10;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
+.canvas-card.hovered:not(.dragging) {
+  transform: scale(1.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.canvas-card.selected {
+  /* Rainbow border shows selection via ::before pseudo-element */
+}
+
+.canvas-card.active-leader {
+  /* No white border - selection indicated by other means */
+}
+
+.canvas-card.active-base {
+  /* No white border - selection indicated by other means */
+}
+
 .canvas-card.dragging {
-  z-index: 1000;
   transform: scale(1.1) rotate(2deg);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   cursor: grabbing;
@@ -237,6 +295,151 @@
 .back-button:hover {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.5);
+}
+
+.filter-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.filter-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.zoom-to-fit-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1500;
+}
+
+.filter-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100vh;
+  background: rgba(26, 26, 46, 0.95);
+  backdrop-filter: blur(10px);
+  border-left: 2px solid rgba(255, 255, 255, 0.2);
+  z-index: 2000;
+  padding: 2rem;
+  overflow-y: auto;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.filter-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.filter-drawer-header h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.filter-drawer-header button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.filter-drawer-header button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.filter-section {
+  margin-bottom: 2rem;
+}
+
+.filter-section h3 {
+  color: white;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s;
+  color: white;
+}
+
+.filter-checkbox:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.filter-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.sort-button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.sort-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.sort-button.active {
+  background: rgba(33, 150, 243, 0.3);
+  border-color: #2196F3;
+  color: #64B5F6;
+}
+
+/* zoom-fit-button removed - now uses export-button class */
+
+.selection-box {
+  position: absolute;
+  border: 2px dashed #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+  z-index: 500;
 }
 
 @media (max-width: 768px) {

@@ -5,7 +5,7 @@ import { fetchSetCards } from '../utils/api'
 import { generateSealedPod } from '../utils/boosterPack'
 import CardModal from './CardModal'
 
-function SealedPod({ setCode, onBack, onBuildDeck }) {
+function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
   const [cards, setCards] = useState([])
   const [packs, setPacks] = useState([])
   const [loading, setLoading] = useState(true)
@@ -45,11 +45,31 @@ function SealedPod({ setCode, onBack, onBuildDeck }) {
   }, [setCode])
 
   useEffect(() => {
+    // Check if we have saved packs in sessionStorage
+    const savedSealedPod = sessionStorage.getItem('sealedPod')
+    if (savedSealedPod) {
+      try {
+        const data = JSON.parse(savedSealedPod)
+        if (data.setCode === setCode && data.packs) {
+          setPacks(data.packs)
+          setLoading(false)
+          return
+        }
+      } catch (e) {
+        console.error('Failed to load saved sealed pod:', e)
+      }
+    }
+    
+    // Generate new packs if no saved data
     if (cards.length > 0) {
       const generatedPacks = generateSealedPod(cards, setCode)
       setPacks(generatedPacks)
+      // Notify parent to save
+      if (onPacksGenerated) {
+        onPacksGenerated(generatedPacks, setCode)
+      }
     }
-  }, [cards, setCode])
+  }, [cards, setCode, onPacksGenerated])
 
 
   const getRarityColor = (rarity) => {
@@ -148,7 +168,6 @@ function SealedPod({ setCode, onBack, onBuildDeck }) {
                   )}
                   <div className="card-badges">
                     {card.isFoil && <span className="badge foil-badge">Foil</span>}
-                    {card.isHyperspace && <span className="badge hyperspace-badge">Hyperspace</span>}
                     {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
                   </div>
                 </div>
