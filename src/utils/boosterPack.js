@@ -1,6 +1,8 @@
 // Booster pack generation logic based on:
 // https://starwarsunlimited.com/articles/boosting-ahead-of-release
 
+import { getDistributionForSet, getDistributionPeriod, DISTRIBUTION_PERIODS, RARITY_DISTRIBUTIONS } from './rarityConfig.js'
+
 /**
  * Generate a single booster pack according to SWU rules
  * 
@@ -28,6 +30,11 @@ export function generateBoosterPack(cards, setCode) {
   if (!cards || cards.length === 0) {
     return []
   }
+
+  // Get distribution configuration for this set
+  const distribution = getDistributionForSet(setCode)
+  const distributionPeriod = getDistributionPeriod(setCode)
+  const isPreLawlessTime = distributionPeriod === DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
 
   // Determine if this is set 4-6 (JTL, LOF, SEC) for Special rarity in foil slot
   const sets4to6 = ['JTL', 'LOF', 'SEC']
@@ -107,8 +114,8 @@ export function generateBoosterPack(cards, setCode) {
     if (leader) {
       markSelected(leader)
       
-      const isShowcase = rollShowcase()
-      const isHyperspace = rollHyperspace()
+      const isShowcase = rollShowcase(distribution)
+      const isHyperspace = rollHyperspace(distribution)
       
       let finalLeader = { ...leader }
       
@@ -149,7 +156,7 @@ export function generateBoosterPack(cards, setCode) {
     if (base) {
       markSelected(base)
       
-      const isHyperspace = rollHyperspace()
+      const isHyperspace = rollHyperspace(distribution)
       let finalBase = { ...base }
       
       // If hyperspace, use hyperspace variant card
@@ -177,7 +184,7 @@ export function generateBoosterPack(cards, setCode) {
     if (base) {
       markSelected(base)
       
-      const isHyperspace = rollHyperspace()
+      const isHyperspace = rollHyperspace(distribution)
       let finalBase = { ...base }
       
       if (isHyperspace) {
@@ -206,8 +213,8 @@ export function generateBoosterPack(cards, setCode) {
     
     markSelected(common)
     
-    const isHyperspace = rollHyperspace()
-    let finalCommon = { ...common }
+      const isHyperspace = rollHyperspace(distribution)
+      let finalCommon = { ...common }
     
     // If hyperspace, use hyperspace variant card
     if (isHyperspace) {
@@ -387,7 +394,7 @@ export function generateBoosterPack(cards, setCode) {
   if (rareOrLegendary) {
     markSelected(rareOrLegendary)
     
-    const isHyperspace = rollHyperspace()
+    const isHyperspace = rollHyperspace(distribution)
     let finalRare = { ...rareOrLegendary }
     
     // If hyperspace, use hyperspace variant card
@@ -460,15 +467,46 @@ export function generateBoosterPack(cards, setCode) {
     if (foilCard) {
       // Foil slot can be duplicate, so don't mark as selected
       // Leaders cannot be in foil slot, so no showcase check needed
-      const isHyperspace = rollHyperspace()
       
+      // Determine foil type based on distribution period
+      // Pre-A Lawless Time: 5/6 standard foil, 1/6 hyperspace foil
+      // A Lawless Time Onward: Always hyperspace foil (100%)
+      let isFoilHyperspace = false
+      if (isPreLawlessTime) {
+        // Pre-A Lawless Time: Roll for foil type
+        const foilRoll = Math.random()
+        if (foilRoll < distribution.hyperspaceFoil.inStandardPack) {
+          // Hyperspace foil (~1/6 chance)
+          isFoilHyperspace = true
+        } else {
+          // Standard foil (~5/6 chance)
+          isFoilHyperspace = false
+        }
+      } else {
+        // A Lawless Time Onward: Always hyperspace foil
+        isFoilHyperspace = true
+      }
+      
+      // For hyperspace foils, always use hyperspace variant if it exists
       let finalFoil = { ...foilCard }
+      let isHyperspace = false
       
-      // If hyperspace, use hyperspace variant card
-      if (isHyperspace) {
+      if (isFoilHyperspace) {
+        // Hyperspace foil: try to find hyperspace variant
         const hyperspaceCard = findVariantCard(foilCard, 'Hyperspace', cards)
         if (hyperspaceCard) {
           finalFoil = hyperspaceCard
+          isHyperspace = true
+        }
+      } else {
+        // Standard foil: may still be hyperspace variant (rare case)
+        // Use the normal hyperspace roll for standard foils
+        isHyperspace = rollHyperspace(distribution)
+        if (isHyperspace) {
+          const hyperspaceCard = findVariantCard(foilCard, 'Hyperspace', cards)
+          if (hyperspaceCard) {
+            finalFoil = hyperspaceCard
+          }
         }
       }
       
@@ -505,24 +543,35 @@ function randomSelect(array) {
 /**
  * Roll for Hyperspace variant (for non-upgrade-slot cards)
  * Note: The upgrade slot (3rd uncommon) has its own hyperspace mechanics
- * For other cards, hyperspace is much rarer
- * Based on research: Hyperspace appears 2 in 3 packs overall, but most of that
- * is from the upgrade slot. For other cards, it's approximately 1 in 50 cards
+ * Uses distribution config to determine rates based on set period
+ * @param {Object} distribution - The distribution configuration for the set
  */
-function rollHyperspace() {
-  // Hyperspace on non-upgrade-slot cards is very rare
-  // Approximately 1 in 50 = 2% per card
-  return Math.random() < 0.02 // 2% chance for non-upgrade-slot cards
+function rollHyperspace(distribution) {
+  // Use config-based hyperspace rate
+  // Pre-A Lawless Time: ~50% chance per pack (1/2 packs)
+  // A Lawless Time Onward: Guaranteed at least 1 per pack (100%)
+  // For individual non-upgrade-slot cards, we use a lower rate
+  // Pre-A Lawless Time: ~2% per card (approximately 1 in 50)
+  // A Lawless Time Onward: Higher rate since guaranteed in pack
+  if (distribution === RARITY_DISTRIBUTIONS[DISTRIBUTION_PERIODS.A_LAWLESS_TIME_ONWARD]) {
+    // A Lawless Time Onward: Higher hyperspace rate
+    // Since at least 1 hyperspace is guaranteed per pack, individual cards have higher chance
+    return Math.random() < 0.05 // ~5% chance per card
+  } else {
+    // Pre-A Lawless Time: Lower hyperspace rate
+    return Math.random() < 0.02 // ~2% chance per card
+  }
 }
 
 /**
  * Roll for Showcase variant (leaders only)
- * Based on official rates: 1 showcase per case
- * 1 case = 12 boxes * 24 packs = 288 packs
- * 1/288 = 0.347% per pack = 0.347% per leader
+ * Uses distribution config to determine rates based on set period
+ * @param {Object} distribution - The distribution configuration for the set
  */
-function rollShowcase() {
-  return Math.random() < 0.00347 // 0.347% chance (1 in 288 packs)
+function rollShowcase(distribution) {
+  // Showcase rate is the same for both periods in standard packs (1/288)
+  // But differs in Carbonite packs (not applicable here)
+  return Math.random() < distribution.showcaseLeader.inStandardPack
 }
 
 /**
