@@ -56,41 +56,83 @@ export function generateBoosterPack(cards, setCode) {
   const specials = cards.filter((card) => card.rarity === 'Special')
 
   const pack = []
+  
+  // Track selected card IDs to prevent duplicates (except foil and upgrade slot)
+  // Use card name + set to identify duplicates (same card, different variants)
+  const selectedCardNames = new Set()
+  
+  /**
+   * Check if a card is a duplicate (same name and set)
+   * Returns true if already selected (excluding foil and upgrade slot)
+   */
+  const isDuplicate = (card) => {
+    const cardKey = `${card.name}-${card.set}`
+    return selectedCardNames.has(cardKey)
+  }
+  
+  /**
+   * Mark a card as selected
+   */
+  const markSelected = (card) => {
+    const cardKey = `${card.name}-${card.set}`
+    selectedCardNames.add(cardKey)
+  }
+  
+  /**
+   * Select a random card from array, avoiding duplicates
+   */
+  const randomSelectNoDuplicate = (array, maxAttempts = 100) => {
+    if (array.length === 0) return null
+    
+    // Filter out duplicates
+    const available = array.filter((card) => !isDuplicate(card))
+    
+    if (available.length === 0) {
+      // If all are duplicates, allow duplicate (shouldn't happen often)
+      return randomSelect(array)
+    }
+    
+    return randomSelect(available)
+  }
 
   // 1. Guaranteed Leader (leaders can ONLY appear here)
   if (leaders.length > 0) {
     // Filter to normal leaders only (variants are separate cards)
     const normalLeaders = leaders.filter((l) => l.variantType === 'Normal')
     const leader = normalLeaders.length > 0 
-      ? randomSelect(normalLeaders)
-      : randomSelect(leaders)
+      ? randomSelectNoDuplicate(normalLeaders)
+      : randomSelectNoDuplicate(leaders)
     
-    const isShowcase = rollShowcase()
-    const isHyperspace = rollHyperspace()
-    
-    let finalLeader = { ...leader }
-    
-    // If showcase, use showcase variant card
-    if (isShowcase) {
-      const showcaseCard = findVariantCard(leader, 'Showcase', cards)
-      if (showcaseCard) {
-        finalLeader = showcaseCard
+    if (leader) {
+      markSelected(leader)
+      
+      const isShowcase = rollShowcase()
+      const isHyperspace = rollHyperspace()
+      
+      let finalLeader = { ...leader }
+      
+      // If showcase, use showcase variant card
+      if (isShowcase) {
+        const showcaseCard = findVariantCard(leader, 'Showcase', cards)
+        if (showcaseCard) {
+          finalLeader = showcaseCard
+        }
       }
-    }
-    // If hyperspace (and not showcase), use hyperspace variant card
-    else if (isHyperspace) {
-      const hyperspaceCard = findVariantCard(leader, 'Hyperspace', cards)
-      if (hyperspaceCard) {
-        finalLeader = hyperspaceCard
+      // If hyperspace (and not showcase), use hyperspace variant card
+      else if (isHyperspace) {
+        const hyperspaceCard = findVariantCard(leader, 'Hyperspace', cards)
+        if (hyperspaceCard) {
+          finalLeader = hyperspaceCard
+        }
       }
+      
+      pack.push({
+        ...finalLeader,
+        isFoil: false,
+        isHyperspace: isHyperspace && !isShowcase, // Hyperspace only if not showcase
+        isShowcase: isShowcase,
+      })
     }
-    
-    pack.push({
-      ...finalLeader,
-      isFoil: false,
-      isHyperspace: isHyperspace && !isShowcase, // Hyperspace only if not showcase
-      isShowcase: isShowcase,
-    })
   }
 
   // 2. Guaranteed Base (common bases can ONLY appear here)
@@ -100,48 +142,56 @@ export function generateBoosterPack(cards, setCode) {
     // Filter to normal bases only
     const normalCommonBases = commonBases.filter((b) => b.variantType === 'Normal')
     const base = normalCommonBases.length > 0
-      ? randomSelect(normalCommonBases)
-      : randomSelect(commonBases)
+      ? randomSelectNoDuplicate(normalCommonBases)
+      : randomSelectNoDuplicate(commonBases)
     
-    const isHyperspace = rollHyperspace()
-    let finalBase = { ...base }
-    
-    // If hyperspace, use hyperspace variant card
-    if (isHyperspace) {
-      const hyperspaceCard = findVariantCard(base, 'Hyperspace', cards)
-      if (hyperspaceCard) {
-        finalBase = hyperspaceCard
+    if (base) {
+      markSelected(base)
+      
+      const isHyperspace = rollHyperspace()
+      let finalBase = { ...base }
+      
+      // If hyperspace, use hyperspace variant card
+      if (isHyperspace) {
+        const hyperspaceCard = findVariantCard(base, 'Hyperspace', cards)
+        if (hyperspaceCard) {
+          finalBase = hyperspaceCard
+        }
       }
+      
+      pack.push({
+        ...finalBase,
+        isFoil: false,
+        isHyperspace: isHyperspace,
+      })
     }
-    
-    pack.push({
-      ...finalBase,
-      isFoil: false,
-      isHyperspace: isHyperspace,
-    })
   } else if (bases.length > 0) {
     // Fallback if no common bases (shouldn't happen, but safety)
     // Exclude rare bases if possible, as they can appear in rare slot
     const nonRareBases = bases.filter((b) => b.rarity !== 'Rare' && b.variantType === 'Normal')
     const base = nonRareBases.length > 0 
-      ? randomSelect(nonRareBases)
-      : randomSelect(bases.filter((b) => b.variantType === 'Normal'))
+      ? randomSelectNoDuplicate(nonRareBases)
+      : randomSelectNoDuplicate(bases.filter((b) => b.variantType === 'Normal'))
     
-    const isHyperspace = rollHyperspace()
-    let finalBase = { ...base }
-    
-    if (isHyperspace) {
-      const hyperspaceCard = findVariantCard(base, 'Hyperspace', cards)
-      if (hyperspaceCard) {
-        finalBase = hyperspaceCard
+    if (base) {
+      markSelected(base)
+      
+      const isHyperspace = rollHyperspace()
+      let finalBase = { ...base }
+      
+      if (isHyperspace) {
+        const hyperspaceCard = findVariantCard(base, 'Hyperspace', cards)
+        if (hyperspaceCard) {
+          finalBase = hyperspaceCard
+        }
       }
+      
+      pack.push({
+        ...finalBase,
+        isFoil: false,
+        isHyperspace: isHyperspace,
+      })
     }
-    
-    pack.push({
-      ...finalBase,
-      isFoil: false,
-      isHyperspace: isHyperspace,
-    })
   }
 
   // 3. 9 Common cards (non-leader, non-base)
@@ -150,7 +200,11 @@ export function generateBoosterPack(cards, setCode) {
   const commonsPool = normalCommons.length > 0 ? normalCommons : commons
   
   for (let i = 0; i < 9 && commonsPool.length > 0; i++) {
-    const common = randomSelect(commonsPool)
+    const common = randomSelectNoDuplicate(commonsPool)
+    if (!common) break // No more available cards
+    
+    markSelected(common)
+    
     const isHyperspace = rollHyperspace()
     let finalCommon = { ...common }
     
@@ -175,7 +229,11 @@ export function generateBoosterPack(cards, setCode) {
   const uncommonsPool = normalUncommons.length > 0 ? normalUncommons : uncommons
   
   for (let i = 0; i < 2 && uncommonsPool.length > 0; i++) {
-    const uncommon = randomSelect(uncommonsPool)
+    const uncommon = randomSelectNoDuplicate(uncommonsPool)
+    if (!uncommon) break // No more available cards
+    
+    markSelected(uncommon)
+    
     pack.push({
       ...uncommon,
       isFoil: false,
@@ -255,14 +313,17 @@ export function generateBoosterPack(cards, setCode) {
     }
     
     // Fallback: if no hyperspace card found, use normal uncommon
+    // NOTE: Upgrade slot can be a duplicate, so don't check for duplicates here
     if (!upgradeCard && uncommonsPool.length > 0) {
-      upgradeCard = randomSelect(uncommonsPool)
+      upgradeCard = randomSelect(uncommonsPool) // Allow duplicate in upgrade slot
+      // Don't mark as selected - upgrade slot can be duplicate
       pack.push({
         ...upgradeCard,
         isFoil: false,
         isHyperspace: false,
       })
     } else if (upgradeCard) {
+      // Upgrade slot can be duplicate, so don't mark as selected
       pack.push({
         ...upgradeCard,
         isFoil: false,
@@ -272,12 +333,15 @@ export function generateBoosterPack(cards, setCode) {
   } else {
     // Normal 3rd uncommon (75% of packs)
     if (uncommonsPool.length > 0) {
-      const uncommon = randomSelect(uncommonsPool)
-      pack.push({
-        ...uncommon,
-        isFoil: false,
-        isHyperspace: false,
-      })
+      const uncommon = randomSelectNoDuplicate(uncommonsPool)
+      if (uncommon) {
+        markSelected(uncommon)
+        pack.push({
+          ...uncommon,
+          isFoil: false,
+          isHyperspace: false,
+        })
+      }
     }
   }
 
@@ -290,8 +354,8 @@ export function generateBoosterPack(cards, setCode) {
     // Filter to normal legendaries only
     const normalLegendaries = legendaries.filter((l) => l.variantType === 'Normal')
     rareOrLegendary = normalLegendaries.length > 0
-      ? randomSelect(normalLegendaries)
-      : randomSelect(legendaries)
+      ? randomSelectNoDuplicate(normalLegendaries)
+      : randomSelectNoDuplicate(legendaries)
   } else {
     // Rare slot: can be rare card OR rare base (for sets 1-6)
     // Filter to normal rares only
@@ -309,17 +373,19 @@ export function generateBoosterPack(cards, setCode) {
     }
     
     if (rarePool.length > 0) {
-      rareOrLegendary = randomSelect(rarePool)
+      rareOrLegendary = randomSelectNoDuplicate(rarePool)
     } else if (legendaries.length > 0) {
       // Fallback to legendary if no rares
       const normalLegendaries = legendaries.filter((l) => l.variantType === 'Normal')
       rareOrLegendary = normalLegendaries.length > 0
-        ? randomSelect(normalLegendaries)
-        : randomSelect(legendaries)
+        ? randomSelectNoDuplicate(normalLegendaries)
+        : randomSelectNoDuplicate(legendaries)
     }
   }
   
   if (rareOrLegendary) {
+    markSelected(rareOrLegendary)
+    
     const isHyperspace = rollHyperspace()
     let finalRare = { ...rareOrLegendary }
     
@@ -364,12 +430,14 @@ export function generateBoosterPack(cards, setCode) {
         // ~20% chance to get Special in foil slot (similar to rare frequency)
         // Filter to normal Special cards only
         const normalSpecials = specials.filter((s) => s.variantType === 'Normal')
+        // Foil can be duplicate, so don't check for duplicates
         foilCard = normalSpecials.length > 0
           ? randomSelect(normalSpecials)
           : randomSelect(specials)
       } else {
         // Otherwise, random from all cards (excluding Special from natural selection)
         const nonSpecialPool = foilPool.filter((c) => c.rarity !== 'Special' && c.variantType === 'Normal')
+        // Foil can be duplicate, so don't check for duplicates
         foilCard = nonSpecialPool.length > 0
           ? randomSelect(nonSpecialPool)
           : randomSelect(foilPool.filter((c) => c.rarity !== 'Special'))
@@ -378,12 +446,14 @@ export function generateBoosterPack(cards, setCode) {
       // For sets 1-3, no Special cards in foil
       // Filter to normal cards only
       const normalPool = foilPool.filter((c) => c.variantType === 'Normal')
+      // Foil can be duplicate, so don't check for duplicates
       foilCard = normalPool.length > 0
         ? randomSelect(normalPool)
         : randomSelect(foilPool)
     }
     
     if (foilCard) {
+      // Foil slot can be duplicate, so don't mark as selected
       const isShowcase = foilCard.isLeader ? rollShowcase() : false
       const isHyperspace = !isShowcase && rollHyperspace() // Hyperspace only if not showcase
       

@@ -1,6 +1,7 @@
 // API utilities for fetching data from swu-db.com
 
 import { getCardsBySet } from './cardData.js'
+import { getPackArtUrl } from './packArt.js'
 
 const SWUDB_BASE_URL = 'https://swudb.com'
 const SWU_DB_API_BASE = 'https://api.swu-db.com'
@@ -35,7 +36,7 @@ export async function fetchSets() {
       if (data.data && data.data.sets) {
         return data.data.sets.map((set) => ({
           ...set,
-          imageUrl: `${SWUDB_BASE_URL}/images/sets/${set.code}.jpg`,
+          imageUrl: getPackArtUrl(set.code),
         }))
       }
     }
@@ -59,7 +60,7 @@ export async function fetchSets() {
 
   return knownSets.map((set) => ({
     ...set,
-    imageUrl: `${SWUDB_BASE_URL}/images/sets/${set.code}.jpg`,
+    imageUrl: getPackArtUrl(set.code),
   }))
 }
 

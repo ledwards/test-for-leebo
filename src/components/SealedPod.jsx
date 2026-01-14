@@ -3,12 +3,14 @@ import './SealedPod.css'
 import { getCachedCards, isCacheInitialized } from '../utils/cardCache'
 import { fetchSetCards } from '../utils/api'
 import { generateSealedPod } from '../utils/boosterPack'
+import CardModal from './CardModal'
 
-function SealedPod({ setCode, onBack }) {
+function SealedPod({ setCode, onBack, onBuildDeck }) {
   const [cards, setCards] = useState([])
   const [packs, setPacks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedCard, setSelectedCard] = useState(null)
 
   useEffect(() => {
     const loadCards = async () => {
@@ -109,8 +111,15 @@ function SealedPod({ setCode, onBack }) {
       <button className="back-button" onClick={onBack}>
         ← Back to Sets
       </button>
-      <h1>Sealed Pod - {setCode}</h1>
-      <p className="instruction">All 6 packs are displayed below</p>
+      <div className="sealed-pod-header">
+        <h1>Sealed Pod - {setCode}</h1>
+        <p className="instruction">All 6 packs are displayed below</p>
+        {packs.length > 0 && (
+          <button className="build-deck-button" onClick={() => onBuildDeck(packs.flat(), setCode)}>
+            Build Deck
+          </button>
+        )}
+      </div>
       
       <div className="packs-container">
         {packs.map((pack, index) => (
@@ -121,7 +130,7 @@ function SealedPod({ setCode, onBack }) {
                 <div
                   key={cardIndex}
                   className={`card-item ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''} ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`}
-                  style={{ borderColor: getRarityColor(card.rarity) }}
+                  onClick={() => setSelectedCard(card)}
                 >
                   {card.imageUrl ? (
                     <img
@@ -148,6 +157,10 @@ function SealedPod({ setCode, onBack }) {
           </div>
         ))}
       </div>
+      
+      {selectedCard && (
+        <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
+      )}
     </div>
   )
 }

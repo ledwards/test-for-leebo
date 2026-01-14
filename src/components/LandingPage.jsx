@@ -4,8 +4,11 @@ function LandingPage({ onSealedClick }) {
   return (
     <div className="landing-page">
       <div className="landing-content">
-        <h1>Star Wars: Unlimited</h1>
-        <h2>Sealed Pod Simulator</h2>
+        <h1>swupod</h1>
+        <h2 className="subtitle">
+          The Fan-Made Open Source<br />
+          Star Wars Unlimited Limited Simulator
+        </h2>
         <div className="mode-selection">
           <button className="mode-button sealed-button" onClick={onSealedClick}>
             Sealed

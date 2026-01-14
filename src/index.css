@@ -1,5 +1,5 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Barlow', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -26,11 +26,23 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: hsl(0 0% 4%/var(--tw-bg-opacity));
+  --tw-bg-opacity: 1;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Barlow', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-weight: 800; /* ExtraBold */
+  line-height: 1.1;
 }
 
 h1 {
   font-size: 3.2em;
-  line-height: 1.1;
+}
+
+p {
+  font-family: 'Barlow', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-weight: 400;
 }
 
 button {
