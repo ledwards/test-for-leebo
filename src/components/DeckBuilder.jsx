@@ -70,6 +70,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
   const [hoveredCard, setHoveredCard] = useState(null)
   const [viewMode, setViewMode] = useState('grid') // 'grid' or 'list'
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
+  const [sortDrawerOpen, setSortDrawerOpen] = useState(false)
   const [aspectFilters, setAspectFilters] = useState({
     Vigilance: true,
     Villainy: true,
@@ -80,10 +81,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
   })
   const [sortOption, setSortOption] = useState('none')
   const [tableSort, setTableSort] = useState({ field: null, direction: 'asc' })
-  const [zoom, setZoom] = useState(1)
-  const [pan, setPan] = useState({ x: 0, y: 0 })
   const [leadersExpanded, setLeadersExpanded] = useState(true)
   const [basesExpanded, setBasesExpanded] = useState(true)
+  const [deckExpanded, setDeckExpanded] = useState(true)
+  const [sideboardExpanded, setSideboardExpanded] = useState(true)
   const [selectedCards, setSelectedCards] = useState(new Set())
   const [selectionBox, setSelectionBox] = useState(null)
   const [isSelecting, setIsSelecting] = useState(false)
@@ -93,10 +94,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
   const [activeLeader, setActiveLeader] = useState(null)
   const [activeBase, setActiveBase] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
+  const [isInfoBarSticky, setIsInfoBarSticky] = useState(false)
   const hasDraggedRef = useRef(false)
   const finalDragPositionRef = useRef(null)
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
+  const infoBarRef = useRef(null)
 
   // Load all cards from the set
   useEffect(() => {
@@ -144,10 +147,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     return aspects.join(' ')
   }, [])
 
-  // Sort and filter cards (only from main section, excluding bases and leaders)
+  // Sort and filter cards (only from deck section, excluding bases and leaders)
   const getFilteredAndSortedCards = useCallback(() => {
     const allCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'main' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+      .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
       .map(pos => pos.card)
     let filtered = allCards.filter(cardMatchesFilters)
     
@@ -186,7 +189,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
           const positionsWithEnabled = {}
           Object.entries(state.cardPositions).forEach(([id, pos]) => {
             // Remove bases and leaders from 'main' section
-            if (pos.section === 'main' && (pos.card?.isBase || pos.card?.isLeader)) {
+            if ((pos.section === 'deck' || pos.section === 'sideboard') && (pos.card?.isBase || pos.card?.isLeader)) {
               return // Skip this card - it shouldn't be in main section
             }
             positionsWithEnabled[id] = {
@@ -198,8 +201,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
           setSectionLabels(state.sectionLabels || [])
           setSectionBounds(state.sectionBounds || {})
           setCanvasHeight(state.canvasHeight)
-          setZoom(state.zoom || 1)
-          setPan(state.pan || { x: 0, y: 0 })
           setAspectFilters(state.aspectFilters || {
             Vigilance: true,
             Villainy: true,
@@ -216,6 +217,31 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Only run once on mount
+
+  // Detect when deck-info-bar becomes sticky
+  useEffect(() => {
+    const infoBar = infoBarRef.current
+    if (!infoBar) return
+
+    const checkSticky = () => {
+      if (!infoBar) return
+      const rect = infoBar.getBoundingClientRect()
+      // Check if element is stuck at top: 20px
+      const isSticky = Math.abs(rect.top - 20) < 5
+      setIsInfoBarSticky(isSticky)
+    }
+
+    // Check on scroll and resize
+    const handleScroll = () => requestAnimationFrame(checkSticky)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleScroll, { passive: true })
+    checkSticky() // Initial check
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+    }
+  }, [])
 
   // Initialize card positions in sections
   useEffect(() => {
@@ -316,15 +342,19 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
           }
         })
         const totalRows = Math.ceil(leadersAndBases.length / itemsPerRow)
-        const sectionEndY = currentY + totalRows * (leaderBaseHeight + spacing)
+        // Calculate end Y as the bottom of the last row of cards (no extra spacing)
+        // For last row: (totalRows - 1) rows of spacing + last row's cards
+        const sectionEndY = currentY + (totalRows - 1) * (leaderBaseHeight + spacing) + leaderBaseHeight
         bounds['leaders-bases'] = { minY: sectionStartY, maxY: sectionEndY, minX: padding, maxX: window.innerWidth - padding }
-        currentY = sectionEndY
+        // Start pool section right after leaders/bases with minimal gap (just for label)
+        currentY = sectionEndY + 20 // Small gap for visual separation
       }
       
       if (poolCards.length > 0) {
-        const sectionStartY = currentY + 10
-        currentY = sectionStartY
-        labels.push({ text: 'Pool Cards', y: currentY - labelHeight })
+        // Deck section
+        const deckStartY = currentY + labelHeight
+        labels.push({ text: 'Deck', y: deckStartY - labelHeight })
+        currentY = deckStartY
         const cardsPerRow = Math.floor((window.innerWidth - 100) / (cardWidth + spacing))
         poolCards.forEach((card, index) => {
           const row = Math.floor(index / cardsPerRow)
@@ -335,16 +365,22 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             x: padding + col * (cardWidth + spacing),
             y: currentY + row * (cardHeight + spacing),
             card: card,
-            section: 'main',
+            section: 'deck', // Start in deck section
             visible: true,
             enabled: true,
             zIndex: 1
           }
         })
         const mainRows = Math.ceil(poolCards.length / cardsPerRow)
-        const sectionEndY = currentY + mainRows * (cardHeight + spacing)
-        bounds.main = { minY: sectionStartY, maxY: sectionEndY, minX: padding, maxX: window.innerWidth - padding }
-        currentY = sectionEndY
+        const deckEndY = currentY + mainRows * (cardHeight + spacing)
+        bounds.deck = { minY: deckStartY, maxY: deckEndY, minX: padding, maxX: window.innerWidth - padding }
+        currentY = deckEndY
+        
+        // Sideboard section (empty initially, but with space reserved)
+        const sideboardStartY = currentY + labelHeight + 10
+        labels.push({ text: 'Sideboard', y: sideboardStartY - labelHeight })
+        bounds.sideboard = { minY: sideboardStartY, maxY: sideboardStartY + 200, minX: padding, maxX: window.innerWidth - padding }
+        currentY = sideboardStartY + 200
       }
       
       const calculatedHeight = currentY + padding
@@ -363,16 +399,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         sectionLabels,
         sectionBounds,
         canvasHeight,
-        zoom,
-        pan,
         aspectFilters,
         sortOption
       }
       sessionStorage.setItem('deckBuilderState', JSON.stringify(stateToSave))
     }
-  }, [cardPositions, sectionLabels, sectionBounds, canvasHeight, zoom, pan, aspectFilters, sortOption])
+  }, [cardPositions, sectionLabels, sectionBounds, canvasHeight, aspectFilters, sortOption])
 
-  // Cleanup: Remove any bases/leaders from main section and update enabled state
+  // Cleanup: Remove any bases/leaders from deck/sideboard sections and move cards based on enabled state
   useEffect(() => {
     setCardPositions(prev => {
       const updated = { ...prev }
@@ -380,17 +414,34 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       
       Object.keys(updated).forEach(cardId => {
         const pos = updated[cardId]
-        // Remove bases and leaders from main section
-        if (pos.section === 'main' && (pos.card.isBase || pos.card.isLeader)) {
+        // Remove bases and leaders from deck/sideboard sections
+        if ((pos.section === 'deck' || pos.section === 'sideboard') && (pos.card.isBase || pos.card.isLeader)) {
           toRemove.push(cardId)
           return
         }
         
-        if (pos.section === 'main') {
-          // Filters enable/disable cards instead of hiding/showing
+        // Move cards between deck and sideboard based on enabled state
+        if (pos.section === 'deck' || pos.section === 'sideboard') {
+          const isEnabled = pos.enabled !== false
+          const shouldBeInDeck = isEnabled
+          
+          if (shouldBeInDeck && pos.section === 'sideboard') {
+            // Move from sideboard to deck (card is enabled)
           updated[cardId] = {
             ...pos,
-            enabled: cardMatchesFilters(pos.card)
+              section: 'deck',
+              enabled: true
+            }
+          } else if (!shouldBeInDeck && pos.section === 'deck') {
+            // Move from deck to sideboard (card is disabled)
+            updated[cardId] = {
+              ...pos,
+              section: 'sideboard',
+              enabled: false
+            }
+          } else {
+            // Keep in current section, enabled state already matches section
+            // No change needed
           }
         }
       })
@@ -444,18 +495,35 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     return touching
   }, [])
 
-  // Apply sorting
+  // Apply sorting - separate deck and sideboard
   useEffect(() => {
     if (sortOption === 'none') return
     
     setCardPositions(prev => {
-      const mainCards = Object.entries(prev)
-        .filter(([_, pos]) => pos.section === 'main' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+      // Separate deck and sideboard cards
+      const deckCards = Object.entries(prev)
+        .filter(([_, pos]) => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
         .map(([id, pos]) => ({ id, ...pos }))
       
-      const sorted = getFilteredAndSortedCards()
-      const sortedIds = sorted.map(card => {
-        const entry = mainCards.find(({ card: c }) => c.id === card.id || c.name === card.name)
+      const sideboardCards = Object.entries(prev)
+        .filter(([_, pos]) => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+        .map(([id, pos]) => ({ id, ...pos }))
+      
+      // Get sorted deck cards (only deck section)
+      const deckSorted = deckCards
+        .map(({ card }) => card)
+        .filter(cardMatchesFilters)
+      const sortedDeckIds = deckSorted.map(card => {
+        const entry = deckCards.find(({ card: c }) => c.id === card.id || c.name === card.name)
+        return entry?.id
+      }).filter(Boolean)
+      
+      // Get sorted sideboard cards
+      const sideboardSorted = sideboardCards
+        .map(({ card }) => card)
+        .filter(cardMatchesFilters)
+      const sortedSideboardIds = sideboardSorted.map(card => {
+        const entry = sideboardCards.find(({ card: c }) => c.id === card.id || c.name === card.name)
         return entry?.id
       }).filter(Boolean)
       
@@ -467,93 +535,152 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       const sectionSpacing = 80
       const cardsPerRow = Math.floor((window.innerWidth - 100) / (cardWidth + spacing))
       
+      // Get deck section bounds
+      const deckBounds = sectionBounds.deck || { minY: padding, maxY: padding + 500, minX: padding, maxX: window.innerWidth - padding }
+      let deckY = deckBounds.minY
+      
+      // Get sideboard section bounds (after deck)
+      const sideboardStartY = deckBounds.maxY + sectionSpacing + 30
+      let sideboardY = sideboardStartY
+      
+      // Helper function to sort cards
+      const sortCards = (cards) => {
+        if (sortOption === 'cost') {
+          return [...cards].sort((a, b) => (a.cost || 0) - (b.cost || 0))
+        } else if (sortOption === 'aspect') {
+          const grouped = {}
+          cards.forEach(card => {
+            const key = getAspectKey(card)
+            if (!grouped[key]) grouped[key] = []
+            grouped[key].push(card)
+          })
+          const sortedKeys = Object.keys(grouped).sort()
+          return sortedKeys.flatMap(key => grouped[key])
+        } else if (sortOption === 'type') {
+          const typeOrder = { 'Ground Unit': 1, 'Space Unit': 2, 'Upgrade': 3, 'Event': 4 }
+          return [...cards].sort((a, b) => {
+            const aOrder = typeOrder[a.type] || 99
+            const bOrder = typeOrder[b.type] || 99
+            if (aOrder !== bOrder) return aOrder - bOrder
+            return (a.cost || 0) - (b.cost || 0)
+          })
+        }
+        return cards
+      }
+      
+      // Helper function to position cards in a section
+      const positionCards = (cardIds, startY, sectionName) => {
+        if (cardIds.length === 0) return startY
+        
+        const cards = cardIds.map(id => updated[id]?.card).filter(Boolean)
+        const sortedCards = sortCards(cards)
+        const sortedCardIds = sortedCards.map(card => {
+          return cardIds.find(id => {
+            const c = updated[id]?.card
+            return c && (c.id === card.id || c.name === card.name)
+          })
+        }).filter(Boolean)
+      
       if (sortOption === 'cost') {
         // Vertical columns by cost
         const costGroups = {}
-        sorted.forEach(card => {
+          sortedCardIds.forEach(cardId => {
+            const card = updated[cardId]?.card
+            if (!card) return
           const cost = card.cost || 0
           if (!costGroups[cost]) costGroups[cost] = []
-          costGroups[cost].push(card)
+            costGroups[cost].push(cardId)
         })
         
         let col = 0
+          let maxRow = 0
         Object.keys(costGroups).sort((a, b) => a - b).forEach(cost => {
-          costGroups[cost].forEach((card, idx) => {
-            const cardId = sortedIds.find(id => {
-              const pos = updated[id]
-              return pos && (pos.card.id === card.id || pos.card.name === card.name)
-            })
-            if (cardId && updated[cardId]) {
+            costGroups[cost].forEach((cardId, idx) => {
+              if (updated[cardId]) {
               const row = idx
+                maxRow = Math.max(maxRow, row)
               updated[cardId] = {
                 ...updated[cardId],
                 x: padding + col * (cardWidth + spacing),
-                y: padding + row * (cardHeight + spacing)
+                  y: startY + row * (cardHeight + spacing),
+                  section: sectionName
               }
             }
           })
           col++
         })
+          return startY + (maxRow + 1) * (cardHeight + spacing)
       } else if (sortOption === 'aspect') {
         // Group by aspect combination
         const aspectGroups = {}
-        sorted.forEach(card => {
+          sortedCardIds.forEach(cardId => {
+            const card = updated[cardId]?.card
+            if (!card) return
           const key = getAspectKey(card)
           if (!aspectGroups[key]) aspectGroups[key] = []
-          aspectGroups[key].push(card)
+            aspectGroups[key].push(cardId)
         })
         
-        let currentY = padding
+          let currentY = startY
         const sortedKeys = Object.keys(aspectGroups).sort()
         sortedKeys.forEach(key => {
           const group = aspectGroups[key]
-          group.forEach((card, idx) => {
-            const cardId = sortedIds.find(id => {
-              const pos = updated[id]
-              return pos && (pos.card.id === card.id || pos.card.name === card.name)
-            })
-            if (cardId && updated[cardId]) {
-              const row = idx
-              const col = 0
+            group.forEach((cardId, idx) => {
+              if (updated[cardId]) {
               updated[cardId] = {
                 ...updated[cardId],
-                x: padding + col * (cardWidth + spacing),
-                y: currentY + row * (cardHeight + spacing)
+                  x: padding,
+                  y: currentY + idx * (cardHeight + spacing),
+                  section: sectionName
               }
             }
           })
           const groupHeight = group.length * (cardHeight + spacing)
           currentY += groupHeight + sectionSpacing
         })
+          return currentY
       } else {
-        // Grid layout - compact layout (fill gaps)
-        // Filter to only enabled cards for compact grid
-        const enabledSorted = sorted.filter((card, idx) => {
-          const cardId = sortedIds[idx]
-          if (!cardId || !updated[cardId]) return false
-          return updated[cardId].enabled !== false
-        })
-        const enabledIds = enabledSorted.map(card => {
-          const idx = sorted.findIndex(c => c.id === card.id || c.name === card.name)
-          return sortedIds[idx]
-        }).filter(Boolean)
-        
-        enabledIds.forEach((cardId, index) => {
+          // Grid layout - compact layout (fill gaps)
+          sortedCardIds.forEach((cardId, index) => {
           if (cardId && updated[cardId]) {
             const row = Math.floor(index / cardsPerRow)
             const col = index % cardsPerRow
             updated[cardId] = {
               ...updated[cardId],
               x: padding + col * (cardWidth + spacing),
-              y: padding + row * (cardHeight + spacing)
+                y: startY + row * (cardHeight + spacing),
+                section: sectionName
+              }
             }
-          }
-        })
+          })
+          const rows = Math.ceil(sortedCardIds.length / cardsPerRow)
+          return startY + rows * (cardHeight + spacing)
+        }
       }
+      
+      // Position deck cards
+      const deckEndY = positionCards(sortedDeckIds, deckY, 'deck')
+      
+      // Position sideboard cards
+      const sideboardEndY = positionCards(sortedSideboardIds, sideboardY, 'sideboard')
+      
+      // Update section bounds and canvas height
+      const newDeckBounds = { ...deckBounds, maxY: deckEndY }
+      const newSideboardBounds = { minY: sideboardY, maxY: sideboardEndY, minX: padding, maxX: window.innerWidth - padding }
+      
+      setSectionBounds(prev => ({
+        ...prev,
+        deck: newDeckBounds,
+        sideboard: newSideboardBounds
+      }))
+      
+      // Update canvas height to include both sections
+      const maxY = Math.max(deckEndY, sideboardEndY)
+      setCanvasHeight(maxY + padding)
       
       return updated
     })
-  }, [sortOption, getFilteredAndSortedCards])
+  }, [sortOption, cardMatchesFilters, getAspectKey, sectionBounds])
 
   const handleMouseDown = (e, cardId) => {
     if (e.button !== 0) return // Only left click
@@ -561,33 +688,36 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     e.stopPropagation()
     
     if (!cardId) return
-    const card = cardPositions[cardId]
-    if (!card) return
+      const card = cardPositions[cardId]
+      if (!card) return
+    
+    // Reset drag flag at start of mouse down
+    hasDraggedRef.current = false
     
     // Handle leaders and bases - they can't be dragged, only selected
     if (card.section === 'leaders-bases' && card.card.isLeader) {
-      // Only allow selection, not deselection by clicking the same card
-      if (cardId !== activeLeader) {
-        setActiveLeader(cardId)
-      }
+      // Toggle selection - clicking same card deselects
+      setActiveLeader(cardId === activeLeader ? null : cardId)
       return
     }
     
     if (card.section === 'leaders-bases' && card.card.isBase) {
-      // Only allow selection, not deselection by clicking the same card
-      if (cardId !== activeBase) {
-        setActiveBase(cardId)
-      }
+      // Toggle selection - clicking same card deselects
+      setActiveBase(cardId === activeBase ? null : cardId)
       return
     }
     
-    // For pool cards (main section), clicking toggles enable/disable
-    if (card.section === 'main' && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+    // For pool cards (deck/sideboard sections), clicking moves between deck and sideboard
+    // But only if not using modifier keys (which are for selection)
+    if ((card.section === 'deck' || card.section === 'sideboard') && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+      // Store that we're doing a click-toggle, not a drag
+      hasDraggedRef.current = false
       setCardPositions(prev => ({
         ...prev,
         [cardId]: {
           ...prev[cardId],
-          enabled: !prev[cardId].enabled
+          section: prev[cardId].section === 'deck' ? 'sideboard' : 'deck',
+          enabled: prev[cardId].section === 'deck' ? false : true
         }
       }))
       return
@@ -626,7 +756,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       })
       return
     }
-
+    
     // Bring to front
     setZIndexCounter(prev => {
       const newZ = prev + 1
@@ -637,9 +767,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       return newZ
     })
 
-    const rect = canvasRef.current.getBoundingClientRect()
-    const offsetX = (e.clientX - rect.left) / zoom - card.x
-    const offsetY = (e.clientY - rect.top) / zoom - card.y
+      const rect = canvasRef.current.getBoundingClientRect()
+    const offsetX = (e.clientX - rect.left) - card.x
+    const offsetY = (e.clientY - rect.top) - card.y
 
     // Check if shift is pressed for group drag
     const isShiftPressed = e.shiftKey
@@ -666,8 +796,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     if (e.button !== 0) return
     if (e.target === canvasRef.current || e.target.classList.contains('deck-canvas')) {
       const rect = canvasRef.current.getBoundingClientRect()
-      const startX = (e.clientX - rect.left) / zoom
-      const startY = (e.clientY - rect.top) / zoom
+      const startX = (e.clientX - rect.left)
+      const startY = (e.clientY - rect.top)
       setIsSelecting(true)
       setSelectionBox({ startX, startY, endX: startX, endY: startY })
       setSelectedCards(new Set())
@@ -679,8 +809,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       const rect = canvasRef.current?.getBoundingClientRect()
       if (!rect) return
       
-      const endX = (e.clientX - rect.left) / zoom
-      const endY = (e.clientY - rect.top) / zoom
+      const endX = (e.clientX - rect.left)
+      const endY = (e.clientY - rect.top)
       setSelectionBox(prev => prev ? { ...prev, endX, endY } : null)
       
       // Select cards in box
@@ -727,8 +857,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         const currentCard = prev[draggedCard]
         if (!currentCard) return prev
 
-        const newX = (e.clientX - rect.left) / zoom - dragOffset.x
-        const newY = (e.clientY - rect.top) / zoom - dragOffset.y
+        const newX = (e.clientX - rect.left) - dragOffset.x
+        const newY = (e.clientY - rect.top) - dragOffset.y
         const cardWidth = currentCard.card.isLeader || currentCard.card.isBase ? 168 : 120
         const cardHeight = currentCard.card.isLeader || currentCard.card.isBase ? 120 : 168
         
@@ -789,7 +919,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         return updates
       })
     }
-  }, [draggedCard, dragOffset, selectedCards, cardPositions, isSelecting, selectionBox, zoom, sectionBounds, isShiftDrag, touchingCards, findTouchingCards])
+  }, [draggedCard, dragOffset, selectedCards, cardPositions, isSelecting, selectionBox, sectionBounds, isShiftDrag, touchingCards, findTouchingCards])
 
   const handleMouseUp = useCallback(() => {
     if (isSelecting) {
@@ -922,45 +1052,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       
       // Clear the final position ref
       finalDragPositionRef.current = null
+      hasDraggedRef.current = false
       setDraggedCard(null)
       setDragOffset({ x: 0, y: 0 })
       setIsShiftDrag(false)
       setTouchingCards(new Set())
     }
   }, [isSelecting, draggedCard, sectionBounds])
-
-  // Zoom to fit
-  const zoomToFit = useCallback(() => {
-    if (!canvasRef.current || !containerRef.current) return
-    
-    const cards = Object.values(cardPositions).filter(p => p.visible)
-    if (cards.length === 0) return
-    
-    const bounds = cards.reduce((acc, pos) => {
-      const width = pos.card.isLeader || pos.card.isBase ? 168 : 120
-      const height = pos.card.isLeader || pos.card.isBase ? 120 : 168
-      return {
-        minX: Math.min(acc.minX, pos.x),
-        minY: Math.min(acc.minY, pos.y),
-        maxX: Math.max(acc.maxX, pos.x + width),
-        maxY: Math.max(acc.maxY, pos.y + height)
-      }
-    }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity })
-    
-    const containerRect = containerRef.current.getBoundingClientRect()
-    const contentWidth = bounds.maxX - bounds.minX
-    const contentHeight = bounds.maxY - bounds.minY
-    
-    const scaleX = (containerRect.width - 100) / contentWidth
-    const scaleY = (containerRect.height - 100) / contentHeight
-    const newZoom = Math.min(scaleX, scaleY, 1)
-    
-    setZoom(newZoom)
-    setPan({
-      x: -bounds.minX * newZoom + 50,
-      y: -bounds.minY * newZoom + 50
-    })
-  }, [cardPositions])
 
   useEffect(() => {
     window.addEventListener('mousemove', handleMouseMove)
@@ -970,24 +1068,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       window.removeEventListener('mouseup', handleMouseUp)
     }
   }, [handleMouseMove, handleMouseUp])
-
-  // Pinch to zoom
-  useEffect(() => {
-    const handleWheel = (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault()
-        // Much slower zoom - 2% per step instead of 10%
-        const delta = e.deltaY > 0 ? 0.98 : 1.02
-        setZoom(prev => Math.max(0.1, Math.min(3, prev * delta)))
-      }
-    }
-    
-    const container = containerRef.current
-    if (container) {
-      container.addEventListener('wheel', handleWheel, { passive: false })
-      return () => container.removeEventListener('wheel', handleWheel)
-    }
-  }, [])
 
   const getRarityColor = (rarity) => {
     switch (rarity) {
@@ -1014,6 +1094,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       return <span className="sort-arrow">↕</span>
     }
     return tableSort.direction === 'asc' ? <span className="sort-arrow">↑</span> : <span className="sort-arrow">↓</span>
+  }
+
+  const defaultSort = (a, b) => {
+    // Default sort: by name alphabetically
+    const aName = (a.name || '').toLowerCase()
+    const bName = (b.name || '').toLowerCase()
+    return aName.localeCompare(bName)
   }
 
   const sortTableData = (a, b, field, direction) => {
@@ -1051,14 +1138,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
     const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
     
-    // Enabled cards go to deck, disabled cards go to sideboard
+    // Cards in deck section go to deck, cards in sideboard section go to sideboard
     // Exclude bases and leaders from pool
     const enabledCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'main' && pos.visible && pos.enabled !== false && !pos.card.isBase && !pos.card.isLeader)
+      .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
       .map(pos => pos.card)
     
     const disabledCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'main' && pos.visible && pos.enabled === false && !pos.card.isBase && !pos.card.isLeader)
+      .filter(pos => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
       .map(pos => pos.card)
     
     // Count enabled cards by ID for deck
@@ -1171,24 +1258,40 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     try {
       setErrorMessage('Generating image...')
       
-      // Get all visible cards organized by section
-      const leaders = Object.values(cardPositions)
-        .filter(pos => pos.section === 'leaders-bases' && pos.visible && pos.card.isLeader)
+      // Get selected leader and base
+      const selectedLeader = activeLeader ? cardPositions[activeLeader]?.card : null
+      const selectedBase = activeBase ? cardPositions[activeBase]?.card : null
+      
+      // Get deck cards (in color)
+      const deckCards = Object.values(cardPositions)
+        .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
         .map(pos => pos.card)
       
-      const bases = Object.values(cardPositions)
-        .filter(pos => pos.section === 'leaders-bases' && pos.visible && pos.card.isBase)
+      // Get sideboard cards (will be grayscale)
+      const sideboardCards = Object.values(cardPositions)
+        .filter(pos => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
         .map(pos => pos.card)
       
-      const poolCards = Object.values(cardPositions)
-        .filter(pos => pos.section === 'main' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
-        .map(pos => pos.card)
+      // Get unused leaders and bases (will be grayscale)
+      const unusedLeaders = Object.entries(cardPositions)
+        .filter(([cardId, pos]) => pos.section === 'leaders-bases' && pos.visible && pos.card.isLeader && cardId !== activeLeader)
+        .map(([_, pos]) => pos.card)
+      
+      const unusedBases = Object.entries(cardPositions)
+        .filter(([cardId, pos]) => pos.section === 'leaders-bases' && pos.visible && pos.card.isBase && cardId !== activeBase)
+        .map(([_, pos]) => pos.card)
       
       // Count cards for display
-      const cardCounts = new Map()
-      poolCards.forEach(card => {
+      const deckCounts = new Map()
+      deckCards.forEach(card => {
         const key = card.id || card.name
-        cardCounts.set(key, (cardCounts.get(key) || 0) + 1)
+        deckCounts.set(key, (deckCounts.get(key) || 0) + 1)
+      })
+      
+      const sideboardCounts = new Map()
+      sideboardCards.forEach(card => {
+        const key = card.id || card.name
+        sideboardCounts.set(key, (sideboardCounts.get(key) || 0) + 1)
       })
       
       // Card dimensions
@@ -1199,28 +1302,33 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       const spacing = 20
       const padding = 50
       const sectionSpacing = 40
+      const cardsPerRow = 6
       
       // Calculate dimensions
-      const cardsPerRow = 6
-      const poolRows = Math.ceil(Array.from(cardCounts.keys()).length / cardsPerRow)
-      const leadersPerRow = Math.max(1, Math.ceil(leaders.length / 2))
-      const basesPerRow = Math.max(1, Math.ceil(bases.length / 2))
+      const deckRows = Math.ceil(Array.from(deckCounts.keys()).length / cardsPerRow)
+      const sideboardRows = Math.ceil(Array.from(sideboardCounts.keys()).length / cardsPerRow)
+      const unusedLeadersRows = Math.ceil(Math.max(0, unusedLeaders.length) / 2)
+      const unusedBasesRows = Math.ceil(Math.max(0, unusedBases.length) / 2)
       
       const width = padding * 2 + cardsPerRow * (cardWidth + spacing) - spacing
       let currentY = padding
       
-      // Leaders section
-      if (leaders.length > 0) {
-        currentY += leadersPerRow * (leaderBaseHeight + spacing) + sectionSpacing
+      // Selected leader and base at top (1 row)
+      if (selectedLeader || selectedBase) {
+        currentY += leaderBaseHeight + sectionSpacing
       }
       
-      // Bases section
-      if (bases.length > 0) {
-        currentY += basesPerRow * (leaderBaseHeight + spacing) + sectionSpacing
-      }
+      // Deck section
+      currentY += deckRows * (cardHeight + spacing) + sectionSpacing
       
-      // Pool cards section
-      currentY += poolRows * (cardHeight + spacing) + sectionSpacing
+      // Sideboard section
+      currentY += sideboardRows * (cardHeight + spacing) + sectionSpacing
+      
+      // Unused leaders section
+      currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing
+      
+      // Unused bases section
+      currentY += unusedBasesRows * (leaderBaseHeight + spacing) + sectionSpacing
       
       // Add space for swupod stamp
       const stampHeight = 40
@@ -1232,25 +1340,45 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       canvas.height = totalHeight
       const ctx = canvas.getContext('2d')
       
-      // Draw background gradient (same as deck builder)
-      const gradient = ctx.createLinearGradient(0, 0, 0, totalHeight)
-      gradient.addColorStop(0, '#0a0a0a')
-      gradient.addColorStop(1, '#1a1a2e')
-      ctx.fillStyle = gradient
+      // Draw background (same as deck builder page)
+      ctx.fillStyle = 'rgb(76, 77, 81)'
       ctx.fillRect(0, 0, width, totalHeight)
       
+      // Load background image if available
+      const bgImg = new Image()
+      bgImg.crossOrigin = 'anonymous'
+      await new Promise((resolve) => {
+        bgImg.onload = () => {
+          ctx.drawImage(bgImg, 0, 0, width, totalHeight)
+          resolve()
+        }
+        bgImg.onerror = () => resolve()
+        bgImg.src = '/background-images/bg-texture-crop.png'
+      })
+      
       // Helper to load and draw card image
-      const drawCard = async (card, x, y, width, height, count = null) => {
+      const drawCard = async (card, x, y, width, height, count = null, grayscale = false) => {
         return new Promise((resolve) => {
           if (card.imageUrl) {
             const img = new Image()
             img.crossOrigin = 'anonymous'
             img.onload = () => {
+              // Save context state
+              ctx.save()
+              
+              if (grayscale) {
+                // Apply grayscale filter
+                ctx.filter = 'grayscale(100%)'
+              }
+              
               // Draw card image
               ctx.drawImage(img, x, y, width, height)
               
-              // Draw rainbow border (2px) around the card
-              const borderWidth = 2
+              // Restore context (removes filter)
+              ctx.restore()
+              
+              // Draw rainbow border (3px) around the card
+              const borderWidth = 3
               const borderGradient = ctx.createLinearGradient(x, y, x + width + height, y + height)
               borderGradient.addColorStop(0, '#ff0000')
               borderGradient.addColorStop(0.14, '#ff7f00')
@@ -1282,10 +1410,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             }
             img.onerror = () => {
               // Draw placeholder if image fails
-              ctx.fillStyle = 'rgba(26, 26, 46, 0.8)'
+              ctx.fillStyle = grayscale ? 'rgba(50, 50, 50, 0.8)' : 'rgba(26, 26, 46, 0.8)'
               ctx.fillRect(x, y, width, height)
               // Draw rainbow border on placeholder too
-              const borderWidth = 2
+              const borderWidth = 3
               const borderGradient = ctx.createLinearGradient(x, y, x + width + height, y + height)
               borderGradient.addColorStop(0, '#ff0000')
               borderGradient.addColorStop(0.14, '#ff7f00')
@@ -1298,7 +1426,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
               ctx.strokeStyle = borderGradient
               ctx.lineWidth = borderWidth
               ctx.strokeRect(x, y, width, height)
-              ctx.fillStyle = 'white'
+              ctx.fillStyle = grayscale ? 'rgba(200, 200, 200, 0.5)' : 'white'
               ctx.font = '12px Arial'
               ctx.textAlign = 'center'
               ctx.fillText(card.name || 'Card', x + width / 2, y + height / 2)
@@ -1307,12 +1435,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             img.src = card.imageUrl
           } else {
             // Draw placeholder
-            ctx.fillStyle = 'rgba(26, 26, 46, 0.8)'
+            ctx.fillStyle = grayscale ? 'rgba(50, 50, 50, 0.8)' : 'rgba(26, 26, 46, 0.8)'
             ctx.fillRect(x, y, width, height)
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
             ctx.lineWidth = 1
             ctx.strokeRect(x, y, width, height)
-            ctx.fillStyle = 'white'
+            ctx.fillStyle = grayscale ? 'rgba(200, 200, 200, 0.5)' : 'white'
             ctx.font = '12px Arial'
             ctx.textAlign = 'center'
             ctx.fillText(card.name || 'Card', x + width / 2, y + height / 2)
@@ -1323,57 +1451,93 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       
       currentY = padding
       
-      // Draw leaders
-      if (leaders.length > 0) {
+      // Draw selected leader and base at top
+      if (selectedLeader || selectedBase) {
         let col = 0
-        let row = 0
-        for (const leader of leaders) {
+        if (selectedLeader) {
           const x = padding + col * (leaderBaseWidth + spacing)
-          const y = currentY + row * (leaderBaseHeight + spacing)
-          await drawCard(leader, x, y, leaderBaseWidth, leaderBaseHeight)
+          await drawCard(selectedLeader, x, currentY, leaderBaseWidth, leaderBaseHeight, null, false)
           col++
-          if (col >= leadersPerRow) {
-            col = 0
-            row++
-          }
         }
-        currentY += row * (leaderBaseHeight + spacing) + (row > 0 ? leaderBaseHeight : 0) + sectionSpacing
+        if (selectedBase) {
+          const x = padding + col * (leaderBaseWidth + spacing)
+          await drawCard(selectedBase, x, currentY, leaderBaseWidth, leaderBaseHeight, null, false)
+        }
+        currentY += leaderBaseHeight + sectionSpacing
       }
       
-      // Draw bases
-      if (bases.length > 0) {
-        let col = 0
-        let row = 0
-        for (const base of bases) {
-          const x = padding + col * (leaderBaseWidth + spacing)
-          const y = currentY + row * (leaderBaseHeight + spacing)
-          await drawCard(base, x, y, leaderBaseWidth, leaderBaseHeight)
-          col++
-          if (col >= basesPerRow) {
-            col = 0
-            row++
-          }
-        }
-        currentY += row * (leaderBaseHeight + spacing) + (row > 0 ? leaderBaseHeight : 0) + sectionSpacing
-      }
-      
-      // Draw pool cards
-      const uniquePoolCards = Array.from(cardCounts.entries()).map(([key, count]) => {
-        const card = poolCards.find(c => (c.id || c.name) === key)
+      // Draw deck cards (in color)
+      const uniqueDeckCards = Array.from(deckCounts.entries()).map(([key, count]) => {
+        const card = deckCards.find(c => (c.id || c.name) === key)
         return { card, count }
       })
       
       let col = 0
       let row = 0
-      for (const { card, count } of uniquePoolCards) {
+      for (const { card, count } of uniqueDeckCards) {
         const x = padding + col * (cardWidth + spacing)
         const y = currentY + row * (cardHeight + spacing)
-        await drawCard(card, x, y, cardWidth, cardHeight, count)
+        await drawCard(card, x, y, cardWidth, cardHeight, count, false)
         col++
         if (col >= cardsPerRow) {
           col = 0
           row++
         }
+      }
+      currentY += deckRows * (cardHeight + spacing) + sectionSpacing
+      
+      // Draw sideboard cards (in grayscale)
+      const uniqueSideboardCards = Array.from(sideboardCounts.entries()).map(([key, count]) => {
+        const card = sideboardCards.find(c => (c.id || c.name) === key)
+        return { card, count }
+      })
+      
+      col = 0
+      row = 0
+      for (const { card, count } of uniqueSideboardCards) {
+        const x = padding + col * (cardWidth + spacing)
+        const y = currentY + row * (cardHeight + spacing)
+        await drawCard(card, x, y, cardWidth, cardHeight, count, true)
+        col++
+        if (col >= cardsPerRow) {
+          col = 0
+          row++
+        }
+      }
+      currentY += sideboardRows * (cardHeight + spacing) + sectionSpacing
+      
+      // Draw unused leaders (in grayscale)
+      if (unusedLeaders.length > 0) {
+        col = 0
+        row = 0
+        for (const leader of unusedLeaders) {
+          const x = padding + col * (leaderBaseWidth + spacing)
+          const y = currentY + row * (leaderBaseHeight + spacing)
+          await drawCard(leader, x, y, leaderBaseWidth, leaderBaseHeight, null, true)
+          col++
+          if (col >= 2) {
+            col = 0
+            row++
+          }
+        }
+        currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing
+      }
+      
+      // Draw unused bases (in grayscale)
+      if (unusedBases.length > 0) {
+        col = 0
+        row = 0
+        for (const base of unusedBases) {
+          const x = padding + col * (leaderBaseWidth + spacing)
+          const y = currentY + row * (leaderBaseHeight + spacing)
+          await drawCard(base, x, y, leaderBaseWidth, leaderBaseHeight, null, true)
+          col++
+          if (col >= 2) {
+            col = 0
+            row++
+          }
+        }
+        currentY += unusedBasesRows * (leaderBaseHeight + spacing) + sectionSpacing
       }
       
       // Draw swupod stamp at bottom
@@ -1385,14 +1549,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       
       // Download image
       canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
         a.download = `deck-${setCode}-${Date.now()}.png`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
         setErrorMessage('Image downloaded!')
         setTimeout(() => setErrorMessage(null), 3000)
       }, 'image/png')
@@ -1413,63 +1577,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         </button>
         <h1>Deck Builder</h1>
         <p className="instruction">Click leaders/bases to select them. Drag other cards to organize your deck.</p>
-        
-        {/* Selected Leader/Base and Deck/Sideboard Info */}
-        <div className="deck-info-bar">
-          <div className="selected-cards-info">
-            <span 
-              className={activeLeader ? 'selected-card-name' : 'select-card-placeholder'}
-              onClick={() => {
-                if (!activeLeader) {
-                  const leadersSection = document.querySelector('.leaders-bases-subsection:first-child')
-                  if (leadersSection) {
-                    leadersSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  }
-                }
-              }}
-            >
-              {activeLeader && cardPositions[activeLeader] ? (
-                <>
-                  {cardPositions[activeLeader].card.name}
-                  {cardPositions[activeLeader].card.subtitle && (
-                    <span className="selected-card-subtitle"> {cardPositions[activeLeader].card.subtitle}</span>
-                  )}
-                </>
-              ) : (
-                '(Select a Leader)'
-              )}
-            </span>
-            <span className="separator">|</span>
-            <span 
-              className={activeBase ? 'selected-card-name' : 'select-card-placeholder'}
-              onClick={() => {
-                if (!activeBase) {
-                  const basesSection = document.querySelector('.leaders-bases-subsection:last-child')
-                  if (basesSection) {
-                    basesSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  }
-                }
-              }}
-            >
-              {activeBase && cardPositions[activeBase] 
-                ? cardPositions[activeBase].card.name 
-                : '(Select a Base)'}
-            </span>
-          </div>
-          <div className="deck-counts-info">
-            <span>Deck ({(() => {
-              const enabledCards = Object.values(cardPositions)
-                .filter(pos => pos.section === 'main' && pos.visible && pos.enabled !== false && !pos.card.isBase && !pos.card.isLeader)
-              return enabledCards.length
-            })()})</span>
-            <span className="separator">|</span>
-            <span>Sideboard ({(() => {
-              const disabledCards = Object.values(cardPositions)
-                .filter(pos => pos.section === 'main' && pos.visible && pos.enabled === false && !pos.card.isBase && !pos.card.isLeader)
-              return disabledCards.length
-            })()})</span>
-          </div>
-        </div>
         
         <div className="header-buttons">
           <button className="export-button" onClick={exportJSON}>
@@ -1496,6 +1603,77 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         )}
       </div>
       
+      {/* Selected Leader/Base and Deck/Sideboard Info - Sticky Bar */}
+      <div className={`deck-info-bar ${isInfoBarSticky ? 'sticky' : ''}`} ref={infoBarRef}>
+        <div className="selected-cards-info">
+          <div 
+            className={`selected-card-container ${!activeLeader ? 'select-card-placeholder' : ''} ${isInfoBarSticky ? 'sticky-layout' : 'inline-layout'}`}
+            onClick={() => {
+              if (!activeLeader) {
+                const leadersSection = document.querySelector('.leaders-bases-subsection:first-child')
+                if (leadersSection) {
+                  const headerHeight = document.querySelector('.deck-info-bar')?.offsetHeight || 0
+                  const topOffset = 20 // matches top: 20px from sticky header
+                  const scrollOffset = headerHeight + topOffset + 10 // extra 10px for spacing
+                  const elementPosition = leadersSection.getBoundingClientRect().top + window.pageYOffset
+                  window.scrollTo({
+                    top: elementPosition - scrollOffset,
+                    behavior: 'smooth'
+                  })
+                }
+              }
+            }}
+          >
+            {activeLeader && cardPositions[activeLeader] ? (
+              <>
+                <span className="selected-card-name">{cardPositions[activeLeader].card.name}</span>
+                {cardPositions[activeLeader].card.subtitle && (
+                  <span className="selected-card-subtitle">{cardPositions[activeLeader].card.subtitle}</span>
+                )}
+              </>
+            ) : (
+              <span className="selected-card-name">(Select a Leader)</span>
+            )}
+          </div>
+          <span className="separator"></span>
+          <span 
+            className={activeBase ? 'selected-card-name' : 'select-card-placeholder'}
+            onClick={() => {
+              if (!activeBase) {
+                const basesSection = document.querySelector('.leaders-bases-subsection:last-child')
+                if (basesSection) {
+                  const headerHeight = document.querySelector('.deck-info-bar')?.offsetHeight || 0
+                  const topOffset = 20 // matches top: 20px from sticky header
+                  const scrollOffset = headerHeight + topOffset + 10 // extra 10px for spacing
+                  const elementPosition = basesSection.getBoundingClientRect().top + window.pageYOffset
+                  window.scrollTo({
+                    top: elementPosition - scrollOffset,
+                    behavior: 'smooth'
+                  })
+                }
+              }
+            }}
+          >
+            {activeBase && cardPositions[activeBase] 
+              ? cardPositions[activeBase].card.name 
+              : '(Select a Base)'}
+          </span>
+        </div>
+        <div className="deck-counts-info">
+            <span>Deck ({(() => {
+              const deckCards = Object.values(cardPositions)
+                .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+              return deckCards.length
+            })()})</span>
+            <span className="separator">|</span>
+            <span>Sideboard ({(() => {
+              const sideboardCards = Object.values(cardPositions)
+                .filter(pos => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+              return sideboardCards.length
+            })()})</span>
+        </div>
+      </div>
+      
       <div className="view-controls">
         <button 
           className="view-toggle-button"
@@ -1519,12 +1697,26 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
           )}
         </button>
         {viewMode === 'grid' && (
-          <button 
-            className="filter-button"
-            onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}
-          >
-            Filter
-          </button>
+          <>
+            <button 
+              className="filter-button"
+              onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}
+              title="Filter"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 5H17M5 10H15M7 15H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+            <button 
+              className="filter-button"
+              onClick={() => setSortDrawerOpen(!sortDrawerOpen)}
+              title="Sort"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 7L10 2L15 7M5 13L10 18L15 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </>
         )}
       </div>
       
@@ -1544,10 +1736,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             }}
           />
           <div className="filter-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="filter-drawer-header">
-              <h2>Filters</h2>
-              <button onClick={() => setFilterDrawerOpen(false)}>×</button>
-            </div>
+          <div className="filter-drawer-header">
+            <h2>Filters</h2>
+            <button onClick={() => setFilterDrawerOpen(false)}>×</button>
+          </div>
           <div className="filter-section">
             <h3>Aspects</h3>
             {ASPECTS.map(aspect => (
@@ -1561,28 +1753,46 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
               </label>
             ))}
           </div>
-          <div className="filter-section">
-            <h3>Sort</h3>
-            {SORT_OPTIONS.map(option => (
-              <button
-                key={option}
-                className={`sort-button ${sortOption === option ? 'active' : ''}`}
-                onClick={() => setSortOption(option)}
-              >
-                {option === 'none' ? 'None' : `Sort by ${option}`}
-              </button>
-            ))}
-          </div>
         </div>
         </>
       )}
       
-      {filterDrawerOpen && (
-        <div className="zoom-to-fit-container">
-          <button className="export-button" onClick={zoomToFit}>
-            Zoom to Fit
-          </button>
-        </div>
+      {sortDrawerOpen && (
+        <>
+          <div 
+            className="filter-drawer-overlay"
+            onClick={() => setSortDrawerOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 1999,
+              background: 'transparent'
+            }}
+          />
+          <div className="filter-drawer" style={{ right: '20px', left: 'auto' }} onClick={(e) => e.stopPropagation()}>
+            <div className="filter-drawer-header">
+              <h2>Sort</h2>
+              <button onClick={() => setSortDrawerOpen(false)}>×</button>
+            </div>
+            <div className="filter-section">
+              {SORT_OPTIONS.map(option => (
+                <button
+                  key={option}
+                  className={`sort-button ${sortOption === option ? 'active' : ''}`}
+                  onClick={() => {
+                    setSortOption(option)
+                    setSortDrawerOpen(false)
+                  }}
+                >
+                  {option === 'none' ? 'None' : `Sort by ${option}`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
       )}
       
       {/* Grid View */}
@@ -1594,8 +1804,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
           .filter(([_, position]) => position.section === 'leaders-bases' && position.visible)
           .map(([cardId, position]) => ({ cardId, position }))
         
-        const leadersCards = leadersBasesCards.filter(({ position }) => position.card.isLeader)
-        const basesCards = leadersBasesCards.filter(({ position }) => position.card.isBase)
+        const leadersCards = leadersBasesCards
+          .filter(({ position }) => position.card.isLeader)
+          .sort((a, b) => defaultSort(a.position.card, b.position.card))
+        const basesCards = leadersBasesCards
+          .filter(({ position }) => position.card.isBase)
+          .sort((a, b) => defaultSort(a.position.card, b.position.card))
         
         if (leadersBasesCards.length > 0) {
           return (
@@ -1726,97 +1940,116 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         return null
       })()}
       
-      {/* Pool Cards Canvas */}
-      <div 
-        ref={canvasRef}
-        className="deck-canvas"
-        style={{
-          height: canvasHeight ? `${canvasHeight}px` : 'auto',
-          transform: `scale(${zoom}) translate3d(${pan.x}px, ${pan.y}px, 0)`,
-          transformOrigin: 'top left'
-        }}
-        onMouseDown={handleCanvasMouseDown}
-      >
-        {selectionBox && (
-          <div
-            className="selection-box"
-            style={{
-              left: `${Math.min(selectionBox.startX, selectionBox.endX)}px`,
-              top: `${Math.min(selectionBox.startY, selectionBox.endY)}px`,
-              width: `${Math.abs(selectionBox.endX - selectionBox.startX)}px`,
-              height: `${Math.abs(selectionBox.endY - selectionBox.startY)}px`
-            }}
-          />
-        )}
-        
-        {/* Section border for pool cards */}
-        {sectionBounds.main && (
-          <div
-            className="section-border"
-            style={{
-              left: `${sectionBounds.main.minX - 10}px`,
-              top: `${sectionBounds.main.minY - 10}px`,
-              width: `${sectionBounds.main.maxX - sectionBounds.main.minX + 20}px`,
-              height: `${sectionBounds.main.maxY - sectionBounds.main.minY + 20}px`
-            }}
-          />
-        )}
-        
-        {sectionLabels.filter(label => label.text === 'Pool Cards').map((label, index) => (
-          <div key={index} className="section-label" style={{ top: `${label.y}px`, left: '50px' }}>
-            {label.text}
-          </div>
-        ))}
-        
-        {Object.entries(cardPositions).map(([cardId, position]) => {
-          if (!position.visible || position.section === 'leaders-bases') return null
-          
-          const card = position.card
-          // Exclude bases and leaders from pool section
-          if (card.isBase || card.isLeader) return null
-          
-          const isDragging = draggedCard === cardId
-          const isSelected = selectedCards.has(cardId)
-          const isHovered = hoveredCard === cardId
-          const isDisabled = position.section === 'main' && position.enabled === false
-          const canDrag = true
-          
-          return (
-            <div
-              key={cardId}
-              className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isDragging ? 'dragging' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''}`}
-              style={{
-                left: `${position.x}px`,
-                top: `${position.y}px`,
-                cursor: canDrag ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
-                zIndex: position.zIndex || (isDragging ? 1000 : isSelected ? 500 : isHovered ? 100 : 1)
-              }}
-              onMouseDown={(e) => handleMouseDown(e, cardId)}
-              onMouseEnter={() => setHoveredCard(cardId)}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              {card.imageUrl ? (
-                <img
-                  src={card.imageUrl}
-                  alt={card.name || 'Card'}
-                  className="card-image"
-                  draggable={false}
-                />
-              ) : (
-                <div className="card-placeholder">
-                  <div className="card-name">{card.name || 'Card'}</div>
-                  <div className="card-rarity" style={{ color: getRarityColor(card.rarity) }}>
-                    {card.rarity}
+      {/* Deck Section */}
+      <div className="deck-section">
+        <h3 
+          className="subsection-header"
+          onClick={() => setDeckExpanded(!deckExpanded)}
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+        >
+          <span style={{ marginRight: '0.5rem' }}>{deckExpanded ? '▼' : '▶'}</span>
+          Deck
+        </h3>
+        {deckExpanded && (
+          <div className="cards-grid">
+            {Object.entries(cardPositions)
+              .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader)
+              .map(([cardId, position]) => ({ cardId, position }))
+              .sort((a, b) => defaultSort(a.position.card, b.position.card))
+              .map(({ cardId, position }) => {
+              const card = position.card
+              const isSelected = selectedCards.has(cardId)
+              const isHovered = hoveredCard === cardId
+              const isDisabled = !position.enabled
+              
+              return (
+                <div
+                  key={cardId}
+                  className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''}`}
+                  onClick={(e) => handleMouseDown(e, cardId)}
+                  onMouseEnter={() => setHoveredCard(cardId)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
+                  {card.imageUrl ? (
+                    <img
+                      src={card.imageUrl}
+                      alt={card.name || 'Card'}
+                      className="card-image"
+                      draggable={false}
+                    />
+                  ) : (
+                    <div className="card-placeholder">
+                      <div className="card-name">{card.name || 'Card'}</div>
+                      <div className="card-rarity" style={{ color: getRarityColor(card.rarity) }}>
+                        {card.rarity}
+                      </div>
+                    </div>
+                  )}
+                  <div className="card-badges">
+                    {card.isFoil && <span className="badge foil-badge">Foil</span>}
+                    {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
                   </div>
                 </div>
-              )}
-              <div className="card-badges">
-                {card.isFoil && <span className="badge foil-badge">Foil</span>}
-                {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
-              </div>
-            </div>
-          )
-        })}
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Sideboard Section */}
+      <div className="sideboard-section">
+        <h3 
+          className="subsection-header"
+          onClick={() => setSideboardExpanded(!sideboardExpanded)}
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+        >
+          <span style={{ marginRight: '0.5rem' }}>{sideboardExpanded ? '▼' : '▶'}</span>
+          Sideboard
+        </h3>
+        {sideboardExpanded && (
+          <div className="cards-grid">
+            {Object.entries(cardPositions)
+              .filter(([_, position]) => position.section === 'sideboard' && position.visible && !position.card.isBase && !position.card.isLeader)
+              .map(([cardId, position]) => ({ cardId, position }))
+              .sort((a, b) => defaultSort(a.position.card, b.position.card))
+              .map(({ cardId, position }) => {
+              const card = position.card
+              const isSelected = selectedCards.has(cardId)
+              const isHovered = hoveredCard === cardId
+              const isDisabled = !position.enabled
+              
+              return (
+                <div
+                  key={cardId}
+                  className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''}`}
+                  onClick={(e) => handleMouseDown(e, cardId)}
+                  onMouseEnter={() => setHoveredCard(cardId)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
+                  {card.imageUrl ? (
+                    <img
+                      src={card.imageUrl}
+                      alt={card.name || 'Card'}
+                      className="card-image"
+                      draggable={false}
+                    />
+                  ) : (
+                    <div className="card-placeholder">
+                      <div className="card-name">{card.name || 'Card'}</div>
+                      <div className="card-rarity" style={{ color: getRarityColor(card.rarity) }}>
+                        {card.rarity}
+                      </div>
+                    </div>
+                  )}
+                  <div className="card-badges">
+                    {card.isFoil && <span className="badge foil-badge">Foil</span>}
+                    {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
         </>
       )}
@@ -1833,7 +2066,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             if (leaderPositions.length === 0) return null
             
             const sortedLeaders = [...leaderPositions].sort((a, b) => {
-              if (!tableSort.field) return 0
+              if (!tableSort.field) {
+                return defaultSort(a.card, b.card)
+              }
               return sortTableData(a.card, b.card, tableSort.field, tableSort.direction)
             })
             
@@ -1876,17 +2111,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
                           }).filter(Boolean)
                         : null
+                      const isSelected = activeLeader === cardId
                       return (
-                        <tr key={`leader-${cardId}-${idx}`} className={!enabled ? 'disabled' : ''}>
+                        <tr key={`leader-${cardId}-${idx}`}>
                           <td>
                             <input
-                              type="checkbox"
-                              checked={enabled}
+                              type="radio"
+                              name="leader-selection"
+                              checked={isSelected}
                               onChange={(e) => {
-                                setCardPositions(prev => ({
-                                  ...prev,
-                                  [cardId]: { ...prev[cardId], enabled: e.target.checked }
-                                }))
+                                if (e.target.checked) {
+                                  setActiveLeader(cardId)
+                                } else {
+                                  setActiveLeader(null)
+                                }
                               }}
                             />
                           </td>
@@ -1922,7 +2160,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             if (basePositions.length === 0) return null
             
             const sortedBases = [...basePositions].sort((a, b) => {
-              if (!tableSort.field) return 0
+              if (!tableSort.field) {
+                return defaultSort(a.card, b.card)
+              }
               return sortTableData(a.card, b.card, tableSort.field, tableSort.direction)
             })
             
@@ -1965,17 +2205,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
                           }).filter(Boolean)
                         : null
+                      const isSelected = activeBase === cardId
                       return (
-                        <tr key={`base-${cardId}-${idx}`} className={!enabled ? 'disabled' : ''}>
+                        <tr key={`base-${cardId}-${idx}`}>
                           <td>
                             <input
-                              type="checkbox"
-                              checked={enabled}
+                              type="radio"
+                              name="base-selection"
+                              checked={isSelected}
                               onChange={(e) => {
-                                setCardPositions(prev => ({
-                                  ...prev,
-                                  [cardId]: { ...prev[cardId], enabled: e.target.checked }
-                                }))
+                                if (e.target.checked) {
+                                  setActiveBase(cardId)
+                                } else {
+                                  setActiveBase(null)
+                                }
                               }}
                             />
                           </td>
@@ -2002,82 +2245,185 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             )
           })()}
           
-          {/* Card Pool Section */}
+          {/* Pool Section - Deck and Sideboard */}
           {(() => {
-            const poolCardPositions = Object.entries(cardPositions)
-              .filter(([_, pos]) => pos.section === 'main' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
-              .map(([cardId, pos]) => ({ cardId, card: pos.card, enabled: pos.enabled !== false }))
+            const deckCardPositions = Object.entries(cardPositions)
+              .filter(([_, pos]) => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+              .map(([cardId, pos]) => ({ cardId, card: pos.card }))
+              .sort((a, b) => {
+                if (!tableSort.field) {
+                  return defaultSort(a.card, b.card)
+                }
+                return sortTableData(a.card, b.card, tableSort.field, tableSort.direction)
+              })
             
-            if (poolCardPositions.length === 0) return null
+            const sideboardCardPositions = Object.entries(cardPositions)
+              .filter(([_, pos]) => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+              .map(([cardId, pos]) => ({ cardId, card: pos.card }))
+              .sort((a, b) => {
+                if (!tableSort.field) {
+                  return defaultSort(a.card, b.card)
+                }
+                return sortTableData(a.card, b.card, tableSort.field, tableSort.direction)
+              })
             
-            const sortedPoolCards = [...poolCardPositions].sort((a, b) => {
-              if (!tableSort.field) return 0
-              return sortTableData(a.card, b.card, tableSort.field, tableSort.direction)
-            })
+            if (deckCardPositions.length === 0 && sideboardCardPositions.length === 0) return null
             
             return (
               <div className="list-section">
-                <h2 className="list-section-title">Card Pool</h2>
-                <table className="list-table">
-                  <thead>
-                    <tr>
-                      <th className="checkbox-col">
-                        <input type="checkbox" disabled />
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('name')}>
-                        Title {getSortArrow('name')}
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('cost')}>
-                        Cost {getSortArrow('cost')}
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('aspects')}>
-                        Aspects {getSortArrow('aspects')}
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('rarity')}>
-                        Rarity {getSortArrow('rarity')}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedPoolCards.map(({ cardId, card, enabled }, idx) => {
-                      const aspectSymbols = card.aspects && card.aspects.length > 0 
-                        ? card.aspects.map((aspect, i) => {
-                            const symbol = getAspectSymbol(aspect)
-                            return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
-                          }).filter(Boolean)
-                        : null
-                      return (
-                        <tr key={`pool-${cardId}-${idx}`} className={!enabled ? 'disabled' : ''}>
-                          <td>
-                            <input
-                              type="checkbox"
-                              checked={enabled}
-                              onChange={(e) => {
-                                setCardPositions(prev => ({
-                                  ...prev,
-                                  [cardId]: { ...prev[cardId], enabled: e.target.checked }
-                                }))
-                              }}
-                            />
-                          </td>
-                          <td>
-                            <div className="card-name-cell">
-                              <div className="card-name-main">{card.name || 'Unknown'}</div>
-                              {card.subtitle && !card.isBase && (
-                                <div className="card-name-subtitle">{card.subtitle}</div>
-                              )}
-                            </div>
-                          </td>
-                          <td>{card.cost !== null && card.cost !== undefined ? card.cost : '-'}</td>
-                          <td className="aspects-cell">
-                            {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
-                          </td>
-                          <td style={{ color: getRarityColor(card.rarity) }}>{card.rarity || 'Unknown'}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                <h2 className="list-section-title">Pool</h2>
+                
+                {/* Deck Section */}
+                {deckCardPositions.length > 0 && (
+                  <div className="pool-subsection">
+                    <h3 
+                      className="pool-subsection-title"
+                      onClick={() => setDeckExpanded(!deckExpanded)}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                    >
+                      <span style={{ marginRight: '0.5rem' }}>{deckExpanded ? '▼' : '▶'}</span>
+                      Deck ({deckCardPositions.length})
+                    </h3>
+                    {deckExpanded && (
+                      <table className="list-table">
+                        <thead>
+                          <tr>
+                            <th className="checkbox-col">
+                              <input type="checkbox" disabled />
+                            </th>
+                            <th className="sortable" onClick={() => handleTableSort('name')}>
+                              Title {getSortArrow('name')}
+                            </th>
+                            <th className="sortable" onClick={() => handleTableSort('cost')}>
+                              Cost {getSortArrow('cost')}
+                            </th>
+                            <th className="sortable" onClick={() => handleTableSort('aspects')}>
+                              Aspects {getSortArrow('aspects')}
+                            </th>
+                            <th className="sortable" onClick={() => handleTableSort('rarity')}>
+                              Rarity {getSortArrow('rarity')}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {deckCardPositions.map(({ cardId, card }, idx) => {
+                            const aspectSymbols = card.aspects && card.aspects.length > 0 
+                              ? card.aspects.map((aspect, i) => {
+                                  const symbol = getAspectSymbol(aspect)
+                                  return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
+                                }).filter(Boolean)
+                              : null
+                            return (
+                              <tr key={`deck-${cardId}-${idx}`}>
+                                <td>
+                                  <input
+                                    type="checkbox"
+                                    checked={true}
+                                    onChange={(e) => {
+                                      setCardPositions(prev => ({
+                                        ...prev,
+                                        [cardId]: { ...prev[cardId], section: 'sideboard', enabled: false }
+                                      }))
+                                    }}
+                                  />
+                                </td>
+                                <td>
+                                  <div className="card-name-cell">
+                                    <div className="card-name-main">{card.name || 'Unknown'}</div>
+                                    {card.subtitle && !card.isBase && (
+                                      <div className="card-name-subtitle">{card.subtitle}</div>
+                                    )}
+                                  </div>
+                                </td>
+                                <td>{card.cost !== null && card.cost !== undefined ? card.cost : '-'}</td>
+                                <td className="aspects-cell">
+                                  {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
+                                </td>
+                                <td style={{ color: getRarityColor(card.rarity) }}>{card.rarity || 'Unknown'}</td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
+                
+                {/* Sideboard Section */}
+                {sideboardCardPositions.length > 0 && (
+                  <div className="pool-subsection">
+                    <h3 
+                      className="pool-subsection-title"
+                      onClick={() => setSideboardExpanded(!sideboardExpanded)}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                    >
+                      <span style={{ marginRight: '0.5rem' }}>{sideboardExpanded ? '▼' : '▶'}</span>
+                      Sideboard ({sideboardCardPositions.length})
+                    </h3>
+                    {sideboardExpanded && (
+                      <table className="list-table">
+                        <thead>
+                          <tr>
+                            <th className="checkbox-col">
+                              <input type="checkbox" disabled />
+                            </th>
+                            <th className="sortable" onClick={() => handleTableSort('name')}>
+                              Title {getSortArrow('name')}
+                            </th>
+                            <th className="sortable" onClick={() => handleTableSort('cost')}>
+                              Cost {getSortArrow('cost')}
+                            </th>
+                            <th className="sortable" onClick={() => handleTableSort('aspects')}>
+                              Aspects {getSortArrow('aspects')}
+                            </th>
+                            <th className="sortable" onClick={() => handleTableSort('rarity')}>
+                              Rarity {getSortArrow('rarity')}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sideboardCardPositions.map(({ cardId, card }, idx) => {
+                            const aspectSymbols = card.aspects && card.aspects.length > 0 
+                              ? card.aspects.map((aspect, i) => {
+                                  const symbol = getAspectSymbol(aspect)
+                                  return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
+                                }).filter(Boolean)
+                              : null
+                            return (
+                              <tr key={`sideboard-${cardId}-${idx}`}>
+                                <td>
+                                  <input
+                                    type="checkbox"
+                                    checked={false}
+                                    onChange={(e) => {
+                                      setCardPositions(prev => ({
+                                        ...prev,
+                                        [cardId]: { ...prev[cardId], section: 'deck', enabled: true }
+                                      }))
+                                    }}
+                                  />
+                                </td>
+                                <td>
+                                  <div className="card-name-cell">
+                                    <div className="card-name-main">{card.name || 'Unknown'}</div>
+                                    {card.subtitle && !card.isBase && (
+                                      <div className="card-name-subtitle">{card.subtitle}</div>
+                                    )}
+                                  </div>
+                                </td>
+                                <td>{card.cost !== null && card.cost !== undefined ? card.cost : '-'}</td>
+                                <td className="aspects-cell">
+                                  {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
+                                </td>
+                                <td style={{ color: getRarityColor(card.rarity) }}>{card.rarity || 'Unknown'}</td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
               </div>
             )
           })()}

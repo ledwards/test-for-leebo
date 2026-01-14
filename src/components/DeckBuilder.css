@@ -1,11 +1,14 @@
 .deck-builder {
   min-height: 100vh;
   padding: 2rem;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+  background-color: rgb(76, 77, 81);
+  background-image: linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%), linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%), linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url("/background-images/bg-texture-crop.png");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 150% auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat-y;
+  background-position: center center, center center, center center, center center;
   color: white;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
 }
 
 .deck-builder-header {
@@ -29,18 +32,33 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 1.5rem;
-  padding: 1rem 1.5rem;
-  background: rgba(10, 10, 10, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
   flex-wrap: wrap;
   gap: 1rem;
+  position: -webkit-sticky;
   position: sticky;
-  top: 0;
-  z-index: 100;
+  top: 20px;
+  z-index: 1000;
   backdrop-filter: blur(10px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  box-sizing: border-box;
+  /* Non-sticky: align with content margins (matching leaders-bases-section which has margin-left/right: 2rem) */
+  margin-left: 2rem;
+  margin-right: 2rem;
+  width: calc(100% - 4rem);
+}
+
+/* When sticky, align with card images (deck-builder padding + section margin + section padding) */
+.deck-info-bar.sticky {
+  margin-left: calc(2rem + 2rem + 1.5rem); /* 2rem deck-builder padding + 2rem section margin + 1.5rem section padding = aligns with card images */
+  margin-right: calc(2rem + 20px + 100px); /* 2rem parent padding + 20px filter button right + filter button width (~100px) */
+  width: calc(100% - 2rem - 2rem - 1.5rem - 2rem - 20px - 100px); /* Adjust width to account for all margins */
 }
 
 .selected-cards-info {
@@ -48,6 +66,23 @@
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.selected-card-container {
+  display: flex;
+  line-height: 1.2;
+}
+
+/* Inline layout: subtitle to the right of title */
+.selected-card-container.inline-layout {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Sticky layout: subtitle below title */
+.selected-card-container.sticky-layout {
+  flex-direction: column;
 }
 
 .selected-card-name {
@@ -59,24 +94,48 @@
 .selected-card-subtitle {
   color: rgba(255, 255, 255, 0.6);
   font-weight: 400;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
+}
+
+/* Inline layout: subtitle appears inline */
+.selected-card-container.inline-layout .selected-card-subtitle {
+  margin-top: 0;
+}
+
+/* Sticky layout: subtitle appears below */
+.selected-card-container.sticky-layout .selected-card-subtitle {
+  margin-top: 0.1rem;
 }
 
 .select-card-placeholder {
+  cursor: pointer;
+}
+
+.select-card-placeholder .selected-card-name {
   color: rgba(255, 255, 255, 0.5);
   font-style: italic;
-  cursor: pointer;
   text-decoration: underline;
   transition: color 0.2s ease;
 }
 
-.select-card-placeholder:hover {
+.select-card-placeholder:hover .selected-card-name {
   color: rgba(255, 255, 255, 0.8);
 }
 
 .separator {
-  color: rgba(255, 255, 255, 0.3);
-  margin: 0 0.25rem;
+  width: 1px;
+  background-color: rgba(255, 255, 255, 0.3);
+  margin: 0 0.5rem;
+  align-self: center;
+  transition: height 0.3s ease;
+  height: 1rem; /* Default height matches single line */
+  flex-shrink: 0;
+}
+
+/* Taller separator when sticky to match title+subtitle height */
+.deck-info-bar.sticky .separator {
+  height: calc(1rem + 0.75rem + 0.1rem + 0.2rem); /* title height + subtitle height + margin + extra spacing */
+  min-height: calc(1rem + 0.75rem + 0.1rem + 0.2rem);
 }
 
 .deck-counts-info {
@@ -96,7 +155,7 @@
 }
 
 .export-button {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.7);
   border: 2px solid rgba(255, 255, 255, 0.4);
   color: white;
   padding: 0.75rem 1.5rem;
@@ -108,7 +167,7 @@
 }
 
 .export-button:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.85);
   border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
@@ -116,11 +175,9 @@
 
 /* Leaders & Bases Section - Flex Container */
 .leaders-bases-section {
-  margin-bottom: 2rem;
-  margin-left: 2rem;
-  margin-right: 2rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.03);
+  margin: 0.5rem;
+  padding: 2.5rem;
+  background: rgba(0, 0, 0, 0.6);
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
 }
@@ -137,10 +194,33 @@
 
 .leaders-bases-subsection {
   margin-bottom: 2rem;
+  overflow: visible;
 }
 
 .leaders-bases-subsection:last-child {
   margin-bottom: 0;
+}
+
+.leaders-bases-container-wrapper {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.42, 0, 0.58, 1);
+}
+
+.leaders-bases-container-wrapper.expanded {
+  max-height: 5000px; /* Large enough to accommodate content */
+  transition: max-height 0.35s cubic-bezier(0.42, 0, 0.58, 1);
+}
+
+.list-section-content-wrapper {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.42, 0, 0.58, 1);
+}
+
+.list-section-content-wrapper.expanded {
+  max-height: 10000px; /* Large enough to accommodate table content */
+  transition: max-height 0.35s cubic-bezier(0.42, 0, 0.58, 1);
 }
 
 .subsection-header {
@@ -154,11 +234,31 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.pool-subsection {
+  margin-bottom: 2rem;
+}
+
+.pool-subsection:last-child {
+  margin-bottom: 0;
+}
+
+.pool-subsection-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
 .leaders-bases-container {
   display: flex;
   flex-wrap: wrap;
   gap: 1.25rem;
   align-items: flex-start;
+  padding: 12px;
 }
 
 /* Cards in flex container should not be absolutely positioned */
@@ -167,18 +267,40 @@
   flex-shrink: 0;
 }
 
-.deck-canvas {
-  position: relative;
-  min-height: calc(100vh - 300px);
-  background: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-  border: none;
+.deck-section,
+.sideboard-section {
+  margin: 0.5rem;
+  padding: 2.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   overflow: visible;
-  cursor: default;
-  margin-bottom: 2rem;
+  box-sizing: border-box;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 120px);
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: start;
+}
+
+.cards-grid .canvas-card {
+  width: 120px;
+  max-width: 120px;
+  height: auto;
+  position: relative;
+  margin: 0;
+}
+
+.cards-grid .canvas-card.leader,
+.cards-grid .canvas-card.base {
+  width: 168px;
+  max-width: 168px;
 }
 
 .section-border {
@@ -202,18 +324,19 @@
 }
 
 .canvas-card {
-  position: absolute;
+  position: relative;
   width: 120px;
   aspect-ratio: 2.5 / 3.5;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.6);
   border: none;
   border-radius: 8px;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
-  cursor: grab;
+  cursor: pointer;
   isolation: isolate;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   user-select: none;
   touch-action: none;
+  overflow: visible;
 }
 
 /* Leaders and bases are landscape (wider than tall) */
@@ -259,6 +382,13 @@
   overflow: hidden;
 }
 
+/* Ensure all section containers allow card borders to show */
+.leaders-bases-section,
+.deck-section,
+.sideboard-section {
+  overflow: visible !important;
+}
+
 /* Rainbow border only shows on selected cards (not on hover) */
 .canvas-card.selected::before,
 .canvas-card.active-leader::before,
@@ -267,12 +397,12 @@
   animation: rainbow-border 3s linear infinite;
 }
 
-.canvas-card:hover:not(.dragging) {
+.canvas-card:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-.canvas-card.hovered:not(.dragging) {
+.canvas-card.hovered {
   transform: scale(1.125);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
@@ -290,15 +420,15 @@
 }
 
 .canvas-card.disabled {
-  filter: grayscale(100%);
   opacity: 0.7;
+  /* Don't apply filter to the card itself - only to the image so border stays colorful */
 }
 
-.canvas-card.dragging {
-  transform: scale(1.1) rotate(2deg);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-  cursor: grabbing;
+.canvas-card.disabled .card-image,
+.canvas-card.disabled .card-placeholder {
+  filter: grayscale(100%);
 }
+
 
 @keyframes rainbow-border {
   0% {
@@ -316,6 +446,42 @@
 
 .canvas-card.foil {
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.canvas-card.foil::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 0, 0, 0.3) 0%,
+    rgba(255, 127, 0, 0.3) 15%,
+    rgba(255, 255, 0, 0.3) 30%,
+    rgba(0, 255, 0, 0.3) 45%,
+    rgba(0, 0, 255, 0.3) 60%,
+    rgba(75, 0, 130, 0.3) 75%,
+    rgba(148, 0, 211, 0.3) 90%,
+    rgba(255, 0, 0, 0.3) 100%
+  );
+  background-size: 200% 200%;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 2;
+  animation: foil-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes foil-shimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .canvas-card.hyperspace {
@@ -404,7 +570,7 @@
 }
 
 .back-button {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
   padding: 0.75rem 1.5rem;
@@ -416,7 +582,7 @@
 }
 
 .back-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.85);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
@@ -425,12 +591,13 @@
   top: 20px;
   right: 20px;
   display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   z-index: 1000;
 }
 
 .view-toggle-button {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
   padding: 0.75rem;
@@ -446,24 +613,28 @@
 }
 
 .view-toggle-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.85);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
 .filter-button {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  width: 44px;
+  height: 44px;
 }
 
 .filter-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.85);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
@@ -480,7 +651,7 @@
   right: 0;
   width: 300px;
   height: 100vh;
-  background: rgba(26, 26, 46, 0.95);
+  background: rgba(0, 0, 0, 0.95);
   backdrop-filter: blur(10px);
   border-left: 2px solid rgba(255, 255, 255, 0.2);
   z-index: 2000;
@@ -546,7 +717,7 @@
 }
 
 .filter-checkbox:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .filter-checkbox input[type="checkbox"] {
@@ -560,7 +731,7 @@
   width: 100%;
   padding: 0.75rem 1rem;
   margin-bottom: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
   border-radius: 6px;
@@ -571,7 +742,7 @@
 }
 
 .sort-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.85);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
@@ -595,7 +766,7 @@
 .list-view {
   margin-top: 2rem;
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 12px;
 }
 
@@ -613,13 +784,13 @@
 .list-table {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.6);
   border-radius: 8px;
   overflow: hidden;
 }
 
 .list-table thead {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.8);
 }
 
 .list-table th {
@@ -637,7 +808,7 @@
 }
 
 .list-table th.sortable:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.9);
 }
 
 .sort-arrow {
@@ -659,7 +830,7 @@
 }
 
 .list-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .list-table tbody tr.disabled {

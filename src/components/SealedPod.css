@@ -1,12 +1,16 @@
 .sealed-pod {
   min-height: 100vh;
   padding: 2rem;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+  background-color: rgb(76, 77, 81);
+  background-image: linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%), linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%), linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url("/background-images/bg-texture-crop.png");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 150% auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat-y;
+  background-position: center center, center center, center center, center center;
   color: white;
 }
 
 .back-button {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
   padding: 0.75rem 1.5rem;
@@ -18,7 +22,7 @@
 }
 
 .back-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.85);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
@@ -35,9 +39,9 @@
 }
 
 .build-deck-button {
-  background: white;
-  border: 2px solid white;
-  color: #000;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white;
   padding: 1rem 2.5rem;
   border-radius: 8px;
   cursor: pointer;
@@ -49,7 +53,7 @@
 }
 
 .build-deck-button:hover {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.9);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(255, 255, 255, 0.5);
 }
@@ -75,7 +79,7 @@
 }
 
 .pack-details {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.6);
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   padding: 2rem;
@@ -96,7 +100,7 @@
 }
 
 .card-item {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.6);
   border: none;
   border-radius: 8px;
   position: relative;
@@ -172,6 +176,42 @@
 
 .card-item.foil {
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-item.foil::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 0, 0, 0.3) 0%,
+    rgba(255, 127, 0, 0.3) 15%,
+    rgba(255, 255, 0, 0.3) 30%,
+    rgba(0, 255, 0, 0.3) 45%,
+    rgba(0, 0, 255, 0.3) 60%,
+    rgba(75, 0, 130, 0.3) 75%,
+    rgba(148, 0, 211, 0.3) 90%,
+    rgba(255, 0, 0, 0.3) 100%
+  );
+  background-size: 200% 200%;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 2;
+  animation: foil-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes foil-shimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .card-item.hyperspace {

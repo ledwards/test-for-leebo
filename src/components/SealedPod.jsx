@@ -167,7 +167,6 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                     </div>
                   )}
                   <div className="card-badges">
-                    {card.isFoil && <span className="badge foil-badge">Foil</span>}
                     {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
                   </div>
                 </div>
