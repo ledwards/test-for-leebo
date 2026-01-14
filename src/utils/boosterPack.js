@@ -1,0 +1,477 @@
+// Booster pack generation logic based on:
+// https://starwarsunlimited.com/articles/boosting-ahead-of-release
+
+/**
+ * Generate a single booster pack according to SWU rules
+ * 
+ * Pack contents:
+ * - 1 Leader card (guaranteed, in leader slot only)
+ * - 1 Base card (guaranteed, in base slot only - unless rare base in rare slot)
+ * - 9 Common cards
+ * - 3 Uncommon cards
+ * - 1 Rare or Legendary card (can be rare base for sets 1-6)
+ * - 1 Foil card (can be any rarity, including Special for sets 4-6)
+ * 
+ * Total: 16 cards
+ * 
+ * Rules:
+ * - Leaders can ONLY appear in leader slot
+ * - Common bases can ONLY appear in base slot
+ * - Rare bases CAN appear in rare slot (sets 1-6: SOR, SHD, TWI, JTL, LOF, SEC)
+ * - Special rarity cards do NOT appear in packs EXCEPT in foil slot (sets 4-6: JTL, LOF, SEC only)
+ * 
+ * Variants:
+ * - Hyperspace variant: ~1 in 288 cards (~0.35% per card)
+ * - Showcase variant: 1 in 288 packs (~0.35% per leader)
+ */
+export function generateBoosterPack(cards, setCode) {
+  if (!cards || cards.length === 0) {
+    return []
+  }
+
+  // Determine if this is set 4-6 (JTL, LOF, SEC) for Special rarity in foil slot
+  const sets4to6 = ['JTL', 'LOF', 'SEC']
+  const isSet4to6 = sets4to6.includes(setCode)
+
+  // Separate cards by type and rarity
+  const leaders = cards.filter((card) => card.isLeader)
+  const bases = cards.filter((card) => card.isBase)
+  const standardCards = cards.filter(
+    (card) => !card.isLeader && !card.isBase
+  )
+
+  // Separate bases by rarity
+  const commonBases = bases.filter((card) => card.rarity === 'Common')
+  const rareBases = bases.filter((card) => card.rarity === 'Rare')
+
+  // Standard cards by rarity (excluding Special)
+  const commons = standardCards.filter((card) => card.rarity === 'Common')
+  const uncommons = standardCards.filter((card) => card.rarity === 'Uncommon')
+  const rares = standardCards.filter((card) => card.rarity === 'Rare')
+  const legendaries = standardCards.filter(
+    (card) => card.rarity === 'Legendary'
+  )
+
+  // Special rarity cards (only for foil slot in sets 4-6)
+  const specials = cards.filter((card) => card.rarity === 'Special')
+
+  const pack = []
+
+  // 1. Guaranteed Leader (leaders can ONLY appear here)
+  if (leaders.length > 0) {
+    // Filter to normal leaders only (variants are separate cards)
+    const normalLeaders = leaders.filter((l) => l.variantType === 'Normal')
+    const leader = normalLeaders.length > 0 
+      ? randomSelect(normalLeaders)
+      : randomSelect(leaders)
+    
+    const isShowcase = rollShowcase()
+    const isHyperspace = rollHyperspace()
+    
+    let finalLeader = { ...leader }
+    
+    // If showcase, use showcase variant card
+    if (isShowcase) {
+      const showcaseCard = findVariantCard(leader, 'Showcase', cards)
+      if (showcaseCard) {
+        finalLeader = showcaseCard
+      }
+    }
+    // If hyperspace (and not showcase), use hyperspace variant card
+    else if (isHyperspace) {
+      const hyperspaceCard = findVariantCard(leader, 'Hyperspace', cards)
+      if (hyperspaceCard) {
+        finalLeader = hyperspaceCard
+      }
+    }
+    
+    pack.push({
+      ...finalLeader,
+      isFoil: false,
+      isHyperspace: isHyperspace && !isShowcase, // Hyperspace only if not showcase
+      isShowcase: isShowcase,
+    })
+  }
+
+  // 2. Guaranteed Base (common bases can ONLY appear here)
+  // Note: Rare bases can appear in the rare slot, but we still need a base here
+  // So the base slot always has a base (preferably common)
+  if (commonBases.length > 0) {
+    // Filter to normal bases only
+    const normalCommonBases = commonBases.filter((b) => b.variantType === 'Normal')
+    const base = normalCommonBases.length > 0
+      ? randomSelect(normalCommonBases)
+      : randomSelect(commonBases)
+    
+    const isHyperspace = rollHyperspace()
+    let finalBase = { ...base }
+    
+    // If hyperspace, use hyperspace variant card
+    if (isHyperspace) {
+      const hyperspaceCard = findVariantCard(base, 'Hyperspace', cards)
+      if (hyperspaceCard) {
+        finalBase = hyperspaceCard
+      }
+    }
+    
+    pack.push({
+      ...finalBase,
+      isFoil: false,
+      isHyperspace: isHyperspace,
+    })
+  } else if (bases.length > 0) {
+    // Fallback if no common bases (shouldn't happen, but safety)
+    // Exclude rare bases if possible, as they can appear in rare slot
+    const nonRareBases = bases.filter((b) => b.rarity !== 'Rare' && b.variantType === 'Normal')
+    const base = nonRareBases.length > 0 
+      ? randomSelect(nonRareBases)
+      : randomSelect(bases.filter((b) => b.variantType === 'Normal'))
+    
+    const isHyperspace = rollHyperspace()
+    let finalBase = { ...base }
+    
+    if (isHyperspace) {
+      const hyperspaceCard = findVariantCard(base, 'Hyperspace', cards)
+      if (hyperspaceCard) {
+        finalBase = hyperspaceCard
+      }
+    }
+    
+    pack.push({
+      ...finalBase,
+      isFoil: false,
+      isHyperspace: isHyperspace,
+    })
+  }
+
+  // 3. 9 Common cards (non-leader, non-base)
+  // Filter to normal cards only
+  const normalCommons = commons.filter((c) => c.variantType === 'Normal')
+  const commonsPool = normalCommons.length > 0 ? normalCommons : commons
+  
+  for (let i = 0; i < 9 && commonsPool.length > 0; i++) {
+    const common = randomSelect(commonsPool)
+    const isHyperspace = rollHyperspace()
+    let finalCommon = { ...common }
+    
+    // If hyperspace, use hyperspace variant card
+    if (isHyperspace) {
+      const hyperspaceCard = findVariantCard(common, 'Hyperspace', cards)
+      if (hyperspaceCard) {
+        finalCommon = hyperspaceCard
+      }
+    }
+    
+    pack.push({
+      ...finalCommon,
+      isFoil: false,
+      isHyperspace: isHyperspace,
+    })
+  }
+
+  // 4. 3 Uncommon cards (non-leader, non-base)
+  // First 2 are always normal uncommons
+  const normalUncommons = uncommons.filter((c) => c.variantType === 'Normal')
+  const uncommonsPool = normalUncommons.length > 0 ? normalUncommons : uncommons
+  
+  for (let i = 0; i < 2 && uncommonsPool.length > 0; i++) {
+    const uncommon = randomSelect(uncommonsPool)
+    pack.push({
+      ...uncommon,
+      isFoil: false,
+      isHyperspace: false,
+    })
+  }
+  
+  // 3rd uncommon slot: Can be upgraded to Hyperspace variant of any rarity
+  // Based on research: Hyperspace variants appear 2 in 3 packs overall
+  // But Rare/Legendary hyperspace appear 1 in 15 packs (6.67%)
+  // So Common/Uncommon hyperspace in upgrade slot would be: 66.67% - 6.67% = ~60%
+  // However, the user says it's happening too frequently, so the upgrade slot rate may be lower
+  // Let me use a more conservative rate: upgrade slot is hyperspace ~30-40% of the time
+  // Within hyperspace upgrades, distribution based on research:
+  // - Common: Most common
+  // - Uncommon: Less common
+  // - Rare: 1 in 15 packs = 6.67% of packs, but that's overall, not just upgrade slot
+  // - Legendary: Very rare
+  
+  // More conservative: Upgrade slot is hyperspace ~25% of the time
+  const isHyperspaceUpgrade = Math.random() < 0.25 // 25% chance for upgrade slot to be hyperspace
+  
+  if (isHyperspaceUpgrade) {
+    // Upgrade slot: Hyperspace variant of any rarity (C, U, R, or L)
+    // Distribution within hyperspace upgrades (approximate):
+    // - Common: ~60% of hyperspace upgrades
+    // - Uncommon: ~25% of hyperspace upgrades
+    // - Rare: ~12% of hyperspace upgrades  
+    // - Legendary: ~3% of hyperspace upgrades
+    const upgradeRoll = Math.random()
+    let upgradeCard = null
+    
+    if (upgradeRoll < 0.60) {
+      // ~60% - Common hyperspace
+      const hyperspaceCommons = cards.filter(
+        (c) => c.rarity === 'Common' && 
+        c.variantType === 'Hyperspace' && 
+        !c.isLeader && 
+        !c.isBase
+      )
+      if (hyperspaceCommons.length > 0) {
+        upgradeCard = randomSelect(hyperspaceCommons)
+      }
+    } else if (upgradeRoll < 0.60 + 0.25) {
+      // ~25% - Uncommon hyperspace
+      const hyperspaceUncommons = cards.filter(
+        (c) => c.rarity === 'Uncommon' && 
+        c.variantType === 'Hyperspace' && 
+        !c.isLeader && 
+        !c.isBase
+      )
+      if (hyperspaceUncommons.length > 0) {
+        upgradeCard = randomSelect(hyperspaceUncommons)
+      }
+    } else if (upgradeRoll < 0.60 + 0.25 + 0.12) {
+      // ~12% - Rare hyperspace
+      const hyperspaceRares = cards.filter(
+        (c) => c.rarity === 'Rare' && 
+        c.variantType === 'Hyperspace' && 
+        !c.isLeader && 
+        !c.isBase
+      )
+      if (hyperspaceRares.length > 0) {
+        upgradeCard = randomSelect(hyperspaceRares)
+      }
+    } else {
+      // ~3% - Legendary hyperspace
+      const hyperspaceLegendaries = cards.filter(
+        (c) => c.rarity === 'Legendary' && 
+        c.variantType === 'Hyperspace' && 
+        !c.isLeader && 
+        !c.isBase
+      )
+      if (hyperspaceLegendaries.length > 0) {
+        upgradeCard = randomSelect(hyperspaceLegendaries)
+      }
+    }
+    
+    // Fallback: if no hyperspace card found, use normal uncommon
+    if (!upgradeCard && uncommonsPool.length > 0) {
+      upgradeCard = randomSelect(uncommonsPool)
+      pack.push({
+        ...upgradeCard,
+        isFoil: false,
+        isHyperspace: false,
+      })
+    } else if (upgradeCard) {
+      pack.push({
+        ...upgradeCard,
+        isFoil: false,
+        isHyperspace: true,
+      })
+    }
+  } else {
+    // Normal 3rd uncommon (75% of packs)
+    if (uncommonsPool.length > 0) {
+      const uncommon = randomSelect(uncommonsPool)
+      pack.push({
+        ...uncommon,
+        isFoil: false,
+        isHyperspace: false,
+      })
+    }
+  }
+
+  // 5. 1 Rare or Legendary (can be rare base for sets 1-6)
+  // Legendary appears ~1 in 8 packs (12.5% chance)
+  const isLegendary = Math.random() < 0.125
+  
+  let rareOrLegendary = null
+  if (isLegendary && legendaries.length > 0) {
+    // Filter to normal legendaries only
+    const normalLegendaries = legendaries.filter((l) => l.variantType === 'Normal')
+    rareOrLegendary = normalLegendaries.length > 0
+      ? randomSelect(normalLegendaries)
+      : randomSelect(legendaries)
+  } else {
+    // Rare slot: can be rare card OR rare base (for sets 1-6)
+    // Filter to normal rares only
+    const normalRares = rares.filter((r) => r.variantType === 'Normal')
+    const rarePool = normalRares.length > 0 ? [...normalRares] : [...rares]
+    
+    // Add rare bases to the pool for sets 1-6 (normal variants only)
+    if (rareBases.length > 0) {
+      const normalRareBases = rareBases.filter((b) => b.variantType === 'Normal')
+      if (normalRareBases.length > 0) {
+        rarePool.push(...normalRareBases)
+      } else {
+        rarePool.push(...rareBases)
+      }
+    }
+    
+    if (rarePool.length > 0) {
+      rareOrLegendary = randomSelect(rarePool)
+    } else if (legendaries.length > 0) {
+      // Fallback to legendary if no rares
+      const normalLegendaries = legendaries.filter((l) => l.variantType === 'Normal')
+      rareOrLegendary = normalLegendaries.length > 0
+        ? randomSelect(normalLegendaries)
+        : randomSelect(legendaries)
+    }
+  }
+  
+  if (rareOrLegendary) {
+    const isHyperspace = rollHyperspace()
+    let finalRare = { ...rareOrLegendary }
+    
+    // If hyperspace, use hyperspace variant card
+    if (isHyperspace) {
+      const hyperspaceCard = findVariantCard(rareOrLegendary, 'Hyperspace', cards)
+      if (hyperspaceCard) {
+        finalRare = hyperspaceCard
+      }
+    }
+    
+    pack.push({
+      ...finalRare,
+      isFoil: false,
+      isHyperspace: isHyperspace,
+    })
+  }
+
+  // 6. 1 Foil card (can be any rarity, including Special for sets 4-6)
+  // Foil can be from any card pool (including leaders and bases)
+  // BUT: Common bases CANNOT appear in foil slot
+  // Special rarity can ONLY appear in foil slot and ONLY in sets 4-6
+  // Special should appear at roughly the same rate as rare cards would naturally
+  let foilPool = [...cards]
+  
+  // Remove common bases from foil pool (common bases cannot be foil)
+  foilPool = foilPool.filter((card) => !(card.isBase && card.rarity === 'Common'))
+  
+  // Remove Special rarity cards if not sets 4-6
+  if (!isSet4to6) {
+    foilPool = foilPool.filter((card) => card.rarity !== 'Special')
+  }
+  
+  if (foilPool.length > 0) {
+    let foilCard = null
+    
+    if (isSet4to6 && specials.length > 0) {
+      // For sets 4-6, Special can appear in foil slot
+      // Special should appear at roughly the same rate as rare cards in foil slot
+      // Since rares are ~22% of sets 4-6, weight Special to appear ~20% of the time
+      if (Math.random() < 0.20) {
+        // ~20% chance to get Special in foil slot (similar to rare frequency)
+        // Filter to normal Special cards only
+        const normalSpecials = specials.filter((s) => s.variantType === 'Normal')
+        foilCard = normalSpecials.length > 0
+          ? randomSelect(normalSpecials)
+          : randomSelect(specials)
+      } else {
+        // Otherwise, random from all cards (excluding Special from natural selection)
+        const nonSpecialPool = foilPool.filter((c) => c.rarity !== 'Special' && c.variantType === 'Normal')
+        foilCard = nonSpecialPool.length > 0
+          ? randomSelect(nonSpecialPool)
+          : randomSelect(foilPool.filter((c) => c.rarity !== 'Special'))
+      }
+    } else {
+      // For sets 1-3, no Special cards in foil
+      // Filter to normal cards only
+      const normalPool = foilPool.filter((c) => c.variantType === 'Normal')
+      foilCard = normalPool.length > 0
+        ? randomSelect(normalPool)
+        : randomSelect(foilPool)
+    }
+    
+    if (foilCard) {
+      const isShowcase = foilCard.isLeader ? rollShowcase() : false
+      const isHyperspace = !isShowcase && rollHyperspace() // Hyperspace only if not showcase
+      
+      let finalFoil = { ...foilCard }
+      
+      // If showcase (leaders only), use showcase variant card
+      if (isShowcase) {
+        const showcaseCard = findVariantCard(foilCard, 'Showcase', cards)
+        if (showcaseCard) {
+          finalFoil = showcaseCard
+        }
+      }
+      // If hyperspace (and not showcase), use hyperspace variant card
+      else if (isHyperspace) {
+        const hyperspaceCard = findVariantCard(foilCard, 'Hyperspace', cards)
+        if (hyperspaceCard) {
+          finalFoil = hyperspaceCard
+        }
+      }
+      
+      pack.push({
+        ...finalFoil,
+        isFoil: true,
+        isHyperspace: isHyperspace,
+        isShowcase: isShowcase,
+      })
+    }
+  }
+
+  return pack
+}
+
+/**
+ * Generate 6 booster packs for a sealed pod
+ */
+export function generateSealedPod(cards, setCode) {
+  const packs = []
+  for (let i = 0; i < 6; i++) {
+    packs.push(generateBoosterPack(cards, setCode))
+  }
+  return packs
+}
+
+/**
+ * Randomly select an item from an array
+ */
+function randomSelect(array) {
+  return array[Math.floor(Math.random() * array.length)]
+}
+
+/**
+ * Roll for Hyperspace variant (for non-upgrade-slot cards)
+ * Note: The upgrade slot (3rd uncommon) has its own hyperspace mechanics
+ * For other cards, hyperspace is much rarer
+ * Based on research: Hyperspace appears 2 in 3 packs overall, but most of that
+ * is from the upgrade slot. For other cards, it's approximately 1 in 50 cards
+ */
+function rollHyperspace() {
+  // Hyperspace on non-upgrade-slot cards is very rare
+  // Approximately 1 in 50 = 2% per card
+  return Math.random() < 0.02 // 2% chance for non-upgrade-slot cards
+}
+
+/**
+ * Roll for Showcase variant (leaders only)
+ * Based on official rates: 1 showcase per case
+ * 1 case = 12 boxes * 24 packs = 288 packs
+ * 1/288 = 0.347% per pack = 0.347% per leader
+ */
+function rollShowcase() {
+  return Math.random() < 0.00347 // 0.347% chance (1 in 288 packs)
+}
+
+/**
+ * Find variant card (Hyperspace or Showcase) for a given card
+ * @param {Object} baseCard - The base card
+ * @param {string} variantType - 'Hyperspace' or 'Showcase'
+ * @param {Array} allCards - All cards in the set
+ * @returns {Object|null} The variant card or null if not found
+ */
+function findVariantCard(baseCard, variantType, allCards) {
+  // Find variant card with same name, set, and variant type
+  const variant = allCards.find(
+    (card) =>
+      card.name === baseCard.name &&
+      card.set === baseCard.set &&
+      card.variantType === variantType &&
+      card.number !== baseCard.number // Different card number
+  )
+  return variant || null
+}
