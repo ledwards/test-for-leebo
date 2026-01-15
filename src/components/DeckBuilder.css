@@ -153,6 +153,11 @@
   font-size: 0.95rem;
 }
 
+.deck-counts-info .section-link {
+  text-decoration: none;
+  color: inherit;
+}
+
 .header-buttons {
   display: flex;
   gap: 1rem;
@@ -175,9 +180,9 @@
 
 .export-button:hover {
   background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(138, 43, 226, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 6px 16px rgba(138, 43, 226, 0.6);
 }
 
 /* Leaders & Bases Section - Flex Container */
@@ -287,71 +292,12 @@
   padding: 8px;
 }
 
-/* Leaders use grid to ensure balanced layout - wraps after 3, 2, or 1 cards, never 4 or 5 */
-.leaders-bases-container.leaders-only {
-  display: grid;
-  /* Use 3 columns as base - this ensures wrapping always happens after 3 (or fewer if narrow) */
-  grid-template-columns: repeat(3, 168px);
-  justify-content: start;
-  gap: 0.75rem; /* Same spacing as bases */
-}
-
-/* If container is wide enough for 6 cards, allow 6 columns */
-@media (min-width: calc(6 * 168px + 5 * 0.75rem + 2 * 8px + 100px)) {
-  .leaders-bases-container.leaders-only {
-    grid-template-columns: repeat(6, 168px);
-    max-width: calc(6 * 168px + 5 * 0.75rem + 2 * 8px);
-  }
-}
-
-/* Narrower: 2 columns (wraps after 2) */
-@media (max-width: calc(3 * 168px + 2 * 0.75rem + 2 * 8px)) {
-  .leaders-bases-container.leaders-only {
-    grid-template-columns: repeat(2, 168px);
-  }
-}
-
-/* Narrowest: 1 column (wraps after 1) */
-@media (max-width: calc(2 * 168px + 1 * 0.75rem + 2 * 8px)) {
-  .leaders-bases-container.leaders-only {
-    grid-template-columns: repeat(1, 168px);
-  }
-}
-
-/* Bases use grid - wraps after 4, 2, or 1 (never 3, 5, 6, or 7), but exactly 8 is allowed if it fits */
 .leaders-bases-container.bases-only {
-  display: grid;
-  /* Use 4 columns as base - this ensures wrapping always happens after 4 (or fewer if narrow) */
-  grid-template-columns: repeat(4, 168px);
-  justify-content: start;
-  gap: 0.75rem;
   margin-bottom: 0.75rem;
 }
 
 .leaders-bases-container.bases-only:last-child {
   margin-bottom: 0;
-}
-
-/* If container is wide enough for 8 cards, allow 8 columns */
-@media (min-width: calc(8 * 168px + 7 * 0.75rem + 2 * 8px + 100px)) {
-  .leaders-bases-container.bases-only {
-    grid-template-columns: repeat(8, 168px);
-    max-width: calc(8 * 168px + 7 * 0.75rem + 2 * 8px);
-  }
-}
-
-/* Narrower than 4: 2 columns (wraps after 2) */
-@media (max-width: calc(4 * 168px + 3 * 0.75rem + 2 * 8px)) {
-  .leaders-bases-container.bases-only {
-    grid-template-columns: repeat(2, 168px);
-  }
-}
-
-/* Narrowest: 1 column (wraps after 1) */
-@media (max-width: calc(2 * 168px + 1 * 0.75rem + 2 * 8px)) {
-  .leaders-bases-container.bases-only {
-    grid-template-columns: repeat(1, 168px);
-  }
 }
 
 /* Cards in flex container should not be absolutely positioned */
@@ -676,9 +622,9 @@
 
 .back-button:hover {
   background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 0, 0, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
 }
 
 .view-controls {
@@ -709,9 +655,9 @@
 
 .view-toggle-button:hover {
   background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 255, 0, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
 }
 
 .filter-button {
@@ -732,9 +678,9 @@
 
 .filter-button:hover {
   background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 255, 0, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
 }
 
 .zoom-to-fit-container {

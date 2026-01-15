@@ -1596,18 +1596,23 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       const padding = 50
       const sectionSpacing = 40
       const labelHeight = 30
+      const titleHeight = 50
       const cardsPerRow = 12
       
       // Calculate dimensions
       const deckRows = Math.ceil(Array.from(deckCounts.keys()).length / cardsPerRow)
       const sideboardRows = Math.ceil(Array.from(sideboardCounts.keys()).length / cardsPerRow)
-      const unusedLeadersRows = Math.ceil(Math.max(0, unusedLeaders.length) / 2)
-      const unusedBasesRows = Math.ceil(Math.max(0, unusedBases.length) / 2)
-      
+      // Unused leaders - calculate how many fit per row
       const width = padding * 2 + cardsPerRow * (cardWidth + spacing) - spacing
+      const leadersPerRow = Math.floor((width - 2 * padding + spacing) / (leaderBaseWidth + spacing))
+      const unusedLeadersRows = unusedLeaders.length > 0 ? Math.ceil(unusedLeaders.length / leadersPerRow) : 0
+      
       let currentY = padding
       
-      // Selected leader and base at top (1 row)
+      // Title at top
+      currentY += titleHeight + sectionSpacing
+      
+      // Selected leader and base at top (1 row, centered)
       if (selectedLeader || selectedBase) {
         currentY += leaderBaseHeight + sectionSpacing
       }
@@ -1618,11 +1623,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       // Sideboard section (label + cards)
       currentY += labelHeight + sideboardRows * (cardHeight + spacing) + sectionSpacing
       
-      // Unused leaders section
+      // Unused leaders section (all on one row, wraps if needed)
       currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing
-      
-      // Unused bases section
-      currentY += unusedBasesRows * (leaderBaseHeight + spacing) + sectionSpacing
       
       // Add space for swupod stamp
       const stampHeight = 40
@@ -1790,16 +1792,24 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       
       currentY = padding
       
-      // Draw selected leader and base at top
+      // Draw title at top
+      ctx.fillStyle = 'white'
+      ctx.font = 'bold 32px Arial'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'top'
+      ctx.fillText(`Sealed Pod (${setCode})`, width / 2, currentY)
+      currentY += titleHeight + sectionSpacing
+      
+      // Draw selected leader and base at top, centered in one row
       if (selectedLeader || selectedBase) {
-        let col = 0
+        const totalWidth = (selectedLeader ? leaderBaseWidth : 0) + (selectedBase ? leaderBaseWidth : 0) + (selectedLeader && selectedBase ? spacing : 0)
+        const startX = (width - totalWidth) / 2
+        let x = startX
         if (selectedLeader) {
-          const x = padding + col * (leaderBaseWidth + spacing)
           await drawCard(selectedLeader, x, currentY, leaderBaseWidth, leaderBaseHeight, null, false)
-          col++
+          x += leaderBaseWidth + spacing
         }
         if (selectedBase) {
-          const x = padding + col * (leaderBaseWidth + spacing)
           await drawCard(selectedBase, x, currentY, leaderBaseWidth, leaderBaseHeight, null, false)
         }
         currentY += leaderBaseHeight + sectionSpacing
@@ -1865,8 +1875,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       }
       currentY += sideboardRows * (cardHeight + spacing) + sectionSpacing
       
-      // Draw unused leaders (in grayscale)
+      // Draw unused leaders (in grayscale) - all on one row (wraps if needed)
       if (unusedLeaders.length > 0) {
+        const leadersPerRow = Math.floor((width - 2 * padding + spacing) / (leaderBaseWidth + spacing))
         col = 0
         row = 0
         for (const leader of unusedLeaders) {
@@ -1874,29 +1885,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
           const y = currentY + row * (leaderBaseHeight + spacing)
           await drawCard(leader, x, y, leaderBaseWidth, leaderBaseHeight, null, true)
           col++
-          if (col >= 2) {
+          if (col >= leadersPerRow) {
             col = 0
             row++
           }
         }
+        const unusedLeadersRows = Math.ceil(unusedLeaders.length / leadersPerRow)
         currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing
-      }
-      
-      // Draw unused bases (in grayscale)
-      if (unusedBases.length > 0) {
-        col = 0
-        row = 0
-        for (const base of unusedBases) {
-          const x = padding + col * (leaderBaseWidth + spacing)
-          const y = currentY + row * (leaderBaseHeight + spacing)
-          await drawCard(base, x, y, leaderBaseWidth, leaderBaseHeight, null, true)
-          col++
-          if (col >= 2) {
-            col = 0
-            row++
-          }
-        }
-        currentY += unusedBasesRows * (leaderBaseHeight + spacing) + sectionSpacing
       }
       
       // Draw swupod stamp at bottom
@@ -1920,7 +1915,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         setMessageType('success')
         setTimeout(() => {
           setErrorMessage(null)
-    setMessageType(null)
           setMessageType(null)
         }, 3000)
       }, 'image/png')
@@ -1931,7 +1925,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       setMessageType('error')
       setTimeout(() => {
         setErrorMessage(null)
-    setMessageType(null)
         setMessageType(null)
       }, 3000)
     }
@@ -2057,25 +2050,61 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
           </div>
         </div>
         <div className="deck-counts-info">
-            <span>Deck (<span style={{ 
-              color: (() => {
-                const deckCount = Object.values(cardPositions)
-                  .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader).length
-                if (deckCount < 30) return '#E74C3C' // Red
-                if (deckCount === 30) return '#27AE60' // Green
-                return '#F1C40F' // Yellow
-              })()
-            }}>{(() => {
-              const deckCards = Object.values(cardPositions)
-                .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
-              return deckCards.length
-            })()}</span>/30)</span>
+            <span 
+              className="section-link"
+              onClick={() => {
+                const deckSection = document.querySelector('.deck-section')
+                if (deckSection) {
+                  const headerHeight = document.querySelector('.deck-info-bar')?.offsetHeight || 0
+                  const topOffset = 20 // matches top: 20px from sticky header
+                  const scrollOffset = headerHeight + topOffset + 10 // extra 10px for spacing
+                  const elementPosition = deckSection.getBoundingClientRect().top + window.pageYOffset
+                  window.scrollTo({
+                    top: elementPosition - scrollOffset,
+                    behavior: 'smooth'
+                  })
+                }
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              Deck (<span style={{ 
+                color: (() => {
+                  const deckCount = Object.values(cardPositions)
+                    .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader).length
+                  if (deckCount < 30) return '#E74C3C' // Red
+                  if (deckCount === 30) return '#27AE60' // Green
+                  return '#F1C40F' // Yellow
+                })()
+              }}>{(() => {
+                const deckCards = Object.values(cardPositions)
+                  .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+                return deckCards.length
+              })()}</span>/30)
+            </span>
             <span className="separator"></span>
-            <span>Sideboard ({(() => {
-              const sideboardCards = Object.values(cardPositions)
-                .filter(pos => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
-              return sideboardCards.length
-            })()})</span>
+            <span 
+              className="section-link"
+              onClick={() => {
+                const sideboardSection = document.querySelector('.sideboard-section')
+                if (sideboardSection) {
+                  const headerHeight = document.querySelector('.deck-info-bar')?.offsetHeight || 0
+                  const topOffset = 20 // matches top: 20px from sticky header
+                  const scrollOffset = headerHeight + topOffset + 10 // extra 10px for spacing
+                  const elementPosition = sideboardSection.getBoundingClientRect().top + window.pageYOffset
+                  window.scrollTo({
+                    top: elementPosition - scrollOffset,
+                    behavior: 'smooth'
+                  })
+                }
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              Sideboard ({(() => {
+                const sideboardCards = Object.values(cardPositions)
+                  .filter(pos => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+                return sideboardCards.length
+              })()})
+            </span>
         </div>
       </div>
       
@@ -2573,11 +2602,52 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       
       {/* Deck Section */}
       <div className="deck-section">
-        <h3 className="subsection-header" style={{ userSelect: 'none' }}>
-          Deck ({Object.values(cardPositions)
-            .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader).length})
+        <h3 
+          className="subsection-header" 
+          onClick={() => setDeckExpanded(!deckExpanded)}
+          style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <span>{deckExpanded ? '▼' : '▶'}</span>
+          <span>Deck ({Object.values(cardPositions)
+            .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader).length})</span>
+          <span
+            onClick={(e) => {
+              e.stopPropagation()
+              const deckCards = Object.entries(cardPositions)
+                .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader)
+              const activeDeckCards = deckCards.filter(([_, position]) => position.enabled !== false)
+              const shouldEnable = activeDeckCards.length === 0
+              setCardPositions(prev => {
+                const updated = { ...prev }
+                deckCards.forEach(([cardId]) => {
+                  if (updated[cardId]) {
+                    updated[cardId] = {
+                      ...updated[cardId],
+                      enabled: shouldEnable
+                    }
+                  }
+                })
+                return updated
+              })
+            }}
+            style={{ 
+              color: 'rgba(255, 255, 255, 0.7)', 
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              textDecoration: 'underline'
+            }}
+            onMouseEnter={(e) => e.target.style.color = 'rgba(255, 255, 255, 1)'}
+            onMouseLeave={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.7)'}
+          >
+            {(() => {
+              const deckCards = Object.entries(cardPositions)
+                .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader)
+              const activeDeckCards = deckCards.filter(([_, position]) => position.enabled !== false)
+              return activeDeckCards.length === 0 ? 'RE-ADD ALL' : 'Remove All'
+            })()}
+          </span>
         </h3>
-        {(() => {
+        {deckExpanded && (() => {
           // Get all deck cards
           const deckCards = Object.entries(cardPositions)
             .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader)
@@ -2912,12 +2982,56 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
 
       {/* Sideboard Section */}
       <div className="sideboard-section">
-        <h3 className="subsection-header" style={{ userSelect: 'none' }}>
-          Sideboard ({Object.entries(cardPositions)
+        <h3 
+          className="subsection-header" 
+          onClick={() => setSideboardExpanded(!sideboardExpanded)}
+          style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <span>{sideboardExpanded ? '▼' : '▶'}</span>
+          <span>Sideboard ({Object.entries(cardPositions)
             .filter(([_, position]) => position.section === 'sideboard' && position.visible && !position.card.isBase && !position.card.isLeader)
             .filter(([_, position]) => cardMatchesFilters(position.card))
-            .length})
+            .length})</span>
+          <span
+            onClick={(e) => {
+              e.stopPropagation()
+              const sideboardCards = Object.entries(cardPositions)
+                .filter(([_, position]) => position.section === 'sideboard' && position.visible && !position.card.isBase && !position.card.isLeader)
+                .filter(([_, position]) => cardMatchesFilters(position.card))
+              const activeSideboardCards = sideboardCards.filter(([_, position]) => position.enabled !== false)
+              const shouldEnable = activeSideboardCards.length === 0
+              setCardPositions(prev => {
+                const updated = { ...prev }
+                sideboardCards.forEach(([cardId]) => {
+                  if (updated[cardId]) {
+                    updated[cardId] = {
+                      ...updated[cardId],
+                      enabled: shouldEnable
+                    }
+                  }
+                })
+                return updated
+              })
+            }}
+            style={{ 
+              color: 'rgba(255, 255, 255, 0.7)', 
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              textDecoration: 'underline'
+            }}
+            onMouseEnter={(e) => e.target.style.color = 'rgba(255, 255, 255, 1)'}
+            onMouseLeave={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.7)'}
+          >
+            {(() => {
+              const sideboardCards = Object.entries(cardPositions)
+                .filter(([_, position]) => position.section === 'sideboard' && position.visible && !position.card.isBase && !position.card.isLeader)
+                .filter(([_, position]) => cardMatchesFilters(position.card))
+              const activeSideboardCards = sideboardCards.filter(([_, position]) => position.enabled !== false)
+              return activeSideboardCards.length === 0 ? 'RE-ADD ALL' : 'Remove All'
+            })()}
+          </span>
         </h3>
+        {sideboardExpanded && (
         <div className="cards-grid">
           {Object.entries(cardPositions)
             .filter(([_, position]) => position.section === 'sideboard' && position.visible && !position.card.isBase && !position.card.isLeader)
@@ -2979,6 +3093,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
               )
             })}
         </div>
+        )}
       </div>
         </>
       )}
