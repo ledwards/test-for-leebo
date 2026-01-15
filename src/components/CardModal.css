@@ -67,6 +67,22 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  justify-content: center;
+}
+
+.modal-image-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-leader-images {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-card-image {
@@ -114,25 +130,11 @@
   text-transform: uppercase;
 }
 
-.flip-button {
-  margin-top: 1rem;
-  width: 100%;
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.flip-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+.modal-aspects {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .modal-details {
@@ -161,6 +163,7 @@
 
 .stat-row {
   display: flex;
+  align-items: center;
   gap: 1rem;
   padding: 0.5rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -181,6 +184,8 @@
 .stat-value {
   color: #fff;
   flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 .stat-row.full-width .stat-value {

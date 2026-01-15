@@ -1,14 +1,44 @@
 import { useState } from 'react'
 import './CardModal.css'
+import './AspectIcons.css'
 import { parseCardText } from '../utils/textParser'
+import CostIcon from './CostIcon'
+
+// Get aspect symbol for modal using individual icon files (same as DeckBuilder)
+const getAspectSymbol = (aspect, size = 'medium') => {
+  const aspectMap = {
+    'Command': 'command',
+    'Villainy': 'villainy',
+    'Heroism': 'heroism',
+    'Cunning': 'cunning',
+    'Vigilance': 'vigilance',
+    'Aggression': 'aggression'
+  }
+  
+  const aspectName = aspectMap[aspect]
+  if (!aspectName) return null
+  
+  const sizeMap = {
+    'small': 16,
+    'medium': 32, // Match cost icon size
+    'large': 48
+  }
+  
+  const iconSize = sizeMap[size] || 32
+  
+  return (
+    <img 
+      src={`/icons/${aspectName}.png`}
+      alt={aspect}
+      style={{ width: `${iconSize}px`, height: `${iconSize}px`, display: 'block' }}
+    />
+  )
+}
 
 function CardModal({ card, onClose }) {
-  const [showBack, setShowBack] = useState(false)
-
   if (!card) return null
 
   const hasBackImage = card.backImageUrl && card.isLeader
-  const currentImageUrl = showBack && hasBackImage ? card.backImageUrl : card.imageUrl
 
   const getRarityColor = (rarity) => {
     switch (rarity) {
@@ -32,28 +62,60 @@ function CardModal({ card, onClose }) {
         
         <div className="modal-body">
           <div className="modal-image-container">
-            {currentImageUrl ? (
-              <img
-                src={currentImageUrl}
-                alt={card.name || 'Card'}
-                className={`modal-card-image ${card.isLeader || card.isBase ? 'unrotated' : ''}`}
-              />
-            ) : (
-              <div className="modal-placeholder">
-                <div className="modal-card-name">{card.name || 'Card'}</div>
-                <div className="modal-card-rarity" style={{ color: getRarityColor(card.rarity) }}>
-                  {card.rarity}
+            {card.isLeader && hasBackImage ? (
+              // For leaders with back image, show both stacked vertically
+              <div className="modal-leader-images">
+                <div className="modal-image-wrapper">
+                  {card.imageUrl ? (
+                    <img
+                      src={card.imageUrl}
+                      alt={`${card.name || 'Card'} - Front`}
+                      className="modal-card-image unrotated"
+                    />
+                  ) : (
+                    <div className="modal-placeholder">
+                      <div className="modal-card-name">{card.name || 'Card'}</div>
+                      <div className="modal-card-rarity" style={{ color: getRarityColor(card.rarity) }}>
+                        {card.rarity} - Front
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="modal-image-wrapper">
+                  {card.backImageUrl ? (
+                    <img
+                      src={card.backImageUrl}
+                      alt={`${card.name || 'Card'} - Back`}
+                      className="modal-card-image unrotated"
+                    />
+                  ) : (
+                    <div className="modal-placeholder">
+                      <div className="modal-card-name">{card.name || 'Card'}</div>
+                      <div className="modal-card-rarity" style={{ color: getRarityColor(card.rarity) }}>
+                        {card.rarity} - Back
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-            
-            {hasBackImage && (
-              <button 
-                className="flip-button"
-                onClick={() => setShowBack(!showBack)}
-              >
-                {showBack ? 'Show Front' : 'Show Back'}
-              </button>
+            ) : (
+              // For non-leaders or leaders without back image, show single image
+              <div className="modal-image-wrapper">
+                {card.imageUrl ? (
+                  <img
+                    src={card.imageUrl}
+                    alt={card.name || 'Card'}
+                    className={`modal-card-image ${card.isLeader || card.isBase ? 'unrotated' : ''}`}
+                  />
+                ) : (
+                  <div className="modal-placeholder">
+                    <div className="modal-card-name">{card.name || 'Card'}</div>
+                    <div className="modal-card-rarity" style={{ color: getRarityColor(card.rarity) }}>
+                      {card.rarity}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -82,14 +144,24 @@ function CardModal({ card, onClose }) {
               {card.aspects && card.aspects.length > 0 && (
                 <div className="stat-row">
                   <span className="stat-label">Aspects:</span>
-                  <span className="stat-value">{card.aspects.join(', ')}</span>
+                  <span className="stat-value">
+                    <div className="modal-aspects">
+                      {card.aspects.map((aspect, i) => (
+                        <span key={i} className="aspect-symbol-wrapper">
+                          {getAspectSymbol(aspect, 'medium')}
+                        </span>
+                      ))}
+                    </div>
+                  </span>
                 </div>
               )}
               
               {card.cost !== null && card.cost !== undefined && (
                 <div className="stat-row">
                   <span className="stat-label">Cost:</span>
-                  <span className="stat-value">{card.cost}</span>
+                  <span className="stat-value">
+                    <CostIcon cost={card.cost} size={32} />
+                  </span>
                 </div>
               )}
               

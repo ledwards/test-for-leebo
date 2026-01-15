@@ -48,17 +48,17 @@
   transition: all 0.3s ease;
   font-size: 1rem;
   box-sizing: border-box;
-  /* Non-sticky: align with content margins (matching leaders-bases-section which has margin-left/right: 2rem) */
-  margin-left: 2rem;
-  margin-right: 2rem;
-  width: calc(100% - 4rem);
+  /* Non-sticky: margins to avoid overlap with right-side buttons (buttons at right: 20px, width: 44px, so need 20px + 44px + 20px spacing = 84px) */
+  margin-left: calc(2rem - 20px);
+  margin-right: calc(20px + 44px + 20px); /* 20px (button right position) + 44px (button width) + 20px (spacing) */
+  width: calc(100% - (2rem - 20px) - (20px + 44px + 20px)); /* Account for left and right margins */
 }
 
 /* When sticky, align with card images (deck-builder padding + section margin + section padding) */
 .deck-info-bar.sticky {
   margin-left: calc(2rem + 2rem + 1.5rem); /* 2rem deck-builder padding + 2rem section margin + 1.5rem section padding = aligns with card images */
-  margin-right: calc(2rem + 20px + 100px); /* 2rem parent padding + 20px filter button right + filter button width (~100px) */
-  width: calc(100% - 2rem - 2rem - 1.5rem - 2rem - 20px - 100px); /* Adjust width to account for all margins */
+  margin-right: calc(20px + 44px + 20px); /* Same as non-sticky - clears buttons nicely */
+  width: calc(100% - (2rem + 2rem + 1.5rem) - (20px + 44px + 20px)); /* Width doesn't need to change - clears buttons nicely */
 }
 
 .selected-cards-info {
@@ -112,14 +112,14 @@
 }
 
 .select-card-placeholder .selected-card-name {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.9);
   font-style: italic;
-  text-decoration: underline;
+  text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .select-card-placeholder:hover .selected-card-name {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 1);
 }
 
 .separator {
@@ -799,6 +799,14 @@
   color: white;
   font-weight: 600;
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  vertical-align: middle;
+}
+
+/* Center cost, aspect, and rarity column headers */
+.list-table th:nth-child(3),
+.list-table th:nth-child(4),
+.list-table th:nth-child(5) {
+  text-align: center;
 }
 
 .list-table th.sortable {
@@ -823,6 +831,26 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
   vertical-align: middle;
+}
+
+.list-table td.aspects-cell {
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* Cost, aspect, and rarity columns - center aligned */
+.list-table td:nth-child(3),
+.list-table td:nth-child(4),
+.list-table td:nth-child(5) {
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* Cost icon styling */
+.list-table td > div[style*="position: relative"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .list-table tbody tr {
@@ -861,8 +889,10 @@
 .aspects-cell {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 6px;
   flex-wrap: wrap;
+  vertical-align: middle;
 }
 
 .aspects-cell .aspect-symbol-wrapper {
@@ -871,16 +901,15 @@
   justify-content: center;
   vertical-align: middle;
   line-height: 1;
-  width: 20px;
-  height: 20px;
+  width: 38.4px;
+  height: 38.4px;
   flex-shrink: 0;
 }
 
-.aspects-cell .aspect-symbol {
+.aspects-cell .aspect-symbol-wrapper img {
   display: block;
-  width: 20px !important;
-  height: 20px !important;
   flex-shrink: 0;
+  margin: 0;
 }
 
 .aspects-cell span:not(.aspect-symbol-wrapper) {
@@ -895,7 +924,8 @@
 
 .card-name-main {
   color: white;
-  font-size: 1rem;
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
 .card-name-subtitle {

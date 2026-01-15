@@ -61,6 +61,11 @@ function App() {
         setSelectedSet(null)
       }
     } else if (view === 'set-selection') {
+      // Clear all deck state when going to homepage
+      sessionStorage.removeItem('sealedPod')
+      sessionStorage.removeItem('deckBuilderState')
+      setDeckCards([])
+      setSelectedSet(null)
       setView('landing')
     }
   }

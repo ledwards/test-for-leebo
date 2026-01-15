@@ -155,6 +155,13 @@ export const SET_DISTRIBUTIONS = {
 }
 
 /**
+ * Sets that allow Special rarity cards in foil/hyperfoil slots only
+ * Special rarity cards should NOT appear in regular slots
+ * Sets 5, 6, 7: LOF, SEC, and future set 7
+ */
+export const SETS_WITH_SPECIAL_IN_FOIL = ['LOF', 'SEC'] // Add future set 7 code here when available
+
+/**
  * Get the distribution configuration for a given set code
  * @param {string} setCode - The set code (e.g., 'SOR', 'JTL')
  * @returns {Object} The distribution configuration for that set

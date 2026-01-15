@@ -1,63 +1,46 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import './DeckBuilder.css'
+import './AspectIcons.css'
 import { getCachedCards, isCacheInitialized } from '../utils/cardCache'
 import { fetchSetCards } from '../utils/api'
+import CardModal from './CardModal'
+import { getAspectColor } from '../utils/aspectColors'
 
-// Get aspect symbol for list view
-const getAspectSymbol = (aspect) => {
-  const symbols = {
-    'Command': (
-      <svg className="aspect-symbol" viewBox="0 0 24 24" width="18" height="18">
-        <circle cx="12" cy="12" r="10" fill="#4CAF50" stroke="#2E7D32" strokeWidth="1.5"/>
-        <circle cx="12" cy="12" r="3.5" fill="#2E7D32"/>
-        <path d="M12 3 L12 7 M12 17 L12 21 M3 12 L7 12 M17 12 L21 12" stroke="#2E7D32" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M8 8 L10 10 M14 10 L16 8 M8 16 L10 14 M14 14 L16 16" stroke="#2E7D32" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
-    'Villainy': (
-      <svg className="aspect-symbol" viewBox="0 0 24 24" width="18" height="18">
-        <path d="M12 3 L9 9 L12 15 L15 9 Z" fill="#1a1a1a" stroke="#000" strokeWidth="1.5"/>
-        <path d="M9 9 L15 9 M9 13 L15 13" stroke="#000" strokeWidth="2" strokeLinecap="round"/>
-        <rect x="10" y="13" width="4" height="3" fill="#000" stroke="#000" strokeWidth="1"/>
-        <path d="M8 18 L10 20 L12 18 L14 20 L16 18" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
-    'Heroism': (
-      <svg className="aspect-symbol" viewBox="0 0 24 24" width="18" height="18">
-        <path d="M12 3 L9 10 L12 17 L15 10 Z" fill="#fff" stroke="#ddd" strokeWidth="1.5"/>
-        <circle cx="12" cy="10" r="3.5" fill="#ddd" stroke="#bbb" strokeWidth="1"/>
-        <path d="M12 7 L12 13" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
-    'Cunning': (
-      <svg className="aspect-symbol" viewBox="0 0 24 24" width="18" height="18">
-        <circle cx="12" cy="12" r="9" fill="#FFC107" stroke="#F57C00" strokeWidth="1.5"/>
-        <circle cx="12" cy="12" r="3" fill="#F57C00"/>
-        <path d="M5 12 Q12 5 19 12 Q12 19 5 12" fill="none" stroke="#F57C00" strokeWidth="2"/>
-        <path d="M8 8 Q12 4 16 8 M8 16 Q12 20 16 16" fill="none" stroke="#F57C00" strokeWidth="1.5"/>
-      </svg>
-    ),
-    'Vigilance': (
-      <svg className="aspect-symbol" viewBox="0 0 24 24" width="18" height="18">
-        <path d="M7 9 Q12 4 17 9" fill="#2196F3" stroke="#1565C0" strokeWidth="1.5"/>
-        <path d="M7 15 Q12 20 17 15" fill="#2196F3" stroke="#1565C0" strokeWidth="1.5"/>
-        <circle cx="10" cy="12" r="2.5" fill="#1565C0"/>
-        <circle cx="14" cy="12" r="2.5" fill="#1565C0"/>
-      </svg>
-    ),
-    'Aggression': (
-      <svg className="aspect-symbol" viewBox="0 0 24 24" width="18" height="18">
-        <circle cx="12" cy="12" r="10" fill="#F44336" stroke="#C62828" strokeWidth="1.5"/>
-        <path d="M12 3 L13.5 8 L12 6 L10.5 8 Z M12 21 L13.5 16 L12 18 L10.5 16 Z M3 12 L8 10.5 L6 12 L8 13.5 Z M21 12 L16 10.5 L18 12 L16 13.5 Z" fill="#C62828"/>
-        <circle cx="12" cy="12" r="2" fill="#C62828"/>
-      </svg>
-    ),
+// Get aspect symbol for list view using individual icon files
+const getAspectSymbol = (aspect, size = 'medium') => {
+  const aspectMap = {
+    'Command': 'command',
+    'Villainy': 'villainy',
+    'Heroism': 'heroism',
+    'Cunning': 'cunning',
+    'Vigilance': 'vigilance',
+    'Aggression': 'aggression'
   }
-  return symbols[aspect] || null
+  
+  const aspectName = aspectMap[aspect]
+  if (!aspectName) return null
+  
+  const sizeMap = {
+    'small': 16,
+    'medium': 18,
+    'large': 38.4  // 20% smaller than cost icon (48px * 0.8 = 38.4px)
+  }
+  
+  const iconSize = sizeMap[size] || 18
+  
+  return (
+    <img 
+      src={`/icons/${aspectName}.png`}
+      alt={aspect}
+      style={{ width: `${iconSize}px`, height: `${iconSize}px`, display: 'block' }}
+    />
+  )
 }
 
 const ASPECTS = ['Vigilance', 'Villainy', 'Heroism', 'Command', 'Cunning', 'Aggression']
-const SORT_OPTIONS = ['none', 'aspect', 'cost', 'type']
+const SORT_OPTIONS = ['default', 'aspect', 'cost', 'type']
+
+// getAspectColor is now imported from utils/aspectColors
 
 function DeckBuilder({ cards, setCode, onBack, savedState }) {
   const [cardPositions, setCardPositions] = useState({})
@@ -68,6 +51,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
   const [sectionLabels, setSectionLabels] = useState([])
   const [sectionBounds, setSectionBounds] = useState({})
   const [hoveredCard, setHoveredCard] = useState(null)
+  const [ctrlPressed, setCtrlPressed] = useState(false)
   const [viewMode, setViewMode] = useState('grid') // 'grid' or 'list'
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [sortDrawerOpen, setSortDrawerOpen] = useState(false)
@@ -79,7 +63,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     Cunning: true,
     Aggression: true
   })
-  const [sortOption, setSortOption] = useState('none')
+  const [sortOption, setSortOption] = useState('default')
   const [tableSort, setTableSort] = useState({ field: null, direction: 'asc' })
   const [leadersExpanded, setLeadersExpanded] = useState(true)
   const [basesExpanded, setBasesExpanded] = useState(true)
@@ -95,8 +79,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
   const [activeBase, setActiveBase] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   const [isInfoBarSticky, setIsInfoBarSticky] = useState(false)
-  const hasDraggedRef = useRef(false)
-  const finalDragPositionRef = useRef(null)
+  const [selectedCard, setSelectedCard] = useState(null)
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
   const infoBarRef = useRef(null)
@@ -138,13 +121,106 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     return cardAspects.some(aspect => aspectFilters[aspect])
   }, [aspectFilters])
 
-  // Get aspect combination key for sorting (15 possible combinations)
+  // Get aspect combination key for default sorting
+  // Sort order within each primary aspect group:
+  // - Primary + Villainy
+  // - Primary + Heroism
+  // - Primary + Primary (double)
+  // - Primary only
+  // Then: Villainy only, Heroism only, Neutral (no aspect)
+  const getDefaultAspectSortKey = useCallback((card) => {
+    const aspects = card.aspects || []
+    if (aspects.length === 0) return 'Z_Neutral'
+    
+    const hasVillainy = aspects.includes('Villainy')
+    const hasHeroism = aspects.includes('Heroism')
+    const primaryAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning']
+    const primaryAspect = aspects.find(a => primaryAspects.includes(a))
+    
+    // Single aspect
+    if (aspects.length === 1) {
+      const aspect = aspects[0]
+      if (aspect === 'Villainy') return 'Y_Villainy'
+      if (aspect === 'Heroism') return 'Y_Heroism'
+      // Single primary aspect (Vigilance, Command, Aggression, Cunning)
+      const primaryOrder = {
+        'Vigilance': 'A',
+        'Command': 'B',
+        'Aggression': 'C',
+        'Cunning': 'D'
+      }
+      // Single primary comes after double and combinations, so use prefix '04'
+      return `${primaryOrder[aspect] || 'Z'}_04_${aspect}`
+    }
+    
+    // Two aspects
+    if (aspects.length === 2) {
+      if (primaryAspect) {
+        const primaryOrder = {
+          'Vigilance': 'A',
+          'Command': 'B',
+          'Aggression': 'C',
+          'Cunning': 'D'
+        }
+        const prefix = primaryOrder[primaryAspect] || 'Z'
+        
+        // Check if it's double primary (e.g., Vigilance Vigilance)
+        const primaryCount = aspects.filter(a => a === primaryAspect).length
+        if (hasVillainy) {
+          // Primary + Villainy - comes first
+          return `${prefix}_01_${primaryAspect}_Villainy`
+        } else if (hasHeroism) {
+          // Primary + Heroism - comes second
+          return `${prefix}_02_${primaryAspect}_Heroism`
+        } else if (primaryCount === 2) {
+          // Double primary (e.g., Vig Vig) - comes after Villainy and Heroism combos
+          return `${prefix}_03_${primaryAspect}_${primaryAspect}`
+        }
+      } else {
+        // Villainy + Heroism (no primary)
+        return 'Y_Villainy_Heroism'
+      }
+    }
+    
+    // More than 2 aspects - use first primary aspect
+    if (primaryAspect) {
+      const primaryOrder = {
+        'Vigilance': 'A',
+        'Command': 'B',
+        'Aggression': 'C',
+        'Cunning': 'D'
+      }
+      const prefix = primaryOrder[primaryAspect] || 'Z'
+      const sortedAspects = [...aspects].sort()
+      return `${prefix}_${sortedAspects.join('_')}`
+    }
+    
+    // No primary aspect found
+    return 'Z_Neutral'
+  }, [])
+
+  // Get aspect combination key for sorting (legacy, used for 'aspect' sort option)
   const getAspectKey = useCallback((card) => {
-    const aspects = (card.aspects || []).sort()
-    if (aspects.length === 0) return 'Neutral'
-    if (aspects.length === 1) return aspects[0]
-    // Two aspects - return sorted combination
-    return aspects.join(' ')
+    const aspects = card.aspects || []
+    if (aspects.length === 0) return 'ZZZ_Neutral'
+    
+    // Single aspects - sort by priority (alphabetical of colors: Blue, Green, Red, Yellow)
+    if (aspects.length === 1) {
+      const aspect = aspects[0]
+      const priority = {
+        'Vigilance': 'A_Vigilance',      // Blue
+        'Command': 'B_Command',          // Green
+        'Aggression': 'C_Aggression',    // Red
+        'Cunning': 'D_Cunning',          // Yellow
+        'Villainy': 'E_Villainy',
+        'Heroism': 'F_Heroism'
+      }
+      return priority[aspect] || `G_${aspect}`
+    }
+    
+    // Two aspects - return sorted combination with prefix
+    const sortedAspects = [...aspects].sort()
+    return `H_${sortedAspects.join(' ')}`
   }, [])
 
   // Sort and filter cards (only from deck section, excluding bases and leaders)
@@ -154,16 +230,32 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       .map(pos => pos.card)
     let filtered = allCards.filter(cardMatchesFilters)
     
-    if (sortOption === 'aspect') {
-      const grouped = {}
-      filtered.forEach(card => {
-        const key = getAspectKey(card)
-        if (!grouped[key]) grouped[key] = []
-        grouped[key].push(card)
+    if (sortOption === 'default' || sortOption === 'none') {
+      // Default sort: aspect combinations, then cost, then alphabetically
+      return filtered.sort((a, b) => {
+        // First: sort by aspect combination
+        const aspectKeyA = getDefaultAspectSortKey(a)
+        const aspectKeyB = getDefaultAspectSortKey(b)
+        const aspectCompare = aspectKeyA.localeCompare(aspectKeyB)
+        if (aspectCompare !== 0) return aspectCompare
+        
+        // Second: sort by cost (low to high)
+        const costA = a.cost !== null && a.cost !== undefined ? a.cost : 999
+        const costB = b.cost !== null && b.cost !== undefined ? b.cost : 999
+        if (costA !== costB) return costA - costB
+        
+        // Third: sort alphabetically (a before b down to z)
+        const nameA = (a.name || '').toLowerCase()
+        const nameB = (b.name || '').toLowerCase()
+        return nameA.localeCompare(nameB)
       })
-      // Sort groups by aspect combination
-      const sortedKeys = Object.keys(grouped).sort()
-      return sortedKeys.flatMap(key => grouped[key])
+    } else if (sortOption === 'aspect') {
+      // Sort by aspect key directly
+      return filtered.sort((a, b) => {
+        const keyA = getAspectKey(a)
+        const keyB = getAspectKey(b)
+        return keyA.localeCompare(keyB)
+      })
     } else if (sortOption === 'cost') {
       return filtered.sort((a, b) => (a.cost || 0) - (b.cost || 0))
     } else if (sortOption === 'type') {
@@ -176,7 +268,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       })
     }
     return filtered
-  }, [cardPositions, cardMatchesFilters, sortOption, getAspectKey])
+  }, [cardPositions, cardMatchesFilters, sortOption, getAspectKey, getDefaultAspectSortKey])
 
   // Restore saved state on mount
   useEffect(() => {
@@ -209,7 +301,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             Cunning: true,
             Aggression: true
           })
-          setSortOption(state.sortOption || 'none')
+          setSortOption(state.sortOption || 'default')
         }
       } catch (e) {
         console.error('Failed to restore deck builder state:', e)
@@ -242,6 +334,55 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       window.removeEventListener('resize', handleScroll)
     }
   }, [])
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && selectedCard) {
+        setSelectedCard(null)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [selectedCard])
+
+  // Handle Ctrl key press/release for hover modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Check for Ctrl key (works on both Mac and Windows)
+      if (e.ctrlKey || e.metaKey) {
+        setCtrlPressed(true)
+      }
+    }
+    const handleKeyUp = (e) => {
+      // Check if Ctrl/Meta is released
+      if (!e.ctrlKey && !e.metaKey) {
+        setCtrlPressed(false)
+        // Close modal when Ctrl is released
+        if (selectedCard) {
+          setSelectedCard(null)
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [selectedCard])
+
+  // Open modal when Ctrl is pressed while hovering over a card
+  useEffect(() => {
+    if (ctrlPressed && hoveredCard) {
+      const position = cardPositions[hoveredCard]
+      if (position && position.card) {
+        setSelectedCard(position.card)
+      }
+    }
+  }, [ctrlPressed, hoveredCard, cardPositions])
 
   // Initialize card positions in sections
   useEffect(() => {
@@ -497,7 +638,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
 
   // Apply sorting - separate deck and sideboard
   useEffect(() => {
-    if (sortOption === 'none') return
+    if (sortOption === 'default' || sortOption === 'none') return
     
     setCardPositions(prev => {
       // Separate deck and sideboard cards
@@ -548,14 +689,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         if (sortOption === 'cost') {
           return [...cards].sort((a, b) => (a.cost || 0) - (b.cost || 0))
         } else if (sortOption === 'aspect') {
-          const grouped = {}
-          cards.forEach(card => {
-            const key = getAspectKey(card)
-            if (!grouped[key]) grouped[key] = []
-            grouped[key].push(card)
+          // Sort by aspect key directly
+          return [...cards].sort((a, b) => {
+            const keyA = getAspectKey(a)
+            const keyB = getAspectKey(b)
+            return keyA.localeCompare(keyB)
           })
-          const sortedKeys = Object.keys(grouped).sort()
-          return sortedKeys.flatMap(key => grouped[key])
         } else if (sortOption === 'type') {
           const typeOrder = { 'Ground Unit': 1, 'Space Unit': 2, 'Upgrade': 3, 'Event': 4 }
           return [...cards].sort((a, b) => {
@@ -704,22 +843,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     if (card.section === 'leaders-bases' && card.card.isBase) {
       // Toggle selection - clicking same card deselects
       setActiveBase(cardId === activeBase ? null : cardId)
-      return
-    }
-    
-    // For pool cards (deck/sideboard sections), clicking moves between deck and sideboard
-    // But only if not using modifier keys (which are for selection)
-    if ((card.section === 'deck' || card.section === 'sideboard') && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
-      // Store that we're doing a click-toggle, not a drag
-      hasDraggedRef.current = false
-      setCardPositions(prev => ({
-        ...prev,
-        [cardId]: {
-          ...prev[cardId],
-          section: prev[cardId].section === 'deck' ? 'sideboard' : 'deck',
-          enabled: prev[cardId].section === 'deck' ? false : true
-        }
-      }))
       return
     }
     
@@ -926,6 +1049,26 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       setIsSelecting(false)
       setSelectionBox(null)
     }
+    
+    // Handle click-toggle for deck/sideboard cards if no drag occurred
+    if (draggedCard && !hasDraggedRef.current) {
+      const card = cardPositions[draggedCard]
+      if (card && (card.section === 'deck' || card.section === 'sideboard')) {
+        // Simple click (no drag) - toggle between deck and sideboard
+        setCardPositions(prev => ({
+          ...prev,
+          [draggedCard]: {
+            ...prev[draggedCard],
+            section: prev[draggedCard].section === 'deck' ? 'sideboard' : 'deck',
+            enabled: prev[draggedCard].section === 'deck' ? false : true
+          }
+        }))
+        setDraggedCard(null)
+        setDragOffset({ x: 0, y: 0 })
+        return
+      }
+    }
+    
     if (draggedCard) {
       const currentDraggedCard = draggedCard
       const finalPos = finalDragPositionRef.current
@@ -1058,7 +1201,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       setIsShiftDrag(false)
       setTouchingCards(new Set())
     }
-  }, [isSelecting, draggedCard, sectionBounds])
+  }, [isSelecting, draggedCard, sectionBounds, cardPositions])
 
   useEffect(() => {
     window.addEventListener('mousemove', handleMouseMove)
@@ -1096,11 +1239,23 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     return tableSort.direction === 'asc' ? <span className="sort-arrow">↑</span> : <span className="sort-arrow">↓</span>
   }
 
+  // Default sort function: aspect combinations, then cost, then alphabetically
   const defaultSort = (a, b) => {
-    // Default sort: by name alphabetically
-    const aName = (a.name || '').toLowerCase()
-    const bName = (b.name || '').toLowerCase()
-    return aName.localeCompare(bName)
+    // First: sort by aspect combination
+    const aspectKeyA = getDefaultAspectSortKey(a)
+    const aspectKeyB = getDefaultAspectSortKey(b)
+    const aspectCompare = aspectKeyA.localeCompare(aspectKeyB)
+    if (aspectCompare !== 0) return aspectCompare
+    
+    // Second: sort by cost (low to high)
+    const costA = a.cost !== null && a.cost !== undefined ? a.cost : 999
+    const costB = b.cost !== null && b.cost !== undefined ? b.cost : 999
+    if (costA !== costB) return costA - costB
+    
+    // Third: sort alphabetically (a before b down to z)
+    const nameA = (a.name || '').toLowerCase()
+    const nameB = (b.name || '').toLowerCase()
+    return nameA.localeCompare(nameB)
   }
 
   const sortTableData = (a, b, field, direction) => {
@@ -1549,14 +1704,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       
       // Download image
       canvas.toBlob((blob) => {
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
         a.download = `deck-${setCode}-${Date.now()}.png`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
         setErrorMessage('Image downloaded!')
         setTimeout(() => setErrorMessage(null), 3000)
       }, 'image/png')
@@ -1610,23 +1765,36 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             className={`selected-card-container ${!activeLeader ? 'select-card-placeholder' : ''} ${isInfoBarSticky ? 'sticky-layout' : 'inline-layout'}`}
             onClick={() => {
               if (!activeLeader) {
+                // Expand leaders section if collapsed
+                const wasCollapsed = !leadersExpanded
+                if (wasCollapsed) {
+                  setLeadersExpanded(true)
+                }
                 const leadersSection = document.querySelector('.leaders-bases-subsection:first-child')
                 if (leadersSection) {
                   const headerHeight = document.querySelector('.deck-info-bar')?.offsetHeight || 0
                   const topOffset = 20 // matches top: 20px from sticky header
                   const scrollOffset = headerHeight + topOffset + 10 // extra 10px for spacing
-                  const elementPosition = leadersSection.getBoundingClientRect().top + window.pageYOffset
-                  window.scrollTo({
-                    top: elementPosition - scrollOffset,
-                    behavior: 'smooth'
-                  })
+                  // Wait for expansion animation if it was collapsed
+                  setTimeout(() => {
+                    const elementPosition = leadersSection.getBoundingClientRect().top + window.pageYOffset
+                    window.scrollTo({
+                      top: elementPosition - scrollOffset,
+                      behavior: 'smooth'
+                    })
+                  }, wasCollapsed ? 400 : 0)
                 }
               }
             }}
           >
             {activeLeader && cardPositions[activeLeader] ? (
               <>
-                <span className="selected-card-name">{cardPositions[activeLeader].card.name}</span>
+                <span 
+                  className="selected-card-name"
+                  style={{ color: getAspectColor(cardPositions[activeLeader].card) }}
+                >
+                  {cardPositions[activeLeader].card.name}
+                </span>
                 {cardPositions[activeLeader].card.subtitle && (
                   <span className="selected-card-subtitle">{cardPositions[activeLeader].card.subtitle}</span>
                 )}
@@ -1636,36 +1804,59 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             )}
           </div>
           <span className="separator"></span>
-          <span 
-            className={activeBase ? 'selected-card-name' : 'select-card-placeholder'}
+          <div 
+            className={`selected-card-container ${!activeBase ? 'select-card-placeholder' : ''}`}
             onClick={() => {
               if (!activeBase) {
+                // Expand bases section if collapsed
+                const wasCollapsed = !basesExpanded
+                if (wasCollapsed) {
+                  setBasesExpanded(true)
+                }
                 const basesSection = document.querySelector('.leaders-bases-subsection:last-child')
                 if (basesSection) {
                   const headerHeight = document.querySelector('.deck-info-bar')?.offsetHeight || 0
                   const topOffset = 20 // matches top: 20px from sticky header
                   const scrollOffset = headerHeight + topOffset + 10 // extra 10px for spacing
-                  const elementPosition = basesSection.getBoundingClientRect().top + window.pageYOffset
-                  window.scrollTo({
-                    top: elementPosition - scrollOffset,
-                    behavior: 'smooth'
-                  })
+                  // Wait for expansion animation if it was collapsed
+                  setTimeout(() => {
+                    const elementPosition = basesSection.getBoundingClientRect().top + window.pageYOffset
+                    window.scrollTo({
+                      top: elementPosition - scrollOffset,
+                      behavior: 'smooth'
+                    })
+                  }, wasCollapsed ? 400 : 0)
                 }
               }
             }}
           >
-            {activeBase && cardPositions[activeBase] 
-              ? cardPositions[activeBase].card.name 
-              : '(Select a Base)'}
-          </span>
+            {activeBase && cardPositions[activeBase] ? (
+              <span 
+                className="selected-card-name"
+                style={{ color: getAspectColor(cardPositions[activeBase].card) }}
+              >
+                {cardPositions[activeBase].card.name}
+              </span>
+            ) : (
+              <span className="selected-card-name">(Select a Base)</span>
+            )}
+          </div>
         </div>
         <div className="deck-counts-info">
-            <span>Deck ({(() => {
+            <span>Deck(<span style={{ 
+              color: (() => {
+                const deckCount = Object.values(cardPositions)
+                  .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader).length
+                if (deckCount < 30) return '#F1C40F' // Yellow
+                if (deckCount === 30) return '#27AE60' // Green
+                return '#E74C3C' // Red
+              })()
+            }}>{(() => {
               const deckCards = Object.values(cardPositions)
                 .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
               return deckCards.length
-            })()})</span>
-            <span className="separator">|</span>
+            })()}</span>/30)</span>
+            <span className="separator"></span>
             <span>Sideboard ({(() => {
               const sideboardCards = Object.values(cardPositions)
                 .filter(pos => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
@@ -1787,7 +1978,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                     setSortDrawerOpen(false)
                   }}
                 >
-                  {option === 'none' ? 'None' : `Sort by ${option}`}
+                  {option === 'default' ? 'Default' : `Sort by ${option.charAt(0).toUpperCase() + option.slice(1)}`}
                 </button>
               ))}
             </div>
@@ -1806,10 +1997,44 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         
         const leadersCards = leadersBasesCards
           .filter(({ position }) => position.card.isLeader)
-          .sort((a, b) => defaultSort(a.position.card, b.position.card))
+          .sort((a, b) => {
+            if (sortOption === 'none' || !sortOption) {
+              return defaultSort(a.position.card, b.position.card)
+            } else if (sortOption === 'cost') {
+              return (a.position.card.cost || 0) - (b.position.card.cost || 0)
+            } else if (sortOption === 'aspect') {
+              const keyA = getAspectKey(a.position.card)
+              const keyB = getAspectKey(b.position.card)
+              return keyA.localeCompare(keyB)
+            } else if (sortOption === 'type') {
+              const typeOrder = { 'Ground Unit': 1, 'Space Unit': 2, 'Upgrade': 3, 'Event': 4 }
+              const aOrder = typeOrder[a.position.card.type] || 99
+              const bOrder = typeOrder[b.position.card.type] || 99
+              if (aOrder !== bOrder) return aOrder - bOrder
+              return (a.position.card.cost || 0) - (b.position.card.cost || 0)
+            }
+            return defaultSort(a.position.card, b.position.card)
+          })
         const basesCards = leadersBasesCards
           .filter(({ position }) => position.card.isBase)
-          .sort((a, b) => defaultSort(a.position.card, b.position.card))
+          .sort((a, b) => {
+            if (sortOption === 'none' || !sortOption) {
+              return defaultSort(a.position.card, b.position.card)
+            } else if (sortOption === 'cost') {
+              return (a.position.card.cost || 0) - (b.position.card.cost || 0)
+            } else if (sortOption === 'aspect') {
+              const keyA = getAspectKey(a.position.card)
+              const keyB = getAspectKey(b.position.card)
+              return keyA.localeCompare(keyB)
+            } else if (sortOption === 'type') {
+              const typeOrder = { 'Ground Unit': 1, 'Space Unit': 2, 'Upgrade': 3, 'Event': 4 }
+              const aOrder = typeOrder[a.position.card.type] || 99
+              const bOrder = typeOrder[b.position.card.type] || 99
+              if (aOrder !== bOrder) return aOrder - bOrder
+              return (a.position.card.cost || 0) - (b.position.card.cost || 0)
+            }
+            return defaultSort(a.position.card, b.position.card)
+          })
         
         if (leadersBasesCards.length > 0) {
           return (
@@ -1864,7 +2089,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             </div>
                           )}
                           <div className="card-badges">
-                            {card.isFoil && <span className="badge foil-badge">Foil</span>}
                             {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
                           </div>
                         </div>
@@ -1924,7 +2148,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             </div>
                           )}
                           <div className="card-badges">
-                            {card.isFoil && <span className="badge foil-badge">Foil</span>}
                             {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
                           </div>
                         </div>
@@ -1955,7 +2178,25 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             {Object.entries(cardPositions)
               .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader)
               .map(([cardId, position]) => ({ cardId, position }))
-              .sort((a, b) => defaultSort(a.position.card, b.position.card))
+              .filter(({ position }) => cardMatchesFilters(position.card))
+              .sort((a, b) => {
+                if (sortOption === 'default' || sortOption === 'none' || !sortOption) {
+                  return defaultSort(a.position.card, b.position.card)
+                } else if (sortOption === 'cost') {
+                  return (a.position.card.cost || 0) - (b.position.card.cost || 0)
+                } else if (sortOption === 'aspect') {
+                  const keyA = getAspectKey(a.position.card)
+                  const keyB = getAspectKey(b.position.card)
+                  return keyA.localeCompare(keyB)
+                } else if (sortOption === 'type') {
+                  const typeOrder = { 'Ground Unit': 1, 'Space Unit': 2, 'Upgrade': 3, 'Event': 4 }
+                  const aOrder = typeOrder[a.position.card.type] || 99
+                  const bOrder = typeOrder[b.position.card.type] || 99
+                  if (aOrder !== bOrder) return aOrder - bOrder
+                  return (a.position.card.cost || 0) - (b.position.card.cost || 0)
+                }
+                return defaultSort(a.position.card, b.position.card)
+              })
               .map(({ cardId, position }) => {
               const card = position.card
               const isSelected = selectedCards.has(cardId)
@@ -1966,7 +2207,26 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 <div
                   key={cardId}
                   className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''}`}
-                  onClick={(e) => handleMouseDown(e, cardId)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (!e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                      setCardPositions(prev => {
+                        const newSection = prev[cardId].section === 'deck' ? 'sideboard' : 'deck'
+                        const newEnabled = newSection === 'deck'
+                        return {
+                          ...prev,
+                          [cardId]: {
+                            ...prev[cardId],
+                            section: newSection,
+                            enabled: newEnabled,
+                            x: 0,
+                            y: 0,
+                          }
+                        }
+                      })
+                    }
+                  }}
                   onMouseEnter={() => setHoveredCard(cardId)}
                   onMouseLeave={() => setHoveredCard(null)}
                 >
@@ -1986,7 +2246,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                     </div>
                   )}
                   <div className="card-badges">
-                    {card.isFoil && <span className="badge foil-badge">Foil</span>}
                     {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
                   </div>
                 </div>
@@ -2011,7 +2270,25 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             {Object.entries(cardPositions)
               .filter(([_, position]) => position.section === 'sideboard' && position.visible && !position.card.isBase && !position.card.isLeader)
               .map(([cardId, position]) => ({ cardId, position }))
-              .sort((a, b) => defaultSort(a.position.card, b.position.card))
+              .filter(({ position }) => cardMatchesFilters(position.card))
+              .sort((a, b) => {
+                if (sortOption === 'default' || sortOption === 'none' || !sortOption) {
+                  return defaultSort(a.position.card, b.position.card)
+                } else if (sortOption === 'cost') {
+                  return (a.position.card.cost || 0) - (b.position.card.cost || 0)
+                } else if (sortOption === 'aspect') {
+                  const keyA = getAspectKey(a.position.card)
+                  const keyB = getAspectKey(b.position.card)
+                  return keyA.localeCompare(keyB)
+                } else if (sortOption === 'type') {
+                  const typeOrder = { 'Ground Unit': 1, 'Space Unit': 2, 'Upgrade': 3, 'Event': 4 }
+                  const aOrder = typeOrder[a.position.card.type] || 99
+                  const bOrder = typeOrder[b.position.card.type] || 99
+                  if (aOrder !== bOrder) return aOrder - bOrder
+                  return (a.position.card.cost || 0) - (b.position.card.cost || 0)
+                }
+                return defaultSort(a.position.card, b.position.card)
+              })
               .map(({ cardId, position }) => {
               const card = position.card
               const isSelected = selectedCards.has(cardId)
@@ -2022,7 +2299,26 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 <div
                   key={cardId}
                   className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''}`}
-                  onClick={(e) => handleMouseDown(e, cardId)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (!e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                      setCardPositions(prev => {
+                        const newSection = prev[cardId].section === 'deck' ? 'sideboard' : 'deck'
+                        const newEnabled = newSection === 'deck'
+                        return {
+                          ...prev,
+                          [cardId]: {
+                            ...prev[cardId],
+                            section: newSection,
+                            enabled: newEnabled,
+                            x: 0,
+                            y: 0,
+                          }
+                        }
+                      })
+                    }
+                  }}
                   onMouseEnter={() => setHoveredCard(cardId)}
                   onMouseLeave={() => setHoveredCard(null)}
                 >
@@ -2042,7 +2338,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                     </div>
                   )}
                   <div className="card-badges">
-                    {card.isFoil && <span className="badge foil-badge">Foil</span>}
                     {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
                   </div>
                 </div>
@@ -2107,13 +2402,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                     {sortedLeaders.map(({ cardId, card, enabled }, idx) => {
                       const aspectSymbols = card.aspects && card.aspects.length > 0 
                         ? card.aspects.map((aspect, i) => {
-                            const symbol = getAspectSymbol(aspect)
+                            const symbol = getAspectSymbol(aspect, 'large')
                             return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
                           }).filter(Boolean)
                         : null
                       const isSelected = activeLeader === cardId
                       return (
-                        <tr key={`leader-${cardId}-${idx}`}>
+                        <tr 
+                          key={`leader-${cardId}-${idx}`}
+                          onMouseEnter={() => setHoveredCard(cardId)}
+                          onMouseLeave={() => setHoveredCard(null)}
+                        >
                           <td>
                             <input
                               type="radio"
@@ -2130,13 +2429,41 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                           </td>
                           <td>
                             <div className="card-name-cell">
-                              <div className="card-name-main">{card.name || 'Unknown'}</div>
+                              <div 
+                                className="card-name-main" 
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => setSelectedCard(card)}
+                              >
+                                {card.name || 'Unknown'}
+                              </div>
                               {card.subtitle && !card.isBase && (
                                 <div className="card-name-subtitle">{card.subtitle}</div>
                               )}
                             </div>
                           </td>
-                          <td>{card.cost !== null && card.cost !== undefined ? card.cost : '-'}</td>
+                          <td>
+                            {card.cost !== null && card.cost !== undefined ? (
+                              <div style={{ position: 'relative', display: 'inline-block', width: '48px', height: '48px' }}>
+                                <img 
+                                  src="/icons/cost.png" 
+                                  alt="cost" 
+                                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                />
+                                <span style={{
+                                  position: 'absolute',
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: 'translate(-50%, -50%)',
+                                  color: 'white',
+                                  fontWeight: 'bold',
+                                  fontSize: '28px',
+                                  textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
+                                }}>
+                                  {card.cost}
+                                </span>
+                              </div>
+                            ) : '-'}
+                          </td>
                           <td className="aspects-cell">
                             {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
                           </td>
@@ -2201,13 +2528,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                     {sortedBases.map(({ cardId, card, enabled }, idx) => {
                       const aspectSymbols = card.aspects && card.aspects.length > 0 
                         ? card.aspects.map((aspect, i) => {
-                            const symbol = getAspectSymbol(aspect)
+                            const symbol = getAspectSymbol(aspect, 'large')
                             return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
                           }).filter(Boolean)
                         : null
                       const isSelected = activeBase === cardId
                       return (
-                        <tr key={`base-${cardId}-${idx}`}>
+                        <tr 
+                          key={`base-${cardId}-${idx}`}
+                          onMouseEnter={() => setHoveredCard(cardId)}
+                          onMouseLeave={() => setHoveredCard(null)}
+                        >
                           <td>
                             <input
                               type="radio"
@@ -2224,13 +2555,41 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                           </td>
                           <td>
                             <div className="card-name-cell">
-                              <div className="card-name-main">{card.name || 'Unknown'}</div>
+                              <div 
+                                className="card-name-main" 
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => setSelectedCard(card)}
+                              >
+                                {card.name || 'Unknown'}
+                              </div>
                               {card.subtitle && !card.isBase && (
                                 <div className="card-name-subtitle">{card.subtitle}</div>
                               )}
                             </div>
                           </td>
-                          <td>{card.cost !== null && card.cost !== undefined ? card.cost : '-'}</td>
+                          <td>
+                            {card.cost !== null && card.cost !== undefined ? (
+                              <div style={{ position: 'relative', display: 'inline-block', width: '48px', height: '48px' }}>
+                                <img 
+                                  src="/icons/cost.png" 
+                                  alt="cost" 
+                                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                />
+                                <span style={{
+                                  position: 'absolute',
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: 'translate(-50%, -50%)',
+                                  color: 'white',
+                                  fontWeight: 'bold',
+                                  fontSize: '28px',
+                                  textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
+                                }}>
+                                  {card.cost}
+                                </span>
+                              </div>
+                            ) : '-'}
+                          </td>
                           <td className="aspects-cell">
                             {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
                           </td>
@@ -2309,12 +2668,16 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                           {deckCardPositions.map(({ cardId, card }, idx) => {
                             const aspectSymbols = card.aspects && card.aspects.length > 0 
                               ? card.aspects.map((aspect, i) => {
-                                  const symbol = getAspectSymbol(aspect)
+                                  const symbol = getAspectSymbol(aspect, 'large')
                                   return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
                                 }).filter(Boolean)
                               : null
                             return (
-                              <tr key={`deck-${cardId}-${idx}`}>
+                              <tr 
+                                key={`deck-${cardId}-${idx}`}
+                                onMouseEnter={() => setHoveredCard(cardId)}
+                                onMouseLeave={() => setHoveredCard(null)}
+                              >
                                 <td>
                                   <input
                                     type="checkbox"
@@ -2329,13 +2692,41 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 </td>
                                 <td>
                                   <div className="card-name-cell">
-                                    <div className="card-name-main">{card.name || 'Unknown'}</div>
+                                    <div 
+                                      className="card-name-main" 
+                                      style={{ cursor: 'pointer' }}
+                                      onClick={() => setSelectedCard(card)}
+                                    >
+                                      {card.name || 'Unknown'}
+                                    </div>
                                     {card.subtitle && !card.isBase && (
                                       <div className="card-name-subtitle">{card.subtitle}</div>
                                     )}
                                   </div>
                                 </td>
-                                <td>{card.cost !== null && card.cost !== undefined ? card.cost : '-'}</td>
+                                <td>
+                            {card.cost !== null && card.cost !== undefined ? (
+                              <div style={{ position: 'relative', display: 'inline-block', width: '48px', height: '48px' }}>
+                                <img 
+                                  src="/icons/cost.png" 
+                                  alt="cost" 
+                                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                />
+                                <span style={{
+                                  position: 'absolute',
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: 'translate(-50%, -50%)',
+                                  color: 'white',
+                                  fontWeight: 'bold',
+                                  fontSize: '28px',
+                                  textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
+                                }}>
+                                  {card.cost}
+                                </span>
+                              </div>
+                            ) : '-'}
+                          </td>
                                 <td className="aspects-cell">
                                   {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
                                 </td>
@@ -2385,12 +2776,16 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                           {sideboardCardPositions.map(({ cardId, card }, idx) => {
                             const aspectSymbols = card.aspects && card.aspects.length > 0 
                               ? card.aspects.map((aspect, i) => {
-                                  const symbol = getAspectSymbol(aspect)
+                                  const symbol = getAspectSymbol(aspect, 'large')
                                   return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
                                 }).filter(Boolean)
                               : null
                             return (
-                              <tr key={`sideboard-${cardId}-${idx}`}>
+                              <tr 
+                                key={`sideboard-${cardId}-${idx}`}
+                                onMouseEnter={() => setHoveredCard(cardId)}
+                                onMouseLeave={() => setHoveredCard(null)}
+                              >
                                 <td>
                                   <input
                                     type="checkbox"
@@ -2405,13 +2800,41 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 </td>
                                 <td>
                                   <div className="card-name-cell">
-                                    <div className="card-name-main">{card.name || 'Unknown'}</div>
+                                    <div 
+                                      className="card-name-main" 
+                                      style={{ cursor: 'pointer' }}
+                                      onClick={() => setSelectedCard(card)}
+                                    >
+                                      {card.name || 'Unknown'}
+                                    </div>
                                     {card.subtitle && !card.isBase && (
                                       <div className="card-name-subtitle">{card.subtitle}</div>
                                     )}
                                   </div>
                                 </td>
-                                <td>{card.cost !== null && card.cost !== undefined ? card.cost : '-'}</td>
+                                <td>
+                            {card.cost !== null && card.cost !== undefined ? (
+                              <div style={{ position: 'relative', display: 'inline-block', width: '48px', height: '48px' }}>
+                                <img 
+                                  src="/icons/cost.png" 
+                                  alt="cost" 
+                                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                />
+                                <span style={{
+                                  position: 'absolute',
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: 'translate(-50%, -50%)',
+                                  color: 'white',
+                                  fontWeight: 'bold',
+                                  fontSize: '28px',
+                                  textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
+                                }}>
+                                  {card.cost}
+                                </span>
+                              </div>
+                            ) : '-'}
+                          </td>
                                 <td className="aspects-cell">
                                   {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
                                 </td>
@@ -2428,6 +2851,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             )
           })()}
         </div>
+      )}
+
+      {selectedCard && (
+        <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
       )}
     </div>
   )

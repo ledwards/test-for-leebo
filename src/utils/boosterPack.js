@@ -1,7 +1,7 @@
 // Booster pack generation logic based on:
 // https://starwarsunlimited.com/articles/boosting-ahead-of-release
 
-import { getDistributionForSet, getDistributionPeriod, DISTRIBUTION_PERIODS, RARITY_DISTRIBUTIONS } from './rarityConfig.js'
+import { getDistributionForSet, getDistributionPeriod, DISTRIBUTION_PERIODS, RARITY_DISTRIBUTIONS, SETS_WITH_SPECIAL_IN_FOIL } from './rarityConfig.js'
 
 /**
  * Generate a single booster pack according to SWU rules
@@ -12,7 +12,7 @@ import { getDistributionForSet, getDistributionPeriod, DISTRIBUTION_PERIODS, RAR
  * - 9 Common cards
  * - 3 Uncommon cards
  * - 1 Rare or Legendary card (can be rare base for sets 1-6)
- * - 1 Foil card (can be any rarity, including Special for sets 4-6)
+ * - 1 Foil card (can be any rarity, including Special for sets 5, 6, 7 in foil/hyperfoil only)
  * 
  * Total: 16 cards
  * 
@@ -20,7 +20,8 @@ import { getDistributionForSet, getDistributionPeriod, DISTRIBUTION_PERIODS, RAR
  * - Leaders can ONLY appear in leader slot
  * - Common bases can ONLY appear in base slot
  * - Rare bases CAN appear in rare slot (sets 1-6: SOR, SHD, TWI, JTL, LOF, SEC)
- * - Special rarity cards do NOT appear in packs EXCEPT in foil slot (sets 4-6: JTL, LOF, SEC only)
+ * - Special rarity cards do NOT appear in regular slots
+ * - Special rarity cards can ONLY appear in foil/hyperfoil slots (sets 5, 6, 7: LOF, SEC, and future set 7)
  * 
  * Variants:
  * - Hyperspace variant: ~1 in 288 cards (~0.35% per card)
@@ -36,23 +37,29 @@ export function generateBoosterPack(cards, setCode) {
   const distributionPeriod = getDistributionPeriod(setCode)
   const isPreLawlessTime = distributionPeriod === DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
 
-  // Determine if this is set 4-6 (JTL, LOF, SEC) for Special rarity in foil slot
-  const sets4to6 = ['JTL', 'LOF', 'SEC']
-  const isSet4to6 = sets4to6.includes(setCode)
+  // Determine if this set allows Special rarity in foil slot (sets 5, 6, 7: LOF, SEC, and future set 7)
+  const allowsSpecialInFoil = SETS_WITH_SPECIAL_IN_FOIL.includes(setCode)
 
   // Separate cards by type and rarity
+  // IMPORTANT: Special rarity cards should NEVER appear in regular slots
+  // They can ONLY appear in foil/hyperfoil slots (and only in specific sets)
+  
   // Leaders: exclude Special rarity (Special leaders can only appear in foil slot)
   const leaders = cards.filter((card) => card.isLeader && card.rarity !== 'Special')
-  const bases = cards.filter((card) => card.isBase)
+  
+  // Bases: exclude Special rarity (Special bases can only appear in foil slot)
+  const bases = cards.filter((card) => card.isBase && card.rarity !== 'Special')
+  
+  // Standard cards: exclude Special rarity (Special cards can only appear in foil slot)
   const standardCards = cards.filter(
-    (card) => !card.isLeader && !card.isBase
+    (card) => !card.isLeader && !card.isBase && card.rarity !== 'Special'
   )
 
-  // Separate bases by rarity
+  // Separate bases by rarity (already filtered to exclude Special)
   const commonBases = bases.filter((card) => card.rarity === 'Common')
   const rareBases = bases.filter((card) => card.rarity === 'Rare')
 
-  // Standard cards by rarity (excluding Special)
+  // Standard cards by rarity (already filtered to exclude Special)
   const commons = standardCards.filter((card) => card.rarity === 'Common')
   const uncommons = standardCards.filter((card) => card.rarity === 'Uncommon')
   const rares = standardCards.filter((card) => card.rarity === 'Rare')
@@ -278,6 +285,7 @@ export function generateBoosterPack(cards, setCode) {
       // ~60% - Common hyperspace
       const hyperspaceCommons = cards.filter(
         (c) => c.rarity === 'Common' && 
+        c.rarity !== 'Special' &&
         c.variantType === 'Hyperspace' && 
         !c.isLeader && 
         !c.isBase
@@ -289,6 +297,7 @@ export function generateBoosterPack(cards, setCode) {
       // ~25% - Uncommon hyperspace
       const hyperspaceUncommons = cards.filter(
         (c) => c.rarity === 'Uncommon' && 
+        c.rarity !== 'Special' &&
         c.variantType === 'Hyperspace' && 
         !c.isLeader && 
         !c.isBase
@@ -300,6 +309,7 @@ export function generateBoosterPack(cards, setCode) {
       // ~12% - Rare hyperspace
       const hyperspaceRares = cards.filter(
         (c) => c.rarity === 'Rare' && 
+        c.rarity !== 'Special' &&
         c.variantType === 'Hyperspace' && 
         !c.isLeader && 
         !c.isBase
@@ -311,6 +321,7 @@ export function generateBoosterPack(cards, setCode) {
       // ~3% - Legendary hyperspace
       const hyperspaceLegendaries = cards.filter(
         (c) => c.rarity === 'Legendary' && 
+        c.rarity !== 'Special' &&
         c.variantType === 'Hyperspace' && 
         !c.isLeader && 
         !c.isBase
@@ -426,15 +437,15 @@ export function generateBoosterPack(cards, setCode) {
   // Remove common bases from foil pool (common bases cannot be foil)
   foilPool = foilPool.filter((card) => !(card.isBase && card.rarity === 'Common'))
   
-  // Remove Special rarity cards if not sets 4-6
-  if (!isSet4to6) {
+  // Remove Special rarity cards if not in allowed sets
+  if (!allowsSpecialInFoil) {
     foilPool = foilPool.filter((card) => card.rarity !== 'Special')
   }
   
   if (foilPool.length > 0) {
     let foilCard = null
     
-    if (isSet4to6 && specials.length > 0) {
+    if (allowsSpecialInFoil && specials.length > 0) {
       // For sets 4-6, Special can appear in foil slot
       // Special should appear at roughly the same rate as rare cards in foil slot
       // Since rares are ~22% of sets 4-6, weight Special to appear ~20% of the time
