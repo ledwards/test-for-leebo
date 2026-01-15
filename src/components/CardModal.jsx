@@ -65,7 +65,7 @@ function CardModal({ card, onClose }) {
             {card.isLeader && hasBackImage ? (
               // For leaders with back image, show both stacked vertically
               <div className="modal-leader-images">
-                <div className="modal-image-wrapper">
+                <div className={`modal-image-wrapper ${card.isFoil ? 'foil' : ''}`}>
                   {card.imageUrl ? (
                     <img
                       src={card.imageUrl}
@@ -81,7 +81,7 @@ function CardModal({ card, onClose }) {
                     </div>
                   )}
                 </div>
-                <div className="modal-image-wrapper">
+                <div className={`modal-image-wrapper ${card.isFoil ? 'foil' : ''}`}>
                   {card.backImageUrl ? (
                     <img
                       src={card.backImageUrl}
@@ -100,7 +100,7 @@ function CardModal({ card, onClose }) {
               </div>
             ) : (
               // For non-leaders or leaders without back image, show single image
-              <div className="modal-image-wrapper">
+              <div className={`modal-image-wrapper ${card.isFoil ? 'foil' : ''}`}>
                 {card.imageUrl ? (
                   <img
                     src={card.imageUrl}
@@ -160,7 +160,9 @@ function CardModal({ card, onClose }) {
                 <div className="stat-row">
                   <span className="stat-label">Cost:</span>
                   <span className="stat-value">
-                    <CostIcon cost={card.cost} size={32} />
+                    <div style={{ marginLeft: '-5px' }}>
+                      <CostIcon cost={card.cost} size={32} />
+                    </div>
                   </span>
                 </div>
               )}
