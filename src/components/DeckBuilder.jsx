@@ -1564,7 +1564,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         .sort((a, b) => defaultSort(a, b))
       
       const unusedBases = Object.entries(cardPositions)
-        .filter(([cardId, pos]) => pos.section === 'leaders-bases' && pos.visible && pos.card.isBase && cardId !== activeBase)
+        .filter(([cardId, pos]) => {
+          const card = pos.card
+          const rarity = card.rarity
+          // Only include rare bases (Rare, Legendary, or Special) - exclude common bases
+          const isRareBase = rarity === 'Rare' || rarity === 'Legendary' || rarity === 'Special'
+          return pos.section === 'leaders-bases' && pos.visible && card.isBase && cardId !== activeBase && isRareBase
+        })
         .map(([_, pos]) => pos.card)
         .sort((a, b) => defaultSort(a, b))
       
