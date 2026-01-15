@@ -3,7 +3,14 @@ function CostIcon({ cost, size = 32 }) {
   if (cost === null || cost === undefined) return null
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block', width: `${size}px`, height: `${size}px` }}>
+    <div style={{ 
+      position: 'relative', 
+      display: 'inline-flex', 
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: `${size}px`, 
+      height: `${size}px` 
+    }}>
       <img 
         src="/icons/cost.png" 
         alt="Cost" 
@@ -21,8 +28,7 @@ function CostIcon({ cost, size = 32 }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '100%',
-        height: '100%'
+        lineHeight: 1
       }}>
         {cost}
       </span>

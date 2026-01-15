@@ -215,6 +215,7 @@
 .stat-row.full-width {
   flex-direction: column;
   gap: 0.5rem;
+  align-items: flex-start;
 }
 
 .stat-label {
@@ -229,6 +230,7 @@
   flex: 1;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
 }
 
 .stat-row.full-width .stat-value {

@@ -140,9 +140,6 @@
   overflow: hidden;
 }
 
-.card-item:hover::before {
-  opacity: 1;
-}
 
 .card-item:hover {
   transform: scale(1.05);
