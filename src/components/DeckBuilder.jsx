@@ -80,6 +80,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
   const [isShiftDrag, setIsShiftDrag] = useState(false)
   const [touchingCards, setTouchingCards] = useState(new Set())
   const [zIndexCounter, setZIndexCounter] = useState(1000)
+  const deckBlocksRowRef = useRef(null)
   const [activeLeader, setActiveLeader] = useState(null)
   const [activeBase, setActiveBase] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
@@ -1298,6 +1299,48 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     }
   }, [handleMouseMove, handleMouseUp])
 
+  // Mark the last block in each row to expand
+  useEffect(() => {
+    if (!deckExpanded || !deckBlocksRowRef.current) return
+    
+    const markLastInRow = () => {
+      const blocks = deckBlocksRowRef.current?.querySelectorAll('.card-block')
+      if (!blocks || blocks.length === 0) return
+      
+      // Remove previous markers
+      blocks.forEach(block => block.classList.remove('last-in-row'))
+      
+      // Group blocks by row (same top position)
+      const rows = new Map()
+      blocks.forEach((block) => {
+        const rect = block.getBoundingClientRect()
+        const top = Math.round(rect.top)
+        if (!rows.has(top)) {
+          rows.set(top, [])
+        }
+        rows.get(top).push(block)
+      })
+      
+      // Mark the last block in each row
+      rows.forEach((rowBlocks) => {
+        if (rowBlocks.length > 0) {
+          rowBlocks[rowBlocks.length - 1].classList.add('last-in-row')
+        }
+      })
+    }
+    
+    // Run after a short delay to ensure layout is complete
+    const timeoutId = setTimeout(markLastInRow, 100)
+    
+    // Also run on resize
+    window.addEventListener('resize', markLastInRow)
+    
+    return () => {
+      clearTimeout(timeoutId)
+      window.removeEventListener('resize', markLastInRow)
+    }
+  }, [deckExpanded, cardPositions, sortOption])
+
   const getRarityColor = (rarity) => {
     switch (rarity) {
       case 'Common': return '#999'
@@ -1977,7 +2020,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 setLeadersExpanded(true)
               }
               // Find the leaders block in the new structure
-              const leadersBlock = document.querySelector('.blocks-top-row .card-block:first-child')
+              const leadersBlock = document.querySelector('.blocks-leaders-row .card-block')
               if (leadersBlock) {
                 const headerHeight = document.querySelector('.deck-info-bar')?.offsetHeight || 0
                 const topOffset = 20 // matches top: 20px from sticky header
@@ -2020,7 +2063,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 setBasesExpanded(true)
               }
               // Find the bases block in the new structure
-              const basesBlock = document.querySelector('.blocks-top-row .card-block:last-child')
+              const basesBlock = document.querySelector('.blocks-bases-row .card-block')
               if (basesBlock) {
                 const headerHeight = document.querySelector('.deck-info-bar')?.offsetHeight || 0
                 const topOffset = 20 // matches top: 20px from sticky header
@@ -2357,6 +2400,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             display: 'flex', 
             alignItems: 'center', 
             gap: '0.5rem',
+            marginTop: '1.5rem',
             marginBottom: '0.75rem',
             fontSize: '1.2rem',
             fontWeight: 600,
@@ -2378,9 +2422,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             <span>Leaders & Bases</span>
           </div>
           
-          {/* Top Row: Leaders and Bases */}
-          {(leadersExpanded || basesExpanded) && (
-            <div className="blocks-top-row">
+          {/* Leaders Row */}
+          {leadersExpanded && (
+            <div className="blocks-leaders-row">
             {/* Leaders Block */}
             {(() => {
               const leadersCards = Object.entries(cardPositions)
@@ -2455,9 +2499,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 </div>
               ) : null
             })()}
-            
-            {/* Bases Block */}
-            {(() => {
+          </div>
+          )}
+          
+          {/* Bases Row */}
+          {basesExpanded && (
+            <div className="blocks-bases-row">
+              {(() => {
               const basesCards = Object.entries(cardPositions)
                 .filter(([_, position]) => position.section === 'leaders-bases' && position.visible && position.card.isBase)
                 .map(([cardId, position]) => ({ cardId, position }))
@@ -2470,26 +2518,26 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                   return keyA.localeCompare(keyB)
                 })
               
-              // Separate bases by rarity, but keep selected base first
-              const selectedBase = basesCards.find(({ cardId }) => activeBase === cardId)
-              const otherBases = basesCards.filter(({ cardId }) => activeBase !== cardId)
-              
-              const rareBases = otherBases.filter(({ position }) => {
-                const rarity = position.card.rarity
-                return rarity === 'Rare' || rarity === 'Legendary' || rarity === 'Special'
+              // Sort bases: selected first, then rare bases, then common bases
+              const sortedBases = [...basesCards].sort((a, b) => {
+                // Selected base comes first
+                if (activeBase === a.cardId) return -1
+                if (activeBase === b.cardId) return 1
+                
+                // Then sort by rarity (rare first)
+                const aRarity = a.position.card.rarity
+                const bRarity = b.position.card.rarity
+                const aIsRare = aRarity === 'Rare' || aRarity === 'Legendary' || aRarity === 'Special'
+                const bIsRare = bRarity === 'Rare' || bRarity === 'Legendary' || bRarity === 'Special'
+                
+                if (aIsRare && !bIsRare) return -1
+                if (!aIsRare && bIsRare) return 1
+                
+                // Then by aspect
+                const keyA = getAspectKey(a.position.card)
+                const keyB = getAspectKey(b.position.card)
+                return keyA.localeCompare(keyB)
               })
-              const commonBases = otherBases.filter(({ position }) => {
-                const rarity = position.card.rarity
-                return rarity !== 'Rare' && rarity !== 'Legendary' && rarity !== 'Special'
-              })
-              
-              // Reconstruct bases list with selected first
-              const sortedRareBases = selectedBase && (selectedBase.position.card.rarity === 'Rare' || selectedBase.position.card.rarity === 'Legendary' || selectedBase.position.card.rarity === 'Special')
-                ? [selectedBase, ...rareBases]
-                : rareBases
-              const sortedCommonBases = selectedBase && !(selectedBase.position.card.rarity === 'Rare' || selectedBase.position.card.rarity === 'Legendary' || selectedBase.position.card.rarity === 'Special')
-                ? [selectedBase, ...commonBases]
-                : commonBases
               
               return basesCards.length > 0 ? (
                 <div className="card-block">
@@ -2498,106 +2546,54 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                   </h3>
                   {basesExpanded && (
                     <div className="card-block-content">
-                      {sortedRareBases.length > 0 && (
-                        <div className="leaders-bases-container bases-only bases-rare">
-                          {sortedRareBases.map(({ cardId, position }) => {
-                            const card = position.card
-                            const isSelected = selectedCards.has(cardId)
-                            const isHovered = hoveredCard === cardId
-                            const isActiveBase = activeBase === cardId
-                            
-                            return (
-                              <div
-                                key={cardId}
-                                className={`canvas-card base ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isActiveBase ? 'active-base' : ''}`}
-                                style={{
-                                  cursor: 'pointer',
-                                  position: 'relative'
-                                }}
-                                onClick={(e) => {
-                                  if (e.metaKey || e.ctrlKey) {
-                                    setSelectedCard(card)
-                                    return
-                                  }
-                                  const newActiveBase = activeBase === cardId ? null : cardId
-                                  setActiveBase(newActiveBase)
-                                }}
-                                onMouseEnter={() => setHoveredCard(cardId)}
-                                onMouseLeave={() => setHoveredCard(null)}
-                              >
-                                {card.imageUrl ? (
-                                  <img
-                                    src={card.imageUrl}
-                                    alt={card.name || 'Card'}
-                                    className="card-image"
-                                    draggable={false}
-                                  />
-                                ) : (
-                                  <div className="card-placeholder">
-                                    <div className="card-name">{card.name || 'Card'}</div>
-                                    <div className="card-rarity" style={{ color: getRarityColor(card.rarity) }}>
-                                      {card.rarity}
-                                    </div>
+                      <div className="leaders-bases-container bases-only">
+                        {sortedBases.map(({ cardId, position }) => {
+                          const card = position.card
+                          const isSelected = selectedCards.has(cardId)
+                          const isHovered = hoveredCard === cardId
+                          const isActiveBase = activeBase === cardId
+                          
+                          return (
+                            <div
+                              key={cardId}
+                              className={`canvas-card base ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isActiveBase ? 'active-base' : ''}`}
+                              style={{
+                                cursor: 'pointer',
+                                position: 'relative'
+                              }}
+                              onClick={(e) => {
+                                if (e.metaKey || e.ctrlKey) {
+                                  setSelectedCard(card)
+                                  return
+                                }
+                                const newActiveBase = activeBase === cardId ? null : cardId
+                                setActiveBase(newActiveBase)
+                              }}
+                              onMouseEnter={() => setHoveredCard(cardId)}
+                              onMouseLeave={() => setHoveredCard(null)}
+                            >
+                              {card.imageUrl ? (
+                                <img
+                                  src={card.imageUrl}
+                                  alt={card.name || 'Card'}
+                                  className="card-image"
+                                  draggable={false}
+                                />
+                              ) : (
+                                <div className="card-placeholder">
+                                  <div className="card-name">{card.name || 'Card'}</div>
+                                  <div className="card-rarity" style={{ color: getRarityColor(card.rarity) }}>
+                                    {card.rarity}
                                   </div>
-                                )}
-                                <div className="card-badges">
-                                  {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
                                 </div>
+                              )}
+                              <div className="card-badges">
+                                {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
                               </div>
-                            )
-                          })}
-                        </div>
-                      )}
-                      {sortedCommonBases.length > 0 && (
-                        <div className="leaders-bases-container bases-only bases-common">
-                          {sortedCommonBases.map(({ cardId, position }) => {
-                            const card = position.card
-                            const isSelected = selectedCards.has(cardId)
-                            const isHovered = hoveredCard === cardId
-                            const isActiveBase = activeBase === cardId
-                            
-                            return (
-                              <div
-                                key={cardId}
-                                className={`canvas-card base ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isActiveBase ? 'active-base' : ''}`}
-                                style={{
-                                  cursor: 'pointer',
-                                  position: 'relative'
-                                }}
-                                onClick={(e) => {
-                                  if (e.metaKey || e.ctrlKey) {
-                                    setSelectedCard(card)
-                                    return
-                                  }
-                                  const newActiveBase = activeBase === cardId ? null : cardId
-                                  setActiveBase(newActiveBase)
-                                }}
-                                onMouseEnter={() => setHoveredCard(cardId)}
-                                onMouseLeave={() => setHoveredCard(null)}
-                              >
-                                {card.imageUrl ? (
-                                  <img
-                                    src={card.imageUrl}
-                                    alt={card.name || 'Card'}
-                                    className="card-image"
-                                    draggable={false}
-                                  />
-                                ) : (
-                                  <div className="card-placeholder">
-                                    <div className="card-name">{card.name || 'Card'}</div>
-                                    <div className="card-rarity" style={{ color: getRarityColor(card.rarity) }}>
-                                      {card.rarity}
-                                    </div>
-                                  </div>
-                                )}
-                                <div className="card-badges">
-                                  {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )}
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -2670,7 +2666,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       
           {/* Deck Blocks Row */}
           {deckExpanded && (
-            <div className="blocks-deck-row">
+            <div className="blocks-deck-row" ref={deckBlocksRowRef}>
               {(() => {
           // Get all deck cards
           const deckCards = Object.entries(cardPositions)
@@ -2720,18 +2716,16 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 return
               }
               
-              const isExpanded = deckCostSectionsExpanded[costSegment] !== false
               const sortedCards = [...activeCards].sort((a, b) => {
                 return defaultSort(a.position.card, b.position.card)
               })
               
               const block = (
-                <div key={`cost-${costSegment}`} className="card-block">
-                  <h3 
-                    className="card-block-header"
-                    onClick={() => setDeckCostSectionsExpanded(prev => ({ ...prev, [costSegment]: !isExpanded }))}
-                  >
-                    <span>{isExpanded ? '▼' : '▶'}</span>
+                <div 
+                  key={`cost-${costSegment}`} 
+                  className="card-block"
+                >
+                  <h3 className="card-block-header">
                     <div style={{ position: 'relative', display: 'inline-block', width: '32px', height: '32px' }}>
                       <img 
                         src="/icons/cost.png" 
@@ -2753,8 +2747,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                     </div>
                     <span>({sortedCards.length})</span>
                   </h3>
-                  {isExpanded && (
-                    <div className="card-block-content">
+                  <div className="card-block-content">
                       <div className="cards-grid">
                         {sortedCards.map(({ cardId, position }) => {
                         const card = position.card
@@ -2816,7 +2809,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                         })}
                       </div>
                     </div>
-                  )}
                 </div>
               )
               
@@ -2866,7 +2858,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 return
               }
               
-              const isExpanded = deckAspectSectionsExpanded[aspectKey] !== false
               const sortedCards = [...activeCards].sort((a, b) => {
                 return defaultSort(a.position.card, b.position.card)
               })
@@ -2893,7 +2884,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
               const sortedTypes = typeOrder.filter(type => groupedByType[type] && groupedByType[type].length > 0)
               
               const block = (
-                <div key={aspectKey} className="card-block">
+                <div 
+                  key={aspectKey} 
+                  className="card-block"
+                >
                   <h3 className="card-block-header">
                     {getAspectCombinationIcons(aspectKey)}
                     <span>({sortedCards.length})</span>
@@ -2941,7 +2935,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             const card = position.card
                             return card.arenas && card.arenas.includes('Space')
                           }).length
-                          displayText = `UNITS (${totalCount}) - GROUND (${groundCount}) | SPACE (${spaceCount})`
+                          
+                          // Always show both ground and space counts, with divider
+                          displayText = `UNITS (${totalCount}): ground (${groundCount}) - space (${spaceCount})`
                         } else if (type === 'Upgrade') {
                           displayText = `Upgrades (${totalCount})`
                         } else if (type === 'Event') {

@@ -346,25 +346,22 @@
   gap: 0.75rem;
 }
 
-/* Top row: Leaders and Bases side by side */
-.blocks-top-row {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+/* Leaders row */
+.blocks-leaders-row {
+  width: 100%;
 }
 
-.blocks-top-row .card-block {
-  flex: 1;
-  min-width: 300px;
+.blocks-leaders-row .card-block {
+  width: 100%;
 }
 
-@media (max-width: 768px) {
-  .blocks-top-row {
-    flex-direction: column;
-  }
-  .blocks-top-row .card-block {
-    width: 100%;
-  }
+/* Bases row */
+.blocks-bases-row {
+  width: 100%;
+}
+
+.blocks-bases-row .card-block {
+  width: 100%;
 }
 
 /* Middle: Deck blocks flowing */
@@ -377,6 +374,11 @@
 .blocks-deck-row .card-block {
   flex: 0 1 auto;
   min-width: 300px;
+}
+
+/* Make the last block in each row grow to fill remaining space */
+.blocks-deck-row .card-block.last-in-row {
+  flex: 1 1 auto;
 }
 
 /* Bottom: Sideboard full width */
