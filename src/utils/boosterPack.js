@@ -1,7 +1,8 @@
 // Booster pack generation logic based on:
 // https://starwarsunlimited.com/articles/boosting-ahead-of-release
 
-import { getDistributionForSet, getDistributionPeriod, DISTRIBUTION_PERIODS, RARITY_DISTRIBUTIONS, SETS_WITH_SPECIAL_IN_FOIL } from './rarityConfig.js'
+import { getDistributionForSet, getDistributionPeriod, DISTRIBUTION_PERIODS, RARITY_DISTRIBUTIONS, allowsSpecialInFoil } from './rarityConfig.js'
+import { getSetConfig } from './setConfigs/index.js'
 
 /**
  * Generate a single booster pack according to SWU rules
@@ -32,13 +33,41 @@ export function generateBoosterPack(cards, setCode) {
     return []
   }
 
+  // Get set-specific configuration
+  const setConfig = getSetConfig(setCode)
+  if (!setConfig) {
+    console.warn(`No configuration found for set ${setCode}, using defaults`)
+  }
+  
   // Get distribution configuration for this set
   const distribution = getDistributionForSet(setCode)
   const distributionPeriod = getDistributionPeriod(setCode)
   const isPreLawlessTime = distributionPeriod === DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
 
-  // Determine if this set allows Special rarity in foil slot (sets 5, 6, 7: LOF, SEC, and future set 7)
-  const allowsSpecialInFoil = SETS_WITH_SPECIAL_IN_FOIL.includes(setCode)
+  // Determine if this set allows Special rarity in foil slot
+  const allowsSpecial = allowsSpecialInFoil(setCode)
+  
+  // Get set-specific pack rules
+  const rareBasesInRareSlot = setConfig?.packRules.rareBasesInRareSlot ?? true
+  const specialInFoilRate = setConfig?.packRules.specialInFoilRate ?? 0
+  
+  // Get upgrade slot configuration
+  const upgradeSlotHyperspaceChance = setConfig?.upgradeSlot.hyperspaceChance ?? 0.25
+  const upgradeSlotRarityDist = setConfig?.upgradeSlot.rarityDistribution ?? {
+    Common: 0.60,
+    Uncommon: 0.25,
+    Rare: 0.12,
+    Legendary: 0.03
+  }
+  
+  // Determine if this pack should have at least one hyperspace card (66.7% chance for Pre-A Lawless Time)
+  // This ensures the pack-level rate matches the expected distribution
+  const packShouldHaveHyperspace = isPreLawlessTime 
+    ? Math.random() < distribution.hyperspace.inStandardPack  // 66.7% for Pre-A Lawless Time
+    : true  // 100% for A Lawless Time Onward (guaranteed)
+  
+  // Track if we've placed a hyperspace card yet (to ensure at least one if pack should have hyperspace)
+  let hasHyperspaceCard = false
 
   // Separate cards by type and rarity
   // IMPORTANT: Special rarity cards should NEVER appear in regular slots
@@ -217,13 +246,15 @@ export function generateBoosterPack(cards, setCode) {
     if (base) {
       markSelected(base)
       
-      const isHyperspace = rollHyperspace(distribution)
+      let isHyperspace = rollHyperspace(distribution)
+      
       let finalBase = { ...base }
       
       if (isHyperspace) {
         const hyperspaceCard = findVariantCard(base, 'Hyperspace', cards)
         if (hyperspaceCard) {
           finalBase = hyperspaceCard
+          hasHyperspaceCard = true
         }
       }
       
@@ -246,14 +277,16 @@ export function generateBoosterPack(cards, setCode) {
     
     markSelected(common)
     
-      const isHyperspace = rollHyperspace(distribution)
-      let finalCommon = { ...common }
+    let isHyperspace = rollHyperspace(distribution)
+    
+    let finalCommon = { ...common }
     
     // If hyperspace, use hyperspace variant card
     if (isHyperspace) {
       const hyperspaceCard = findVariantCard(common, 'Hyperspace', cards)
       if (hyperspaceCard) {
         finalCommon = hyperspaceCard
+        hasHyperspaceCard = true
       }
     }
     
@@ -294,21 +327,17 @@ export function generateBoosterPack(cards, setCode) {
   // - Rare: 1 in 15 packs = 6.67% of packs, but that's overall, not just upgrade slot
   // - Legendary: Very rare
   
-  // More conservative: Upgrade slot is hyperspace ~25% of the time
-  const isHyperspaceUpgrade = Math.random() < 0.25 // 25% chance for upgrade slot to be hyperspace
+  // Use set-specific upgrade slot hyperspace chance
+  const isHyperspaceUpgrade = Math.random() < upgradeSlotHyperspaceChance
   
   if (isHyperspaceUpgrade) {
     // Upgrade slot: Hyperspace variant of any rarity (C, U, R, or L)
-    // Distribution within hyperspace upgrades (approximate):
-    // - Common: ~60% of hyperspace upgrades
-    // - Uncommon: ~25% of hyperspace upgrades
-    // - Rare: ~12% of hyperspace upgrades  
-    // - Legendary: ~3% of hyperspace upgrades
+    // Use set-specific rarity distribution
     const upgradeRoll = Math.random()
     let upgradeCard = null
     
-    if (upgradeRoll < 0.60) {
-      // ~60% - Common hyperspace
+    if (upgradeRoll < upgradeSlotRarityDist.Common) {
+      // Common hyperspace
       const hyperspaceCommons = cards.filter(
         (c) => c.rarity === 'Common' && 
         c.rarity !== 'Special' &&
@@ -319,8 +348,8 @@ export function generateBoosterPack(cards, setCode) {
       if (hyperspaceCommons.length > 0) {
         upgradeCard = randomSelect(hyperspaceCommons)
       }
-    } else if (upgradeRoll < 0.60 + 0.25) {
-      // ~25% - Uncommon hyperspace
+    } else if (upgradeRoll < upgradeSlotRarityDist.Common + upgradeSlotRarityDist.Uncommon) {
+      // Uncommon hyperspace
       const hyperspaceUncommons = cards.filter(
         (c) => c.rarity === 'Uncommon' && 
         c.rarity !== 'Special' &&
@@ -331,8 +360,8 @@ export function generateBoosterPack(cards, setCode) {
       if (hyperspaceUncommons.length > 0) {
         upgradeCard = randomSelect(hyperspaceUncommons)
       }
-    } else if (upgradeRoll < 0.60 + 0.25 + 0.12) {
-      // ~12% - Rare hyperspace
+    } else if (upgradeRoll < upgradeSlotRarityDist.Common + upgradeSlotRarityDist.Uncommon + upgradeSlotRarityDist.Rare) {
+      // Rare hyperspace
       const hyperspaceRares = cards.filter(
         (c) => c.rarity === 'Rare' && 
         c.rarity !== 'Special' &&
@@ -344,7 +373,7 @@ export function generateBoosterPack(cards, setCode) {
         upgradeCard = randomSelect(hyperspaceRares)
       }
     } else {
-      // ~3% - Legendary hyperspace
+      // Legendary hyperspace
       const hyperspaceLegendaries = cards.filter(
         (c) => c.rarity === 'Legendary' && 
         c.rarity !== 'Special' &&
@@ -369,6 +398,7 @@ export function generateBoosterPack(cards, setCode) {
       })
     } else if (upgradeCard) {
       // Upgrade slot can be duplicate, so don't mark as selected
+      hasHyperspaceCard = true
       pack.push({
         ...upgradeCard,
         isFoil: false,
@@ -402,13 +432,13 @@ export function generateBoosterPack(cards, setCode) {
       ? randomSelectNoDuplicate(normalLegendaries)
       : randomSelectNoDuplicate(legendaries)
   } else {
-    // Rare slot: can be rare card OR rare base (for sets 1-6)
+    // Rare slot: can be rare card OR rare base (if set allows)
     // Filter to normal rares only
     const normalRares = rares.filter((r) => r.variantType === 'Normal')
     const rarePool = normalRares.length > 0 ? [...normalRares] : [...rares]
     
-    // Add rare bases to the pool for sets 1-6 (normal variants only)
-    if (rareBases.length > 0) {
+    // Add rare bases to the pool if set allows (normal variants only)
+    if (rareBasesInRareSlot && rareBases.length > 0) {
       const normalRareBases = rareBases.filter((b) => b.variantType === 'Normal')
       if (normalRareBases.length > 0) {
         rarePool.push(...normalRareBases)
@@ -431,7 +461,8 @@ export function generateBoosterPack(cards, setCode) {
   if (rareOrLegendary) {
     markSelected(rareOrLegendary)
     
-    const isHyperspace = rollHyperspace(distribution)
+    let isHyperspace = rollHyperspace(distribution)
+    
     let finalRare = { ...rareOrLegendary }
     
     // If hyperspace, use hyperspace variant card
@@ -439,6 +470,7 @@ export function generateBoosterPack(cards, setCode) {
       const hyperspaceCard = findVariantCard(rareOrLegendary, 'Hyperspace', cards)
       if (hyperspaceCard) {
         finalRare = hyperspaceCard
+        hasHyperspaceCard = true
       }
     }
     
@@ -447,6 +479,39 @@ export function generateBoosterPack(cards, setCode) {
       isFoil: false,
       isHyperspace: isHyperspace,
     })
+  }
+  
+  // Final check: if pack should have hyperspace but we still don't have one, force it on a random card
+  // This ensures we hit the 66.7% pack-level rate
+  // Only force if we haven't gotten one naturally from upgrade slot, foil slot, or other cards
+  // Use a probability check to avoid over-forcing (only force on a subset of packs that need it)
+  if (packShouldHaveHyperspace && !hasHyperspaceCard && pack.length > 0) {
+    // Only force on a percentage of packs that need it to avoid over-counting
+    // Since we naturally get ~46% from upgrade slot + foil slot + per-card rate,
+    // we need to force on about 20% more to reach 66.7%
+    // So we force on about 20% / 54% = 37% of packs that don't have it naturally
+    // But we need to account for the fact that not all packs that should have hyperspace will naturally get it
+    // Adjust to ~55% to get closer to target (66.7%)
+    if (Math.random() < 0.55) {
+      // Find a non-leader, non-foil card that can be hyperspace
+      const eligibleCards = pack.filter(card => !card.isLeader && !card.isFoil && !card.isShowcase && !card.isBase)
+      if (eligibleCards.length > 0) {
+        // Try to find a hyperspace variant - only force if variant exists
+        const cardToUpgrade = eligibleCards[Math.floor(Math.random() * eligibleCards.length)]
+        const hyperspaceCard = findVariantCard(cardToUpgrade, 'Hyperspace', cards)
+        if (hyperspaceCard) {
+          // Replace the card in the pack
+          const index = pack.indexOf(cardToUpgrade)
+          pack[index] = {
+            ...hyperspaceCard,
+            isFoil: cardToUpgrade.isFoil,
+            isHyperspace: true,
+            isShowcase: cardToUpgrade.isShowcase,
+          }
+          hasHyperspaceCard = true
+        }
+      }
+    }
   }
 
   // 6. 1 Foil card (can be any rarity, including Special for sets 4-6)
@@ -470,19 +535,17 @@ export function generateBoosterPack(cards, setCode) {
   foilPool = foilPool.filter((card) => !(card.isBase && card.rarity === 'Common'))
   
   // Remove Special rarity cards if not in allowed sets
-  if (!allowsSpecialInFoil) {
+  if (!allowsSpecial) {
     foilPool = foilPool.filter((card) => card.rarity !== 'Special')
   }
   
   if (foilPool.length > 0) {
     let foilCard = null
     
-    if (allowsSpecialInFoil && specials.length > 0) {
-      // For sets 4-6, Special can appear in foil slot
-      // Special should appear at roughly the same rate as rare cards in foil slot
-      // Since rares are ~22% of sets 4-6, weight Special to appear ~20% of the time
-      if (Math.random() < 0.20) {
-        // ~20% chance to get Special in foil slot (similar to rare frequency)
+    if (allowsSpecial && specials.length > 0 && specialInFoilRate > 0) {
+      // Use set-specific Special rarity rate
+      if (Math.random() < specialInFoilRate) {
+        // Chance to get Special in foil slot (set-specific rate)
         // Filter to normal Special cards only, and exclude leaders (leaders can NEVER be foil)
         const normalSpecials = specials.filter((s) => s.variantType === 'Normal' && !s.isLeader)
         // Foil can be duplicate, so don't check for duplicates
@@ -498,7 +561,7 @@ export function generateBoosterPack(cards, setCode) {
           : randomSelect(foilPool.filter((c) => c.rarity !== 'Special'))
       }
     } else {
-      // For sets 1-3, no Special cards in foil
+      // For sets without Special, or when Special rate is 0
       // Filter to normal cards only
       const normalPool = foilPool.filter((c) => c.variantType === 'Normal')
       // Foil can be duplicate, so don't check for duplicates
@@ -541,6 +604,7 @@ export function generateBoosterPack(cards, setCode) {
           // Only use variant if it's not a leader (leaders can NEVER be foil)
           finalFoil = hyperspaceCard
           isHyperspace = true
+          hasHyperspaceCard = true
         }
       } else {
         // Standard foil: may still be hyperspace variant (rare case)
@@ -551,6 +615,7 @@ export function generateBoosterPack(cards, setCode) {
           if (hyperspaceCard && !hyperspaceCard.isLeader) {
             // Only use variant if it's not a leader (leaders can NEVER be foil)
             finalFoil = hyperspaceCard
+            hasHyperspaceCard = true
           } else {
             // If variant is a leader, don't use it (keep original card)
             isHyperspace = false
@@ -605,10 +670,10 @@ function randomSelect(array) {
  */
 function rollHyperspace(distribution) {
   // Use config-based hyperspace rate
-  // Pre-A Lawless Time: ~50% chance per pack (1/2 packs)
+  // Pre-A Lawless Time: ~66.7% chance per pack (2/3 packs)
   // A Lawless Time Onward: Guaranteed at least 1 per pack (100%)
   // For individual non-upgrade-slot cards, we use a lower rate
-  // Pre-A Lawless Time: ~2% per card (approximately 1 in 50)
+  // Pre-A Lawless Time: ~1% per card (reduced to avoid over-counting with upgrade slot and foil slot)
   // A Lawless Time Onward: Higher rate since guaranteed in pack
   if (distribution === RARITY_DISTRIBUTIONS[DISTRIBUTION_PERIODS.A_LAWLESS_TIME_ONWARD]) {
     // A Lawless Time Onward: Higher hyperspace rate
@@ -616,7 +681,8 @@ function rollHyperspace(distribution) {
     return Math.random() < 0.05 // ~5% chance per card
   } else {
     // Pre-A Lawless Time: Lower hyperspace rate
-    return Math.random() < 0.02 // ~2% chance per card
+    // Reduced from 2% to 1% to account for upgrade slot (25%) and foil slot (16.7%) contributing to pack-level rate
+    return Math.random() < 0.01 // ~1% chance per card
   }
 }
 

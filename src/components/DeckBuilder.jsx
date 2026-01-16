@@ -24,7 +24,7 @@ const getAspectSymbol = (aspect, size = 'medium') => {
   const sizeMap = {
     'small': 16,
     'medium': 18,
-    'large': 38.4  // 20% smaller than cost icon (48px * 0.8 = 38.4px)
+    'large': 39  // Match cost icon size (39px)
   }
   
   const iconSize = sizeMap[size] || 18
@@ -45,6 +45,29 @@ const SORT_OPTIONS = ['aspect', 'cost']
 // getAspectColor is now imported from utils/aspectColors
 
 function DeckBuilder({ cards, setCode, onBack, savedState }) {
+  // Helper function to format card type for display
+  const getFormattedType = useCallback((card) => {
+    if (card.type === 'Unit') {
+      if (card.arenas && card.arenas.includes('Ground')) {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0' }}>
+            <div>Unit</div>
+            <div style={{ fontSize: '0.7em', color: 'rgba(255, 255, 255, 0.6)', marginTop: '-2px' }}>Ground</div>
+          </div>
+        )
+      } else if (card.arenas && card.arenas.includes('Space')) {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0' }}>
+            <div>Unit</div>
+            <div style={{ fontSize: '0.7em', color: 'rgba(255, 255, 255, 0.6)', marginTop: '-2px' }}>Space</div>
+          </div>
+        )
+      }
+      return 'Unit'
+    }
+    return card.type || 'Unknown'
+  }, [])
+  
   const [cardPositions, setCardPositions] = useState({})
   const [draggedCard, setDraggedCard] = useState(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
@@ -486,7 +509,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         <img 
           src={`/icons/${aspectName}.png`}
           alt={parts[0]}
-          style={{ width: '24px', height: '24px' }}
+          style={{ width: '39px', height: '39px' }}
         />
       )
     } else {
@@ -501,7 +524,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 key={i}
                 src={`/icons/${aspectName}.png`}
                 alt={part}
-                style={{ width: '24px', height: '24px', display: 'block' }}
+                style={{ width: '39px', height: '39px', display: 'block' }}
               />
             )
           }).filter(Boolean)}
@@ -1717,7 +1740,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     const exportData = {
       metadata: {
         name: `Deck - ${setCode}`,
-        author: "swupod"
+        author: "Protect the Pod"
       },
       leader: deckData.leader,
       base: deckData.base,
@@ -1730,7 +1753,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${setCode} Sealed Deck by swupod.json`
+    a.download = `${setCode} Sealed Deck by Protect the Pod.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -1760,7 +1783,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     const exportData = {
       metadata: {
         name: `Deck - ${setCode}`,
-        author: "swupod"
+        author: "Protect the Pod"
       },
       leader: deckData.leader,
       base: deckData.base,
@@ -1867,7 +1890,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       // Unused leaders section (all on one row, wraps if needed)
       currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing
       
-      // Add space for swupod stamp
+      // Add space for Protect the Pod stamp
       const stampHeight = 40
       const totalHeight = currentY + stampHeight + padding
       
@@ -2151,12 +2174,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing
       }
       
-      // Draw swupod stamp at bottom
+      // Draw Protect the Pod stamp at bottom
       ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
       ctx.font = 'bold 24px Arial'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'bottom'
-      ctx.fillText('swupod', width / 2, totalHeight - padding / 2)
+      ctx.fillText('Protect the Pod', width / 2, totalHeight - padding / 2)
       
       // Show image in modal instead of downloading
       canvas.toBlob((blob) => {
@@ -2189,7 +2212,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
           ← Back to Sealed Pod
         </button>
         <h1>Deck Builder</h1>
-        <p className="instruction">Click leaders/bases to select them. Drag other cards to organize your deck.</p>
         
         <div className="header-buttons">
           <button className="export-button" onClick={exportJSON}>
@@ -2815,7 +2837,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
           >
             <span>{deckExpanded ? '▼' : '▶'}</span>
             <span>Deck ({Object.values(cardPositions)
-              .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader).length})</span>
+              .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length})</span>
             <span
               onClick={(e) => {
                 e.stopPropagation()
@@ -3054,8 +3076,22 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
               </>
             )
           } else {
-            // Group by aspect combination
+            // Define all possible aspect combinations in order
+            const aspectOrder = [
+              'vigilance_villainy', 'vigilance_heroism', 'vigilance_vigilance', 'vigilance',
+              'command_villainy', 'command_heroism', 'command_command', 'command',
+              'aggression_villainy', 'aggression_heroism', 'aggression_aggression', 'aggression',
+              'cunning_villainy', 'cunning_heroism', 'cunning_cunning', 'cunning',
+              'villainy', 'heroism', 'villainy_heroism', 'neutral'
+            ]
+            
+            // Initialize all aspect combinations (even if empty) - this ensures blocks remain visible
             const groupedByAspect = {}
+            aspectOrder.forEach(key => {
+              groupedByAspect[key] = []
+            })
+            
+            // Group cards by aspect combination
             deckCards.forEach(({ cardId, position }) => {
               const aspectKey = getAspectCombinationKey(position.card)
               if (!groupedByAspect[aspectKey]) {
@@ -3064,32 +3100,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
               groupedByAspect[aspectKey].push({ cardId, position })
             })
             
-            const aspectOrder = [
-              'vigilance_villainy', 'vigilance_heroism', 'vigilance_vigilance', 'vigilance',
-              'command_villainy', 'command_heroism', 'command_command', 'command',
-              'aggression_villainy', 'aggression_heroism', 'aggression_aggression', 'aggression',
-              'cunning_villainy', 'cunning_heroism', 'cunning_cunning', 'cunning',
-              'villainy', 'heroism', 'villainy_heroism', 'neutral'
-            ]
-            const sortedAspectKeys = Object.keys(groupedByAspect).sort((a, b) => {
-              const indexA = aspectOrder.indexOf(a)
-              const indexB = aspectOrder.indexOf(b)
-              if (indexA === -1 && indexB === -1) return a.localeCompare(b)
-              if (indexA === -1) return 1
-              if (indexB === -1) return -1
-              return indexA - indexB
-            })
+            // Use the predefined order (all segments, even empty ones)
+            const sortedAspectKeys = aspectOrder
             
             const blocksWithContent = []
             const blocksEmpty = []
             
             sortedAspectKeys.forEach((aspectKey) => {
-              const cards = groupedByAspect[aspectKey]
+              const cards = groupedByAspect[aspectKey] || []
               const activeCards = cards.filter(({ position }) => position.enabled !== false)
               
-              if (activeCards.length === 0 && cards.length === 0) {
-                return
-              }
+              // Always show aspect blocks, even if empty (so they remain visible after "Remove All")
               
               const sortedCards = [...activeCards].sort((a, b) => {
                 return defaultSort(a.position.card, b.position.card)
@@ -3722,7 +3743,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                           </td>
                           <td>
                             {card.cost !== null && card.cost !== undefined ? (
-                              <div style={{ position: 'relative', display: 'inline-block', width: '48px', height: '48px' }}>
+                              <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
                                 <img 
                                   src="/icons/cost.png" 
                                   alt="cost" 
@@ -3735,7 +3756,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                   transform: 'translate(-50%, -50%)',
                                   color: 'white',
                                   fontWeight: 'bold',
-                                  fontSize: '28px',
+                                  fontSize: '16px',
                                   textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
                                 }}>
                                   {card.cost}
@@ -3855,7 +3876,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                           </td>
                           <td>
                             {card.cost !== null && card.cost !== undefined ? (
-                              <div style={{ position: 'relative', display: 'inline-block', width: '48px', height: '48px' }}>
+                              <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
                                 <img 
                                   src="/icons/cost.png" 
                                   alt="cost" 
@@ -3868,7 +3889,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                   transform: 'translate(-50%, -50%)',
                                   color: 'white',
                                   fontWeight: 'bold',
-                                  fontSize: '28px',
+                                  fontSize: '16px',
                                   textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
                                 }}>
                                   {card.cost}
@@ -4023,6 +4044,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                       <th className="sortable" onClick={() => handleTableSort(`deck-cost-${costSegment}`, 'name')}>
                                         Title {getSortArrow(`deck-cost-${costSegment}`, 'name')}
                                       </th>
+                                      <th className="sortable" onClick={() => handleTableSort(`deck-cost-${costSegment}`, 'type')}>
+                                        Type {getSortArrow(`deck-cost-${costSegment}`, 'type')}
+                                      </th>
                                       <th className="sortable" onClick={() => handleTableSort(`deck-cost-${costSegment}`, 'cost')}>
                                         Cost {getSortArrow(`deck-cost-${costSegment}`, 'cost')}
                                       </th>
@@ -4045,14 +4069,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                       return (
                                         <tr 
                                           key={`deck-cost-${costSegment}-${cardId}-${idx}`}
-                                          onMouseEnter={(e) => {
-                                            setHoveredCard(cardId)
-                                            handleCardMouseEnter(card, e)
-                                          }}
-                                          onMouseLeave={() => {
-                                            setHoveredCard(null)
-                                            handleCardMouseLeave()
-                                          }}
                                         >
                                           <td>
                                             <input
@@ -4070,7 +4086,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             <div className="card-name-cell">
                                               <div 
                                                 className="card-name-main" 
-                                                style={{ cursor: 'pointer' }}
+                                                onMouseEnter={(e) => {
+                                                  setHoveredCard(cardId)
+                                                  handleCardMouseEnter(card, e)
+                                                }}
+                                                onMouseLeave={() => {
+                                                  setHoveredCard(null)
+                                                  handleCardMouseLeave()
+                                                }}
                                                 onClick={(e) => {
                                                   if (e.metaKey || e.ctrlKey) {
                                                     setSelectedCard(card)
@@ -4085,8 +4108,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             </div>
                                           </td>
                                           <td>
+                                            {getFormattedType(card)}
+                                          </td>
+                                          <td>
                                             {card.cost !== null && card.cost !== undefined ? (
-                                              <div style={{ position: 'relative', display: 'inline-block', width: '48px', height: '48px' }}>
+                                              <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
                                                 <img 
                                                   src="/icons/cost.png" 
                                                   alt="cost" 
@@ -4099,7 +4125,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                   transform: 'translate(-50%, -50%)',
                                                   color: 'white',
                                                   fontWeight: 'bold',
-                                                  fontSize: '28px',
+                                                  fontSize: '20px',
                                                   textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
                                                 }}>
                                                   {card.cost}
@@ -4146,8 +4172,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                           groupedByAspect[aspectKey].push({ cardId, card })
                         })
                         
-                        // Use the predefined order (all segments, even empty ones)
-                        const sortedAspectKeys = aspectOrder
+                        // Filter to only show segments that have cards
+                        const sortedAspectKeys = aspectOrder.filter(aspectKey => {
+                          const cards = groupedByAspect[aspectKey] || []
+                          return cards.length > 0
+                        })
                         
                         return sortedAspectKeys.map((aspectKey) => {
                           const cards = groupedByAspect[aspectKey] || []
@@ -4235,6 +4264,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                       <th className="sortable" onClick={() => handleTableSort(`deck-aspect-${aspectKey}`, 'name')}>
                                         Title {getSortArrow(`deck-aspect-${aspectKey}`, 'name')}
                                       </th>
+                                      <th className="sortable" onClick={() => handleTableSort(`deck-aspect-${aspectKey}`, 'type')}>
+                                        Type {getSortArrow(`deck-aspect-${aspectKey}`, 'type')}
+                                      </th>
                                       <th className="sortable" onClick={() => handleTableSort(`deck-aspect-${aspectKey}`, 'cost')}>
                                         Cost {getSortArrow(`deck-aspect-${aspectKey}`, 'cost')}
                                       </th>
@@ -4257,14 +4289,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                       return (
                                         <tr 
                                           key={`deck-${aspectKey}-${cardId}-${idx}`}
-                                          onMouseEnter={(e) => {
-                                            setHoveredCard(cardId)
-                                            handleCardMouseEnter(card, e)
-                                          }}
-                                          onMouseLeave={() => {
-                                            setHoveredCard(null)
-                                            handleCardMouseLeave()
-                                          }}
                                         >
                                           <td>
                                             <input
@@ -4282,7 +4306,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             <div className="card-name-cell">
                                               <div 
                                                 className="card-name-main" 
-                                                style={{ cursor: 'pointer' }}
+                                                onMouseEnter={(e) => {
+                                                  setHoveredCard(cardId)
+                                                  handleCardMouseEnter(card, e)
+                                                }}
+                                                onMouseLeave={() => {
+                                                  setHoveredCard(null)
+                                                  handleCardMouseLeave()
+                                                }}
                                                 onClick={(e) => {
                                                   if (e.metaKey || e.ctrlKey) {
                                                     setSelectedCard(card)
@@ -4297,8 +4328,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             </div>
                                           </td>
                                           <td>
+                                            {getFormattedType(card)}
+                                          </td>
+                                          <td>
                                             {card.cost !== null && card.cost !== undefined ? (
-                                              <div style={{ position: 'relative', display: 'inline-block', width: '48px', height: '48px' }}>
+                                              <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
                                                 <img 
                                                   src="/icons/cost.png" 
                                                   alt="cost" 
@@ -4311,7 +4345,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                   transform: 'translate(-50%, -50%)',
                                                   color: 'white',
                                                   fontWeight: 'bold',
-                                                  fontSize: '28px',
+                                                  fontSize: '20px',
                                                   textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
                                                 }}>
                                                   {card.cost}
@@ -4443,7 +4477,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                               </td>
                               <td>
                                 {card.cost !== null && card.cost !== undefined ? (
-                                  <div style={{ position: 'relative', display: 'inline-block', width: '48px', height: '48px' }}>
+                                  <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
                                     <img 
                                       src="/icons/cost.png" 
                                       alt="cost" 
@@ -4456,7 +4490,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                       transform: 'translate(-50%, -50%)',
                                       color: 'white',
                                       fontWeight: 'bold',
-                                      fontSize: '28px',
+                                      fontSize: '16px',
                                       textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
                                     }}>
                                       {card.cost}

@@ -1,4 +1,4 @@
-# SWU Pod - Star Wars: Unlimited Sealed Pod Simulator
+# Protect the Pod - Star Wars: Unlimited Sealed Pod Simulator
 
 A web application that simulates opening sealed pods of Star Wars: Unlimited booster packs.
 

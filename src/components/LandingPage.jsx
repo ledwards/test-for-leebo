@@ -4,7 +4,7 @@ function LandingPage({ onSealedClick }) {
   return (
     <div className="landing-page">
       <div className="landing-content">
-        <h1>swupod</h1>
+        <h1>Protect the Pod</h1>
         <h2 className="subtitle">
           The Fan-Made Open Source<br />
           Star Wars Unlimited Limited Simulator

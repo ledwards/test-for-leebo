@@ -101,6 +101,7 @@
   font-weight: 600;
   line-height: 1;
   border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .cards-grid {

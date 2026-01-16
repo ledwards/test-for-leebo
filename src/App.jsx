@@ -4,6 +4,8 @@ import LandingPage from './components/LandingPage'
 import SetSelection from './components/SetSelection'
 import SealedPod from './components/SealedPod'
 import DeckBuilder from './components/DeckBuilder'
+import TermsOfService from './components/TermsOfService'
+import PrivacyPolicy from './components/PrivacyPolicy'
 import { initializeCardCache } from './utils/cardCache'
 
 function App() {
@@ -18,6 +20,32 @@ function App() {
     initializeCardCache().catch((error) => {
       console.error('Failed to load cards:', error)
     })
+  }, [])
+
+  // Handle URL-based routing for legal pages
+  useEffect(() => {
+    const path = window.location.pathname
+    if (path === '/terms-of-service') {
+      setView('terms-of-service')
+    } else if (path === '/privacy-policy') {
+      setView('privacy-policy')
+    }
+  }, [])
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname
+      if (path === '/terms-of-service') {
+        setView('terms-of-service')
+      } else if (path === '/privacy-policy') {
+        setView('privacy-policy')
+      } else if (path === '/' || path === '') {
+        setView('landing')
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   // Load persisted sealed pod from sessionStorage on mount
@@ -46,7 +74,11 @@ function App() {
   }
 
   const handleBack = () => {
-    if (view === 'deck-builder') {
+    if (view === 'terms-of-service' || view === 'privacy-policy') {
+      // Navigate back to landing page
+      window.history.pushState({}, '', '/')
+      setView('landing')
+    } else if (view === 'deck-builder') {
       // Deck builder state is auto-saved, just navigate back
       setView('sealed-pod')
       // Don't clear deckCards - keep them for restoration
@@ -139,6 +171,12 @@ function App() {
           onBack={handleBack}
           savedState={sessionStorage.getItem('deckBuilderState')}
         />
+      )}
+      {view === 'terms-of-service' && (
+        <TermsOfService onBack={handleBack} />
+      )}
+      {view === 'privacy-policy' && (
+        <PrivacyPolicy onBack={handleBack} />
       )}
     </div>
   )

@@ -32,9 +32,9 @@ export const RARITY_DISTRIBUTIONS = {
       inCarbonitePack: 2 // Fixed count
     },
     
-    // Hyperspace: In ~ 1/2 standard packs, 5-6 in each Carbonite pack
+    // Hyperspace: In ~ 2/3 standard packs, 5-6 in each Carbonite pack
     hyperspace: {
-      inStandardPack: 1/2, // ~50% chance per pack
+      inStandardPack: 2/3, // ~66.7% chance per pack
       inCarbonitePack: { min: 5, max: 6 } // Random between 5-6
     },
     
@@ -138,28 +138,37 @@ export const RARITY_DISTRIBUTIONS = {
   }
 }
 
+import { getSetConfig } from './setConfigs/index.js'
+
 /**
  * Set configuration mapping set codes to their distribution period
- * All current sets (SOR, SHD, TWI, JTL, LOF, SEC) use Pre-A Lawless Time distribution
+ * Uses set-specific configs from setConfigs/
  */
-export const SET_DISTRIBUTIONS = {
-  'SOR': DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME,
-  'SHD': DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME,
-  'TWI': DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME,
-  'JTL': DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME,
-  'LOF': DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME,
-  'SEC': DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME,
-  // Future sets will use A_LAWLESS_TIME_ONWARD
-  // Example:
-  // 'ALT': DISTRIBUTION_PERIODS.A_LAWLESS_TIME_ONWARD,
+export function getSetDistributionPeriod(setCode) {
+  const config = getSetConfig(setCode)
+  if (!config) {
+    return DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
+  }
+  
+  // Map config period string to constant
+  if (config.distributionPeriod === 'pre-lawless-time') {
+    return DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
+  } else if (config.distributionPeriod === 'a-lawless-time-onward') {
+    return DISTRIBUTION_PERIODS.A_LAWLESS_TIME_ONWARD
+  }
+  
+  return DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
 }
 
 /**
- * Sets that allow Special rarity cards in foil/hyperfoil slots only
- * Special rarity cards should NOT appear in regular slots
- * Sets 5, 6, 7: LOF, SEC, and future set 7
+ * Check if a set allows Special rarity in foil slots
+ * @param {string} setCode - The set code
+ * @returns {boolean} True if Special rarity can appear in foil slots
  */
-export const SETS_WITH_SPECIAL_IN_FOIL = ['LOF', 'SEC'] // Add future set 7 code here when available
+export function allowsSpecialInFoil(setCode) {
+  const config = getSetConfig(setCode)
+  return config ? config.packRules.specialInFoilSlot : false
+}
 
 /**
  * Get the distribution configuration for a given set code
@@ -167,7 +176,7 @@ export const SETS_WITH_SPECIAL_IN_FOIL = ['LOF', 'SEC'] // Add future set 7 code
  * @returns {Object} The distribution configuration for that set
  */
 export function getDistributionForSet(setCode) {
-  const period = SET_DISTRIBUTIONS[setCode] || DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
+  const period = getSetDistributionPeriod(setCode)
   return RARITY_DISTRIBUTIONS[period]
 }
 
@@ -177,5 +186,5 @@ export function getDistributionForSet(setCode) {
  * @returns {string} The distribution period constant
  */
 export function getDistributionPeriod(setCode) {
-  return SET_DISTRIBUTIONS[setCode] || DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
+  return getSetDistributionPeriod(setCode)
 }

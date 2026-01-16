@@ -111,7 +111,7 @@
 
 /* Sticky layout: subtitle appears below */
 .selected-card-container.sticky-layout .selected-card-subtitle {
-  margin-top: 0.1rem;
+  margin-top: -2px;
 }
 
 .select-card-placeholder {
@@ -255,11 +255,15 @@
 }
 
 .deck-aspect-subsection {
-  margin-bottom: 0.75rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
 }
 
 .deck-aspect-subsection:last-child {
   margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .deck-aspect-subsection h4 {
@@ -376,6 +380,15 @@
   min-width: 300px;
 }
 
+/* On larger screens (like MacBook), show 3 blocks per row */
+@media (min-width: 1024px) {
+  .blocks-deck-row .card-block {
+    flex: 0 1 calc((100% - 2 * 0.75rem) / 3);
+    min-width: 300px;
+    max-width: calc((100% - 2 * 0.75rem) / 3);
+  }
+}
+
 /* Cost blocks should span full width */
 .blocks-deck-row .card-block.cost-block-full-width {
   flex: 1 1 100%;
@@ -436,7 +449,7 @@
 .card-stack {
   position: relative;
   display: inline-block;
-  width: 120px;
+  width: 85px;
   height: 168px; /* Match card height */
   /* grid-column will be set dynamically via inline style */
 }
@@ -448,8 +461,8 @@
 }
 
 .cards-grid .canvas-card {
-  width: 120px;
-  max-width: 120px;
+  width: 85px;
+  max-width: 85px;
   height: auto;
   position: relative;
   margin: 0;
@@ -483,7 +496,7 @@
 
 .canvas-card {
   position: relative;
-  width: 120px;
+  width: 85px;
   aspect-ratio: 2.5 / 3.5;
   background: rgba(0, 0, 0, 0.6);
   border: none;
@@ -962,6 +975,18 @@
   margin-bottom: 4rem;
 }
 
+.deck-aspect-subsection {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.deck-aspect-subsection:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
 .list-section-title {
   color: white;
   font-size: 1.5rem;
@@ -994,11 +1019,17 @@
   height: auto;
 }
 
-/* Center cost, aspect, and rarity column headers */
+/* Center type, cost, and aspect column headers */
 .list-table th:nth-child(3),
 .list-table th:nth-child(4),
 .list-table th:nth-child(5) {
   text-align: center;
+}
+
+/* Right align rarity column header */
+.list-table th:nth-child(6) {
+  text-align: right;
+  padding-right: 0.8rem;
 }
 
 .list-table th.sortable {
@@ -1019,7 +1050,7 @@
 }
 
 .list-table td {
-  padding: 0.5rem;
+  padding: 0.35rem 0.75rem;
   border-left: none;
   border-right: none;
   color: white;
@@ -1034,12 +1065,21 @@
   justify-content: center;
 }
 
-/* Cost, aspect, and rarity columns - center aligned */
+/* Type, cost, and aspect columns - center aligned */
 .list-table td:nth-child(3),
 .list-table td:nth-child(4),
 .list-table td:nth-child(5) {
   vertical-align: middle;
   text-align: center;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Rarity column - right aligned */
+.list-table td:nth-child(6) {
+  vertical-align: middle;
+  text-align: right;
+  padding-right: 0.8rem;
 }
 
 /* Cost icon styling */
@@ -1091,30 +1131,40 @@
 .list-table th:nth-child(2),
 .list-table td:nth-child(2) {
   width: auto;
+  padding-right: 1rem;
+}
+
+/* Type column - fixed width */
+.list-table th:nth-child(3),
+.list-table td:nth-child(3) {
+  width: 70px;
+  min-width: 70px;
+  max-width: 70px;
 }
 
 /* Cost column - fixed width */
-.list-table th:nth-child(3),
-.list-table td:nth-child(3) {
-  width: 100px;
-  min-width: 100px;
-  max-width: 100px;
+.list-table th:nth-child(4),
+.list-table td:nth-child(4) {
+  width: 60px;
+  min-width: 60px;
+  max-width: 60px;
 }
 
 /* Aspects column - fixed width */
-.list-table th:nth-child(4),
-.list-table td:nth-child(4) {
-  width: 150px;
-  min-width: 150px;
-  max-width: 150px;
-}
-
-/* Rarity column - fixed width */
 .list-table th:nth-child(5),
 .list-table td:nth-child(5) {
-  width: 120px;
-  min-width: 120px;
-  max-width: 120px;
+  width: 85px;
+  min-width: 85px;
+  max-width: 85px;
+}
+
+/* Rarity column - fixed width, hugs right */
+.list-table th:nth-child(6),
+.list-table td:nth-child(6) {
+  width: 70px;
+  min-width: 70px;
+  max-width: 70px;
+  padding-right: 0.4rem;
 }
 
 .list-table input[type="checkbox"] {
@@ -1125,10 +1175,11 @@
 
 .aspects-cell {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 3px;
+  flex-wrap: nowrap;
   vertical-align: middle;
 }
 
@@ -1138,8 +1189,8 @@
   justify-content: center;
   vertical-align: middle;
   line-height: 1;
-  width: 38.4px;
-  height: 38.4px;
+  width: 39px;
+  height: 39px;
   flex-shrink: 0;
 }
 
@@ -1147,6 +1198,9 @@
   display: block;
   flex-shrink: 0;
   margin: 0;
+  width: 39px;
+  height: 39px;
+  object-fit: contain;
 }
 
 .aspects-cell span:not(.aspect-symbol-wrapper) {
@@ -1156,7 +1210,7 @@
 .card-name-cell {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
 
 .card-name-main {
@@ -1169,7 +1223,7 @@
   color: rgba(255, 255, 255, 0.6);
   font-size: 0.85rem;
   font-weight: 400;
-  margin-top: 0.1rem;
+  margin-top: -2px;
   line-height: 1.2;
 }
 
@@ -1203,7 +1257,7 @@
   }
   
   .canvas-card {
-    width: 100px;
+    width: 70px;
   }
 }
 

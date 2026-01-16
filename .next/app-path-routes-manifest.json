@@ -1,0 +1,14 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/auth/callback/discord/route": "/api/auth/callback/discord",
+  "/api/auth/session/route": "/api/auth/session",
+  "/api/auth/signin/discord/route": "/api/auth/signin/discord",
+  "/api/auth/signout/route": "/api/auth/signout",
+  "/api/pools/[shareId]/route": "/api/pools/[shareId]",
+  "/api/pools/route": "/api/pools",
+  "/api/pools/user/[userId]/route": "/api/pools/user/[userId]",
+  "/page": "/",
+  "/privacy-policy/page": "/privacy-policy",
+  "/terms-of-service/page": "/terms-of-service"
+}
