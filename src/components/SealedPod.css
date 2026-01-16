@@ -81,23 +81,33 @@
 }
 
 .pack-details {
-  background: rgba(0, 0, 0, 0.6);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: #1a1a1a;
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 0;
+  position: relative;
+  padding-top: 0.5rem;
 }
 
 .pack-details h2 {
-  margin-top: 0;
+  position: absolute;
+  top: -0.5em;
+  left: 1em;
+  margin: 0;
+  padding: 0 0.5em;
+  background: #1a1a1a;
   color: white;
   font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 999px;
 }
 
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 1rem;
-  margin-top: 1.5rem;
+  padding: 1.5rem;
   align-items: start;
 }
 
@@ -315,6 +325,84 @@
   color: #ff6b6b;
 }
 
+.rate-card {
+  max-width: 1400px;
+  margin: 3rem auto 2rem;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 2rem;
+  color: white;
+}
+
+.rate-card h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  color: white;
+  text-align: center;
+}
+
+.rate-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.rate-card-section {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 1.5rem;
+}
+
+.rate-card-section:last-child {
+  border-bottom: none;
+}
+
+.rate-card-section h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.3rem;
+  color: white;
+}
+
+.rate-card-section p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.rate-card-section ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.rate-card-section li {
+  margin: 0.25rem 0;
+  line-height: 1.5;
+}
+
+.rarity-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.rarity-stats div {
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.foil-positions {
+  margin-top: 0.75rem;
+}
+
+.foil-positions ul {
+  margin-top: 0.5rem;
+}
+
 @media (max-width: 768px) {
   .cards-grid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -327,5 +415,14 @@
   
   .packs-container {
     gap: 2rem;
+  }
+  
+  .rate-card {
+    padding: 1.5rem;
+    margin: 2rem 1rem;
+  }
+  
+  .rarity-stats {
+    grid-template-columns: 1fr;
   }
 }
