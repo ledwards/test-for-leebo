@@ -111,12 +111,38 @@ export function generateBoosterPack(cards, setCode) {
   }
 
   // 1. Guaranteed Leader (leaders can ONLY appear here)
+  // Leaders have different drop rates: Common ~83% (5/6), Rare ~17% (1/6)
+  // Note: Based on community data suggesting ~1 rare leader per 6 packs
   if (leaders.length > 0) {
     // Filter to normal leaders only (variants are separate cards)
     const normalLeaders = leaders.filter((l) => l.variantType === 'Normal')
-    const leader = normalLeaders.length > 0 
-      ? randomSelectNoDuplicate(normalLeaders)
-      : randomSelectNoDuplicate(leaders)
+    const leaderPool = normalLeaders.length > 0 ? normalLeaders : leaders
+    
+    // Separate by rarity for weighted selection
+    const commonLeaders = leaderPool.filter((l) => l.rarity === 'Common')
+    const rareLeaders = leaderPool.filter((l) => l.rarity === 'Rare' || l.rarity === 'Legendary')
+    
+    let leader = null
+    
+    // Weighted selection: ~17% chance for rare, ~83% for common
+    if (rareLeaders.length > 0 && commonLeaders.length > 0) {
+      // Both types available - use weighted selection
+      const isRare = Math.random() < 1/6 // ~17% chance for rare
+      if (isRare) {
+        leader = randomSelect(rareLeaders)
+      } else {
+        leader = randomSelect(commonLeaders)
+      }
+    } else if (rareLeaders.length > 0) {
+      // Only rare leaders available
+      leader = randomSelect(rareLeaders)
+    } else if (commonLeaders.length > 0) {
+      // Only common leaders available
+      leader = randomSelect(commonLeaders)
+    } else {
+      // Fallback to any leader (shouldn't happen)
+      leader = randomSelect(leaderPool)
+    }
     
     if (leader) {
       markSelected(leader)
@@ -426,13 +452,19 @@ export function generateBoosterPack(cards, setCode) {
   // 6. 1 Foil card (can be any rarity, including Special for sets 4-6)
   // Foil can be from any card pool (including bases, but NOT leaders)
   // BUT: Common bases CANNOT appear in foil slot
-  // Leaders CANNOT appear in foil slot
+  // CRITICAL: Leaders CAN NEVER appear in foil slot (no foil or hyperfoil leaders)
   // Special rarity can ONLY appear in foil slot and ONLY in sets 4-6
   // Special should appear at roughly the same rate as rare cards would naturally
   let foilPool = [...cards]
   
-  // Remove leaders from foil pool (leaders cannot be foil)
-  foilPool = foilPool.filter((card) => !card.isLeader)
+  // Remove ALL leaders from foil pool (leaders CAN NEVER be foil or hyperfoil)
+  foilPool = foilPool.filter((card) => {
+    // Explicitly exclude all leaders, regardless of any other property
+    if (card.isLeader) {
+      return false
+    }
+    return true
+  })
   
   // Remove common bases from foil pool (common bases cannot be foil)
   foilPool = foilPool.filter((card) => !(card.isBase && card.rarity === 'Common'))
@@ -451,12 +483,12 @@ export function generateBoosterPack(cards, setCode) {
       // Since rares are ~22% of sets 4-6, weight Special to appear ~20% of the time
       if (Math.random() < 0.20) {
         // ~20% chance to get Special in foil slot (similar to rare frequency)
-        // Filter to normal Special cards only
-        const normalSpecials = specials.filter((s) => s.variantType === 'Normal')
+        // Filter to normal Special cards only, and exclude leaders (leaders can NEVER be foil)
+        const normalSpecials = specials.filter((s) => s.variantType === 'Normal' && !s.isLeader)
         // Foil can be duplicate, so don't check for duplicates
         foilCard = normalSpecials.length > 0
           ? randomSelect(normalSpecials)
-          : randomSelect(specials)
+          : randomSelect(specials.filter((s) => !s.isLeader))
       } else {
         // Otherwise, random from all cards (excluding Special from natural selection)
         const nonSpecialPool = foilPool.filter((c) => c.rarity !== 'Special' && c.variantType === 'Normal')
@@ -505,7 +537,8 @@ export function generateBoosterPack(cards, setCode) {
       if (isFoilHyperspace) {
         // Hyperspace foil: try to find hyperspace variant
         const hyperspaceCard = findVariantCard(foilCard, 'Hyperspace', cards)
-        if (hyperspaceCard) {
+        if (hyperspaceCard && !hyperspaceCard.isLeader) {
+          // Only use variant if it's not a leader (leaders can NEVER be foil)
           finalFoil = hyperspaceCard
           isHyperspace = true
         }
@@ -515,10 +548,23 @@ export function generateBoosterPack(cards, setCode) {
         isHyperspace = rollHyperspace(distribution)
         if (isHyperspace) {
           const hyperspaceCard = findVariantCard(foilCard, 'Hyperspace', cards)
-          if (hyperspaceCard) {
+          if (hyperspaceCard && !hyperspaceCard.isLeader) {
+            // Only use variant if it's not a leader (leaders can NEVER be foil)
             finalFoil = hyperspaceCard
+          } else {
+            // If variant is a leader, don't use it (keep original card)
+            isHyperspace = false
           }
         }
+      }
+      
+      // Final safety check: NEVER allow leaders in foil slot
+      // This should never happen if filtering is correct, but double-check
+      if (finalFoil.isLeader) {
+        console.error('CRITICAL ERROR: Attempted to add leader to foil slot!', finalFoil.name)
+        // Skip this foil - this should never happen
+        // In production, you might want to regenerate or skip the foil
+        return pack // Return pack without foil rather than adding a leader
       }
       
       pack.push({

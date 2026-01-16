@@ -88,10 +88,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
   const [isInfoBarSticky, setIsInfoBarSticky] = useState(false)
   const [selectedCard, setSelectedCard] = useState(null)
   const [deckImageModal, setDeckImageModal] = useState(null) // URL for deck image modal
+  const [hoveredCardPreview, setHoveredCardPreview] = useState(null) // { card, x, y } for enlarged preview
   const [tooltip, setTooltip] = useState({ show: false, text: '', x: 0, y: 0 })
   const tooltipTimeoutRef = useRef(null)
   const longPressTimeoutRef = useRef(null)
   const modalHoverTimeoutRef = useRef(null)
+  const previewTimeoutRef = useRef(null)
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
   const infoBarRef = useRef(null)
@@ -157,30 +159,86 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     }
   }
 
-  // Modal hover handlers
-  const handleCardMouseEnter = (card) => {
-    if (modalHoverTimeoutRef.current) {
-      clearTimeout(modalHoverTimeoutRef.current)
+  // Enlarged preview hover handlers
+  const handleCardMouseEnter = (card, event) => {
+    if (!event) return
+    
+    // Clear any existing timeout
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current)
     }
-    modalHoverTimeoutRef.current = setTimeout(() => {
-      setSelectedCard(card)
+    
+    // Capture the rect immediately (before timeout)
+    const rect = event.currentTarget.getBoundingClientRect()
+    
+    // Set timeout to show preview after 1 second
+    previewTimeoutRef.current = setTimeout(() => {
+      // Position the preview near the card (to the right, or left if too close to right edge)
+      let previewX = rect.right + 20
+      const previewY = rect.top
+      
+      // Calculate preview dimensions based on card type
+      // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
+      // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
+      // Leaders with back: front horizontal (504x360) + back vertical (360x504) side by side
+      const isHorizontal = card.isLeader || card.isBase
+      const hasBackImage = card.backImageUrl && card.isLeader
+      let previewWidth, previewHeight
+      if (hasBackImage) {
+        // Leader with back: side by side (horizontal front + vertical back)
+        previewWidth = 504 + 360 + 20 // 504px front + 360px back + 20px gap
+        previewHeight = 504 // Max height (vertical back is 504px)
+      } else {
+        previewWidth = isHorizontal ? 504 : 360
+        previewHeight = isHorizontal ? 360 : 504
+      }
+      
+      // Ensure preview stays within viewport bounds
+      // Check right edge
+      if (previewX + previewWidth > window.innerWidth) {
+        // Try positioning to the left of the card
+        previewX = rect.left - previewWidth - 20
+        // If still off screen to the left, clamp to left edge
+        if (previewX < 0) {
+          previewX = 10 // Small margin from left edge
+        }
+      }
+      
+      // Check left edge
+      if (previewX < 0) {
+        previewX = 10 // Small margin from left edge
+      }
+      
+      // Adjust vertical position to keep preview within viewport
+      // previewY is the center point (due to translateY(-50%))
+      const previewTop = previewY - previewHeight / 2
+      const previewBottom = previewY + previewHeight / 2
+      let adjustedY = previewY
+      
+      // Check top edge
+      if (previewTop < 0) {
+        adjustedY = previewHeight / 2 + 10 // Position so top is 10px from top
+      }
+      
+      // Check bottom edge
+      if (previewBottom > window.innerHeight) {
+        adjustedY = window.innerHeight - previewHeight / 2 - 10 // Position so bottom is 10px from bottom
+      }
+      
+      setHoveredCardPreview({ card, x: previewX, y: adjustedY })
     }, 1000)
   }
 
   const handleCardMouseLeave = () => {
-    if (modalHoverTimeoutRef.current) {
-      clearTimeout(modalHoverTimeoutRef.current)
-      modalHoverTimeoutRef.current = null
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current)
+      previewTimeoutRef.current = null
     }
-    setSelectedCard(null)
+    setHoveredCardPreview(null)
   }
 
-  const handleCardMouseMove = () => {
-    if (modalHoverTimeoutRef.current) {
-      clearTimeout(modalHoverTimeoutRef.current)
-      modalHoverTimeoutRef.current = null
-    }
-    setSelectedCard(null)
+  const handlePreviewMouseLeave = () => {
+    setHoveredCardPreview(null)
   }
 
   // Cleanup tooltip timeouts
@@ -194,6 +252,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       }
       if (modalHoverTimeoutRef.current) {
         clearTimeout(modalHoverTimeoutRef.current)
+      }
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current)
       }
     }
   }, [])
@@ -2576,11 +2637,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
               const leadersCards = Object.entries(cardPositions)
                 .filter(([_, position]) => position.section === 'leaders-bases' && position.visible && position.card.isLeader)
                 .map(([cardId, position]) => ({ cardId, position }))
-                .sort((a, b) => {
-                  const keyA = getAspectKey(a.position.card)
-                  const keyB = getAspectKey(b.position.card)
-                  return keyA.localeCompare(keyB)
-                })
+                .sort((a, b) => defaultSort(a.position.card, b.position.card))
               
               return leadersCards.length > 0 ? (
                 <div className="card-block">
@@ -2608,15 +2665,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 const newActiveLeader = activeLeader === cardId ? null : cardId
                                 setActiveLeader(newActiveLeader)
                               }}
-                              onMouseEnter={() => {
+                              onMouseEnter={(e) => {
                                 setHoveredCard(cardId)
-                                handleCardMouseEnter(card)
+                                handleCardMouseEnter(card, e)
                               }}
                               onMouseLeave={() => {
                                 setHoveredCard(null)
                                 handleCardMouseLeave()
                               }}
-                              onMouseMove={handleCardMouseMove}
                             >
                               {card.imageUrl ? (
                                 <img
@@ -2697,15 +2753,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 const newActiveBase = activeBase === cardId ? null : cardId
                                 setActiveBase(newActiveBase)
                               }}
-                              onMouseEnter={() => {
+                              onMouseEnter={(e) => {
                                 setHoveredCard(cardId)
-                                handleCardMouseEnter(card)
+                                handleCardMouseEnter(card, e)
                               }}
                               onMouseLeave={() => {
                                 setHoveredCard(null)
                                 handleCardMouseLeave()
                               }}
-                              onMouseMove={handleCardMouseMove}
                             >
                               {card.imageUrl ? (
                                 <img
@@ -2945,15 +3000,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     })
                                   }
                                 }}
-                                onMouseEnter={() => {
+                                onMouseEnter={(e) => {
                                   setHoveredCard(cardId)
-                                  handleCardMouseEnter(position.card)
+                                  handleCardMouseEnter(position.card, e)
                                 }}
                                 onMouseLeave={() => {
                                   setHoveredCard(null)
                                   handleCardMouseLeave()
                                 }}
-                                onMouseMove={handleCardMouseMove}
                               >
                                 {card.imageUrl ? (
                                   <img
@@ -3187,15 +3241,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                         })
                                       }
                                     }}
-                                    onMouseEnter={() => {
+                                    onMouseEnter={(e) => {
                                       setHoveredCard(cardId)
-                                      handleCardMouseEnter(position.card)
+                                      handleCardMouseEnter(position.card, e)
                                     }}
                                     onMouseLeave={() => {
                                       setHoveredCard(null)
                                       handleCardMouseLeave()
                                     }}
-                                    onMouseMove={handleCardMouseMove}
                                   >
                                     {card.imageUrl ? (
                                       <img
@@ -3281,15 +3334,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                         })
                                       }
                                     }}
-                                    onMouseEnter={() => {
+                                    onMouseEnter={(e) => {
                                       setHoveredCard(cardId)
-                                      handleCardMouseEnter(position.card)
+                                      handleCardMouseEnter(position.card, e)
                                     }}
                                     onMouseLeave={() => {
                                       setHoveredCard(null)
                                       handleCardMouseLeave()
                                     }}
-                                    onMouseMove={handleCardMouseMove}
                                   >
                                     {card.imageUrl ? (
                                       <img
@@ -3375,15 +3427,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                         })
                                       }
                                     }}
-                                    onMouseEnter={() => {
+                                    onMouseEnter={(e) => {
                                       setHoveredCard(cardId)
-                                      handleCardMouseEnter(position.card)
+                                      handleCardMouseEnter(position.card, e)
                                     }}
                                     onMouseLeave={() => {
                                       setHoveredCard(null)
                                       handleCardMouseLeave()
                                     }}
-                                    onMouseMove={handleCardMouseMove}
                                   >
                                     {card.imageUrl ? (
                                       <img
@@ -3524,15 +3575,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                       })
                     }
                   }}
-                  onMouseEnter={() => {
+                  onMouseEnter={(e) => {
                     setHoveredCard(cardId)
-                    handleCardMouseEnter(position.card)
+                    handleCardMouseEnter(position.card, e)
                   }}
                   onMouseLeave={() => {
                     setHoveredCard(null)
                     handleCardMouseLeave()
                   }}
-                  onMouseMove={handleCardMouseMove}
                 >
                   {card.imageUrl ? (
                     <img
@@ -3629,15 +3679,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                       return (
                         <tr 
                           key={`leader-${cardId}-${idx}`}
-                          onMouseEnter={() => {
+                          onMouseEnter={(e) => {
                             setHoveredCard(cardId)
-                            handleCardMouseEnter(card)
+                            handleCardMouseEnter(card, e)
                           }}
                           onMouseLeave={() => {
                             setHoveredCard(null)
                             handleCardMouseLeave()
                           }}
-                          onMouseMove={handleCardMouseMove}
                         >
                           <td>
                             <input
@@ -3768,15 +3817,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                       return (
                         <tr 
                           key={`base-${cardId}-${idx}`}
-                          onMouseEnter={() => {
+                          onMouseEnter={(e) => {
                             setHoveredCard(cardId)
-                            handleCardMouseEnter(card)
+                            handleCardMouseEnter(card, e)
                           }}
                           onMouseLeave={() => {
                             setHoveredCard(null)
                             handleCardMouseLeave()
                           }}
-                          onMouseMove={handleCardMouseMove}
                         >
                           <td>
                             <input
@@ -3997,15 +4045,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                       return (
                                         <tr 
                                           key={`deck-cost-${costSegment}-${cardId}-${idx}`}
-                                          onMouseEnter={() => {
+                                          onMouseEnter={(e) => {
                                             setHoveredCard(cardId)
-                                            handleCardMouseEnter(card)
+                                            handleCardMouseEnter(card, e)
                                           }}
                                           onMouseLeave={() => {
                                             setHoveredCard(null)
                                             handleCardMouseLeave()
                                           }}
-                                          onMouseMove={handleCardMouseMove}
                                         >
                                           <td>
                                             <input
@@ -4210,15 +4257,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                       return (
                                         <tr 
                                           key={`deck-${aspectKey}-${cardId}-${idx}`}
-                                          onMouseEnter={() => {
+                                          onMouseEnter={(e) => {
                                             setHoveredCard(cardId)
-                                            handleCardMouseEnter(card)
+                                            handleCardMouseEnter(card, e)
                                           }}
                                           onMouseLeave={() => {
                                             setHoveredCard(null)
                                             handleCardMouseLeave()
                                           }}
-                                          onMouseMove={handleCardMouseMove}
                                         >
                                           <td>
                                             <input
@@ -4356,15 +4402,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                           return (
                             <tr 
                               key={`sideboard-${cardId}-${idx}`}
-                              onMouseEnter={() => {
+                              onMouseEnter={(e) => {
                                 setHoveredCard(cardId)
-                                handleCardMouseEnter(card)
+                                handleCardMouseEnter(card, e)
                               }}
                               onMouseLeave={() => {
                                 setHoveredCard(null)
                                 handleCardMouseLeave()
                               }}
-                              onMouseMove={handleCardMouseMove}
                             >
                               <td>
                                 <input
@@ -4440,6 +4485,181 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       {selectedCard && (
         <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
       )}
+
+      {/* Enlarged card preview (3x size) */}
+      {hoveredCardPreview && (() => {
+        const card = hoveredCardPreview.card
+        const hasBackImage = card.backImageUrl && card.isLeader
+        const isHorizontal = card.isLeader || card.isBase
+        const borderRadius = '18px' // Slightly smaller than 24px to reduce clipping
+        
+        // Calculate dimensions
+        let previewWidth, previewHeight
+        if (hasBackImage) {
+          // Leader with back: side by side (horizontal front + vertical back)
+          previewWidth = 504 + 360 + 20 // 504px front + 360px back + 20px gap
+          previewHeight = 504 // Max height (vertical back is 504px)
+        } else {
+          // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
+          // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
+          previewWidth = isHorizontal ? 504 : 360
+          previewHeight = isHorizontal ? 360 : 504
+        }
+        
+        return (
+          <div
+            className="card-preview-enlarged"
+            style={{
+              position: 'fixed',
+              left: `${hoveredCardPreview.x}px`,
+              top: `${hoveredCardPreview.y}px`,
+              zIndex: 10000,
+              pointerEvents: 'auto',
+              transform: 'translateY(-50%)',
+              width: `${previewWidth}px`,
+              height: `${previewHeight}px`,
+              borderRadius: borderRadius,
+              overflow: 'visible', // Changed to visible so side-by-side cards aren't clipped
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+              border: 'none', // Remove border from container
+              display: 'flex',
+              flexDirection: 'row', // Side by side for leaders with back
+              gap: '20px',
+            }}
+            onMouseLeave={handlePreviewMouseLeave}
+          >
+            {hasBackImage ? (
+              // Show both front (horizontal) and back (vertical) side by side for leaders
+              <>
+                {/* Front - horizontal */}
+                <div style={{
+                  width: '504px',
+                  height: '360px',
+                  overflow: 'hidden',
+                  borderRadius: borderRadius,
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                }}>
+                  {card.imageUrl ? (
+                    <img
+                      src={card.imageUrl}
+                      alt={`${card.name || 'Card'} - Front`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      background: 'rgba(26, 26, 46, 0.95)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      padding: '1rem',
+                      color: 'white',
+                    }}>
+                      <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+                        {card.name || 'Card'} - Front
+                      </div>
+                      <div style={{ color: getRarityColor(card.rarity) }}>
+                        {card.rarity}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {/* Back - vertical */}
+                <div style={{
+                  width: '360px',
+                  height: '504px',
+                  overflow: 'hidden',
+                  borderRadius: borderRadius,
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                }}>
+                  {card.backImageUrl ? (
+                    <img
+                      src={card.backImageUrl}
+                      alt={`${card.name || 'Card'} - Back`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      background: 'rgba(26, 26, 46, 0.95)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      padding: '1rem',
+                      color: 'white',
+                    }}>
+                      <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+                        {card.name || 'Card'} - Back
+                      </div>
+                      <div style={{ color: getRarityColor(card.rarity) }}>
+                        {card.rarity}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              // Single card (non-leader, base, or leader without back)
+              <div style={{
+                width: `${previewWidth}px`,
+                height: `${previewHeight}px`,
+                overflow: 'hidden',
+                borderRadius: borderRadius,
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+              }}>
+                {card.imageUrl ? (
+                  <img
+                    src={card.imageUrl}
+                    alt={card.name || 'Card'}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(26, 26, 46, 0.95)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '1rem',
+                    color: 'white',
+                  }}>
+                    <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+                      {card.name || 'Card'}
+                    </div>
+                    <div style={{ color: getRarityColor(card.rarity) }}>
+                      {card.rarity}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {tooltip.show && (
         <div 

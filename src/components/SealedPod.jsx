@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './SealedPod.css'
 import { getCachedCards, isCacheInitialized } from '../utils/cardCache'
 import { fetchSetCards } from '../utils/api'
 import { generateSealedPod } from '../utils/boosterPack'
-import { getDistributionPeriod, DISTRIBUTION_PERIODS } from '../utils/rarityConfig'
+import { getDistributionPeriod, DISTRIBUTION_PERIODS, SETS_WITH_SPECIAL_IN_FOIL } from '../utils/rarityConfig'
 import CardModal from './CardModal'
 
 function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
@@ -12,6 +12,8 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedCard, setSelectedCard] = useState(null)
+  const [hoveredCardPreview, setHoveredCardPreview] = useState(null) // { card, x, y } for enlarged preview
+  const previewTimeoutRef = useRef(null)
 
   useEffect(() => {
     const loadCards = async () => {
@@ -44,6 +46,15 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
     }
     loadCards()
   }, [setCode])
+
+  // Cleanup preview timeout
+  useEffect(() => {
+    return () => {
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     // Check if we have saved packs in sessionStorage
@@ -152,6 +163,79 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                   key={cardIndex}
                   className={`card-item ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''} ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`}
                   onClick={() => setSelectedCard(card)}
+                  onMouseEnter={(e) => {
+                    // Clear any existing timeout
+                    if (previewTimeoutRef.current) {
+                      clearTimeout(previewTimeoutRef.current)
+                    }
+                    
+                    // Capture the rect immediately (before timeout)
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    
+                    // Set timeout to show preview after 1 second
+                    previewTimeoutRef.current = setTimeout(() => {
+                      // Position the preview near the card (to the right, or left if too close to right edge)
+                      let previewX = rect.right + 20
+                      const previewY = rect.top
+                      
+                      // Calculate preview dimensions based on card type
+                      // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
+                      // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
+                      // Leaders with back: front horizontal (504x360) + back vertical (360x504) side by side
+                      const isHorizontal = card.isLeader || card.isBase
+                      const hasBackImage = card.backImageUrl && card.isLeader
+                      let previewWidth, previewHeight
+                      if (hasBackImage) {
+                        // Leader with back: side by side (horizontal front + vertical back)
+                        previewWidth = 504 + 360 + 20 // 504px front + 360px back + 20px gap
+                        previewHeight = 504 // Max height (vertical back is 504px)
+                      } else {
+                        previewWidth = isHorizontal ? 504 : 360
+                        previewHeight = isHorizontal ? 360 : 504
+                      }
+                      
+                      // Ensure preview stays within viewport bounds
+                      // Check right edge
+                      if (previewX + previewWidth > window.innerWidth) {
+                        // Try positioning to the left of the card
+                        previewX = rect.left - previewWidth - 20
+                        // If still off screen to the left, clamp to left edge
+                        if (previewX < 0) {
+                          previewX = 10 // Small margin from left edge
+                        }
+                      }
+                      
+                      // Check left edge
+                      if (previewX < 0) {
+                        previewX = 10 // Small margin from left edge
+                      }
+                      
+                      // Adjust vertical position to keep preview within viewport
+                      // previewY is the center point (due to translateY(-50%))
+                      const previewTop = previewY - previewHeight / 2
+                      const previewBottom = previewY + previewHeight / 2
+                      let adjustedY = previewY
+                      
+                      // Check top edge
+                      if (previewTop < 0) {
+                        adjustedY = previewHeight / 2 + 10 // Position so top is 10px from top
+                      }
+                      
+                      // Check bottom edge
+                      if (previewBottom > window.innerHeight) {
+                        adjustedY = window.innerHeight - previewHeight / 2 - 10 // Position so bottom is 10px from bottom
+                      }
+                      
+                      setHoveredCardPreview({ card, x: previewX, y: adjustedY })
+                    }, 1000)
+                  }}
+                  onMouseLeave={() => {
+                    if (previewTimeoutRef.current) {
+                      clearTimeout(previewTimeoutRef.current)
+                      previewTimeoutRef.current = null
+                    }
+                    setHoveredCardPreview(null)
+                  }}
                 >
                   {card.imageUrl ? (
                     <img
@@ -192,7 +276,15 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
               showcaseCount: 0,
               upgradeSlotHyperspace: 0,
               foilPositions: [],
-              specialRarity: []
+              specialRarity: [],
+              leaders: {
+                total: 0,
+                common: 0,
+                rare: 0,
+                legendary: 0
+              },
+              foilSlotRarities: { Legendary: 0, Rare: 0, Uncommon: 0, Common: 0, Special: 0 },
+              upgradeSlotRarities: { Legendary: 0, Rare: 0, Uncommon: 0, Common: 0 }
             }
             
             packs.forEach((pack, packIndex) => {
@@ -205,16 +297,32 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                   stats.rarityCounts[card.rarity] = (stats.rarityCounts[card.rarity] || 0) + 1
                 }
                 
+                // Count leaders
+                if (card.isLeader) {
+                  stats.leaders.total++
+                  if (card.rarity === 'Common') {
+                    stats.leaders.common++
+                  } else if (card.rarity === 'Rare') {
+                    stats.leaders.rare++
+                  } else if (card.rarity === 'Legendary') {
+                    stats.leaders.legendary++
+                  }
+                }
+                
                 // Count hyperspace
                 if (card.isHyperspace) {
                   stats.hyperspaceCount++
                 }
                 
-                // Count foils
+                // Count foils and track foil slot rarities
                 if (card.isFoil) {
                   stats.foilCount++
                   if (card.isHyperspace) {
                     stats.hyperspaceFoilCount++
+                  }
+                  // Track rarity distribution in foil slot
+                  if (card.rarity) {
+                    stats.foilSlotRarities[card.rarity] = (stats.foilSlotRarities[card.rarity] || 0) + 1
                   }
                   stats.foilPositions.push({
                     pack: packIndex + 1,
@@ -247,9 +355,15 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                   
                   // The upgrade slot is typically the 13th card (position 12 in 0-indexed)
                   // It can be a hyperspace variant of any rarity
-                  if (nonLeaderBaseFoilCount === 12 && card.isHyperspace) {
-                    // This is likely the upgrade slot and it's hyperspace
-                    stats.upgradeSlotHyperspace++
+                  if (nonLeaderBaseFoilCount === 12) {
+                    // This is the upgrade slot
+                    if (card.isHyperspace) {
+                      stats.upgradeSlotHyperspace++
+                    }
+                    // Track rarity distribution in upgrade slot
+                    if (card.rarity) {
+                      stats.upgradeSlotRarities[card.rarity] = (stats.upgradeSlotRarities[card.rarity] || 0) + 1
+                    }
                   }
                   
                   // Also track uncommons for reference
@@ -262,6 +376,13 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
             
             const distributionPeriod = getDistributionPeriod(setCode)
             const isPreLawlessTime = distributionPeriod === DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
+            const allowsSpecialInFoil = SETS_WITH_SPECIAL_IN_FOIL.includes(setCode)
+            
+            // Format foil rate
+            const foilRatePercent = (stats.foilCount / stats.totalPacks) * 100
+            const foilRateText = foilRatePercent === 100 
+              ? `1 foil per pack`
+              : `${stats.foilCount} foils in ${stats.totalPacks} packs (${foilRatePercent.toFixed(1)}% per pack)`
             
             return (
               <div className="rate-card-content">
@@ -269,6 +390,19 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                   <h3>Pack Structure</h3>
                   <p>Each pack contains: 1 Leader, 1 Base, 9 Commons, 3 Uncommons, 1 Rare/Legendary, 1 Foil</p>
                   <p>Total: 16 cards per pack</p>
+                </div>
+                
+                <div className="rate-card-section">
+                  <h3>Leader Distribution</h3>
+                  {stats.leaders.total > 0 && (
+                    <>
+                      <p><strong>Common Leaders:</strong> {stats.leaders.common} ({((stats.leaders.common / stats.leaders.total) * 100).toFixed(1)}%, ~83.3% expected)</p>
+                      <p><strong>Rare/Legendary Leaders:</strong> {stats.leaders.rare + stats.leaders.legendary} ({(((stats.leaders.rare + stats.leaders.legendary) / stats.leaders.total) * 100).toFixed(1)}%, ~16.7% expected)</p>
+                      {stats.leaders.legendary > 0 && (
+                        <p style={{ marginLeft: '1em', fontSize: '0.9em', opacity: 0.8 }}>Including {stats.leaders.legendary} Legendary leader(s)</p>
+                      )}
+                    </>
+                  )}
                 </div>
                 
                 <div className="rate-card-section">
@@ -286,26 +420,38 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                 
                 <div className="rate-card-section">
                   <h3>Foil Information</h3>
-                  <p><strong>Foil Rate:</strong> {stats.foilCount} foils in {stats.totalPacks} packs ({((stats.foilCount / stats.totalPacks) * 100).toFixed(1)}% per pack)</p>
+                  <p><strong>Foil Rate:</strong> {foilRateText}</p>
                   {isPreLawlessTime ? (
                     <>
-                      <p><strong>Standard Foil:</strong> {stats.foilCount - stats.hyperspaceFoilCount} ({(((stats.foilCount - stats.hyperspaceFoilCount) / stats.foilCount) * 100).toFixed(1)}% of foils)</p>
+                      <p><strong>Standard Foil:</strong> {stats.foilCount - stats.hyperspaceFoilCount} ({(((stats.foilCount - stats.hyperspaceFoilCount) / stats.foilCount) * 100).toFixed(1)}% of foils, ~83.3% expected)</p>
                       <p><strong>Hyperspace Foil:</strong> {stats.hyperspaceFoilCount} ({((stats.hyperspaceFoilCount / stats.foilCount) * 100).toFixed(1)}% of foils, ~16.7% expected)</p>
                     </>
                   ) : (
                     <p><strong>Hyperspace Foil:</strong> {stats.hyperspaceFoilCount} (100% expected - all foils are hyperspace)</p>
                   )}
-                  {stats.foilPositions.length > 0 && (
-                    <div className="foil-positions">
-                      <strong>Foil Positions:</strong>
-                      <ul>
-                        {stats.foilPositions.map((foil, idx) => (
-                          <li key={idx}>
-                            Pack {foil.pack}, Position {foil.position}: {foil.rarity} {foil.isHyperspace ? 'Hyperspace ' : ''}Foil - {foil.name}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                  
+                  <p style={{ marginTop: '0.75em' }}><strong>Foil Slot Rarity Distribution:</strong></p>
+                  <ul style={{ marginTop: '0.25em', marginLeft: '1.5em' }}>
+                    {stats.foilSlotRarities.Legendary > 0 && (
+                      <li>Legendary (L): {stats.foilSlotRarities.Legendary} ({((stats.foilSlotRarities.Legendary / stats.foilCount) * 100).toFixed(1)}%)</li>
+                    )}
+                    {stats.foilSlotRarities.Rare > 0 && (
+                      <li>Rare (R): {stats.foilSlotRarities.Rare} ({((stats.foilSlotRarities.Rare / stats.foilCount) * 100).toFixed(1)}%)</li>
+                    )}
+                    {stats.foilSlotRarities.Uncommon > 0 && (
+                      <li>Uncommon (UC): {stats.foilSlotRarities.Uncommon} ({((stats.foilSlotRarities.Uncommon / stats.foilCount) * 100).toFixed(1)}%)</li>
+                    )}
+                    {stats.foilSlotRarities.Common > 0 && (
+                      <li>Common (C): {stats.foilSlotRarities.Common} ({((stats.foilSlotRarities.Common / stats.foilCount) * 100).toFixed(1)}%)</li>
+                    )}
+                    {stats.foilSlotRarities.Special > 0 && (
+                      <li>Special (S): {stats.foilSlotRarities.Special} ({((stats.foilSlotRarities.Special / stats.foilCount) * 100).toFixed(1)}%)</li>
+                    )}
+                  </ul>
+                  {allowsSpecialInFoil && (
+                    <p style={{ marginTop: '0.5em', fontSize: '0.9em', fontStyle: 'italic', opacity: 0.9 }}>
+                      Special rarity (S) can appear in foil/hyperfoil slots (~20% of foils when applicable)
+                    </p>
                   )}
                 </div>
                 
@@ -319,7 +465,31 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                   <h3>Uncommon Upgrade Slot</h3>
                   <p>The 3rd Uncommon slot can be upgraded to a Hyperspace variant of any rarity.</p>
                   <p><strong>Upgrade Slot Hyperspace:</strong> {stats.upgradeSlotHyperspace} out of {stats.totalPacks} packs ({((stats.upgradeSlotHyperspace / stats.totalPacks) * 100).toFixed(1)}%, ~25% expected)</p>
-                  <p>When upgraded, can be Common, Uncommon, Rare, or Legendary Hyperspace variant.</p>
+                  
+                  {stats.upgradeSlotHyperspace > 0 && (
+                    <>
+                      <p style={{ marginTop: '0.75em' }}><strong>Upgrade Slot Rarity Distribution (when hyperspace):</strong></p>
+                      <ul style={{ marginTop: '0.25em', marginLeft: '1.5em' }}>
+                        {stats.upgradeSlotRarities.Legendary > 0 && (
+                          <li>Legendary (L): {stats.upgradeSlotRarities.Legendary} ({((stats.upgradeSlotRarities.Legendary / stats.upgradeSlotHyperspace) * 100).toFixed(1)}%)</li>
+                        )}
+                        {stats.upgradeSlotRarities.Rare > 0 && (
+                          <li>Rare (R): {stats.upgradeSlotRarities.Rare} ({((stats.upgradeSlotRarities.Rare / stats.upgradeSlotHyperspace) * 100).toFixed(1)}%)</li>
+                        )}
+                        {stats.upgradeSlotRarities.Uncommon > 0 && (
+                          <li>Uncommon (UC): {stats.upgradeSlotRarities.Uncommon} ({((stats.upgradeSlotRarities.Uncommon / stats.upgradeSlotHyperspace) * 100).toFixed(1)}%)</li>
+                        )}
+                        {stats.upgradeSlotRarities.Common > 0 && (
+                          <li>Common (C): {stats.upgradeSlotRarities.Common} ({((stats.upgradeSlotRarities.Common / stats.upgradeSlotHyperspace) * 100).toFixed(1)}%)</li>
+                        )}
+                      </ul>
+                    </>
+                  )}
+                  {!allowsSpecialInFoil && (
+                    <p style={{ marginTop: '0.5em', fontSize: '0.9em', fontStyle: 'italic', opacity: 0.9 }}>
+                      Special (S) does not appear in upgrade slot (only in foil/hyperfoil slots)
+                    </p>
+                  )}
                 </div>
                 
                 {stats.showcaseCount > 0 && (
@@ -347,13 +517,24 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                   <h3>Pack Building Rules</h3>
                   <ul>
                     <li>Leaders can ONLY appear in leader slot (position 1)</li>
+                    <li><strong>Leader Rarity:</strong> Common leaders appear ~83.3% of the time (5/6), Rare/Legendary leaders appear ~16.7% of the time (1/6)</li>
                     <li>Common bases can ONLY appear in base slot (position 2)</li>
-                    <li>Rare bases CAN appear in rare slot (sets 1-6)</li>
-                    <li>Special rarity cards do NOT appear in regular slots</li>
-                    <li>Special rarity cards can ONLY appear in foil/hyperfoil slots (sets 5, 6, 7)</li>
-                    <li>Foil slot can be any rarity, including Special (in applicable sets)</li>
+                    {['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC'].includes(setCode) && (
+                      <li>Rare bases CAN appear in rare slot</li>
+                    )}
+                    {allowsSpecialInFoil && (
+                      <>
+                        <li>Special rarity cards do NOT appear in regular slots</li>
+                        <li>Special rarity cards can ONLY appear in foil/hyperfoil slots</li>
+                        <li>Foil slot can be any rarity, including Special</li>
+                      </>
+                    )}
+                    {!allowsSpecialInFoil && (
+                      <li>Foil slot can be any rarity (L, R, UC, C)</li>
+                    )}
                     <li>Foil slot can be a duplicate of another card in the pack</li>
                     <li>Upgrade slot (3rd uncommon) can be a duplicate</li>
+                    <li>Leaders are NEVER foil or hyperfoil</li>
                   </ul>
                 </div>
               </div>
@@ -365,6 +546,181 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
       {selectedCard && (
         <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
       )}
+
+      {/* Enlarged card preview (3x size) */}
+      {hoveredCardPreview && (() => {
+        const card = hoveredCardPreview.card
+        const hasBackImage = card.backImageUrl && card.isLeader
+        const isHorizontal = card.isLeader || card.isBase
+        const borderRadius = '18px' // Slightly smaller than 24px to reduce clipping
+        
+        // Calculate dimensions
+        let previewWidth, previewHeight
+        if (hasBackImage) {
+          // Leader with back: side by side (horizontal front + vertical back)
+          previewWidth = 504 + 360 + 20 // 504px front + 360px back + 20px gap
+          previewHeight = 504 // Max height (vertical back is 504px)
+        } else {
+          // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
+          // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
+          previewWidth = isHorizontal ? 504 : 360
+          previewHeight = isHorizontal ? 360 : 504
+        }
+        
+        return (
+          <div
+            className="card-preview-enlarged"
+            style={{
+              position: 'fixed',
+              left: `${hoveredCardPreview.x}px`,
+              top: `${hoveredCardPreview.y}px`,
+              zIndex: 10000,
+              pointerEvents: 'auto',
+              transform: 'translateY(-50%)',
+              width: `${previewWidth}px`,
+              height: `${previewHeight}px`,
+              borderRadius: borderRadius,
+              overflow: 'visible', // Changed to visible so side-by-side cards aren't clipped
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+              border: 'none', // Remove border from container
+              display: 'flex',
+              flexDirection: 'row', // Side by side for leaders with back
+              gap: '20px',
+            }}
+            onMouseLeave={() => setHoveredCardPreview(null)}
+          >
+            {hasBackImage ? (
+              // Show both front (horizontal) and back (vertical) side by side for leaders
+              <>
+                {/* Front - horizontal */}
+                <div style={{
+                  width: '504px',
+                  height: '360px',
+                  overflow: 'hidden',
+                  borderRadius: borderRadius,
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                }}>
+                  {card.imageUrl ? (
+                    <img
+                      src={card.imageUrl}
+                      alt={`${card.name || 'Card'} - Front`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      background: 'rgba(26, 26, 46, 0.95)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      padding: '1rem',
+                      color: 'white',
+                    }}>
+                      <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+                        {card.name || 'Card'} - Front
+                      </div>
+                      <div style={{ color: getRarityColor(card.rarity) }}>
+                        {card.rarity}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {/* Back - vertical */}
+                <div style={{
+                  width: '360px',
+                  height: '504px',
+                  overflow: 'hidden',
+                  borderRadius: borderRadius,
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                }}>
+                  {card.backImageUrl ? (
+                    <img
+                      src={card.backImageUrl}
+                      alt={`${card.name || 'Card'} - Back`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      background: 'rgba(26, 26, 46, 0.95)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      padding: '1rem',
+                      color: 'white',
+                    }}>
+                      <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+                        {card.name || 'Card'} - Back
+                      </div>
+                      <div style={{ color: getRarityColor(card.rarity) }}>
+                        {card.rarity}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              // Single card (non-leader, base, or leader without back)
+              <div style={{
+                width: `${previewWidth}px`,
+                height: `${previewHeight}px`,
+                overflow: 'hidden',
+                borderRadius: borderRadius,
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+              }}>
+                {card.imageUrl ? (
+                  <img
+                    src={card.imageUrl}
+                    alt={card.name || 'Card'}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(26, 26, 46, 0.95)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '1rem',
+                    color: 'white',
+                  }}>
+                    <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+                      {card.name || 'Card'}
+                    </div>
+                    <div style={{ color: getRarityColor(card.rarity) }}>
+                      {card.rarity}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }

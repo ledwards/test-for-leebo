@@ -84,6 +84,8 @@ function App() {
   }
 
   const handleBuildDeck = (cards, setCode) => {
+    // Clear any previous deck builder state so we start fresh with the new pool
+    sessionStorage.removeItem('deckBuilderState')
     setDeckCards(cards)
     setSelectedSet(setCode) // Keep setCode for deck builder
     setView('deck-builder')
