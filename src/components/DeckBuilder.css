@@ -306,6 +306,88 @@
   flex-shrink: 0;
 }
 
+/* Block structure - black box with rounded grey border */
+.card-block {
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  overflow: visible;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-block-header {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.card-block-content {
+  flex: 1;
+}
+
+/* Main container for all blocks */
+.blocks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Top row: Leaders and Bases side by side */
+.blocks-top-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.blocks-top-row .card-block {
+  flex: 1;
+  min-width: 300px;
+}
+
+@media (max-width: 768px) {
+  .blocks-top-row {
+    flex-direction: column;
+  }
+  .blocks-top-row .card-block {
+    width: 100%;
+  }
+}
+
+/* Middle: Deck blocks flowing */
+.blocks-deck-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.blocks-deck-row .card-block {
+  flex: 0 1 auto;
+  min-width: 300px;
+}
+
+/* Bottom: Sideboard full width */
+.blocks-sideboard-row {
+  width: 100%;
+}
+
+.blocks-sideboard-row .card-block {
+  width: 100%;
+}
+
 .deck-section,
 .sideboard-section {
   margin: 0.25rem;
@@ -876,7 +958,7 @@
 }
 
 .list-table td {
-  padding: 0.75rem 1rem;
+  padding: 0;
   border-left: none;
   border-right: none;
   color: white;
@@ -925,7 +1007,7 @@
   min-width: 50px;
   max-width: 50px;
   text-align: center;
-  padding: 0.75rem 0.5rem !important;
+  padding: 0 !important;
 }
 
 /* Ensure checkbox column always takes space even when hidden */
@@ -938,7 +1020,7 @@
   min-width: 50px;
   max-width: 50px;
   text-align: center;
-  padding: 0.75rem 0.5rem;
+  padding: 0;
 }
 
 /* Title column - takes remaining space */
