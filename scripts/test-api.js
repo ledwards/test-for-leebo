@@ -52,18 +52,16 @@ async function fetchWithTimeout(url, options = {}, timeout = 5000) {
 async function testAPI() {
   console.log('🧪 Testing Protect the Pod API...\n')
   console.log(`   API Base URL: ${API_BASE}`)
-  console.log(`   Note: Make sure the dev server is running (npm run dev or vercel dev)\n`)
+  console.log(`   Note: Make sure the Next.js dev server is running (npm run dev)\n`)
 
   // First, check if server is running at all
   console.log('🔍 Checking if server is running...')
   const serverRunning = await checkServerRunning(API_BASE)
   if (!serverRunning) {
     console.log('   ❌ Server is not responding at', API_BASE)
-    console.log('   💡 Start the dev server first:')
-    console.log('      - For Next.js: npm run dev')
-    console.log('      - For Vercel: vercel dev')
-    console.log('   💡 If using vercel dev, check what port it\'s actually using')
-    console.log('      (it might not be 3000 - check the vercel dev output)')
+    console.log('   💡 Start the Next.js dev server first:')
+    console.log('      npm run dev')
+    console.log('   💡 Next.js runs on port 3000 by default')
     process.exit(1)
   }
   console.log('   ✅ Server is responding\n')
@@ -86,7 +84,8 @@ async function testAPI() {
     if (error.message.includes('ECONNREFUSED')) {
       console.log('   💡 Tip: The server is running but the API route might not be working')
       console.log('      - Check that Next.js API routes are in app/api/ directory')
-      console.log('      - Check vercel dev output for any errors')
+      console.log('      - Verify route files are named route.js and export HTTP methods')
+      console.log('      - Check Next.js terminal output for any compilation errors')
       process.exit(1)
     }
   }

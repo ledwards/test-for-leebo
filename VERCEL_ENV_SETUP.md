@@ -142,7 +142,7 @@ npm run migrate:prod
 POSTGRES_URL=postgresql://prod-db-url npm run migrate:prod
 ```
 
-**Option 3: Use Vercel CLI (recommended)**
+**Option 3: Use Next.js dev server (recommended for local development)**
 ```bash
 # This uses Vercel's production environment variables
 vercel env pull .env.production --environment=production
@@ -184,7 +184,7 @@ vercel env pull .env
 # Daily development
 npm run migrate:dev
 npm run test-db
-vercel dev
+npm run dev
 ```
 
 ### ❌ **NO, Don't Pull** - Manual Approach

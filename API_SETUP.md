@@ -104,7 +104,11 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 3. Add all environment variables in Vercel dashboard:
    - Go to Project Settings → Environment Variables
    - Add all variables from your `.env` file
+   - **Important:** `POSTGRES_URL` is automatically set if you use Neon from Vercel Marketplace
 4. Deploy
+   - **Migrations run automatically** during the build process
+   - You don't need production database credentials on your local machine
+   - The build script runs `migrate-on-deploy.js` which applies any pending migrations
 
 ## Step 6: Update Discord Redirect URI
 
@@ -116,27 +120,36 @@ After deploying, update your Discord OAuth redirect URI to match your production
 
 ### Test Database Connection
 
+**Option 1: Use the test script (Recommended)**
 ```bash
-node -e "import('@vercel/postgres').then(({sql}) => sql.query('SELECT 1').then(() => console.log('✅ Connected')))"
+npm run test-db
 ```
+
+**Option 2: Manual test with dotenv**
+```bash
+node -e "import('dotenv').then(dotenv => { dotenv.config(); return import('@vercel/postgres'); }).then(({sql}) => sql.query('SELECT 1').then(() => console.log('✅ Connected')))"
+```
+
+**Note:** 
+- The test script automatically loads your `.env` file. If using `node -e` directly, you need to load dotenv first.
+- `npm run test-db:prod` only **tests the connection** - it does NOT migrate the database.
+- **Production migrations run automatically** during Vercel deployment - you don't need prod credentials locally.
 
 ### Test Authentication
 
-1. Start your dev server: `vercel dev` (or `npm run dev` for frontend only)
-   - **Important:** Use `vercel dev` to test API routes locally
-   - The server will start on `http://localhost:3000` (or next available port)
-   - **Check the terminal output** to see what port it's actually using
-2. Visit: `http://localhost:3000/api/auth/signin/discord` (use the port from step 1)
+1. Start your Next.js dev server: `npm run dev`
+   - The server will start on `http://localhost:3000` (Next.js default port)
+2. Visit: `http://localhost:3000/api/auth/signin/discord`
 3. You should be redirected to Discord for authorization
 4. After authorizing, you'll be redirected back to your app
 
 **Troubleshooting Step 2:**
-- **If you get a 500 error:** Check your terminal where `vercel dev` is running for error messages
+- **If you get a 500 error:** Check your terminal where `npm run dev` is running for error messages
 - **If redirect doesn't work:** Verify your Discord OAuth redirect URI matches EXACTLY:
   - Go to Discord Developer Portal → Your App → OAuth2 → General
   - Check "Redirects" section - it must include: `http://localhost:3000/api/auth/callback/discord`
   - Make sure there are no trailing slashes or typos
-  - The port number must match what `vercel dev` is using (check terminal output)
+  - The port number must be 3000 (Next.js default)
 - **If you see "Discord OAuth not configured":** Make sure `DISCORD_CLIENT_ID` is set in your `.env` file
 - **If you get redirected but see an error:** Check the callback route logs in your terminal
 
@@ -168,10 +181,10 @@ curl -X POST http://localhost:3000/api/pools \
 
 ### API Route Not Found
 
-- Make sure you're using `vercel dev` (not just `npm run dev`) to test API routes
+- Make sure you're using `npm run dev` (Next.js development server)
 - Check that API files are in the `app/api/` directory (Next.js App Router)
 - Verify the route file exports the HTTP method (e.g., `export async function GET()`)
-- Check the port - `vercel dev` may use 3000, 3001, etc. - check the terminal output
+- Next.js runs on port 3000 by default (or next available port)
 
 ## Next Steps
 

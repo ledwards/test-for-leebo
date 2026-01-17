@@ -14,32 +14,32 @@ This plan outlines the implementation of a lightweight persistence layer and bac
 
 ```
 ┌─────────────────┐
-│   React Frontend │  (Vercel)
-│   (Current App)  │
+│   Next.js App   │  (Vercel)
+│   Frontend + API│
 └────────┬────────┘
          │
-         │ HTTPS/REST API
+         │ Internal API calls
          │
 ┌────────▼────────┐
-│  Vercel Serverless│
-│  API Routes      │  (Vercel Functions)
-│  /api/*          │
+│  Next.js API    │
+│  Routes         │  (app/api/*)
+│  Route Handlers │
 └────────┬────────┘
          │
          │
 ┌────────▼────────┐
 │   Database      │
-│   (Vercel Postgres│
-│    or Supabase)  │
+│   (Neon/Supabase│
+│    PostgreSQL)  │
 └─────────────────┘
 ```
 
-### Technology Stack Recommendations
+### Technology Stack
 
 **Backend:**
-- **Vercel Serverless Functions** - Lightweight API endpoints
-- **Vercel Postgres** OR **Supabase** - Managed PostgreSQL database
-- **NextAuth.js** (Auth.js) - Authentication (Discord/Google OAuth)
+- **Next.js App Router** - API routes using route handlers (`app/api/*`)
+- **Neon** OR **Supabase** - Managed PostgreSQL database
+- **Custom JWT Auth** - Authentication (Discord OAuth, Google OAuth planned)
 
 **Database:**
 - PostgreSQL (via Vercel Postgres or Supabase)
@@ -289,7 +289,7 @@ Get user's draft pods
    - [ ] Add API client utilities
 
 3. **URL Sharing**
-   - [ ] Create shareable URL format: `swupod.com/pool/abc123`
+   - [ ] Create shareable URL format: `protectthepod.com/pool/abc123`
    - [ ] Add route handler for `/pool/:shareId`
    - [ ] Create PoolViewer component
    - [ ] Add copy-to-clipboard functionality
@@ -429,34 +429,41 @@ POSTGRES_URL=postgresql://...
 # Auth (Discord)
 DISCORD_CLIENT_ID=...
 DISCORD_CLIENT_SECRET=...
-DISCORD_CALLBACK_URL=https://swupod.com/api/auth/callback/discord
+DISCORD_CALLBACK_URL=https://protectthepod.com/api/auth/callback/discord
 
-# Auth (Google)
+# Auth (Google) - Planned
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
-GOOGLE_CALLBACK_URL=https://swupod.com/api/auth/callback/google
-
-# NextAuth
-NEXTAUTH_URL=https://swupod.com
-NEXTAUTH_SECRET=...
+GOOGLE_CALLBACK_URL=https://protectthepod.com/api/auth/callback/google
 
 # App
-APP_URL=https://swupod.com
+APP_URL=https://protectthepod.com
 ```
 
 ## File Structure
 
 ```
-swupod/
-├── api/                          # New: API routes
-│   ├── auth/
-│   │   ├── [...nextauth].js     # NextAuth.js handler
-│   │   └── session.js            # Session endpoint
-│   ├── pools/
-│   │   ├── index.js              # POST /api/pools
-│   │   ├── [shareId].js          # GET/PUT/DELETE /api/pools/:shareId
-│   │   └── user/
-│   │       └── [userId].js       # GET /api/pools/user/:userId
+protect-the-pod/
+├── app/                          # Next.js App Router
+│   ├── api/                      # API routes
+│   │   ├── auth/
+│   │   │   ├── session/
+│   │   │   │   └── route.js      # GET /api/auth/session
+│   │   │   ├── signin/
+│   │   │   │   └── discord/
+│   │   │   │       └── route.js  # GET /api/auth/signin/discord
+│   │   │   ├── callback/
+│   │   │   │   └── discord/
+│   │   │   │       └── route.js  # GET /api/auth/callback/discord
+│   │   │   └── signout/
+│   │   │       └── route.js      # POST /api/auth/signout
+│   │   └── pools/
+│   │       ├── route.js          # POST /api/pools
+│   │       ├── [shareId]/
+│   │       │   └── route.js      # GET/PUT/DELETE /api/pools/:shareId
+│   │       └── user/
+│   │           └── [userId]/
+│   │               └── route.js  # GET /api/pools/user/:userId
 │   └── draft-pods/               # Future
 │       ├── index.js
 │       ├── [shareId].js

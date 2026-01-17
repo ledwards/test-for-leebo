@@ -57,7 +57,7 @@ Create a new card pool.
   "data": {
     "id": "uuid",
     "shareId": "abc123",
-    "shareUrl": "https://swupod.com/pool/abc123",
+    "shareUrl": "https://protectthepod.com/pool/abc123",
     "createdAt": "2024-01-01T00:00:00Z"
   }
 }

@@ -42,8 +42,8 @@ When setting up storage in Vercel, **select Neon** from the "Marketplace Databas
 ### Option 3: Local PostgreSQL
 
 1. Install PostgreSQL locally
-2. Create a database: `createdb swupod`
-3. Connection string: `postgresql://localhost:5432/swupod`
+2. Create a database: `createdb protectthepod` (or any name you prefer)
+3. Connection string: `postgresql://localhost:5432/protectthepod`
 4. Add to `.env` as `POSTGRES_URL`
 
 ### Option 4: Other Cloud Providers

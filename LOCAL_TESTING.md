@@ -2,27 +2,24 @@
 
 This guide will help you test the API locally before deploying to Vercel.
 
-## ⚠️ Important: API Routes Need Vercel CLI
+## ⚠️ Important: Using Next.js
 
-The API routes in `/api` are Vercel serverless functions. They **cannot** run directly through `npm run dev` (Vite). You need to use `vercel dev` to test them locally.
+This application uses **Next.js** with the App Router. API routes are in `app/api/` and use Next.js route handlers. Simply run `npm run dev` to start both the frontend and API routes.
 
 ## Quick Start
 
 ```bash
-# 1. Install Vercel CLI (if not already installed)
-npm install -g vercel
+# 1. Set up .env file (see below)
 
-# 2. Set up .env file (see below)
-
-# 3. Run database migration
+# 2. Run database migration
 npm run migrate
 
-# 4. Start dev server with Vercel (this runs both frontend and API)
-vercel dev
+# 3. Start Next.js dev server (this runs both frontend and API)
+npm run dev
 ```
 
 This will start:
-- Frontend on `http://localhost:3000` (or next available port)
+- Frontend on `http://localhost:3000` (Next.js default port)
 - API routes at `http://localhost:3000/api/*`
 
 ## Prerequisites
@@ -51,8 +48,8 @@ Create a `.env` file in the project root:
 # Database (points to dev database for local development)
 POSTGRES_URL=postgresql://user:password@dev-host/devdb
 
-# Application URL
-APP_URL=http://localhost:5173
+# Application URL (Next.js runs on port 3000 by default)
+APP_URL=http://localhost:3000
 
 # Discord OAuth
 DISCORD_CLIENT_ID=your_discord_client_id_here
@@ -123,21 +120,15 @@ This will show the connection status and migration state for both dev and prod d
 
 ## Step 4: Start Development Server
 
-**Option A: Using Vercel CLI (Recommended for API testing)**
-```bash
-vercel dev
-```
-This starts both frontend and API on `http://localhost:3000` (or next available port)
-
-**Option B: Using Vite (Frontend only, API won't work)**
+**Using Next.js (Recommended)**
 ```bash
 npm run dev
 ```
-This starts only the frontend on `http://localhost:5173`. API routes won't work with this method.
+This starts both frontend and API on `http://localhost:3000` (Next.js default port). All API routes will work automatically.
 
 ## Step 5: Test API Endpoints
 
-**Note:** If using `vercel dev`, replace `localhost:5173` with `localhost:3000` (or the port Vercel shows)
+**Note:** Next.js runs on port 3000 by default. All API endpoints are available at `http://localhost:3000/api/*`
 
 ### Test 1: Check Session (should return null initially)
 
@@ -173,7 +164,7 @@ Expected response:
   "data": {
     "id": "uuid-here",
     "shareId": "abc123xy",
-    "shareUrl": "http://localhost:5173/pool/abc123xy",
+    "shareUrl": "http://localhost:3000/pool/abc123xy",
     "createdAt": "2024-01-01T00:00:00.000Z"
   }
 }
@@ -258,8 +249,8 @@ Replace `YOUR_USER_ID` with your user ID (you can get it from the session endpoi
    <AuthButton />
    ```
 
-2. **Start dev server**: `vercel dev` (or `npm run dev` for frontend-only)
-3. **Open**: http://localhost:3000 (or http://localhost:5173 if using Vite)
+2. **Start dev server**: `npm run dev` (Next.js)
+3. **Open**: http://localhost:3000
 4. **Click "Sign in with Discord"**
 5. **Complete OAuth flow**
 6. **Verify**: You should see your username/avatar in the auth button
@@ -280,7 +271,7 @@ Replace `YOUR_USER_ID` with your user ID (you can get it from the session endpoi
 ### OAuth Issues
 
 **Error: "Invalid redirect_uri"**
-- Make sure redirect URI in Discord app matches exactly: `http://localhost:5173/api/auth/callback/discord`
+- Make sure redirect URI in Discord app matches exactly: `http://localhost:3000/api/auth/callback/discord`
 - Check for typos (http vs https, trailing slashes)
 
 **Error: "Invalid client"**
@@ -290,71 +281,10 @@ Replace `YOUR_USER_ID` with your user ID (you can get it from the session endpoi
 ### API Route Not Found
 
 **Error: 404 on API routes**
-- Make sure files are in `/api` directory
-- Check that `vercel.json` is configured
-- For local dev, Vite might need proxy configuration (see below)
-
-### Vite Proxy Configuration (if needed)
-
-If API routes don't work in dev, add to `vite.config.js`:
-
-```js
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000', // If running API separately
-        changeOrigin: true,
-      }
-    }
-  }
-})
-```
-
-However, with Vercel serverless functions, you might need to use Vercel CLI for local testing:
-
-```bash
-npm install -g vercel
-vercel dev
-```
-
-This will run the API routes properly locally.
-
-## Using Vercel CLI for Local Testing (Required for API)
-
-**This is the recommended and required method for testing API routes:**
-
-1. **Install Vercel CLI**:
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Login** (first time only):
-   ```bash
-   vercel login
-   ```
-
-3. **Link project** (optional, for remote database/environment variables):
-   ```bash
-   vercel link
-   ```
-   - Choose your Vercel account
-   - Choose to link to existing project or create new
-   - This will pull environment variables from Vercel
-
-4. **Run dev server with Vercel**:
-   ```bash
-   vercel dev
-   ```
-
-This will:
-- Run API routes as serverless functions (required!)
-- Use environment variables from `.env` file (or Vercel if linked)
-- More accurately simulate production
-- Start on port 3000 (or next available)
-
-**Note:** If you haven't linked to a Vercel project, it will use your local `.env` file.
+- Make sure files are in `app/api/` directory (Next.js App Router)
+- Check that route files are named `route.js` and export HTTP methods (e.g., `export async function GET()`)
+- Verify you're using `npm run dev` (Next.js dev server)
+- Check the Next.js terminal output for any route compilation errors
 
 ## Quick Test Script
 
@@ -362,11 +292,11 @@ This will:
 ```bash
 npm run test-api
 ```
-This will test all endpoints automatically (make sure `vercel dev` is running first).
+This will test all endpoints automatically (make sure `npm run dev` is running first). The test script includes 5-second timeouts for each route - if a route doesn't respond within 5 seconds, the test will fail.
 
 **Option 2: Manual testing with curl**
 
-Run this to test all endpoints quickly (replace `3000` with your Vercel dev port):
+Run this to test all endpoints quickly (Next.js runs on port 3000 by default):
 
 ```bash
 # Test session

@@ -31,9 +31,10 @@
 - ✅ API client utilities (`src/utils/poolApi.js`)
 
 ### 4. Project Structure
-- ✅ `/api` directory for serverless functions
-- ✅ `/lib` directory for shared utilities
-- ✅ `/migrations` directory for database migrations
+- ✅ `app/api/` directory for Next.js API routes (App Router)
+- ✅ `lib/` directory for shared utilities
+- ✅ `migrations/` directory for database migrations
+- ✅ Next.js configuration (`next.config.js`)
 - ✅ Vercel configuration (`vercel.json`)
 - ✅ Environment variable template (`.env.example`)
 
@@ -43,13 +44,13 @@
 - `lib/db.js` - Database client
 - `lib/auth.js` - Authentication utilities
 - `lib/utils.js` - Shared utilities
-- `api/auth/session.js` - Session endpoint
-- `api/auth/signout.js` - Sign out endpoint
-- `api/auth/signin/discord.js` - Discord OAuth initiation
-- `api/auth/callback/discord.js` - Discord OAuth callback
-- `api/pools/index.js` - Create pool endpoint
-- `api/pools/[shareId].js` - Get/Update/Delete pool endpoints
-- `api/pools/user/[userId].js` - User pools endpoint
+- `app/api/auth/session/route.js` - Session endpoint (Next.js route handler)
+- `app/api/auth/signout/route.js` - Sign out endpoint
+- `app/api/auth/signin/discord/route.js` - Discord OAuth initiation
+- `app/api/auth/callback/discord/route.js` - Discord OAuth callback
+- `app/api/pools/route.js` - Create pool endpoint
+- `app/api/pools/[shareId]/route.js` - Get/Update/Delete pool endpoints
+- `app/api/pools/user/[userId]/route.js` - User pools endpoint
 - `migrations/001_initial_schema.sql` - Database schema
 - `scripts/migrate.js` - Migration runner
 
@@ -80,7 +81,7 @@
 
 2. **Configure Discord OAuth:**
    - Create Discord app at https://discord.com/developers/applications
-   - Add redirect URI: `http://localhost:5173/api/auth/callback/discord`
+   - Add redirect URI: `http://localhost:3000/api/auth/callback/discord`
    - Add credentials to `.env`
 
 3. **Add auth button to UI:**
@@ -92,7 +93,7 @@
    ```
 
 4. **Test authentication:**
-   - Start dev server: `npm run dev`
+   - Start dev server: `npm run dev` (Next.js will start on port 3000)
    - Click "Sign in with Discord"
    - Complete OAuth flow
 
@@ -104,10 +105,10 @@
 
 ## Important Notes
 
-### Vercel Serverless Functions
-The API routes use Vercel's serverless function format. Each file in `/api` exports a default handler function that receives `(request, context)`.
+### Next.js API Routes
+The API routes use Next.js App Router route handlers. Each file in `app/api/` is named `route.js` and exports HTTP method functions (e.g., `export async function GET(request)`, `export async function POST(request)`).
 
-For dynamic routes like `[shareId]`, Vercel automatically extracts the parameter from the URL path.
+For dynamic routes like `[shareId]`, Next.js automatically extracts the parameter from the URL path and provides it via `params`.
 
 ### Environment Variables Required
 - `POSTGRES_URL` or `DATABASE_URL` - Database connection
@@ -119,8 +120,9 @@ For dynamic routes like `[shareId]`, Vercel automatically extracts the parameter
 ### Testing Locally
 1. Set up `.env` file with all required variables
 2. Run `npm run migrate` to set up database
-3. Start dev server: `npm run dev`
-4. Test auth flow at `/api/auth/signin/discord`
+3. Start dev server: `npm run dev` (Next.js will start on port 3000)
+4. Test auth flow at `http://localhost:3000/api/auth/signin/discord`
+5. Run API tests: `npm run test-api` (includes 5-second timeout per route)
 
 ## Known Limitations
 

@@ -2,11 +2,10 @@
 
 Get up and running in 5 minutes!
 
-## 1. Install Vercel CLI
+## 1. Prerequisites
 
-```bash
-npm install -g vercel
-```
+- Node.js 20.19.0 or higher (or 22.12.0+)
+- npm
 
 ## 2. Set Up Environment Variables
 
@@ -39,13 +38,14 @@ npm run migrate
 ## 4. Start Development Server
 
 ```bash
-vercel dev
+npm run dev
 ```
 
 This will:
-- Start the frontend
-- Start API serverless functions
+- Start Next.js development server
+- Run both frontend and API routes
 - Use your `.env` file for configuration
+- Start on `http://localhost:3000` (Next.js default port)
 
 ## 5. Test It!
 
@@ -70,8 +70,9 @@ npm run test-api
 - Check `APP_URL` in `.env` matches the port Vercel uses
 
 **API routes return 404**
-- Make sure you're using `vercel dev`, not `npm run dev`
-- Check that files are in `/api` directory
+- Make sure you're using `npm run dev` (Next.js)
+- Check that files are in `app/api/` directory (Next.js App Router)
+- Verify route files are named `route.js` and export HTTP methods
 
 ## Next Steps
 
