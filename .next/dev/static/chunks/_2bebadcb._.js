@@ -85,6 +85,18 @@ function AuthProvider({ children }) {
         "AuthProvider.useEffect": ()=>{
             // Load session on mount
             loadSession();
+            // Also reload session when URL has auth=success (after Discord OAuth)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auth') === 'success') {
+                // Small delay to ensure cookie is set
+                setTimeout({
+                    "AuthProvider.useEffect": ()=>{
+                        loadSession();
+                    }
+                }["AuthProvider.useEffect"], 100);
+                // Clean up URL
+                window.history.replaceState({}, '', window.location.pathname);
+            }
         }
     }["AuthProvider.useEffect"], []);
     async function loadSession() {
@@ -118,7 +130,7 @@ function AuthProvider({ children }) {
         children: children
     }, void 0, false, {
         fileName: "[project]/src/contexts/AuthContext.jsx",
-        lineNumber: 48,
+        lineNumber: 59,
         columnNumber: 10
     }, this);
 }

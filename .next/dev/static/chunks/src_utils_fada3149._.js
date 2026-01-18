@@ -343,8 +343,147 @@ const SOR_CONFIG = {
     setCode: 'SOR',
     setName: 'Spark of Rebellion',
     setNumber: 1,
+    color: '#CC0000',
     // Distribution period
     distributionPeriod: 'pre-lawless-time',
+    // Card counts (Normal variants only)
+    cardCounts: {
+        leaders: {
+            common: 8,
+            rare: 10,
+            total: 18
+        },
+        bases: {
+            common: 12,
+            rare: 0,
+            total: 12
+        },
+        commons: 90,
+        uncommons: 60,
+        rares: 48,
+        legendaries: 16,
+        specials: 8
+    },
+    // Sheet configuration for printer-based pack generation
+    sheetConfig: {
+        // Rare/Legendary sheet: 11x11 = 121 cards
+        // 48 R × 2 copies = 96 cards
+        // 16 L × 1 copy = 16 cards
+        // Total: 112 cards, 9 blanks
+        rareLegendary: {
+            size: 121,
+            layout: {
+                rares: {
+                    count: 48,
+                    copies: 2
+                },
+                legendaries: {
+                    count: 16,
+                    copies: 1
+                },
+                blanks: 9
+            },
+            legendaryRate: 0.125 // 1 in 8 packs
+        },
+        // Uncommon sheets: 11x11 = 121 cards
+        // 60 U × 2 copies = 120 cards, 1 blank
+        uncommon: {
+            size: 121,
+            sheets: 1,
+            layout: {
+                uncommons: {
+                    count: 60,
+                    copies: 2
+                },
+                blanks: 1
+            }
+        },
+        // Common sheets (Belt system): 3 sheets × 121 = 363 cards
+        // 90 commons × 4 copies = 360 cards, 3 blanks
+        // Belt A: Vigilance, Command, Neutral (42 cards)
+        // Belt B: Aggression, Cunning (36 cards + 12 multi-aspect) = 48 cards
+        common: {
+            size: 121,
+            sheets: 3,
+            totalCards: 363,
+            layout: {
+                commons: {
+                    count: 90,
+                    copies: 4
+                },
+                blanks: 3
+            },
+            belts: {
+                beltA: {
+                    aspects: [
+                        'Vigilance',
+                        'Command',
+                        'Neutral'
+                    ],
+                    approximateCount: 42
+                },
+                beltB: {
+                    aspects: [
+                        'Aggression',
+                        'Cunning'
+                    ],
+                    approximateCount: 48
+                }
+            }
+        },
+        // Leader sheet: 11x11 = 121 cards
+        // 8 Common leaders × ~10 copies = 80 cards
+        // 10 Rare leaders × ~4 copies = 40 cards
+        // Total: 120 cards, 1 blank
+        leader: {
+            size: 121,
+            layout: {
+                commonLeaders: {
+                    count: 8,
+                    copies: 10
+                },
+                rareLeaders: {
+                    count: 10,
+                    copies: 4
+                },
+                blanks: 1
+            },
+            rareLeaderRate: 0.167 // ~1 in 6 packs
+        },
+        // Base sheet: 11x11 = 121 cards
+        // 12 common bases × 10 copies = 120 cards, 1 blank
+        base: {
+            size: 121,
+            layout: {
+                commonBases: {
+                    count: 12,
+                    copies: 10
+                },
+                blanks: 1
+            }
+        },
+        // Foil sheet: Contains all rarities at appropriate rates
+        // Multiple foil sheet layouts used for proper distribution
+        foil: {
+            size: 121,
+            // Foil distribution matches overall rarity distribution
+            // Commons: ~70%, Uncommons: ~20%, Rares: ~8%, Legendaries: ~2%
+            layout: {
+                commons: {
+                    approximate: 85
+                },
+                uncommons: {
+                    approximate: 24
+                },
+                rares: {
+                    approximate: 10
+                },
+                legendaries: {
+                    approximate: 2
+                }
+            }
+        }
+    },
     // Pack construction rules
     packRules: {
         // Rare bases can appear in rare slot
@@ -352,7 +491,9 @@ const SOR_CONFIG = {
         // Special rarity cards can appear in foil/hyperfoil slots only
         specialInFoilSlot: false,
         // Special rarity rate in foil slot (when applicable)
-        specialInFoilRate: 0
+        specialInFoilRate: 0,
+        // Hyperspace rate: ~2/3 of packs have at least one hyperspace card
+        hyperspacePackRate: 0.667
     },
     // Upgrade slot configuration
     upgradeSlot: {
@@ -385,22 +526,141 @@ const SHD_CONFIG = {
     setCode: 'SHD',
     setName: 'Shadows of the Galaxy',
     setNumber: 2,
+    color: '#9B59B6',
     // Distribution period
     distributionPeriod: 'pre-lawless-time',
+    // Card counts (Normal variants only)
+    cardCounts: {
+        leaders: {
+            common: 8,
+            rare: 10,
+            total: 18
+        },
+        bases: {
+            common: 8,
+            rare: 0,
+            total: 8
+        },
+        commons: 90,
+        uncommons: 60,
+        rares: 52,
+        legendaries: 16,
+        specials: 18
+    },
+    // Sheet configuration
+    sheetConfig: {
+        // Rare/Legendary sheet: 11x11 = 121 cards
+        // 52 R × 2 copies = 104 cards
+        // 16 L × 1 copy = 16 cards
+        // Total: 120 cards, 1 blank
+        rareLegendary: {
+            size: 121,
+            layout: {
+                rares: {
+                    count: 52,
+                    copies: 2
+                },
+                legendaries: {
+                    count: 16,
+                    copies: 1
+                },
+                blanks: 1
+            },
+            legendaryRate: 0.125
+        },
+        uncommon: {
+            size: 121,
+            sheets: 1,
+            layout: {
+                uncommons: {
+                    count: 60,
+                    copies: 2
+                },
+                blanks: 1
+            }
+        },
+        common: {
+            size: 121,
+            sheets: 3,
+            totalCards: 363,
+            layout: {
+                commons: {
+                    count: 90,
+                    copies: 4
+                },
+                blanks: 3
+            },
+            belts: {
+                beltA: {
+                    aspects: [
+                        'Vigilance',
+                        'Command',
+                        'Neutral'
+                    ],
+                    approximateCount: 42
+                },
+                beltB: {
+                    aspects: [
+                        'Aggression',
+                        'Cunning'
+                    ],
+                    approximateCount: 48
+                }
+            }
+        },
+        leader: {
+            size: 121,
+            layout: {
+                commonLeaders: {
+                    count: 8,
+                    copies: 10
+                },
+                rareLeaders: {
+                    count: 10,
+                    copies: 4
+                },
+                blanks: 1
+            },
+            rareLeaderRate: 0.167
+        },
+        base: {
+            size: 121,
+            layout: {
+                commonBases: {
+                    count: 8,
+                    copies: 15
+                },
+                blanks: 1
+            }
+        },
+        foil: {
+            size: 121,
+            layout: {
+                commons: {
+                    approximate: 85
+                },
+                uncommons: {
+                    approximate: 24
+                },
+                rares: {
+                    approximate: 10
+                },
+                legendaries: {
+                    approximate: 2
+                }
+            }
+        }
+    },
     // Pack construction rules
     packRules: {
-        // Rare bases can appear in rare slot
         rareBasesInRareSlot: true,
-        // Special rarity cards can appear in foil/hyperfoil slots only
         specialInFoilSlot: false,
-        // Special rarity rate in foil slot (when applicable)
-        specialInFoilRate: 0
+        specialInFoilRate: 0,
+        hyperspacePackRate: 0.667
     },
     // Upgrade slot configuration
     upgradeSlot: {
-        // Chance for upgrade slot to be hyperspace
         hyperspaceChance: 0.25,
-        // Rarity distribution when upgrade slot is hyperspace
         rarityDistribution: {
             Common: 0.60,
             Uncommon: 0.25,
@@ -427,22 +687,137 @@ const TWI_CONFIG = {
     setCode: 'TWI',
     setName: 'Twilight of the Republic',
     setNumber: 3,
+    color: '#6B0000',
     // Distribution period
     distributionPeriod: 'pre-lawless-time',
+    // Card counts (Normal variants only)
+    cardCounts: {
+        leaders: {
+            common: 8,
+            rare: 10,
+            total: 18
+        },
+        bases: {
+            common: 12,
+            rare: 0,
+            total: 12
+        },
+        commons: 90,
+        uncommons: 60,
+        rares: 48,
+        legendaries: 16,
+        specials: 13
+    },
+    // Sheet configuration
+    sheetConfig: {
+        rareLegendary: {
+            size: 121,
+            layout: {
+                rares: {
+                    count: 48,
+                    copies: 2
+                },
+                legendaries: {
+                    count: 16,
+                    copies: 1
+                },
+                blanks: 9
+            },
+            legendaryRate: 0.125
+        },
+        uncommon: {
+            size: 121,
+            sheets: 1,
+            layout: {
+                uncommons: {
+                    count: 60,
+                    copies: 2
+                },
+                blanks: 1
+            }
+        },
+        common: {
+            size: 121,
+            sheets: 3,
+            totalCards: 363,
+            layout: {
+                commons: {
+                    count: 90,
+                    copies: 4
+                },
+                blanks: 3
+            },
+            belts: {
+                beltA: {
+                    aspects: [
+                        'Vigilance',
+                        'Command',
+                        'Neutral'
+                    ],
+                    approximateCount: 42
+                },
+                beltB: {
+                    aspects: [
+                        'Aggression',
+                        'Cunning'
+                    ],
+                    approximateCount: 48
+                }
+            }
+        },
+        leader: {
+            size: 121,
+            layout: {
+                commonLeaders: {
+                    count: 8,
+                    copies: 10
+                },
+                rareLeaders: {
+                    count: 10,
+                    copies: 4
+                },
+                blanks: 1
+            },
+            rareLeaderRate: 0.167
+        },
+        base: {
+            size: 121,
+            layout: {
+                commonBases: {
+                    count: 12,
+                    copies: 10
+                },
+                blanks: 1
+            }
+        },
+        foil: {
+            size: 121,
+            layout: {
+                commons: {
+                    approximate: 85
+                },
+                uncommons: {
+                    approximate: 24
+                },
+                rares: {
+                    approximate: 10
+                },
+                legendaries: {
+                    approximate: 2
+                }
+            }
+        }
+    },
     // Pack construction rules
     packRules: {
-        // Rare bases can appear in rare slot
         rareBasesInRareSlot: true,
-        // Special rarity cards can appear in foil/hyperfoil slots only
         specialInFoilSlot: false,
-        // Special rarity rate in foil slot (when applicable)
-        specialInFoilRate: 0
+        specialInFoilRate: 0,
+        hyperspacePackRate: 0.667
     },
     // Upgrade slot configuration
     upgradeSlot: {
-        // Chance for upgrade slot to be hyperspace
         hyperspaceChance: 0.25,
-        // Rarity distribution when upgrade slot is hyperspace
         rarityDistribution: {
             Common: 0.60,
             Uncommon: 0.25,
@@ -469,22 +844,142 @@ const JTL_CONFIG = {
     setCode: 'JTL',
     setName: 'Jump to Lightspeed',
     setNumber: 4,
+    color: '#FFD700',
     // Distribution period
     distributionPeriod: 'pre-lawless-time',
+    // Card counts (Normal variants only)
+    cardCounts: {
+        leaders: {
+            common: 8,
+            rare: 10,
+            total: 18
+        },
+        bases: {
+            common: 13,
+            rare: 0,
+            total: 13
+        },
+        commons: 98,
+        uncommons: 60,
+        rares: 45,
+        legendaries: 20,
+        specials: 8
+    },
+    // Sheet configuration
+    sheetConfig: {
+        // 45 R × 2 copies = 90 cards
+        // 20 L × 1 copy = 20 cards
+        // Total: 110 cards, 11 blanks
+        rareLegendary: {
+            size: 121,
+            layout: {
+                rares: {
+                    count: 45,
+                    copies: 2
+                },
+                legendaries: {
+                    count: 20,
+                    copies: 1
+                },
+                blanks: 11
+            },
+            legendaryRate: 0.125
+        },
+        uncommon: {
+            size: 121,
+            sheets: 1,
+            layout: {
+                uncommons: {
+                    count: 60,
+                    copies: 2
+                },
+                blanks: 1
+            }
+        },
+        // 98 commons × 4 copies = 392 cards
+        // Need 4 sheets (484 slots) - 92 blanks
+        common: {
+            size: 121,
+            sheets: 4,
+            totalCards: 484,
+            layout: {
+                commons: {
+                    count: 98,
+                    copies: 4
+                },
+                blanks: 92
+            },
+            belts: {
+                beltA: {
+                    aspects: [
+                        'Vigilance',
+                        'Command',
+                        'Neutral'
+                    ],
+                    approximateCount: 46
+                },
+                beltB: {
+                    aspects: [
+                        'Aggression',
+                        'Cunning'
+                    ],
+                    approximateCount: 52
+                }
+            }
+        },
+        leader: {
+            size: 121,
+            layout: {
+                commonLeaders: {
+                    count: 8,
+                    copies: 10
+                },
+                rareLeaders: {
+                    count: 10,
+                    copies: 4
+                },
+                blanks: 1
+            },
+            rareLeaderRate: 0.167
+        },
+        base: {
+            size: 121,
+            layout: {
+                commonBases: {
+                    count: 13,
+                    copies: 9
+                },
+                blanks: 4
+            }
+        },
+        foil: {
+            size: 121,
+            layout: {
+                commons: {
+                    approximate: 82
+                },
+                uncommons: {
+                    approximate: 24
+                },
+                rares: {
+                    approximate: 12
+                },
+                legendaries: {
+                    approximate: 3
+                }
+            }
+        }
+    },
     // Pack construction rules
     packRules: {
-        // Rare bases can appear in rare slot
         rareBasesInRareSlot: true,
-        // Special rarity cards can appear in foil/hyperfoil slots only
         specialInFoilSlot: false,
-        // Special rarity rate in foil slot (when applicable)
-        specialInFoilRate: 0
+        specialInFoilRate: 0,
+        hyperspacePackRate: 0.667
     },
     // Upgrade slot configuration
     upgradeSlot: {
-        // Chance for upgrade slot to be hyperspace
         hyperspaceChance: 0.25,
-        // Rarity distribution when upgrade slot is hyperspace
         rarityDistribution: {
             Common: 0.60,
             Uncommon: 0.25,
@@ -511,23 +1006,142 @@ const LOF_CONFIG = {
     setCode: 'LOF',
     setName: 'Legends of the Force',
     setNumber: 5,
+    color: '#5DADE2',
     // Distribution period
     distributionPeriod: 'pre-lawless-time',
+    // Card counts (Normal variants only)
+    cardCounts: {
+        leaders: {
+            common: 8,
+            rare: 10,
+            total: 18
+        },
+        bases: {
+            common: 12,
+            rare: 0,
+            total: 12
+        },
+        commons: 100,
+        uncommons: 60,
+        rares: 46,
+        legendaries: 20,
+        specials: 8
+    },
+    // Sheet configuration
+    sheetConfig: {
+        // 46 R × 2 copies = 92 cards
+        // 20 L × 1 copy = 20 cards
+        // Total: 112 cards, 9 blanks
+        rareLegendary: {
+            size: 121,
+            layout: {
+                rares: {
+                    count: 46,
+                    copies: 2
+                },
+                legendaries: {
+                    count: 20,
+                    copies: 1
+                },
+                blanks: 9
+            },
+            legendaryRate: 0.125
+        },
+        uncommon: {
+            size: 121,
+            sheets: 1,
+            layout: {
+                uncommons: {
+                    count: 60,
+                    copies: 2
+                },
+                blanks: 1
+            }
+        },
+        // 100 commons × 4 copies = 400 cards
+        // Need 4 sheets (484 slots) - 84 blanks
+        common: {
+            size: 121,
+            sheets: 4,
+            totalCards: 484,
+            layout: {
+                commons: {
+                    count: 100,
+                    copies: 4
+                },
+                blanks: 84
+            },
+            belts: {
+                beltA: {
+                    aspects: [
+                        'Vigilance',
+                        'Command',
+                        'Neutral'
+                    ],
+                    approximateCount: 48
+                },
+                beltB: {
+                    aspects: [
+                        'Aggression',
+                        'Cunning'
+                    ],
+                    approximateCount: 52
+                }
+            }
+        },
+        leader: {
+            size: 121,
+            layout: {
+                commonLeaders: {
+                    count: 8,
+                    copies: 10
+                },
+                rareLeaders: {
+                    count: 10,
+                    copies: 4
+                },
+                blanks: 1
+            },
+            rareLeaderRate: 0.167
+        },
+        base: {
+            size: 121,
+            layout: {
+                commonBases: {
+                    count: 12,
+                    copies: 10
+                },
+                blanks: 1
+            }
+        },
+        foil: {
+            size: 121,
+            layout: {
+                commons: {
+                    approximate: 82
+                },
+                uncommons: {
+                    approximate: 24
+                },
+                rares: {
+                    approximate: 12
+                },
+                legendaries: {
+                    approximate: 3
+                }
+            }
+        }
+    },
     // Pack construction rules
     packRules: {
-        // Rare bases can appear in rare slot
         rareBasesInRareSlot: true,
-        // Special rarity cards can appear in foil/hyperfoil slots only
         specialInFoilSlot: true,
-        // Special rarity rate in foil slot (when applicable)
-        // ~1-2% of foils when applicable
-        specialInFoilRate: 0.015
+        specialInFoilRate: 0.015,
+        hyperspacePackRate: 0.667
     },
     // Upgrade slot configuration
     upgradeSlot: {
-        // Chance for upgrade slot to be hyperspace
         hyperspaceChance: 0.25,
-        // Rarity distribution when upgrade slot is hyperspace
         rarityDistribution: {
             Common: 0.60,
             Uncommon: 0.25,
@@ -554,23 +1168,142 @@ const SEC_CONFIG = {
     setCode: 'SEC',
     setName: 'Secrets of Power',
     setNumber: 6,
+    color: '#6A1B9A',
     // Distribution period
     distributionPeriod: 'pre-lawless-time',
+    // Card counts (Normal variants only)
+    cardCounts: {
+        leaders: {
+            common: 8,
+            rare: 10,
+            total: 18
+        },
+        bases: {
+            common: 8,
+            rare: 0,
+            total: 8
+        },
+        commons: 100,
+        uncommons: 60,
+        rares: 50,
+        legendaries: 20,
+        specials: 8
+    },
+    // Sheet configuration
+    sheetConfig: {
+        // 50 R × 2 copies = 100 cards
+        // 20 L × 1 copy = 20 cards
+        // Total: 120 cards, 1 blank
+        rareLegendary: {
+            size: 121,
+            layout: {
+                rares: {
+                    count: 50,
+                    copies: 2
+                },
+                legendaries: {
+                    count: 20,
+                    copies: 1
+                },
+                blanks: 1
+            },
+            legendaryRate: 0.125
+        },
+        uncommon: {
+            size: 121,
+            sheets: 1,
+            layout: {
+                uncommons: {
+                    count: 60,
+                    copies: 2
+                },
+                blanks: 1
+            }
+        },
+        // 100 commons × 4 copies = 400 cards
+        // Need 4 sheets (484 slots) - 84 blanks
+        common: {
+            size: 121,
+            sheets: 4,
+            totalCards: 484,
+            layout: {
+                commons: {
+                    count: 100,
+                    copies: 4
+                },
+                blanks: 84
+            },
+            belts: {
+                beltA: {
+                    aspects: [
+                        'Vigilance',
+                        'Command',
+                        'Neutral'
+                    ],
+                    approximateCount: 48
+                },
+                beltB: {
+                    aspects: [
+                        'Aggression',
+                        'Cunning'
+                    ],
+                    approximateCount: 52
+                }
+            }
+        },
+        leader: {
+            size: 121,
+            layout: {
+                commonLeaders: {
+                    count: 8,
+                    copies: 10
+                },
+                rareLeaders: {
+                    count: 10,
+                    copies: 4
+                },
+                blanks: 1
+            },
+            rareLeaderRate: 0.167
+        },
+        base: {
+            size: 121,
+            layout: {
+                commonBases: {
+                    count: 8,
+                    copies: 15
+                },
+                blanks: 1
+            }
+        },
+        foil: {
+            size: 121,
+            layout: {
+                commons: {
+                    approximate: 82
+                },
+                uncommons: {
+                    approximate: 24
+                },
+                rares: {
+                    approximate: 12
+                },
+                legendaries: {
+                    approximate: 3
+                }
+            }
+        }
+    },
     // Pack construction rules
     packRules: {
-        // Rare bases can appear in rare slot
         rareBasesInRareSlot: true,
-        // Special rarity cards can appear in foil/hyperfoil slots only
         specialInFoilSlot: true,
-        // Special rarity rate in foil slot (when applicable)
-        // ~1-2% of foils when applicable
-        specialInFoilRate: 0.015
+        specialInFoilRate: 0.015,
+        hyperspacePackRate: 0.667
     },
     // Upgrade slot configuration
     upgradeSlot: {
-        // Chance for upgrade slot to be hyperspace
         hyperspaceChance: 0.25,
-        // Rarity distribution when upgrade slot is hyperspace
         rarityDistribution: {
             Common: 0.60,
             Uncommon: 0.25,

@@ -7,83 +7,149 @@ __turbopack_context__.s([
     ()=>__TURBOPACK__default__export__
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/contexts/AuthContext.jsx [app-ssr] (ecmascript)");
+'use client';
+;
+;
 ;
 ;
 function LandingPage({ onSealedClick }) {
+    const { user, loading, signIn } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
+    // Debug: Log auth state
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        console.log('LandingPage: Auth state - user:', user, 'loading:', loading);
+    }, [
+        user,
+        loading
+    ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "landing-page",
-        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            className: "landing-content",
-            children: [
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                    children: "Protect the Pod"
-                }, void 0, false, {
-                    fileName: "[project]/src/components/LandingPage.jsx",
-                    lineNumber: 7,
-                    columnNumber: 9
-                }, this),
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                    className: "subtitle",
-                    children: [
-                        "The Fan-Made Open Source",
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
-                            fileName: "[project]/src/components/LandingPage.jsx",
-                            lineNumber: 9,
-                            columnNumber: 35
-                        }, this),
-                        "Star Wars Unlimited Limited Simulator"
-                    ]
-                }, void 0, true, {
-                    fileName: "[project]/src/components/LandingPage.jsx",
-                    lineNumber: 8,
-                    columnNumber: 9
-                }, this),
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "mode-selection",
-                    children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                            className: "mode-button sealed-button",
-                            onClick: onSealedClick,
-                            children: "Sealed"
-                        }, void 0, false, {
-                            fileName: "[project]/src/components/LandingPage.jsx",
-                            lineNumber: 13,
-                            columnNumber: 11
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                            className: "mode-button draft-button",
-                            disabled: true,
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "landing-content",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
+                        children: "Protect the Pod"
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/LandingPage.jsx",
+                        lineNumber: 18,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                        className: "subtitle",
+                        children: [
+                            "The Fan-Made Open Source",
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
+                                fileName: "[project]/src/components/LandingPage.jsx",
+                                lineNumber: 20,
+                                columnNumber: 35
+                            }, this),
+                            "Star Wars Unlimited Limited Simulator"
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/LandingPage.jsx",
+                        lineNumber: 19,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "mode-selection",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "mode-button sealed-button",
+                                onClick: onSealedClick,
+                                children: "Sealed"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/LandingPage.jsx",
+                                lineNumber: 24,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "mode-button draft-button",
+                                disabled: true,
+                                children: [
+                                    "Draft",
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        className: "coming-soon",
+                                        children: "(Coming Soon)"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/LandingPage.jsx",
+                                        lineNumber: 29,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/components/LandingPage.jsx",
+                                lineNumber: 27,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/LandingPage.jsx",
+                        lineNumber: 23,
+                        columnNumber: 9
+                    }, this),
+                    !loading && !user && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "landing-login",
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                            className: "landing-login-button",
+                            onClick: signIn,
                             children: [
-                                "Draft",
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                    className: "coming-soon",
-                                    children: "(Coming Soon)"
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                    width: "20",
+                                    height: "20",
+                                    viewBox: "0 0 24 24",
+                                    fill: "none",
+                                    xmlns: "http://www.w3.org/2000/svg",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                        d: "M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z",
+                                        fill: "currentColor"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/LandingPage.jsx",
+                                        lineNumber: 42,
+                                        columnNumber: 17
+                                    }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/LandingPage.jsx",
-                                    lineNumber: 18,
-                                    columnNumber: 13
-                                }, this)
+                                    lineNumber: 35,
+                                    columnNumber: 15
+                                }, this),
+                                "Login with Discord"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/LandingPage.jsx",
-                            lineNumber: 16,
-                            columnNumber: 11
+                            lineNumber: 34,
+                            columnNumber: 13
                         }, this)
-                    ]
-                }, void 0, true, {
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/LandingPage.jsx",
+                        lineNumber: 33,
+                        columnNumber: 11
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/components/LandingPage.jsx",
+                lineNumber: 17,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "landing-disclaimer",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                    children: "Protect the Pod is in no way affiliated with Disney or Fantasy Flight Games. Star Wars characters, cards, logos, and art are property of Disney and/or Fantasy Flight Games."
+                }, void 0, false, {
                     fileName: "[project]/src/components/LandingPage.jsx",
-                    lineNumber: 12,
+                    lineNumber: 53,
                     columnNumber: 9
                 }, this)
-            ]
-        }, void 0, true, {
-            fileName: "[project]/src/components/LandingPage.jsx",
-            lineNumber: 6,
-            columnNumber: 7
-        }, this)
-    }, void 0, false, {
+            }, void 0, false, {
+                fileName: "[project]/src/components/LandingPage.jsx",
+                lineNumber: 52,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
         fileName: "[project]/src/components/LandingPage.jsx",
-        lineNumber: 5,
+        lineNumber: 16,
         columnNumber: 5
     }, this);
 }
@@ -197,8 +263,7 @@ function SetSelection({ onSetSelect, onBack }) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "set-selection",
             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "loading",
-                children: "Loading sets..."
+                className: "loading"
             }, void 0, false, {
                 fileName: "[project]/src/components/SetSelection.jsx",
                 lineNumber: 94,
@@ -1149,7 +1214,15 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$cardCache$2e
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/utils/api.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$boosterPack$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/utils/boosterPack.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$rarityConfig$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/utils/rarityConfig.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$poolApi$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/utils/poolApi.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/contexts/AuthContext.jsx [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$setConfigs$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/utils/setConfigs/index.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$packArt$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/utils/packArt.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$CardModal$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/CardModal.jsx [app-ssr] (ecmascript)");
+;
+;
+;
+;
 ;
 ;
 ;
@@ -1160,17 +1233,16 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$CardMod
 ;
 // Helper function to get set name from set code
 function getSetName(setCode) {
-    const setNames = {
-        'SOR': 'Spark of Rebellion',
-        'SHD': 'Shadows of the Galaxy',
-        'TWI': 'Twilight of the Republic',
-        'JTL': 'Jump to Lightspeed',
-        'LOF': 'Legends of the Force',
-        'SEC': 'Secrets of Power'
-    };
-    return setNames[setCode] || setCode;
+    const config = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$setConfigs$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getSetConfig"])(setCode);
+    return config?.setName || setCode;
 }
-function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
+// Helper function to get set color from set code
+function getSetColor(setCode) {
+    const config = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$setConfigs$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getSetConfig"])(setCode);
+    return config?.color || '#ffffff';
+}
+function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPacks = null, shareId = null, poolType = 'sealed', setName = null, isLoading = false }) {
+    const { user } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
     const [cards, setCards] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [packs, setPacks] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
@@ -1178,8 +1250,26 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
     const [selectedCard, setSelectedCard] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [hoveredCardPreview, setHoveredCardPreview] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null) // { card, x, y } for enlarged preview
     ;
+    const [savedShareId, setSavedShareId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(shareId);
+    const [saving, setSaving] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const previewTimeoutRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const [tooltip, setTooltip] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])({
+        show: false,
+        text: '',
+        x: 0,
+        y: 0
+    });
+    const tooltipTimeoutRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        // Skip loading cards if we have initialPacks (pool data from URL)
+        if (initialPacks && initialPacks.length > 0) {
+            // Extract cards from packs for card lookup/display purposes
+            const allCardsFromPacks = initialPacks.flat();
+            setCards(allCardsFromPacks);
+            setError(null); // Clear any error since we have pool data
+            setLoading(false);
+            return;
+        }
         const loadCards = async ()=>{
             try {
                 setLoading(true);
@@ -1193,13 +1283,20 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                     cardsData = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["fetchSetCards"])(setCode);
                 }
                 if (cardsData.length === 0) {
-                    setError(`No card data available for set ${setCode}. Please populate src/data/cards.json with card data.`);
+                    // Only set error if we don't have initialPacks (which means we have pool data)
+                    // If we have initialPacks, we don't need cards from cache/API
+                    if (!initialPacks || initialPacks.length === 0) {
+                        setError(`No card data available for set ${setCode}. Please populate src/data/cards.json with card data.`);
+                    }
                     setCards([]);
                 } else {
                     setCards(cardsData);
                 }
             } catch (err) {
-                setError(err.message);
+                // Only set error if we don't have initialPacks
+                if (!initialPacks || initialPacks.length === 0) {
+                    setError(err.message);
+                }
                 setCards([]);
             } finally{
                 setLoading(false);
@@ -1207,7 +1304,8 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
         };
         loadCards();
     }, [
-        setCode
+        setCode,
+        initialPacks
     ]);
     // Cleanup preview timeout
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
@@ -1215,9 +1313,55 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
             if (previewTimeoutRef.current) {
                 clearTimeout(previewTimeoutRef.current);
             }
+            if (tooltipTimeoutRef.current) {
+                clearTimeout(tooltipTimeoutRef.current);
+            }
         };
     }, []);
+    // Tooltip handlers
+    const showTooltip = (text, event)=>{
+        if (tooltipTimeoutRef.current) {
+            clearTimeout(tooltipTimeoutRef.current);
+        }
+        const rect = event.currentTarget.getBoundingClientRect();
+        setTooltip({
+            show: true,
+            text,
+            x: rect.left,
+            y: rect.top + rect.height / 2,
+            alignLeft: true
+        });
+        // Auto-hide after 2 seconds
+        tooltipTimeoutRef.current = setTimeout(()=>{
+            setTooltip({
+                show: false,
+                text: '',
+                x: 0,
+                y: 0,
+                alignLeft: false
+            });
+        }, 2000);
+    };
+    const hideTooltip = ()=>{
+        if (tooltipTimeoutRef.current) {
+            clearTimeout(tooltipTimeoutRef.current);
+            tooltipTimeoutRef.current = null;
+        }
+        setTooltip({
+            show: false,
+            text: '',
+            x: 0,
+            y: 0,
+            alignLeft: false
+        });
+    };
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        // If initialPacks provided (from URL), use those
+        if (initialPacks && initialPacks.length > 0) {
+            setPacks(initialPacks);
+            setLoading(false);
+            return;
+        }
         // Check if we have saved packs in sessionStorage
         const savedSealedPod = sessionStorage.getItem('sealedPod');
         if (savedSealedPod) {
@@ -1240,12 +1384,43 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
             if (onPacksGenerated) {
                 onPacksGenerated(generatedPacks, setCode);
             }
+            // Auto-save to database if user is logged in
+            autoSavePool(generatedPacks, setCode);
         }
     }, [
         cards,
         setCode,
-        onPacksGenerated
+        onPacksGenerated,
+        initialPacks
     ]);
+    // Auto-save pool to database when packs are generated
+    const autoSavePool = async (generatedPacks, setCode)=>{
+        if (!user || savedShareId) {
+            // Don't save if not logged in or already saved
+            return;
+        }
+        try {
+            setSaving(true);
+            const allCards = generatedPacks.flat();
+            const poolData = {
+                setCode,
+                cards: allCards,
+                packs: generatedPacks,
+                isPublic: false
+            };
+            const saved = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$poolApi$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["savePool"])(poolData);
+            setSavedShareId(saved.shareId);
+            // Update URL without page reload
+            const newUrl = `/pool/${saved.shareId}`;
+            window.history.replaceState({}, '', newUrl);
+            console.log('Pool saved:', saved.shareId);
+        } catch (error) {
+            console.error('Failed to auto-save pool:', error);
+        // Don't show error to user - silent fail is okay
+        } finally{
+            setSaving(false);
+        }
+    };
     const getRarityColor = (rarity)=>{
         switch(rarity){
             case 'Common':
@@ -1260,86 +1435,128 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                 return '#666';
         }
     };
-    if (loading) {
-        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            className: "sealed-pod",
-            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "loading",
-                children: "Loading cards..."
-            }, void 0, false, {
-                fileName: "[project]/src/components/SealedPod.jsx",
-                lineNumber: 118,
-                columnNumber: 9
-            }, this)
-        }, void 0, false, {
-            fileName: "[project]/src/components/SealedPod.jsx",
-            lineNumber: 117,
-            columnNumber: 7
-        }, this);
-    }
-    if (error || cards.length === 0) {
+    // Show loading placeholder for packs if isLoading prop is true
+    const showPacksLoading = isLoading && (!packs || packs.length === 0);
+    const packArtUrl = setCode ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$packArt$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getPackArtUrl"])(setCode) : null;
+    const setArtStyle = packArtUrl ? {
+        backgroundImage: `url("${packArtUrl}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center',
+        backgroundRepeat: 'no-repeat'
+    } : {};
+    // Only show full loading screen if we're loading cards AND don't have initialPacks
+    if (loading && !initialPacks && !isLoading) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "sealed-pod",
             children: [
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                    className: "back-button",
-                    onClick: onBack,
-                    children: "← Back to Sets"
+                packArtUrl && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "set-art-header",
+                    style: setArtStyle
                 }, void 0, false, {
                     fileName: "[project]/src/components/SealedPod.jsx",
-                    lineNumber: 126,
-                    columnNumber: 9
+                    lineNumber: 228,
+                    columnNumber: 11
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "error",
+                    className: "sealed-pod-content",
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "loading"
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/SealedPod.jsx",
+                        lineNumber: 231,
+                        columnNumber: 11
+                    }, this)
+                }, void 0, false, {
+                    fileName: "[project]/src/components/SealedPod.jsx",
+                    lineNumber: 230,
+                    columnNumber: 9
+                }, this)
+            ]
+        }, void 0, true, {
+            fileName: "[project]/src/components/SealedPod.jsx",
+            lineNumber: 226,
+            columnNumber: 7
+        }, this);
+    }
+    // Don't show error if:
+    // 1. We have initialPacks (pool data from URL)
+    // 2. We're still loading (isLoading)
+    // 3. We have packs already loaded
+    // Only show error if we don't have packs AND we're not loading AND we don't have initialPacks
+    if ((error || cards.length === 0) && (!packs || packs.length === 0) && !isLoading && !initialPacks) {
+        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            className: "sealed-pod",
+            children: [
+                packArtUrl && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "set-art-header",
+                    style: setArtStyle
+                }, void 0, false, {
+                    fileName: "[project]/src/components/SealedPod.jsx",
+                    lineNumber: 246,
+                    columnNumber: 11
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "sealed-pod-content",
                     children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                            children: "No Card Data Available"
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                            className: "back-button",
+                            onClick: onBack,
+                            children: "← Back to Sets"
                         }, void 0, false, {
                             fileName: "[project]/src/components/SealedPod.jsx",
-                            lineNumber: 130,
+                            lineNumber: 249,
                             columnNumber: 11
                         }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                            children: error || `No cards found for set ${setCode}.`
-                        }, void 0, false, {
-                            fileName: "[project]/src/components/SealedPod.jsx",
-                            lineNumber: 131,
-                            columnNumber: 11
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "error",
                             children: [
-                                "To use this app, you need to populate ",
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("code", {
-                                    children: "src/data/cards.json"
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                                    children: "No Card Data Available"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 132,
-                                    columnNumber: 52
+                                    lineNumber: 253,
+                                    columnNumber: 13
                                 }, this),
-                                " with card data."
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/src/components/SealedPod.jsx",
-                            lineNumber: 132,
-                            columnNumber: 11
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                            children: "Each card should have the following structure:"
-                        }, void 0, false, {
-                            fileName: "[project]/src/components/SealedPod.jsx",
-                            lineNumber: 133,
-                            columnNumber: 11
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("pre", {
-                            style: {
-                                textAlign: 'left',
-                                background: 'rgba(0,0,0,0.3)',
-                                padding: '1rem',
-                                borderRadius: '8px',
-                                overflow: 'auto'
-                            },
-                            children: `{
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                    children: error || `No cards found for set ${setCode}.`
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                    lineNumber: 254,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                    children: [
+                                        "To use this app, you need to populate ",
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("code", {
+                                            children: "src/data/cards.json"
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 255,
+                                            columnNumber: 54
+                                        }, this),
+                                        " with card data."
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                    lineNumber: 255,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                    children: "Each card should have the following structure:"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                    lineNumber: 256,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("pre", {
+                                    style: {
+                                        textAlign: 'left',
+                                        background: 'rgba(0,0,0,0.3)',
+                                        padding: '1rem',
+                                        borderRadius: '8px',
+                                        overflow: 'auto'
+                                    },
+                                    children: `{
   "id": "unique-card-id",
   "name": "Card Name",
   "set": "SOR",
@@ -1351,934 +1568,777 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
   "isBase": false,
   "imageUrl": "https://..."
 }`
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                    lineNumber: 257,
+                                    columnNumber: 13
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/src/components/SealedPod.jsx",
+                            lineNumber: 252,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                            onClick: onBack,
+                            children: "Go Back"
                         }, void 0, false, {
                             fileName: "[project]/src/components/SealedPod.jsx",
-                            lineNumber: 134,
+                            lineNumber: 272,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/SealedPod.jsx",
-                    lineNumber: 129,
-                    columnNumber: 9
-                }, this),
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                    onClick: onBack,
-                    children: "Go Back"
-                }, void 0, false, {
-                    fileName: "[project]/src/components/SealedPod.jsx",
-                    lineNumber: 149,
+                    lineNumber: 248,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/SealedPod.jsx",
-            lineNumber: 125,
+            lineNumber: 244,
             columnNumber: 7
         }, this);
     }
+    const handleRefresh = ()=>{
+        // Navigate to /pools/new?set=SETCODE to generate a new pool
+        if (setCode) {
+            window.location.href = `/pools/new?set=${setCode}`;
+        }
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "sealed-pod",
         children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                className: "back-button",
-                onClick: onBack,
-                children: "← Back to Sets"
+            packArtUrl && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "set-art-header",
+                style: setArtStyle
             }, void 0, false, {
                 fileName: "[project]/src/components/SealedPod.jsx",
-                lineNumber: 156,
-                columnNumber: 7
+                lineNumber: 288,
+                columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "sealed-pod-header",
+                className: "sealed-pod-content",
                 children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "top-buttons",
                         children: [
-                            "Sealed Pod - ",
-                            setCode
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "back-button",
+                                onClick: onBack,
+                                children: "← Back to Sets"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/SealedPod.jsx",
+                                lineNumber: 292,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "refresh-button",
+                                onClick: handleRefresh,
+                                title: "Refresh Pool",
+                                "aria-label": "Refresh Pool",
+                                children: "↻"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/SealedPod.jsx",
+                                lineNumber: 295,
+                                columnNumber: 11
+                            }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/SealedPod.jsx",
-                        lineNumber: 160,
+                        lineNumber: 291,
                         columnNumber: 9
                     }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                        className: "instruction",
-                        children: "All 6 packs are displayed below"
-                    }, void 0, false, {
-                        fileName: "[project]/src/components/SealedPod.jsx",
-                        lineNumber: 161,
-                        columnNumber: 9
-                    }, this),
-                    packs.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                        className: "build-deck-button",
-                        onClick: ()=>onBuildDeck(packs.flat(), setCode),
-                        children: "Build Deck"
-                    }, void 0, false, {
-                        fileName: "[project]/src/components/SealedPod.jsx",
-                        lineNumber: 163,
-                        columnNumber: 11
-                    }, this)
-                ]
-            }, void 0, true, {
-                fileName: "[project]/src/components/SealedPod.jsx",
-                lineNumber: 159,
-                columnNumber: 7
-            }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "packs-container",
-                children: packs.map((pack, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "pack-details",
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "sealed-pod-header",
                         children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                children: [
-                                    "Pack ",
-                                    index + 1
-                                ]
-                            }, void 0, true, {
-                                fileName: "[project]/src/components/SealedPod.jsx",
-                                lineNumber: 172,
-                                columnNumber: 13
-                            }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "cards-grid",
-                                children: pack.map((card, cardIndex)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: `card-item ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''} ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`,
-                                        onClick: ()=>setSelectedCard(card),
-                                        onMouseEnter: (e)=>{
-                                            // Clear any existing timeout
-                                            if (previewTimeoutRef.current) {
-                                                clearTimeout(previewTimeoutRef.current);
-                                            }
-                                            // Capture the rect immediately (before timeout)
-                                            const rect = e.currentTarget.getBoundingClientRect();
-                                            // Set timeout to show preview after 1 second
-                                            previewTimeoutRef.current = setTimeout(()=>{
-                                                // Position the preview near the card (to the right, or left if too close to right edge)
-                                                let previewX = rect.right + 20;
-                                                const previewY = rect.top;
-                                                // Calculate preview dimensions based on card type
-                                                // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
-                                                // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
-                                                // Leaders with back: front horizontal (504x360) + back vertical (360x504) side by side
-                                                const isHorizontal = card.isLeader || card.isBase;
-                                                const hasBackImage = card.backImageUrl && card.isLeader;
-                                                let previewWidth, previewHeight;
-                                                if (hasBackImage) {
-                                                    // Leader with back: side by side (horizontal front + vertical back)
-                                                    previewWidth = 504 + 360 + 20; // 504px front + 360px back + 20px gap
-                                                    previewHeight = 504; // Max height (vertical back is 504px)
-                                                } else {
-                                                    previewWidth = isHorizontal ? 504 : 360;
-                                                    previewHeight = isHorizontal ? 360 : 504;
-                                                }
-                                                // Ensure preview stays within viewport bounds
-                                                // Check right edge
-                                                if (previewX + previewWidth > window.innerWidth) {
-                                                    // Try positioning to the left of the card
-                                                    previewX = rect.left - previewWidth - 20;
-                                                    // If still off screen to the left, clamp to left edge
-                                                    if (previewX < 0) {
-                                                        previewX = 10; // Small margin from left edge
-                                                    }
-                                                }
-                                                // Check left edge
-                                                if (previewX < 0) {
-                                                    previewX = 10; // Small margin from left edge
-                                                }
-                                                // Adjust vertical position to keep preview within viewport
-                                                // previewY is the center point (due to translateY(-50%))
-                                                const previewTop = previewY - previewHeight / 2;
-                                                const previewBottom = previewY + previewHeight / 2;
-                                                let adjustedY = previewY;
-                                                // Check top edge
-                                                if (previewTop < 0) {
-                                                    adjustedY = previewHeight / 2 + 10; // Position so top is 10px from top
-                                                }
-                                                // Check bottom edge
-                                                if (previewBottom > window.innerHeight) {
-                                                    adjustedY = window.innerHeight - previewHeight / 2 - 10; // Position so bottom is 10px from bottom
-                                                }
-                                                setHoveredCardPreview({
-                                                    card,
-                                                    x: previewX,
-                                                    y: adjustedY
-                                                });
-                                            }, 1000);
-                                        },
-                                        onMouseLeave: ()=>{
-                                            if (previewTimeoutRef.current) {
-                                                clearTimeout(previewTimeoutRef.current);
-                                                previewTimeoutRef.current = null;
-                                            }
-                                            setHoveredCardPreview(null);
-                                        },
-                                        children: [
-                                            card.imageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                                src: card.imageUrl,
-                                                alt: card.name || 'Card',
-                                                className: "card-image"
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/components/SealedPod.jsx",
-                                                lineNumber: 254,
-                                                columnNumber: 21
-                                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "card-placeholder",
-                                                children: [
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "card-name",
-                                                        children: card.name || 'Card'
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/components/SealedPod.jsx",
-                                                        lineNumber: 261,
-                                                        columnNumber: 23
-                                                    }, this),
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "card-rarity",
-                                                        style: {
-                                                            color: getRarityColor(card.rarity)
-                                                        },
-                                                        children: card.rarity
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/components/SealedPod.jsx",
-                                                        lineNumber: 262,
-                                                        columnNumber: 23
-                                                    }, this)
-                                                ]
-                                            }, void 0, true, {
-                                                fileName: "[project]/src/components/SealedPod.jsx",
-                                                lineNumber: 260,
-                                                columnNumber: 21
-                                            }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "card-badges",
-                                                children: card.isShowcase && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: "badge showcase-badge",
-                                                    children: "Showcase"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 268,
-                                                    columnNumber: 41
-                                                }, this)
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/components/SealedPod.jsx",
-                                                lineNumber: 267,
-                                                columnNumber: 19
-                                            }, this)
-                                        ]
-                                    }, cardIndex, true, {
-                                        fileName: "[project]/src/components/SealedPod.jsx",
-                                        lineNumber: 175,
-                                        columnNumber: 17
-                                    }, this))
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
+                                children: poolType === 'draft' ? 'Draft Pod' : 'Sealed Pod'
                             }, void 0, false, {
                                 fileName: "[project]/src/components/SealedPod.jsx",
-                                lineNumber: 173,
-                                columnNumber: 13
+                                lineNumber: 305,
+                                columnNumber: 9
+                            }, this),
+                            saving && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                className: "saving-indicator"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/SealedPod.jsx",
+                                lineNumber: 308,
+                                columnNumber: 20
+                            }, this),
+                            packs.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "build-deck-button",
+                                onClick: ()=>{
+                                    const allCards = packs.flat();
+                                    if (savedShareId) {
+                                        // Navigate to deck builder with share ID
+                                        window.location.href = `/pool/${savedShareId}/deck`;
+                                    } else {
+                                        onBuildDeck(allCards, setCode);
+                                    }
+                                },
+                                children: "Build Deck"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/SealedPod.jsx",
+                                lineNumber: 310,
+                                columnNumber: 11
                             }, this)
                         ]
-                    }, index, true, {
+                    }, void 0, true, {
                         fileName: "[project]/src/components/SealedPod.jsx",
-                        lineNumber: 171,
-                        columnNumber: 11
-                    }, this))
-            }, void 0, false, {
-                fileName: "[project]/src/components/SealedPod.jsx",
-                lineNumber: 169,
-                columnNumber: 7
-            }, this),
-            packs.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "rate-card",
-                children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                        children: "Pack Rate Card"
+                        lineNumber: 304,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "packs-container",
+                        children: showPacksLoading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "loading"
+                        }, void 0, false, {
+                            fileName: "[project]/src/components/SealedPod.jsx",
+                            lineNumber: 329,
+                            columnNumber: 11
+                        }, this) : packs.map((pack, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "pack-details",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                                        children: [
+                                            "Pack ",
+                                            index + 1
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/components/SealedPod.jsx",
+                                        lineNumber: 333,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "cards-grid",
+                                        children: pack.map((card, cardIndex)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: `card-item ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''} ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`,
+                                                onClick: ()=>setSelectedCard(card),
+                                                onMouseEnter: (e)=>{
+                                                    // Clear any existing timeout
+                                                    if (previewTimeoutRef.current) {
+                                                        clearTimeout(previewTimeoutRef.current);
+                                                    }
+                                                    // Capture the rect immediately (before timeout)
+                                                    const rect = e.currentTarget.getBoundingClientRect();
+                                                    // Set timeout to show preview after 1 second
+                                                    previewTimeoutRef.current = setTimeout(()=>{
+                                                        // Position the preview near the card (to the right, or left if too close to right edge)
+                                                        let previewX = rect.right + 20;
+                                                        const previewY = rect.top;
+                                                        // Calculate preview dimensions based on card type
+                                                        // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
+                                                        // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
+                                                        // Leaders with back: front horizontal (504x360) + back vertical (360x504) side by side
+                                                        const isHorizontal = card.isLeader || card.isBase;
+                                                        const hasBackImage = card.backImageUrl && card.isLeader;
+                                                        let previewWidth, previewHeight;
+                                                        if (hasBackImage) {
+                                                            // Leader with back: side by side (horizontal front + vertical back)
+                                                            previewWidth = 504 + 360 + 20; // 504px front + 360px back + 20px gap
+                                                            previewHeight = 504; // Max height (vertical back is 504px)
+                                                        } else {
+                                                            previewWidth = isHorizontal ? 504 : 360;
+                                                            previewHeight = isHorizontal ? 360 : 504;
+                                                        }
+                                                        // Ensure preview stays within viewport bounds
+                                                        // Check right edge
+                                                        if (previewX + previewWidth > window.innerWidth) {
+                                                            // Try positioning to the left of the card
+                                                            previewX = rect.left - previewWidth - 20;
+                                                            // If still off screen to the left, clamp to left edge
+                                                            if (previewX < 0) {
+                                                                previewX = 10; // Small margin from left edge
+                                                            }
+                                                        }
+                                                        // Check left edge
+                                                        if (previewX < 0) {
+                                                            previewX = 10; // Small margin from left edge
+                                                        }
+                                                        // Adjust vertical position to keep preview within viewport
+                                                        // previewY is the center point (due to translateY(-50%))
+                                                        const previewTop = previewY - previewHeight / 2;
+                                                        const previewBottom = previewY + previewHeight / 2;
+                                                        let adjustedY = previewY;
+                                                        // Check top edge
+                                                        if (previewTop < 0) {
+                                                            adjustedY = previewHeight / 2 + 10; // Position so top is 10px from top
+                                                        }
+                                                        // Check bottom edge
+                                                        if (previewBottom > window.innerHeight) {
+                                                            adjustedY = window.innerHeight - previewHeight / 2 - 10; // Position so bottom is 10px from bottom
+                                                        }
+                                                        setHoveredCardPreview({
+                                                            card,
+                                                            x: previewX,
+                                                            y: adjustedY
+                                                        });
+                                                    }, 1000);
+                                                },
+                                                onMouseLeave: ()=>{
+                                                    if (previewTimeoutRef.current) {
+                                                        clearTimeout(previewTimeoutRef.current);
+                                                        previewTimeoutRef.current = null;
+                                                    }
+                                                    setHoveredCardPreview(null);
+                                                },
+                                                children: [
+                                                    card.imageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                                        src: card.imageUrl,
+                                                        alt: card.name || 'Card',
+                                                        className: "card-image"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/components/SealedPod.jsx",
+                                                        lineNumber: 415,
+                                                        columnNumber: 21
+                                                    }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        className: "card-placeholder",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                className: "card-name",
+                                                                children: card.name || 'Card'
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/SealedPod.jsx",
+                                                                lineNumber: 422,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                className: "card-rarity",
+                                                                style: {
+                                                                    color: getRarityColor(card.rarity)
+                                                                },
+                                                                children: card.rarity
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/SealedPod.jsx",
+                                                                lineNumber: 423,
+                                                                columnNumber: 23
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/src/components/SealedPod.jsx",
+                                                        lineNumber: 421,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        className: "card-badges",
+                                                        children: card.isShowcase && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            className: "badge showcase-badge",
+                                                            children: "Showcase"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 429,
+                                                            columnNumber: 41
+                                                        }, this)
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/components/SealedPod.jsx",
+                                                        lineNumber: 428,
+                                                        columnNumber: 19
+                                                    }, this)
+                                                ]
+                                            }, cardIndex, true, {
+                                                fileName: "[project]/src/components/SealedPod.jsx",
+                                                lineNumber: 336,
+                                                columnNumber: 17
+                                            }, this))
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/SealedPod.jsx",
+                                        lineNumber: 334,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, index, true, {
+                                fileName: "[project]/src/components/SealedPod.jsx",
+                                lineNumber: 332,
+                                columnNumber: 11
+                            }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/components/SealedPod.jsx",
-                        lineNumber: 280,
-                        columnNumber: 11
+                        lineNumber: 327,
+                        columnNumber: 7
                     }, this),
-                    (()=>{
-                        // Analyze all packs
-                        const stats = {
-                            totalPacks: packs.length,
-                            rarityCounts: {
-                                Legendary: 0,
-                                Rare: 0,
-                                Uncommon: 0,
-                                Common: 0,
-                                Special: 0
-                            },
-                            hyperspaceCount: 0,
-                            foilCount: 0,
-                            hyperspaceFoilCount: 0,
-                            showcaseCount: 0,
-                            upgradeSlotHyperspace: 0,
-                            foilPositions: [],
-                            specialRarity: {
-                                inFoilSlot: 0,
-                                inFoilSlotStandard: 0,
-                                inFoilSlotHyperspace: 0,
-                                inUpgradeSlot: 0
-                            },
-                            leaders: {
-                                total: 0,
-                                common: 0,
-                                rare: 0,
-                                legendary: 0
-                            },
-                            foilSlotRarities: {
-                                Legendary: 0,
-                                Rare: 0,
-                                Uncommon: 0,
-                                Common: 0,
-                                Special: 0
-                            },
-                            upgradeSlotRarities: {
-                                Legendary: 0,
-                                Rare: 0,
-                                Uncommon: 0,
-                                Common: 0,
-                                Special: 0
-                            }
-                        };
-                        packs.forEach((pack, packIndex)=>{
-                            let uncommonCount = 0;
-                            let nonLeaderBaseFoilCount = 0;
-                            pack.forEach((card, cardIndex)=>{
-                                // Count rarities
-                                if (card.rarity) {
-                                    stats.rarityCounts[card.rarity] = (stats.rarityCounts[card.rarity] || 0) + 1;
-                                }
-                                // Count leaders
-                                if (card.isLeader) {
-                                    stats.leaders.total++;
-                                    if (card.rarity === 'Common') {
-                                        stats.leaders.common++;
-                                    } else if (card.rarity === 'Rare') {
-                                        stats.leaders.rare++;
-                                    } else if (card.rarity === 'Legendary') {
-                                        stats.leaders.legendary++;
+                    packs.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "rate-card",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                                children: "Pack Rate Card"
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/SealedPod.jsx",
+                                lineNumber: 442,
+                                columnNumber: 11
+                            }, this),
+                            (()=>{
+                                // Analyze all packs
+                                const stats = {
+                                    totalPacks: packs.length,
+                                    rarityCounts: {
+                                        Legendary: 0,
+                                        Rare: 0,
+                                        Uncommon: 0,
+                                        Common: 0,
+                                        Special: 0
+                                    },
+                                    hyperspaceCount: 0,
+                                    foilCount: 0,
+                                    hyperspaceFoilCount: 0,
+                                    showcaseCount: 0,
+                                    upgradeSlotHyperspace: 0,
+                                    foilPositions: [],
+                                    specialRarity: {
+                                        inFoilSlot: 0,
+                                        inFoilSlotStandard: 0,
+                                        inFoilSlotHyperspace: 0,
+                                        inUpgradeSlot: 0
+                                    },
+                                    leaders: {
+                                        total: 0,
+                                        common: 0,
+                                        rare: 0,
+                                        legendary: 0
+                                    },
+                                    foilSlotRarities: {
+                                        Legendary: 0,
+                                        Rare: 0,
+                                        Uncommon: 0,
+                                        Common: 0,
+                                        Special: 0
+                                    },
+                                    upgradeSlotRarities: {
+                                        Legendary: 0,
+                                        Rare: 0,
+                                        Uncommon: 0,
+                                        Common: 0,
+                                        Special: 0
                                     }
-                                }
-                                // Count hyperspace
-                                if (card.isHyperspace) {
-                                    stats.hyperspaceCount++;
-                                }
-                                // Count foils and track foil slot rarities
-                                if (card.isFoil) {
-                                    stats.foilCount++;
-                                    if (card.isHyperspace) {
-                                        stats.hyperspaceFoilCount++;
-                                    }
-                                    // Track rarity distribution in foil slot
-                                    if (card.rarity) {
-                                        stats.foilSlotRarities[card.rarity] = (stats.foilSlotRarities[card.rarity] || 0) + 1;
-                                    }
-                                    stats.foilPositions.push({
-                                        pack: packIndex + 1,
-                                        position: cardIndex + 1,
-                                        rarity: card.rarity,
-                                        isHyperspace: card.isHyperspace,
-                                        name: card.name
-                                    });
-                                }
-                                // Check for showcase
-                                if (card.isShowcase) {
-                                    stats.showcaseCount++;
-                                }
-                                // Track non-leader, non-base, non-foil cards
-                                // The upgrade slot is around position 13-14 (after 1 leader, 1 base, 9 commons, 2 uncommons)
-                                if (!card.isLeader && !card.isBase && !card.isFoil) {
-                                    nonLeaderBaseFoilCount++;
-                                    // The upgrade slot is typically the 13th card (position 12 in 0-indexed)
-                                    // It can be a hyperspace variant of any rarity
-                                    if (nonLeaderBaseFoilCount === 12) {
-                                        // This is the upgrade slot
-                                        if (card.isHyperspace) {
-                                            stats.upgradeSlotHyperspace++;
-                                            // Track rarity distribution only for hyperspace upgrade slots
-                                            if (card.rarity) {
-                                                stats.upgradeSlotRarities[card.rarity] = (stats.upgradeSlotRarities[card.rarity] || 0) + 1;
-                                                // Track Special rarity in upgrade slot
-                                                if (card.rarity === 'Special') {
-                                                    stats.specialRarity.inUpgradeSlot++;
-                                                }
+                                };
+                                packs.forEach((pack, packIndex)=>{
+                                    let uncommonCount = 0;
+                                    let nonLeaderBaseFoilCount = 0;
+                                    pack.forEach((card, cardIndex)=>{
+                                        // Count rarities
+                                        if (card.rarity) {
+                                            stats.rarityCounts[card.rarity] = (stats.rarityCounts[card.rarity] || 0) + 1;
+                                        }
+                                        // Count leaders
+                                        if (card.isLeader) {
+                                            stats.leaders.total++;
+                                            if (card.rarity === 'Common') {
+                                                stats.leaders.common++;
+                                            } else if (card.rarity === 'Rare') {
+                                                stats.leaders.rare++;
+                                            } else if (card.rarity === 'Legendary') {
+                                                stats.leaders.legendary++;
                                             }
                                         }
-                                    }
-                                    // Also track uncommons for reference
-                                    if (card.rarity === 'Uncommon') {
-                                        uncommonCount++;
-                                    }
-                                }
-                                // Track Special rarity in foil slot
-                                if (card.rarity === 'Special' && card.isFoil) {
-                                    stats.specialRarity.inFoilSlot++;
-                                    if (card.isHyperspace) {
-                                        stats.specialRarity.inFoilSlotHyperspace++;
-                                    } else {
-                                        stats.specialRarity.inFoilSlotStandard++;
-                                    }
-                                }
-                            });
-                        });
-                        const distributionPeriod = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$rarityConfig$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getDistributionPeriod"])(setCode);
-                        const isPreLawlessTime = distributionPeriod === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$rarityConfig$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DISTRIBUTION_PERIODS"].PRE_LAWLESS_TIME;
-                        const allowsSpecial = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$rarityConfig$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["allowsSpecialInFoil"])(setCode);
-                        // Format foil rate
-                        const foilRatePercent = stats.foilCount / stats.totalPacks * 100;
-                        const foilRateText = foilRatePercent === 100 ? `1 foil per pack` : `${stats.foilCount} foils in ${stats.totalPacks} packs (${foilRatePercent.toFixed(1)}% per pack)`;
-                        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "rate-card-content",
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "rate-card-section",
+                                        // Count hyperspace
+                                        if (card.isHyperspace) {
+                                            stats.hyperspaceCount++;
+                                        }
+                                        // Count foils and track foil slot rarities
+                                        if (card.isFoil) {
+                                            stats.foilCount++;
+                                            if (card.isHyperspace) {
+                                                stats.hyperspaceFoilCount++;
+                                            }
+                                            // Track rarity distribution in foil slot
+                                            if (card.rarity) {
+                                                stats.foilSlotRarities[card.rarity] = (stats.foilSlotRarities[card.rarity] || 0) + 1;
+                                            }
+                                            stats.foilPositions.push({
+                                                pack: packIndex + 1,
+                                                position: cardIndex + 1,
+                                                rarity: card.rarity,
+                                                isHyperspace: card.isHyperspace,
+                                                name: card.name
+                                            });
+                                        }
+                                        // Check for showcase
+                                        if (card.isShowcase) {
+                                            stats.showcaseCount++;
+                                        }
+                                        // Track non-leader, non-base, non-foil cards
+                                        // The upgrade slot is around position 13-14 (after 1 leader, 1 base, 9 commons, 2 uncommons)
+                                        if (!card.isLeader && !card.isBase && !card.isFoil) {
+                                            nonLeaderBaseFoilCount++;
+                                            // The upgrade slot is typically the 13th card (position 12 in 0-indexed)
+                                            // It can be a hyperspace variant of any rarity
+                                            if (nonLeaderBaseFoilCount === 12) {
+                                                // This is the upgrade slot
+                                                if (card.isHyperspace) {
+                                                    stats.upgradeSlotHyperspace++;
+                                                    // Track rarity distribution only for hyperspace upgrade slots
+                                                    if (card.rarity) {
+                                                        stats.upgradeSlotRarities[card.rarity] = (stats.upgradeSlotRarities[card.rarity] || 0) + 1;
+                                                        // Track Special rarity in upgrade slot
+                                                        if (card.rarity === 'Special') {
+                                                            stats.specialRarity.inUpgradeSlot++;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            // Also track uncommons for reference
+                                            if (card.rarity === 'Uncommon') {
+                                                uncommonCount++;
+                                            }
+                                        }
+                                        // Track Special rarity in foil slot
+                                        if (card.rarity === 'Special' && card.isFoil) {
+                                            stats.specialRarity.inFoilSlot++;
+                                            if (card.isHyperspace) {
+                                                stats.specialRarity.inFoilSlotHyperspace++;
+                                            } else {
+                                                stats.specialRarity.inFoilSlotStandard++;
+                                            }
+                                        }
+                                    });
+                                });
+                                const distributionPeriod = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$rarityConfig$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getDistributionPeriod"])(setCode);
+                                const isPreLawlessTime = distributionPeriod === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$rarityConfig$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DISTRIBUTION_PERIODS"].PRE_LAWLESS_TIME;
+                                const allowsSpecial = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$rarityConfig$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["allowsSpecialInFoil"])(setCode);
+                                // Format foil rate
+                                const foilRatePercent = stats.foilCount / stats.totalPacks * 100;
+                                const foilRateText = foilRatePercent === 100 ? `1 foil per pack` : `${stats.foilCount} foils in ${stats.totalPacks} packs (${foilRatePercent.toFixed(1)}% per pack)`;
+                                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "rate-card-content",
                                     children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            children: "Pack Structure"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 412,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            children: "Each pack contains: 1 Leader, 1 Base, 9 Commons, 3 Uncommons, 1 Rare/Legendary, 1 Foil"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 413,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            children: "Total: 16 cards per pack"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 414,
-                                            columnNumber: 19
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 411,
-                                    columnNumber: 17
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "rate-card-section",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            children: "Leader Distribution"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 418,
-                                            columnNumber: 19
-                                        }, this),
-                                        stats.leaders.total > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                            children: "Common Leaders:"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 421,
-                                                            columnNumber: 26
-                                                        }, this),
-                                                        " ",
-                                                        stats.leaders.common,
-                                                        " (",
-                                                        (stats.leaders.common / stats.leaders.total * 100).toFixed(1),
-                                                        "%, ~83.3% expected)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 421,
-                                                    columnNumber: 23
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                            children: "Rare/Legendary Leaders:"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 422,
-                                                            columnNumber: 26
-                                                        }, this),
-                                                        " ",
-                                                        stats.leaders.rare + stats.leaders.legendary,
-                                                        " (",
-                                                        ((stats.leaders.rare + stats.leaders.legendary) / stats.leaders.total * 100).toFixed(1),
-                                                        "%, ~16.7% expected)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 422,
-                                                    columnNumber: 23
-                                                }, this),
-                                                stats.leaders.legendary > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    style: {
-                                                        marginLeft: '1em',
-                                                        fontSize: '0.9em',
-                                                        opacity: 0.8
-                                                    },
-                                                    children: [
-                                                        "Including ",
-                                                        stats.leaders.legendary,
-                                                        " Legendary leader(s)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 424,
-                                                    columnNumber: 25
-                                                }, this)
-                                            ]
-                                        }, void 0, true)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 417,
-                                    columnNumber: 17
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "rate-card-section",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            children: [
-                                                "Rarity Distribution (across all ",
-                                                stats.totalPacks,
-                                                " packs)"
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 431,
-                                            columnNumber: 19
-                                        }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "rarity-stats",
+                                            className: "rate-card-section",
                                             children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                            children: "Legendary (L):"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 433,
-                                                            columnNumber: 26
-                                                        }, this),
-                                                        " ",
-                                                        stats.rarityCounts.Legendary,
-                                                        " (",
-                                                        (stats.rarityCounts.Legendary / (stats.totalPacks * 16) * 100).toFixed(1),
-                                                        "% observed, ~6.25% expected)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 433,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                            children: "Rare (R):"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 434,
-                                                            columnNumber: 26
-                                                        }, this),
-                                                        " ",
-                                                        stats.rarityCounts.Rare,
-                                                        " (",
-                                                        (stats.rarityCounts.Rare / (stats.totalPacks * 16) * 100).toFixed(1),
-                                                        "% observed, ~6.25% expected)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 434,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                            children: "Uncommon (U):"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 435,
-                                                            columnNumber: 26
-                                                        }, this),
-                                                        " ",
-                                                        stats.rarityCounts.Uncommon,
-                                                        " (",
-                                                        (stats.rarityCounts.Uncommon / (stats.totalPacks * 16) * 100).toFixed(1),
-                                                        "% observed, ~18.75% expected)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 435,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                            children: "Common (C):"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 436,
-                                                            columnNumber: 26
-                                                        }, this),
-                                                        " ",
-                                                        stats.rarityCounts.Common,
-                                                        " (",
-                                                        (stats.rarityCounts.Common / (stats.totalPacks * 16) * 100).toFixed(1),
-                                                        "% observed, ~56.25% expected)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 436,
-                                                    columnNumber: 21
-                                                }, this),
-                                                stats.rarityCounts.Special > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                            children: "Special (S):"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 438,
-                                                            columnNumber: 28
-                                                        }, this),
-                                                        " ",
-                                                        stats.rarityCounts.Special,
-                                                        " (",
-                                                        (stats.rarityCounts.Special / (stats.totalPacks * 16) * 100).toFixed(1),
-                                                        "% observed, ~0.1% expected)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 438,
-                                                    columnNumber: 23
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 432,
-                                            columnNumber: 19
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 430,
-                                    columnNumber: 17
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "rate-card-section",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            children: "Foil Information"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 444,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                    children: "Foil Rate:"
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                    children: "Pack Structure"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 445,
-                                                    columnNumber: 22
+                                                    lineNumber: 574,
+                                                    columnNumber: 19
                                                 }, this),
-                                                " ",
-                                                foilRateText
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    children: "Each pack contains: 1 Leader, 1 Base, 9 Commons, 3 Uncommons, 1 Rare/Legendary, 1 Foil"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 575,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    children: "Total: 16 cards per pack"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 576,
+                                                    columnNumber: 19
+                                                }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 445,
-                                            columnNumber: 19
+                                            lineNumber: 573,
+                                            columnNumber: 17
                                         }, this),
-                                        isPreLawlessTime ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "rate-card-section",
                                             children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                    children: "Leader Distribution"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 580,
+                                                    columnNumber: 19
+                                                }, this),
+                                                stats.leaders.total > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
                                                     children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                            children: "Standard Foil:"
-                                                        }, void 0, false, {
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                    children: "Common Leaders:"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 583,
+                                                                    columnNumber: 26
+                                                                }, this),
+                                                                " ",
+                                                                stats.leaders.common,
+                                                                " (",
+                                                                (stats.leaders.common / stats.leaders.total * 100).toFixed(1),
+                                                                "%, ~83.3% expected)"
+                                                            ]
+                                                        }, void 0, true, {
                                                             fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 448,
-                                                            columnNumber: 26
+                                                            lineNumber: 583,
+                                                            columnNumber: 23
                                                         }, this),
-                                                        " ",
-                                                        stats.foilCount - stats.hyperspaceFoilCount,
-                                                        " (",
-                                                        ((stats.foilCount - stats.hyperspaceFoilCount) / stats.foilCount * 100).toFixed(1),
-                                                        "% of foils, ~83.3% expected)"
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                    children: "Rare/Legendary Leaders:"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 584,
+                                                                    columnNumber: 26
+                                                                }, this),
+                                                                " ",
+                                                                stats.leaders.rare + stats.leaders.legendary,
+                                                                " (",
+                                                                ((stats.leaders.rare + stats.leaders.legendary) / stats.leaders.total * 100).toFixed(1),
+                                                                "%, ~16.7% expected)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 584,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        stats.leaders.legendary > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                            style: {
+                                                                marginLeft: '1em',
+                                                                fontSize: '0.9em',
+                                                                opacity: 0.8
+                                                            },
+                                                            children: [
+                                                                "Including ",
+                                                                stats.leaders.legendary,
+                                                                " Legendary leader(s)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 586,
+                                                            columnNumber: 25
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 579,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "rate-card-section",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                    children: [
+                                                        "Rarity Distribution (across all ",
+                                                        stats.totalPacks,
+                                                        " packs)"
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 448,
-                                                    columnNumber: 23
+                                                    lineNumber: 593,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "rarity-stats",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                    children: "Legendary (L):"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 595,
+                                                                    columnNumber: 26
+                                                                }, this),
+                                                                " ",
+                                                                stats.rarityCounts.Legendary,
+                                                                " (",
+                                                                (stats.rarityCounts.Legendary / (stats.totalPacks * 16) * 100).toFixed(1),
+                                                                "% observed, ~6.25% expected)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 595,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                    children: "Rare (R):"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 596,
+                                                                    columnNumber: 26
+                                                                }, this),
+                                                                " ",
+                                                                stats.rarityCounts.Rare,
+                                                                " (",
+                                                                (stats.rarityCounts.Rare / (stats.totalPacks * 16) * 100).toFixed(1),
+                                                                "% observed, ~6.25% expected)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 596,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                    children: "Uncommon (U):"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 597,
+                                                                    columnNumber: 26
+                                                                }, this),
+                                                                " ",
+                                                                stats.rarityCounts.Uncommon,
+                                                                " (",
+                                                                (stats.rarityCounts.Uncommon / (stats.totalPacks * 16) * 100).toFixed(1),
+                                                                "% observed, ~18.75% expected)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 597,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                    children: "Common (C):"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 598,
+                                                                    columnNumber: 26
+                                                                }, this),
+                                                                " ",
+                                                                stats.rarityCounts.Common,
+                                                                " (",
+                                                                (stats.rarityCounts.Common / (stats.totalPacks * 16) * 100).toFixed(1),
+                                                                "% observed, ~56.25% expected)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 598,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        stats.rarityCounts.Special > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                    children: "Special (S):"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 600,
+                                                                    columnNumber: 28
+                                                                }, this),
+                                                                " ",
+                                                                stats.rarityCounts.Special,
+                                                                " (",
+                                                                (stats.rarityCounts.Special / (stats.totalPacks * 16) * 100).toFixed(1),
+                                                                "% observed, ~0.1% expected)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 600,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 594,
+                                                    columnNumber: 19
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 592,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "rate-card-section",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                    children: "Foil Information"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 606,
+                                                    columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                            children: "Foil Rate:"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 607,
+                                                            columnNumber: 22
+                                                        }, this),
+                                                        " ",
+                                                        foilRateText
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 607,
+                                                    columnNumber: 19
+                                                }, this),
+                                                isPreLawlessTime ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                    children: "Standard Foil:"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 610,
+                                                                    columnNumber: 26
+                                                                }, this),
+                                                                " ",
+                                                                stats.foilCount - stats.hyperspaceFoilCount,
+                                                                " (",
+                                                                ((stats.foilCount - stats.hyperspaceFoilCount) / stats.foilCount * 100).toFixed(1),
+                                                                "% of foils, ~83.3% expected)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 610,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                    children: "Hyperspace Foil:"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 611,
+                                                                    columnNumber: 26
+                                                                }, this),
+                                                                " ",
+                                                                stats.hyperspaceFoilCount,
+                                                                " (",
+                                                                (stats.hyperspaceFoilCount / stats.foilCount * 100).toFixed(1),
+                                                                "% of foils, ~16.7% expected)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 611,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
                                                             children: "Hyperspace Foil:"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 449,
-                                                            columnNumber: 26
+                                                            lineNumber: 614,
+                                                            columnNumber: 24
                                                         }, this),
                                                         " ",
                                                         stats.hyperspaceFoilCount,
-                                                        " (",
-                                                        (stats.hyperspaceFoilCount / stats.foilCount * 100).toFixed(1),
-                                                        "% of foils, ~16.7% expected)"
+                                                        " (100% expected - all foils are hyperspace)"
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 449,
-                                                    columnNumber: 23
-                                                }, this)
-                                            ]
-                                        }, void 0, true) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                    children: "Hyperspace Foil:"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 452,
-                                                    columnNumber: 24
+                                                    lineNumber: 614,
+                                                    columnNumber: 21
                                                 }, this),
-                                                " ",
-                                                stats.hyperspaceFoilCount,
-                                                " (100% expected - all foils are hyperspace)"
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 452,
-                                            columnNumber: 21
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            style: {
-                                                marginTop: '0.75em'
-                                            },
-                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                children: "Foil Slot Rarity Distribution:"
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/components/SealedPod.jsx",
-                                                lineNumber: 455,
-                                                columnNumber: 54
-                                            }, this)
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 455,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
-                                            style: {
-                                                marginTop: '0.25em',
-                                                marginLeft: '1.5em'
-                                            },
-                                            children: [
-                                                stats.foilSlotRarities.Legendary > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: [
-                                                        "Legendary (L): ",
-                                                        stats.foilSlotRarities.Legendary,
-                                                        " (",
-                                                        (stats.foilSlotRarities.Legendary / stats.foilCount * 100).toFixed(1),
-                                                        "% observed)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 458,
-                                                    columnNumber: 23
-                                                }, this),
-                                                stats.foilSlotRarities.Rare > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: [
-                                                        "Rare (R): ",
-                                                        stats.foilSlotRarities.Rare,
-                                                        " (",
-                                                        (stats.foilSlotRarities.Rare / stats.foilCount * 100).toFixed(1),
-                                                        "% observed)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 461,
-                                                    columnNumber: 23
-                                                }, this),
-                                                stats.foilSlotRarities.Uncommon > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: [
-                                                        "Uncommon (U): ",
-                                                        stats.foilSlotRarities.Uncommon,
-                                                        " (",
-                                                        (stats.foilSlotRarities.Uncommon / stats.foilCount * 100).toFixed(1),
-                                                        "% observed)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 464,
-                                                    columnNumber: 23
-                                                }, this),
-                                                stats.foilSlotRarities.Common > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: [
-                                                        "Common (C): ",
-                                                        stats.foilSlotRarities.Common,
-                                                        " (",
-                                                        (stats.foilSlotRarities.Common / stats.foilCount * 100).toFixed(1),
-                                                        "% observed)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 467,
-                                                    columnNumber: 23
-                                                }, this),
-                                                stats.foilSlotRarities.Special > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: [
-                                                        "Special (S): ",
-                                                        stats.foilSlotRarities.Special,
-                                                        " (",
-                                                        (stats.foilSlotRarities.Special / stats.foilCount * 100).toFixed(1),
-                                                        "% observed)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 470,
-                                                    columnNumber: 23
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 456,
-                                            columnNumber: 19
-                                        }, this),
-                                        allowsSpecial && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            style: {
-                                                marginTop: '0.5em',
-                                                fontSize: '0.9em',
-                                                fontStyle: 'italic',
-                                                opacity: 0.9
-                                            },
-                                            children: "Special rarity (S) can appear in foil/hyperfoil slots (~1-2% of foils when applicable)"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 474,
-                                            columnNumber: 21
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 443,
-                                    columnNumber: 17
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "rate-card-section",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            children: "Hyperspace Variants"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 481,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                    children: "Total Hyperspace Cards:"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 482,
-                                                    columnNumber: 22
-                                                }, this),
-                                                " ",
-                                                stats.hyperspaceCount,
-                                                " (",
-                                                (stats.hyperspaceCount / (stats.totalPacks * 16) * 100).toFixed(1),
-                                                "% of all cards)"
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 482,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                    children: "Hyperspace Rate:"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 483,
-                                                    columnNumber: 22
-                                                }, this),
-                                                " ",
-                                                (stats.hyperspaceCount / stats.totalPacks).toFixed(1),
-                                                " per pack (~66.7% expected per pack)"
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 483,
-                                            columnNumber: 19
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 480,
-                                    columnNumber: 17
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "rate-card-section",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            children: [
-                                                "Uncommon Upgrade Slot - ",
-                                                getSetName(setCode)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 487,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            children: "The 3rd Uncommon slot can be upgraded to a Hyperspace variant of any rarity."
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 488,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                    children: "Upgrade Slot Hyperspace:"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 489,
-                                                    columnNumber: 22
-                                                }, this),
-                                                " ",
-                                                stats.upgradeSlotHyperspace,
-                                                " out of ",
-                                                stats.totalPacks,
-                                                " packs (",
-                                                (stats.upgradeSlotHyperspace / stats.totalPacks * 100).toFixed(1),
-                                                "%, ~25% expected)"
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 489,
-                                            columnNumber: 19
-                                        }, this),
-                                        stats.upgradeSlotHyperspace > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                                            children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     style: {
                                                         marginTop: '0.75em'
                                                     },
                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                        children: "Upgrade Slot Rarity Distribution (when hyperspace):"
+                                                        children: "Foil Slot Rarity Distribution:"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/SealedPod.jsx",
-                                                        lineNumber: 493,
-                                                        columnNumber: 58
+                                                        lineNumber: 617,
+                                                        columnNumber: 54
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 493,
-                                                    columnNumber: 23
+                                                    lineNumber: 617,
+                                                    columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
                                                     style: {
@@ -2286,651 +2346,892 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                                                         marginLeft: '1.5em'
                                                     },
                                                     children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                        stats.foilSlotRarities.Legendary > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                                             children: [
                                                                 "Legendary (L): ",
-                                                                stats.upgradeSlotRarities.Legendary || 0,
+                                                                stats.foilSlotRarities.Legendary,
                                                                 " (",
-                                                                stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Legendary || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0,
-                                                                "% observed, ~3% expected)"
-                                                            ]
-                                                        }, void 0, true, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 495,
-                                                            columnNumber: 25
-                                                        }, this),
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                            children: [
-                                                                "Rare (R): ",
-                                                                stats.upgradeSlotRarities.Rare || 0,
-                                                                " (",
-                                                                stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Rare || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0,
-                                                                "% observed, ~12% expected)"
-                                                            ]
-                                                        }, void 0, true, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 496,
-                                                            columnNumber: 25
-                                                        }, this),
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                            children: [
-                                                                "Uncommon (U): ",
-                                                                stats.upgradeSlotRarities.Uncommon || 0,
-                                                                " (",
-                                                                stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Uncommon || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0,
-                                                                "% observed, ~25% expected)"
-                                                            ]
-                                                        }, void 0, true, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 497,
-                                                            columnNumber: 25
-                                                        }, this),
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                            children: [
-                                                                "Common (C): ",
-                                                                stats.upgradeSlotRarities.Common || 0,
-                                                                " (",
-                                                                stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Common || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0,
-                                                                "% observed, ~60% expected)"
-                                                            ]
-                                                        }, void 0, true, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 498,
-                                                            columnNumber: 25
-                                                        }, this),
-                                                        stats.upgradeSlotRarities.Special > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                            children: [
-                                                                "Special (S): ",
-                                                                stats.upgradeSlotRarities.Special,
-                                                                " (",
-                                                                (stats.upgradeSlotRarities.Special / stats.upgradeSlotHyperspace * 100).toFixed(1),
+                                                                (stats.foilSlotRarities.Legendary / stats.foilCount * 100).toFixed(1),
                                                                 "% observed)"
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 500,
-                                                            columnNumber: 27
+                                                            lineNumber: 620,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        stats.foilSlotRarities.Rare > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: [
+                                                                "Rare (R): ",
+                                                                stats.foilSlotRarities.Rare,
+                                                                " (",
+                                                                (stats.foilSlotRarities.Rare / stats.foilCount * 100).toFixed(1),
+                                                                "% observed)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 623,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        stats.foilSlotRarities.Uncommon > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: [
+                                                                "Uncommon (U): ",
+                                                                stats.foilSlotRarities.Uncommon,
+                                                                " (",
+                                                                (stats.foilSlotRarities.Uncommon / stats.foilCount * 100).toFixed(1),
+                                                                "% observed)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 626,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        stats.foilSlotRarities.Common > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: [
+                                                                "Common (C): ",
+                                                                stats.foilSlotRarities.Common,
+                                                                " (",
+                                                                (stats.foilSlotRarities.Common / stats.foilCount * 100).toFixed(1),
+                                                                "% observed)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 629,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        stats.foilSlotRarities.Special > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: [
+                                                                "Special (S): ",
+                                                                stats.foilSlotRarities.Special,
+                                                                " (",
+                                                                (stats.foilSlotRarities.Special / stats.foilCount * 100).toFixed(1),
+                                                                "% observed)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 632,
+                                                            columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 494,
-                                                    columnNumber: 23
-                                                }, this)
-                                            ]
-                                        }, void 0, true),
-                                        !allowsSpecial && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            style: {
-                                                marginTop: '0.5em',
-                                                fontSize: '0.9em',
-                                                fontStyle: 'italic',
-                                                opacity: 0.9
-                                            },
-                                            children: "Special (S) does not appear in upgrade slot (only in foil/hyperfoil slots)"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 506,
-                                            columnNumber: 21
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 486,
-                                    columnNumber: 17
-                                }, this),
-                                stats.showcaseCount > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "rate-card-section",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            children: "Showcase Leaders"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 514,
-                                            columnNumber: 21
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                    children: "Showcase Count:"
+                                                    lineNumber: 618,
+                                                    columnNumber: 19
+                                                }, this),
+                                                allowsSpecial && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    style: {
+                                                        marginTop: '0.5em',
+                                                        fontSize: '0.9em',
+                                                        fontStyle: 'italic',
+                                                        opacity: 0.9
+                                                    },
+                                                    children: "Special rarity (S) can appear in foil/hyperfoil slots (~1-2% of foils when applicable)"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 515,
-                                                    columnNumber: 24
-                                                }, this),
-                                                " ",
-                                                stats.showcaseCount,
-                                                " (",
-                                                (stats.showcaseCount / stats.totalPacks * 100).toFixed(2),
-                                                "%, ~0.35% expected per pack)"
+                                                    lineNumber: 636,
+                                                    columnNumber: 21
+                                                }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 515,
-                                            columnNumber: 21
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 513,
-                                    columnNumber: 19
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "rate-card-section",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            children: "Special Rarity (S)"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 520,
-                                            columnNumber: 19
+                                            lineNumber: 605,
+                                            columnNumber: 17
                                         }, this),
-                                        allowsSpecial ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "rate-card-section",
                                             children: [
-                                                stats.specialRarity.inFoilSlot > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                    children: "Hyperspace Variants"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 643,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                            children: "Total Hyperspace Cards:"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 644,
+                                                            columnNumber: 22
+                                                        }, this),
+                                                        " ",
+                                                        stats.hyperspaceCount,
+                                                        " (",
+                                                        (stats.hyperspaceCount / (stats.totalPacks * 16) * 100).toFixed(1),
+                                                        "% of all cards)"
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 644,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                            children: "Hyperspace Rate:"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 645,
+                                                            columnNumber: 22
+                                                        }, this),
+                                                        " ",
+                                                        (stats.hyperspaceCount / stats.totalPacks).toFixed(1),
+                                                        " per pack (~66.7% expected per pack)"
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 645,
+                                                    columnNumber: 19
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 642,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "rate-card-section",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                    children: [
+                                                        "Uncommon Upgrade Slot - ",
+                                                        getSetName(setCode)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 649,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    children: "The 3rd Uncommon slot can be upgraded to a Hyperspace variant of any rarity."
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 650,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                            children: "Upgrade Slot Hyperspace:"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 651,
+                                                            columnNumber: 22
+                                                        }, this),
+                                                        " ",
+                                                        stats.upgradeSlotHyperspace,
+                                                        " out of ",
+                                                        stats.totalPacks,
+                                                        " packs (",
+                                                        (stats.upgradeSlotHyperspace / stats.totalPacks * 100).toFixed(1),
+                                                        "%, ~25% expected)"
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 651,
+                                                    columnNumber: 19
+                                                }, this),
+                                                stats.upgradeSlotHyperspace > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                            children: [
-                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                                    children: "Foil Slot:"
-                                                                }, void 0, false, {
-                                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                                    lineNumber: 526,
-                                                                    columnNumber: 29
-                                                                }, this),
-                                                                " ",
-                                                                stats.specialRarity.inFoilSlot,
-                                                                " out of ",
-                                                                stats.foilCount,
-                                                                " foils (",
-                                                                (stats.specialRarity.inFoilSlot / stats.foilCount * 100).toFixed(2),
-                                                                "% observed, ~1-2% expected)"
-                                                            ]
-                                                        }, void 0, true, {
+                                                            style: {
+                                                                marginTop: '0.75em'
+                                                            },
+                                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                children: "Upgrade Slot Rarity Distribution (when hyperspace):"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/SealedPod.jsx",
+                                                                lineNumber: 655,
+                                                                columnNumber: 58
+                                                            }, this)
+                                                        }, void 0, false, {
                                                             fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 525,
-                                                            columnNumber: 27
+                                                            lineNumber: 655,
+                                                            columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
                                                             style: {
-                                                                marginLeft: '1.5em',
-                                                                marginTop: '0.25em'
+                                                                marginTop: '0.25em',
+                                                                marginLeft: '1.5em'
                                                             },
                                                             children: [
-                                                                stats.specialRarity.inFoilSlotStandard > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                                                     children: [
-                                                                        "Standard Foil: ",
-                                                                        stats.specialRarity.inFoilSlotStandard,
+                                                                        "Legendary (L): ",
+                                                                        stats.upgradeSlotRarities.Legendary || 0,
                                                                         " (",
-                                                                        (stats.specialRarity.inFoilSlotStandard / stats.specialRarity.inFoilSlot * 100).toFixed(1),
-                                                                        "% of Special foils observed)"
+                                                                        stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Legendary || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0,
+                                                                        "% observed, ~3% expected)"
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/components/SealedPod.jsx",
-                                                                    lineNumber: 530,
-                                                                    columnNumber: 31
+                                                                    lineNumber: 657,
+                                                                    columnNumber: 25
                                                                 }, this),
-                                                                stats.specialRarity.inFoilSlotHyperspace > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                                                     children: [
-                                                                        "Hyperspace Foil: ",
-                                                                        stats.specialRarity.inFoilSlotHyperspace,
+                                                                        "Rare (R): ",
+                                                                        stats.upgradeSlotRarities.Rare || 0,
                                                                         " (",
-                                                                        (stats.specialRarity.inFoilSlotHyperspace / stats.specialRarity.inFoilSlot * 100).toFixed(1),
-                                                                        "% of Special foils observed)"
+                                                                        stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Rare || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0,
+                                                                        "% observed, ~12% expected)"
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/components/SealedPod.jsx",
-                                                                    lineNumber: 533,
-                                                                    columnNumber: 31
+                                                                    lineNumber: 658,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                    children: [
+                                                                        "Uncommon (U): ",
+                                                                        stats.upgradeSlotRarities.Uncommon || 0,
+                                                                        " (",
+                                                                        stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Uncommon || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0,
+                                                                        "% observed, ~25% expected)"
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 659,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                    children: [
+                                                                        "Common (C): ",
+                                                                        stats.upgradeSlotRarities.Common || 0,
+                                                                        " (",
+                                                                        stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Common || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0,
+                                                                        "% observed, ~60% expected)"
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 660,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                stats.upgradeSlotRarities.Special > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                    children: [
+                                                                        "Special (S): ",
+                                                                        stats.upgradeSlotRarities.Special,
+                                                                        " (",
+                                                                        (stats.upgradeSlotRarities.Special / stats.upgradeSlotHyperspace * 100).toFixed(1),
+                                                                        "% observed)"
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 662,
+                                                                    columnNumber: 27
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 528,
-                                                            columnNumber: 27
+                                                            lineNumber: 656,
+                                                            columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true),
-                                                stats.specialRarity.inUpgradeSlot > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                !allowsSpecial && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     style: {
-                                                        marginTop: stats.specialRarity.inFoilSlot > 0 ? '0.5em' : '0'
+                                                        marginTop: '0.5em',
+                                                        fontSize: '0.9em',
+                                                        fontStyle: 'italic',
+                                                        opacity: 0.9
                                                     },
+                                                    children: "Special (S) does not appear in upgrade slot (only in foil/hyperfoil slots)"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 668,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 648,
+                                            columnNumber: 17
+                                        }, this),
+                                        stats.showcaseCount > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "rate-card-section",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                    children: "Showcase Leaders"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 676,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                            children: "Upgrade Slot:"
+                                                            children: "Showcase Count:"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 540,
-                                                            columnNumber: 27
+                                                            lineNumber: 677,
+                                                            columnNumber: 24
                                                         }, this),
                                                         " ",
-                                                        stats.specialRarity.inUpgradeSlot,
-                                                        " out of ",
-                                                        stats.upgradeSlotHyperspace,
-                                                        " upgrade slots (",
-                                                        (stats.specialRarity.inUpgradeSlot / stats.upgradeSlotHyperspace * 100).toFixed(2),
-                                                        "% observed)"
+                                                        stats.showcaseCount,
+                                                        " (",
+                                                        (stats.showcaseCount / stats.totalPacks * 100).toFixed(2),
+                                                        "%, ~0.35% expected per pack)"
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 539,
-                                                    columnNumber: 25
+                                                    lineNumber: 677,
+                                                    columnNumber: 21
                                                 }, this)
                                             ]
-                                        }, void 0, true) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            children: "This set does not include Special rarity cards in booster packs."
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 675,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "rate-card-section",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                    children: "Special Rarity (S)"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 682,
+                                                    columnNumber: 19
+                                                }, this),
+                                                allowsSpecial ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                                    children: [
+                                                        stats.specialRarity.inFoilSlot > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                            children: "Foil Slot:"
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                                            lineNumber: 688,
+                                                                            columnNumber: 29
+                                                                        }, this),
+                                                                        " ",
+                                                                        stats.specialRarity.inFoilSlot,
+                                                                        " out of ",
+                                                                        stats.foilCount,
+                                                                        " foils (",
+                                                                        (stats.specialRarity.inFoilSlot / stats.foilCount * 100).toFixed(2),
+                                                                        "% observed, ~1-2% expected)"
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 687,
+                                                                    columnNumber: 27
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                                                                    style: {
+                                                                        marginLeft: '1.5em',
+                                                                        marginTop: '0.25em'
+                                                                    },
+                                                                    children: [
+                                                                        stats.specialRarity.inFoilSlotStandard > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                            children: [
+                                                                                "Standard Foil: ",
+                                                                                stats.specialRarity.inFoilSlotStandard,
+                                                                                " (",
+                                                                                (stats.specialRarity.inFoilSlotStandard / stats.specialRarity.inFoilSlot * 100).toFixed(1),
+                                                                                "% of Special foils observed)"
+                                                                            ]
+                                                                        }, void 0, true, {
+                                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                                            lineNumber: 692,
+                                                                            columnNumber: 31
+                                                                        }, this),
+                                                                        stats.specialRarity.inFoilSlotHyperspace > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                            children: [
+                                                                                "Hyperspace Foil: ",
+                                                                                stats.specialRarity.inFoilSlotHyperspace,
+                                                                                " (",
+                                                                                (stats.specialRarity.inFoilSlotHyperspace / stats.specialRarity.inFoilSlot * 100).toFixed(1),
+                                                                                "% of Special foils observed)"
+                                                                            ]
+                                                                        }, void 0, true, {
+                                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                                            lineNumber: 695,
+                                                                            columnNumber: 31
+                                                                        }, this)
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 690,
+                                                                    columnNumber: 27
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true),
+                                                        stats.specialRarity.inUpgradeSlot > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                            style: {
+                                                                marginTop: stats.specialRarity.inFoilSlot > 0 ? '0.5em' : '0'
+                                                            },
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                    children: "Upgrade Slot:"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 702,
+                                                                    columnNumber: 27
+                                                                }, this),
+                                                                " ",
+                                                                stats.specialRarity.inUpgradeSlot,
+                                                                " out of ",
+                                                                stats.upgradeSlotHyperspace,
+                                                                " upgrade slots (",
+                                                                (stats.specialRarity.inUpgradeSlot / stats.upgradeSlotHyperspace * 100).toFixed(2),
+                                                                "% observed)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 701,
+                                                            columnNumber: 25
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    children: "This set does not include Special rarity cards in booster packs."
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 707,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 681,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "rate-card-section",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                    children: "Pack Building Rules"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 712,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: "Leaders can ONLY appear in leader slot (position 1)"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 714,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                    children: "Leader Rarity:"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 715,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                " Common leaders appear ~83.3% of the time (5/6), Rare/Legendary leaders appear ~16.7% of the time (1/6)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 715,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: "Common bases can ONLY appear in base slot (position 2)"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 716,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        [
+                                                            'SOR',
+                                                            'SHD',
+                                                            'TWI',
+                                                            'JTL',
+                                                            'LOF',
+                                                            'SEC'
+                                                        ].includes(setCode) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: "Rare bases CAN appear in rare slot"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 718,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        allowsSpecial && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                    children: "Special rarity cards do NOT appear in regular slots"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 722,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                    children: "Special rarity cards can ONLY appear in foil/hyperfoil slots"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 723,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                                    children: "Foil slot can be any rarity, including Special"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                                    lineNumber: 724,
+                                                                    columnNumber: 25
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true),
+                                                        !allowsSpecial && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: "Foil slot can be any rarity (L, R, U, C)"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 728,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: "Foil slot can be a duplicate of another card in the pack"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 730,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: "Upgrade slot (3rd uncommon) can be a duplicate"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 731,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: "Leaders are NEVER foil or hyperfoil"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                                            lineNumber: 732,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 713,
+                                                    columnNumber: 19
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 711,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                    lineNumber: 572,
+                                    columnNumber: 15
+                                }, this);
+                            })()
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/SealedPod.jsx",
+                        lineNumber: 441,
+                        columnNumber: 9
+                    }, this),
+                    selectedCard && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$CardModal$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                        card: selectedCard,
+                        onClose: ()=>setSelectedCard(null)
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/SealedPod.jsx",
+                        lineNumber: 742,
+                        columnNumber: 9
+                    }, this),
+                    hoveredCardPreview && (()=>{
+                        const card = hoveredCardPreview.card;
+                        const hasBackImage = card.backImageUrl && card.isLeader;
+                        const isHorizontal = card.isLeader || card.isBase;
+                        const borderRadius = '23px' // Slightly smaller than 24px to reduce clipping
+                        ;
+                        // Calculate dimensions
+                        let previewWidth, previewHeight;
+                        if (hasBackImage) {
+                            // Leader with back: side by side (horizontal front + vertical back)
+                            previewWidth = 504 + 360 + 20; // 504px front + 360px back + 20px gap
+                            previewHeight = 504; // Max height (vertical back is 504px)
+                        } else {
+                            // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
+                            // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
+                            previewWidth = isHorizontal ? 504 : 360;
+                            previewHeight = isHorizontal ? 360 : 504;
+                        }
+                        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "card-preview-enlarged",
+                            style: {
+                                position: 'fixed',
+                                left: `${hoveredCardPreview.x}px`,
+                                top: `${hoveredCardPreview.y}px`,
+                                zIndex: 10000,
+                                pointerEvents: 'auto',
+                                transform: 'translateY(-50%)',
+                                width: `${previewWidth}px`,
+                                height: `${previewHeight}px`,
+                                borderRadius: borderRadius,
+                                overflow: 'visible',
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                                border: 'none',
+                                display: 'flex',
+                                flexDirection: 'row',
+                                gap: '20px'
+                            },
+                            onMouseLeave: ()=>setHoveredCardPreview(null),
+                            children: hasBackImage ? // Show both front (horizontal) and back (vertical) side by side for leaders
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : '',
+                                        style: {
+                                            width: '504px',
+                                            height: '360px',
+                                            overflow: 'hidden',
+                                            borderRadius: borderRadius,
+                                            boxShadow: card.isFoil && (!card.isLeader || card.isShowcase) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
+                                            border: '2px solid rgba(255, 255, 255, 0.3)',
+                                            alignSelf: 'center',
+                                            position: 'relative'
+                                        },
+                                        children: card.imageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                            src: card.imageUrl,
+                                            alt: `${card.name || 'Card'} - Front`,
+                                            style: {
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                                display: 'block'
+                                            }
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 545,
+                                            lineNumber: 802,
+                                            columnNumber: 21
+                                        }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                width: '100%',
+                                                height: '100%',
+                                                background: 'rgba(26, 26, 46, 0.95)',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                padding: '1rem',
+                                                color: 'white'
+                                            },
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    style: {
+                                                        fontSize: '1.2rem',
+                                                        marginBottom: '0.5rem'
+                                                    },
+                                                    children: [
+                                                        card.name || 'Card',
+                                                        " - Front"
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 824,
+                                                    columnNumber: 23
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    style: {
+                                                        color: getRarityColor(card.rarity)
+                                                    },
+                                                    children: card.rarity
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 827,
+                                                    columnNumber: 23
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 813,
+                                            columnNumber: 21
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/SealedPod.jsx",
+                                        lineNumber: 791,
+                                        columnNumber: 17
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : '',
+                                        style: {
+                                            width: '360px',
+                                            height: '504px',
+                                            overflow: 'hidden',
+                                            borderRadius: borderRadius,
+                                            boxShadow: card.isFoil && (!card.isLeader || card.isShowcase) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
+                                            border: '2px solid rgba(255, 255, 255, 0.3)',
+                                            position: 'relative'
+                                        },
+                                        children: card.backImageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                            src: card.backImageUrl,
+                                            alt: `${card.name || 'Card'} - Back`,
+                                            style: {
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                                display: 'block'
+                                            }
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 844,
+                                            columnNumber: 21
+                                        }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                width: '100%',
+                                                height: '100%',
+                                                background: 'rgba(26, 26, 46, 0.95)',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                padding: '1rem',
+                                                color: 'white'
+                                            },
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    style: {
+                                                        fontSize: '1.2rem',
+                                                        marginBottom: '0.5rem'
+                                                    },
+                                                    children: [
+                                                        card.name || 'Card',
+                                                        " - Back"
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 866,
+                                                    columnNumber: 23
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    style: {
+                                                        color: getRarityColor(card.rarity)
+                                                    },
+                                                    children: card.rarity
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                                    lineNumber: 869,
+                                                    columnNumber: 23
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 855,
+                                            columnNumber: 21
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/SealedPod.jsx",
+                                        lineNumber: 834,
+                                        columnNumber: 17
+                                    }, this)
+                                ]
+                            }, void 0, true) : // Single card (non-leader, base, or leader without back)
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : '',
+                                style: {
+                                    width: `${previewWidth}px`,
+                                    height: `${previewHeight}px`,
+                                    overflow: 'hidden',
+                                    borderRadius: borderRadius,
+                                    boxShadow: card.isFoil && (!card.isLeader || card.isShowcase) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
+                                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                                    position: 'relative'
+                                },
+                                children: card.imageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                    src: card.imageUrl,
+                                    alt: card.name || 'Card',
+                                    style: {
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover',
+                                        display: 'block'
+                                    }
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/SealedPod.jsx",
+                                    lineNumber: 888,
+                                    columnNumber: 19
+                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    style: {
+                                        width: '100%',
+                                        height: '100%',
+                                        background: 'rgba(26, 26, 46, 0.95)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        padding: '1rem',
+                                        color: 'white'
+                                    },
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                fontSize: '1.2rem',
+                                                marginBottom: '0.5rem'
+                                            },
+                                            children: card.name || 'Card'
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 910,
+                                            columnNumber: 21
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                color: getRarityColor(card.rarity)
+                                            },
+                                            children: card.rarity
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/components/SealedPod.jsx",
+                                            lineNumber: 913,
                                             columnNumber: 21
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 519,
-                                    columnNumber: 17
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "rate-card-section",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            children: "Pack Building Rules"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 550,
-                                            columnNumber: 19
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: "Leaders can ONLY appear in leader slot (position 1)"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 552,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
-                                                            children: "Leader Rarity:"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 553,
-                                                            columnNumber: 25
-                                                        }, this),
-                                                        " Common leaders appear ~83.3% of the time (5/6), Rare/Legendary leaders appear ~16.7% of the time (1/6)"
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 553,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: "Common bases can ONLY appear in base slot (position 2)"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 554,
-                                                    columnNumber: 21
-                                                }, this),
-                                                [
-                                                    'SOR',
-                                                    'SHD',
-                                                    'TWI',
-                                                    'JTL',
-                                                    'LOF',
-                                                    'SEC'
-                                                ].includes(setCode) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: "Rare bases CAN appear in rare slot"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 556,
-                                                    columnNumber: 23
-                                                }, this),
-                                                allowsSpecial && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                            children: "Special rarity cards do NOT appear in regular slots"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 560,
-                                                            columnNumber: 25
-                                                        }, this),
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                            children: "Special rarity cards can ONLY appear in foil/hyperfoil slots"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 561,
-                                                            columnNumber: 25
-                                                        }, this),
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                            children: "Foil slot can be any rarity, including Special"
-                                                        }, void 0, false, {
-                                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                                            lineNumber: 562,
-                                                            columnNumber: 25
-                                                        }, this)
-                                                    ]
-                                                }, void 0, true),
-                                                !allowsSpecial && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: "Foil slot can be any rarity (L, R, U, C)"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 566,
-                                                    columnNumber: 23
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: "Foil slot can be a duplicate of another card in the pack"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 568,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: "Upgrade slot (3rd uncommon) can be a duplicate"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 569,
-                                                    columnNumber: 21
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                                    children: "Leaders are NEVER foil or hyperfoil"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                                    lineNumber: 570,
-                                                    columnNumber: 21
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 551,
-                                            columnNumber: 19
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 549,
-                                    columnNumber: 17
+                                    lineNumber: 899,
+                                    columnNumber: 19
                                 }, this)
-                            ]
-                        }, void 0, true, {
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/SealedPod.jsx",
+                                lineNumber: 878,
+                                columnNumber: 15
+                            }, this)
+                        }, void 0, false, {
                             fileName: "[project]/src/components/SealedPod.jsx",
-                            lineNumber: 410,
-                            columnNumber: 15
+                            lineNumber: 766,
+                            columnNumber: 11
                         }, this);
-                    })()
+                    })(),
+                    tooltip.show && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "tooltip",
+                        style: {
+                            position: 'fixed',
+                            left: `${tooltip.x}px`,
+                            top: `${tooltip.y}px`,
+                            transform: tooltip.alignLeft ? 'translateX(-100%) translateY(-50%)' : 'translateX(-50%) translateY(-100%)',
+                            zIndex: 10000,
+                            pointerEvents: 'none',
+                            marginRight: '20px',
+                            marginTop: tooltip.alignLeft ? '0' : '-8px'
+                        },
+                        children: tooltip.text
+                    }, void 0, false, {
+                        fileName: "[project]/src/components/SealedPod.jsx",
+                        lineNumber: 924,
+                        columnNumber: 9
+                    }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/SealedPod.jsx",
-                lineNumber: 279,
-                columnNumber: 9
-            }, this),
-            selectedCard && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$CardModal$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
-                card: selectedCard,
-                onClose: ()=>setSelectedCard(null)
-            }, void 0, false, {
-                fileName: "[project]/src/components/SealedPod.jsx",
-                lineNumber: 580,
-                columnNumber: 9
-            }, this),
-            hoveredCardPreview && (()=>{
-                const card = hoveredCardPreview.card;
-                const hasBackImage = card.backImageUrl && card.isLeader;
-                const isHorizontal = card.isLeader || card.isBase;
-                const borderRadius = '18px' // Slightly smaller than 24px to reduce clipping
-                ;
-                // Calculate dimensions
-                let previewWidth, previewHeight;
-                if (hasBackImage) {
-                    // Leader with back: side by side (horizontal front + vertical back)
-                    previewWidth = 504 + 360 + 20; // 504px front + 360px back + 20px gap
-                    previewHeight = 504; // Max height (vertical back is 504px)
-                } else {
-                    // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
-                    // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
-                    previewWidth = isHorizontal ? 504 : 360;
-                    previewHeight = isHorizontal ? 360 : 504;
-                }
-                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "card-preview-enlarged",
-                    style: {
-                        position: 'fixed',
-                        left: `${hoveredCardPreview.x}px`,
-                        top: `${hoveredCardPreview.y}px`,
-                        zIndex: 10000,
-                        pointerEvents: 'auto',
-                        transform: 'translateY(-50%)',
-                        width: `${previewWidth}px`,
-                        height: `${previewHeight}px`,
-                        borderRadius: borderRadius,
-                        overflow: 'visible',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
-                        border: 'none',
-                        display: 'flex',
-                        flexDirection: 'row',
-                        gap: '20px'
-                    },
-                    onMouseLeave: ()=>setHoveredCardPreview(null),
-                    children: hasBackImage ? // Show both front (horizontal) and back (vertical) side by side for leaders
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                        children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                style: {
-                                    width: '504px',
-                                    height: '360px',
-                                    overflow: 'hidden',
-                                    borderRadius: borderRadius,
-                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
-                                    border: '2px solid rgba(255, 255, 255, 0.3)'
-                                },
-                                children: card.imageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                    src: card.imageUrl,
-                                    alt: `${card.name || 'Card'} - Front`,
-                                    style: {
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover',
-                                        display: 'block'
-                                    }
-                                }, void 0, false, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 638,
-                                    columnNumber: 21
-                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    style: {
-                                        width: '100%',
-                                        height: '100%',
-                                        background: 'rgba(26, 26, 46, 0.95)',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        padding: '1rem',
-                                        color: 'white'
-                                    },
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            style: {
-                                                fontSize: '1.2rem',
-                                                marginBottom: '0.5rem'
-                                            },
-                                            children: [
-                                                card.name || 'Card',
-                                                " - Front"
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 660,
-                                            columnNumber: 23
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            style: {
-                                                color: getRarityColor(card.rarity)
-                                            },
-                                            children: card.rarity
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 663,
-                                            columnNumber: 23
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 649,
-                                    columnNumber: 21
-                                }, this)
-                            }, void 0, false, {
-                                fileName: "[project]/src/components/SealedPod.jsx",
-                                lineNumber: 629,
-                                columnNumber: 17
-                            }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                style: {
-                                    width: '360px',
-                                    height: '504px',
-                                    overflow: 'hidden',
-                                    borderRadius: borderRadius,
-                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
-                                    border: '2px solid rgba(255, 255, 255, 0.3)'
-                                },
-                                children: card.backImageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                    src: card.backImageUrl,
-                                    alt: `${card.name || 'Card'} - Back`,
-                                    style: {
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover',
-                                        display: 'block'
-                                    }
-                                }, void 0, false, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 679,
-                                    columnNumber: 21
-                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    style: {
-                                        width: '100%',
-                                        height: '100%',
-                                        background: 'rgba(26, 26, 46, 0.95)',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        padding: '1rem',
-                                        color: 'white'
-                                    },
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            style: {
-                                                fontSize: '1.2rem',
-                                                marginBottom: '0.5rem'
-                                            },
-                                            children: [
-                                                card.name || 'Card',
-                                                " - Back"
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 701,
-                                            columnNumber: 23
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            style: {
-                                                color: getRarityColor(card.rarity)
-                                            },
-                                            children: card.rarity
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/SealedPod.jsx",
-                                            lineNumber: 704,
-                                            columnNumber: 23
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 690,
-                                    columnNumber: 21
-                                }, this)
-                            }, void 0, false, {
-                                fileName: "[project]/src/components/SealedPod.jsx",
-                                lineNumber: 670,
-                                columnNumber: 17
-                            }, this)
-                        ]
-                    }, void 0, true) : // Single card (non-leader, base, or leader without back)
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        style: {
-                            width: `${previewWidth}px`,
-                            height: `${previewHeight}px`,
-                            overflow: 'hidden',
-                            borderRadius: borderRadius,
-                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
-                            border: '2px solid rgba(255, 255, 255, 0.3)'
-                        },
-                        children: card.imageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                            src: card.imageUrl,
-                            alt: card.name || 'Card',
-                            style: {
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                display: 'block'
-                            }
-                        }, void 0, false, {
-                            fileName: "[project]/src/components/SealedPod.jsx",
-                            lineNumber: 722,
-                            columnNumber: 19
-                        }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            style: {
-                                width: '100%',
-                                height: '100%',
-                                background: 'rgba(26, 26, 46, 0.95)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                padding: '1rem',
-                                color: 'white'
-                            },
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    style: {
-                                        fontSize: '1.2rem',
-                                        marginBottom: '0.5rem'
-                                    },
-                                    children: card.name || 'Card'
-                                }, void 0, false, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 744,
-                                    columnNumber: 21
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    style: {
-                                        color: getRarityColor(card.rarity)
-                                    },
-                                    children: card.rarity
-                                }, void 0, false, {
-                                    fileName: "[project]/src/components/SealedPod.jsx",
-                                    lineNumber: 747,
-                                    columnNumber: 21
-                                }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/src/components/SealedPod.jsx",
-                            lineNumber: 733,
-                            columnNumber: 19
-                        }, this)
-                    }, void 0, false, {
-                        fileName: "[project]/src/components/SealedPod.jsx",
-                        lineNumber: 713,
-                        columnNumber: 15
-                    }, this)
-                }, void 0, false, {
-                    fileName: "[project]/src/components/SealedPod.jsx",
-                    lineNumber: 604,
-                    columnNumber: 11
-                }, this);
-            })()
+                lineNumber: 290,
+                columnNumber: 7
+            }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/SealedPod.jsx",
-        lineNumber: 155,
+        lineNumber: 286,
         columnNumber: 5
     }, this);
 }
@@ -2950,6 +3251,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$api$2e$js__$
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$CardModal$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/CardModal.jsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$aspectColors$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/utils/aspectColors.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$CostIcon$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/CostIcon.jsx [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$poolApi$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/utils/poolApi.js [app-ssr] (ecmascript)");
+;
 ;
 ;
 ;
@@ -2987,7 +3290,7 @@ const getAspectSymbol = (aspect, size = 'medium')=>{
         }
     }, void 0, false, {
         fileName: "[project]/src/components/DeckBuilder.jsx",
-        lineNumber: 33,
+        lineNumber: 34,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -3005,7 +3308,7 @@ const SORT_OPTIONS = [
     'cost'
 ];
 // getAspectColor is now imported from utils/aspectColors
-function DeckBuilder({ cards, setCode, onBack, savedState }) {
+function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareId = null, poolCreatedAt = null, poolType = 'sealed', poolName = null, poolOwnerUsername = null }) {
     // Helper function to format card type for display
     const getFormattedType = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])((card)=>{
         if (card.type === 'Unit') {
@@ -3022,7 +3325,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             children: "Unit"
                         }, void 0, false, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 54,
+                            lineNumber: 55,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3034,13 +3337,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             children: "Ground"
                         }, void 0, false, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 55,
+                            lineNumber: 56,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                    lineNumber: 53,
+                    lineNumber: 54,
                     columnNumber: 11
                 }, this);
             } else if (card.arenas && card.arenas.includes('Space')) {
@@ -3056,7 +3359,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             children: "Unit"
                         }, void 0, false, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 61,
+                            lineNumber: 62,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3068,13 +3371,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             children: "Space"
                         }, void 0, false, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 62,
+                            lineNumber: 63,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                    lineNumber: 60,
+                    lineNumber: 61,
                     columnNumber: 11
                 }, this);
             }
@@ -3133,6 +3436,82 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     const [messageType, setMessageType] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null) // 'error' or 'success'
     ;
     const [isInfoBarSticky, setIsInfoBarSticky] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    // Function to get aspect color name
+    const getAspectColorName = (aspect)=>{
+        const aspectColorMap = {
+            'Vigilance': 'Blue',
+            'Command': 'Green',
+            'Aggression': 'Red',
+            'Cunning': 'Yellow',
+            'Villainy': 'Purple',
+            'Heroism': 'Orange'
+        };
+        return aspectColorMap[aspect] || aspect;
+    };
+    // Function to update pool name when leader or base changes
+    const updatePoolName = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(async (leaderCard, baseCard)=>{
+        if (!shareId || !setCode) return;
+        try {
+            const formatType = poolType === 'draft' ? 'Draft' : 'Sealed';
+            const leaderName = leaderCard?.name || '';
+            // For base: if common, use aspect color name; if rare, use base name
+            let baseName = '';
+            if (baseCard) {
+                if (baseCard.rarity === 'Common') {
+                    // Get the first aspect and convert to color name
+                    const aspects = baseCard.aspects || [];
+                    if (aspects.length > 0) {
+                        baseName = getAspectColorName(aspects[0]);
+                    } else {
+                        baseName = baseCard.name || '';
+                    }
+                } else {
+                    // Rare or other rarities: use the base name
+                    baseName = baseCard.name || '';
+                }
+            }
+            // Format: {Set Abbrv} {Format} ({Leader Name} {Base Name})
+            const parts = [
+                setCode,
+                formatType
+            ];
+            // Add leader/base in parentheses if they exist
+            const leaderBaseParts = [];
+            if (leaderName) leaderBaseParts.push(leaderName);
+            if (baseName) leaderBaseParts.push(baseName);
+            if (leaderBaseParts.length > 0) {
+                parts.push('(' + leaderBaseParts.join(' ') + ')');
+            }
+            const name = parts.join(' ');
+            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$poolApi$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["updatePool"])(shareId, {
+                name
+            });
+        } catch (err) {
+            console.error('Failed to update pool name:', err);
+        // Don't show error to user - this is a background operation
+        }
+    }, [
+        shareId,
+        poolType,
+        setCode
+    ]);
+    // Update pool name when leader or base changes
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        if (!shareId || !poolCreatedAt) return;
+        const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null;
+        const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null;
+        // Only update if at least one is selected
+        if (leaderCard || baseCard) {
+            updatePoolName(leaderCard, baseCard);
+        }
+    }, [
+        activeLeader,
+        activeBase,
+        cardPositions,
+        shareId,
+        poolCreatedAt,
+        updatePoolName
+    ]);
     const [selectedCard, setSelectedCard] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [deckImageModal, setDeckImageModal] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null) // URL for deck image modal
     ;
@@ -3276,11 +3655,19 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         }, 1000);
     };
     const handleCardMouseLeave = ()=>{
+        // Clear the timeout if it exists (preview hasn't shown yet)
         if (previewTimeoutRef.current) {
             clearTimeout(previewTimeoutRef.current);
             previewTimeoutRef.current = null;
         }
-        setHoveredCardPreview(null);
+    // Don't clear the preview if it's already showing
+    // This allows the mouse to move from the card to the preview without the preview disappearing
+    // The preview's own onMouseLeave will handle clearing it when you move away
+    // Only clear if the preview was never shown (timeout was still pending)
+    };
+    const handlePreviewMouseEnter = ()=>{
+    // Keep preview visible when hovering over it
+    // Don't clear the timeout or preview
     };
     const handlePreviewMouseLeave = ()=>{
         setHoveredCardPreview(null);
@@ -3302,14 +3689,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             }
         };
     }, []);
-    // Load all cards from the set
+    // Load all cards from the set - optimize for speed
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         const loadSetCards = async ()=>{
             try {
-                let cardsData = [];
-                if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$cardCache$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["isCacheInitialized"])()) {
-                    cardsData = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$cardCache$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getCachedCards"])(setCode);
+                // Initialize cache first if not already initialized (should be instant from JSON)
+                if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$cardCache$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["isCacheInitialized"])()) {
+                    await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$cardCache$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["initializeCardCache"])();
                 }
+                // Get cards from cache (instant)
+                let cardsData = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$cardCache$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getCachedCards"])(setCode);
+                // If cache doesn't have cards, try API as fallback
                 if (cardsData.length === 0) {
                     cardsData = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$api$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["fetchSetCards"])(setCode);
                 }
@@ -3528,7 +3918,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                     children: "Neutral"
                 }, void 0, false, {
                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                    lineNumber: 504,
+                    lineNumber: 592,
                     columnNumber: 16
                 }, this);
             }
@@ -3538,12 +3928,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 src: `/icons/${aspectName}.png`,
                 alt: parts[0],
                 style: {
-                    width: '39px',
-                    height: '39px'
+                    width: '1em',
+                    height: '1em',
+                    verticalAlign: 'middle'
                 }
             }, void 0, false, {
                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                lineNumber: 509,
+                lineNumber: 597,
                 columnNumber: 9
             }, this);
         } else {
@@ -3561,19 +3952,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                         src: `/icons/${aspectName}.png`,
                         alt: part,
                         style: {
-                            width: '39px',
-                            height: '39px',
-                            display: 'block'
+                            width: '1em',
+                            height: '1em',
+                            display: 'block',
+                            verticalAlign: 'middle'
                         }
                     }, i, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 523,
+                        lineNumber: 611,
                         columnNumber: 15
                     }, this);
                 }).filter(Boolean)
             }, void 0, false, {
                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                lineNumber: 518,
+                lineNumber: 606,
                 columnNumber: 9
             }, this);
         }
@@ -3653,7 +4045,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (savedState && Object.keys(cardPositions).length === 0) {
             try {
-                const state = JSON.parse(savedState);
+                // Handle both string and object savedState
+                const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState;
                 if (state.cardPositions && Object.keys(state.cardPositions).length > 0) {
                     // Ensure all cards have enabled property (default to true)
                     // Also remove any bases/leaders that might have been in 'main' section
@@ -3681,13 +4074,22 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                         Aggression: true
                     });
                     setSortOption(state.sortOption || 'aspect');
+                    // Restore active leader and base
+                    if (state.activeLeader) {
+                        setActiveLeader(state.activeLeader);
+                    }
+                    if (state.activeBase) {
+                        setActiveBase(state.activeBase);
+                    }
                 }
             } catch (e) {
                 console.error('Failed to restore deck builder state:', e);
             }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Only run once on mount
+    }, [
+        savedState
+    ]); // Run when savedState changes
     // Detect when deck-info-bar becomes sticky
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         const infoBar = infoBarRef.current;
@@ -3732,17 +4134,25 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         selectedCard
     ]);
     // Initialize card positions in sections
+    // Can initialize with just pool cards, then enhance when all set cards load
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        if (cards.length > 0 && allSetCards.length > 0 && Object.keys(cardPositions).length === 0) {
+        // Don't initialize if we have saved state to restore (it will be restored in the other useEffect)
+        if (savedState) return;
+        // Initialize immediately with pool cards if we have them
+        // We only need allSetCards for the common bases, which can be added later
+        if (cards.length > 0 && Object.keys(cardPositions).length === 0) {
             const poolCards = cards.filter((card)=>!card.isBase && !card.isLeader);
             const poolLeaders = cards.filter((card)=>card.isLeader);
+            // Get common bases from all set cards if available, otherwise skip (will be added later)
             const commonBasesMap = new Map();
-            allSetCards.filter((card)=>card.isBase && card.rarity === 'Common').forEach((card)=>{
-                const key = card.name;
-                if (!commonBasesMap.has(key)) {
-                    commonBasesMap.set(key, card);
-                }
-            });
+            if (allSetCards.length > 0) {
+                allSetCards.filter((card)=>card.isBase && card.rarity === 'Common').forEach((card)=>{
+                    const key = card.name;
+                    if (!commonBasesMap.has(key)) {
+                        commonBasesMap.set(key, card);
+                    }
+                });
+            }
             // Sort bases by aspect: Vigilance, Command, Aggression, Cunning
             const aspectOrder = [
                 'Vigilance',
@@ -3904,18 +4314,141 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         allSetCards,
         savedState
     ]);
-    // Save deck builder state to sessionStorage whenever it changes
+    // Add common bases when allSetCards loads (even if cardPositions already exist)
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        if (Object.keys(cardPositions).length > 0) {
+        // Only run if we have allSetCards, cardPositions exist, and we haven't added common bases yet
+        if (allSetCards.length > 0 && Object.keys(cardPositions).length > 0 && setCode) {
+            // Check if common bases are already in cardPositions
+            const hasCommonBases = Object.values(cardPositions).some((pos)=>pos.card.isBase && pos.card.rarity === 'Common');
+            // If no common bases found, add them
+            if (!hasCommonBases) {
+                // Get common bases from all set cards
+                const commonBasesMap = new Map();
+                allSetCards.filter((card)=>card.isBase && card.rarity === 'Common').forEach((card)=>{
+                    const key = card.name;
+                    if (!commonBasesMap.has(key)) {
+                        commonBasesMap.set(key, card);
+                    }
+                });
+                // Sort bases by aspect
+                const aspectOrder = [
+                    'Vigilance',
+                    'Command',
+                    'Aggression',
+                    'Cunning'
+                ];
+                const getAspectSortValue = (card)=>{
+                    const aspects = card.aspects || [];
+                    if (aspects.length === 0) return 999;
+                    for(let i = 0; i < aspectOrder.length; i++){
+                        if (aspects.includes(aspectOrder[i])) {
+                            return i;
+                        }
+                    }
+                    return 999;
+                };
+                const uniqueCommonBases = Array.from(commonBasesMap.values()).sort((a, b)=>{
+                    const aValue = getAspectSortValue(a);
+                    const bValue = getAspectSortValue(b);
+                    if (aValue !== bValue) {
+                        return aValue - bValue;
+                    }
+                    return (a.name || '').localeCompare(b.name || '');
+                });
+                // Find the leaders-bases section bounds
+                const leadersBasesBounds = sectionBounds['leaders-bases'];
+                if (leadersBasesBounds && uniqueCommonBases.length > 0) {
+                    const updatedPositions = {
+                        ...cardPositions
+                    };
+                    const leaderBaseWidth = 168;
+                    const leaderBaseHeight = 120;
+                    const spacing = 20;
+                    const padding = 50;
+                    // Find existing bases to determine starting position
+                    const existingBases = Object.values(cardPositions).filter((pos)=>pos.section === 'leaders-bases' && pos.card.isBase);
+                    // Calculate starting position: after existing bases or at section start
+                    let startY = leadersBasesBounds.minY;
+                    let startX = padding;
+                    const itemsPerRow = Math.floor((window.innerWidth - 100) / (leaderBaseWidth + spacing));
+                    if (existingBases.length > 0) {
+                        // Find the bottom-right position of existing bases
+                        const maxY = Math.max(...existingBases.map((pos)=>pos.y + leaderBaseHeight));
+                        const maxX = Math.max(...existingBases.map((pos)=>pos.x + leaderBaseWidth));
+                        startY = maxY + spacing;
+                        // If we need a new row, reset X
+                        if (maxX + leaderBaseWidth + spacing > window.innerWidth - padding) {
+                            startX = padding;
+                        } else {
+                            startX = maxX + spacing;
+                        }
+                    }
+                    // Add common bases
+                    uniqueCommonBases.forEach((card, index)=>{
+                        const row = Math.floor(index / itemsPerRow);
+                        const col = index % itemsPerRow;
+                        const cardId = `base-common-${index}-${card.id || `${card.name}-${card.set}`}`;
+                        // Check if this base already exists (avoid duplicates)
+                        const baseExists = Object.values(cardPositions).some((pos)=>pos.card.isBase && pos.card.name === card.name && pos.card.rarity === 'Common');
+                        if (!baseExists) {
+                            updatedPositions[cardId] = {
+                                x: startX + col * (leaderBaseWidth + spacing),
+                                y: startY + row * (leaderBaseHeight + spacing),
+                                card: card,
+                                section: 'leaders-bases',
+                                visible: true,
+                                zIndex: 1
+                            };
+                        }
+                    });
+                    // Update bounds if needed
+                    const updatedBounds = {
+                        ...sectionBounds
+                    };
+                    if (uniqueCommonBases.length > 0) {
+                        const totalRows = Math.ceil(uniqueCommonBases.length / itemsPerRow);
+                        const newMaxY = startY + (totalRows - 1) * (leaderBaseHeight + spacing) + leaderBaseHeight;
+                        if (updatedBounds['leaders-bases']) {
+                            updatedBounds['leaders-bases'].maxY = Math.max(updatedBounds['leaders-bases'].maxY, newMaxY);
+                        }
+                    }
+                    setCardPositions(updatedPositions);
+                    setSectionBounds(updatedBounds);
+                }
+            }
+        }
+    }, [
+        allSetCards,
+        cardPositions,
+        sectionBounds,
+        setCode
+    ]);
+    // Save deck builder state to sessionStorage and database whenever it changes
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        // Save state if we have card positions OR if leader/base selection changes
+        // This ensures state is saved even when only leader/base changes
+        if (Object.keys(cardPositions).length > 0 || activeLeader || activeBase) {
+            // Determine which cards are in deck vs sideboard
+            const deckCardIds = Object.entries(cardPositions).filter(([_, pos])=>pos.section === 'deck').map(([cardId, _])=>cardId);
+            const sideboardCardIds = Object.entries(cardPositions).filter(([_, pos])=>pos.section === 'sideboard').map(([cardId, _])=>cardId);
             const stateToSave = {
-                cardPositions,
+                cardPositions: Object.keys(cardPositions).length > 0 ? cardPositions : {},
                 sectionLabels,
                 sectionBounds,
                 canvasHeight,
                 aspectFilters,
-                sortOption
+                sortOption,
+                activeLeader,
+                activeBase,
+                deckCardIds,
+                sideboardCardIds
             };
-            sessionStorage.setItem('deckBuilderState', JSON.stringify(stateToSave));
+            const stateJson = JSON.stringify(stateToSave);
+            sessionStorage.setItem('deckBuilderState', stateJson);
+            // Also save to pool if onStateChange callback is provided
+            if (onStateChange) {
+                onStateChange(stateToSave);
+            }
         }
     }, [
         cardPositions,
@@ -3923,7 +4456,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         sectionBounds,
         canvasHeight,
         aspectFilters,
-        sortOption
+        sortOption,
+        activeLeader,
+        activeBase,
+        onStateChange
     ]);
     // Cleanup: Remove any bases/leaders from deck/sideboard sections and move cards based on enabled state
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
@@ -4694,7 +5230,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 children: "↕"
             }, void 0, false, {
                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                lineNumber: 1600,
+                lineNumber: 1842,
                 columnNumber: 14
             }, this);
         }
@@ -4703,14 +5239,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             children: "↑"
         }, void 0, false, {
             fileName: "[project]/src/components/DeckBuilder.jsx",
-            lineNumber: 1602,
+            lineNumber: 1844,
             columnNumber: 46
         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
             className: "sort-arrow",
             children: "↓"
         }, void 0, false, {
             fileName: "[project]/src/components/DeckBuilder.jsx",
-            lineNumber: 1602,
+            lineNumber: 1844,
             columnNumber: 86
         }, this);
     };
@@ -4974,7 +5510,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             // Draw black background
             ctx.fillStyle = '#000000';
             ctx.fillRect(0, 0, width, totalHeight);
-            const cardRadius = 8 // Border radius matching app style
+            const cardRadius = 13 // Border radius matching app style
             ;
             // Helper to draw rounded rectangle
             const drawRoundedRect = (x, y, width, height, radius)=>{
@@ -5214,12 +5750,33 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 const unusedLeadersRows = Math.ceil(unusedLeaders.length / leadersPerRow);
                 currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing;
             }
-            // Draw Protect the Pod stamp at bottom
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            // Draw pool name and timestamp at bottom
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const timeStr = `${month}/${day} ${hours}:${minutes} ${ampm}`;
+            const displayName = poolName || `${setCode} ${poolType === 'draft' ? 'Draft' : 'Sealed'}`;
+            // Draw pool name
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
             ctx.font = 'bold 24px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
-            ctx.fillText('Protect the Pod', width / 2, totalHeight - padding / 2);
+            ctx.fillText(displayName, width / 2, totalHeight - padding / 2 - 40);
+            // Draw "by {username}" if available
+            if (poolOwnerUsername) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '20px Arial';
+                ctx.fillText(`by ${poolOwnerUsername}`, width / 2, totalHeight - padding / 2 - 15);
+            }
+            // Draw timestamp below name (or below "by username" if present)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.font = '18px Arial';
+            ctx.fillText(timeStr, width / 2, totalHeight - padding / 2);
             // Show image in modal instead of downloading
             canvas.toBlob((blob)=>{
                 const url = URL.createObjectURL(blob);
@@ -5254,72 +5811,275 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                         children: "← Back to Sealed Pod"
                     }, void 0, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2211,
+                        lineNumber: 2478,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
                         children: "Deck Builder"
                     }, void 0, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2214,
+                        lineNumber: 2481,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "header-buttons",
+                        className: `header-buttons ${isInfoBarSticky ? 'hidden' : ''}`,
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                 className: "export-button",
-                                onClick: exportJSON,
-                                children: "Export JSON"
-                            }, void 0, false, {
+                                onClick: copyJSON,
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                        width: "20",
+                                        height: "20",
+                                        viewBox: "0 0 24 24",
+                                        fill: "none",
+                                        stroke: "currentColor",
+                                        strokeWidth: "2",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("rect", {
+                                                x: "9",
+                                                y: "9",
+                                                width: "13",
+                                                height: "13",
+                                                rx: "2",
+                                                ry: "2"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2486,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                                d: "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2487,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2485,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        children: "Copy JSON"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2489,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2217,
+                                lineNumber: 2484,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                 className: "export-button",
-                                onClick: copyJSON,
-                                children: "Copy JSON"
-                            }, void 0, false, {
+                                onClick: exportJSON,
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                        width: "20",
+                                        height: "20",
+                                        viewBox: "0 0 24 24",
+                                        fill: "none",
+                                        stroke: "currentColor",
+                                        strokeWidth: "2",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                                d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2493,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("polyline", {
+                                                points: "7 10 12 15 17 10"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2494,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("line", {
+                                                x1: "12",
+                                                y1: "15",
+                                                x2: "12",
+                                                y2: "3"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2495,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2492,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        children: "Download"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2497,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2220,
+                                lineNumber: 2491,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                 className: "export-button",
                                 onClick: exportDeckImage,
-                                children: "Deck Image"
-                            }, void 0, false, {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                        width: "20",
+                                        height: "20",
+                                        viewBox: "0 0 24 24",
+                                        fill: "none",
+                                        stroke: "currentColor",
+                                        strokeWidth: "2",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("rect", {
+                                                x: "3",
+                                                y: "3",
+                                                width: "18",
+                                                height: "18",
+                                                rx: "2",
+                                                ry: "2"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2501,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
+                                                cx: "8.5",
+                                                cy: "8.5",
+                                                r: "1.5"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2502,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("polyline", {
+                                                points: "21 15 16 10 5 21"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2503,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2500,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        children: "Deck Image"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2505,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2223,
+                                lineNumber: 2499,
                                 columnNumber: 11
+                            }, this),
+                            shareId && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "export-button",
+                                onClick: async ()=>{
+                                    try {
+                                        await navigator.clipboard.writeText(`${window.location.origin}/pool/${shareId}`);
+                                        setErrorMessage('Share URL copied to clipboard!');
+                                        setMessageType('success');
+                                        setTimeout(()=>{
+                                            setErrorMessage(null);
+                                            setMessageType(null);
+                                        }, 3000);
+                                    } catch (err) {
+                                        setErrorMessage('Failed to copy to clipboard');
+                                        setMessageType('error');
+                                        setTimeout(()=>{
+                                            setErrorMessage(null);
+                                            setMessageType(null);
+                                        }, 3000);
+                                    }
+                                },
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                        width: "20",
+                                        height: "20",
+                                        viewBox: "0 0 24 24",
+                                        fill: "none",
+                                        stroke: "currentColor",
+                                        strokeWidth: "2",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                                d: "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2530,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                                d: "M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2531,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2529,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        children: "Share URL"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2533,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                lineNumber: 2508,
+                                columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2216,
+                        lineNumber: 2483,
                         columnNumber: 9
                     }, this),
                     errorMessage && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "error-message",
                         style: {
                             marginTop: '1rem',
-                            padding: '0.75rem',
-                            background: messageType === 'error' ? 'rgba(255, 0, 0, 0.2)' : 'rgba(0, 100, 255, 0.2)',
-                            border: messageType === 'error' ? '1px solid #ff0000' : '1px solid #0066ff',
+                            marginLeft: 'auto',
+                            marginRight: 'auto',
+                            padding: '0.5rem 1rem',
+                            background: messageType === 'error' ? 'rgba(255, 0, 0, 0.2)' : errorMessage.includes('Generating') ? 'rgba(138, 43, 226, 0.2)' : 'rgba(0, 100, 255, 0.2)',
+                            border: messageType === 'error' ? '1px solid #ff0000' : errorMessage.includes('Generating') ? '1px solid #8a2be2' : '1px solid #0066ff',
                             borderRadius: '4px',
-                            color: messageType === 'error' ? '#ffcccc' : '#cce5ff'
+                            color: messageType === 'error' ? '#ffcccc' : errorMessage.includes('Generating') ? '#dda0dd' : '#cce5ff',
+                            width: 'fit-content',
+                            fontSize: '0.875rem'
                         },
                         children: errorMessage
                     }, void 0, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2228,
+                        lineNumber: 2538,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                lineNumber: 2210,
+                lineNumber: 2477,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5365,10 +6125,39 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             style: {
                                                 color: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$aspectColors$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getAspectColor"])(cardPositions[activeLeader].card)
                                             },
+                                            onMouseEnter: (e)=>{
+                                                if (isInfoBarSticky) {
+                                                    handleCardMouseEnter(cardPositions[activeLeader].card, e);
+                                                }
+                                            },
+                                            onMouseLeave: ()=>{
+                                                if (isInfoBarSticky) {
+                                                    handleCardMouseLeave();
+                                                }
+                                            },
+                                            onTouchStart: (e)=>{
+                                                if (isInfoBarSticky) {
+                                                    longPressTimeoutRef.current = setTimeout(()=>{
+                                                        handleCardMouseEnter(cardPositions[activeLeader].card, e);
+                                                    }, 500);
+                                                }
+                                            },
+                                            onTouchEnd: ()=>{
+                                                if (longPressTimeoutRef.current) {
+                                                    clearTimeout(longPressTimeoutRef.current);
+                                                    longPressTimeoutRef.current = null;
+                                                }
+                                            },
+                                            onTouchCancel: ()=>{
+                                                if (longPressTimeoutRef.current) {
+                                                    clearTimeout(longPressTimeoutRef.current);
+                                                    longPressTimeoutRef.current = null;
+                                                }
+                                            },
                                             children: cardPositions[activeLeader].card.name
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 2272,
+                                            lineNumber: 2586,
                                             columnNumber: 17
                                         }, this),
                                         cardPositions[activeLeader].card.subtitle && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5376,7 +6165,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             children: cardPositions[activeLeader].card.subtitle
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 2279,
+                                            lineNumber: 2622,
                                             columnNumber: 19
                                         }, this)
                                     ]
@@ -5385,19 +6174,19 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     children: "(Select a Leader)"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2283,
+                                    lineNumber: 2626,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2244,
+                                lineNumber: 2558,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                 className: "separator"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2286,
+                                lineNumber: 2629,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5434,28 +6223,57 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     style: {
                                         color: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$aspectColors$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getAspectColor"])(cardPositions[activeBase].card)
                                     },
+                                    onMouseEnter: (e)=>{
+                                        if (isInfoBarSticky) {
+                                            handleCardMouseEnter(cardPositions[activeBase].card, e);
+                                        }
+                                    },
+                                    onMouseLeave: ()=>{
+                                        if (isInfoBarSticky) {
+                                            handleCardMouseLeave();
+                                        }
+                                    },
+                                    onTouchStart: (e)=>{
+                                        if (isInfoBarSticky) {
+                                            longPressTimeoutRef.current = setTimeout(()=>{
+                                                handleCardMouseEnter(cardPositions[activeBase].card, e);
+                                            }, 500);
+                                        }
+                                    },
+                                    onTouchEnd: ()=>{
+                                        if (longPressTimeoutRef.current) {
+                                            clearTimeout(longPressTimeoutRef.current);
+                                            longPressTimeoutRef.current = null;
+                                        }
+                                    },
+                                    onTouchCancel: ()=>{
+                                        if (longPressTimeoutRef.current) {
+                                            clearTimeout(longPressTimeoutRef.current);
+                                            longPressTimeoutRef.current = null;
+                                        }
+                                    },
                                     children: cardPositions[activeBase].card.name
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2314,
+                                    lineNumber: 2657,
                                     columnNumber: 15
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                     className: "selected-card-name",
                                     children: "(Select a Base)"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2321,
+                                    lineNumber: 2693,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2287,
+                                lineNumber: 2630,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2243,
+                        lineNumber: 2557,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5510,21 +6328,21 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                         })()
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 2352,
+                                        lineNumber: 2724,
                                         columnNumber: 21
                                     }, this),
                                     "/30)"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2326,
+                                lineNumber: 2698,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                 className: "separator"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2366,
+                                lineNumber: 2738,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5566,19 +6384,258 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2367,
+                                lineNumber: 2739,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2325,
+                        lineNumber: 2697,
                         columnNumber: 9
+                    }, this),
+                    isInfoBarSticky && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "header-buttons-in-nav",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "export-button-icon",
+                                onClick: copyJSON,
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                        width: "20",
+                                        height: "20",
+                                        viewBox: "0 0 24 24",
+                                        fill: "none",
+                                        stroke: "currentColor",
+                                        strokeWidth: "2",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("rect", {
+                                                x: "9",
+                                                y: "9",
+                                                width: "13",
+                                                height: "13",
+                                                rx: "2",
+                                                ry: "2"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2776,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                                d: "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2777,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2775,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        className: "button-tooltip",
+                                        children: "Copy JSON"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2779,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                lineNumber: 2774,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "export-button-icon",
+                                onClick: exportJSON,
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                        width: "20",
+                                        height: "20",
+                                        viewBox: "0 0 24 24",
+                                        fill: "none",
+                                        stroke: "currentColor",
+                                        strokeWidth: "2",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                                d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2783,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("polyline", {
+                                                points: "7 10 12 15 17 10"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2784,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("line", {
+                                                x1: "12",
+                                                y1: "15",
+                                                x2: "12",
+                                                y2: "3"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2785,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2782,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        className: "button-tooltip",
+                                        children: "Download"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2787,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                lineNumber: 2781,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "export-button-icon",
+                                onClick: exportDeckImage,
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                        width: "20",
+                                        height: "20",
+                                        viewBox: "0 0 24 24",
+                                        fill: "none",
+                                        stroke: "currentColor",
+                                        strokeWidth: "2",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("rect", {
+                                                x: "3",
+                                                y: "3",
+                                                width: "18",
+                                                height: "18",
+                                                rx: "2",
+                                                ry: "2"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2791,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
+                                                cx: "8.5",
+                                                cy: "8.5",
+                                                r: "1.5"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2792,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("polyline", {
+                                                points: "21 15 16 10 5 21"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2793,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2790,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        className: "button-tooltip",
+                                        children: "Deck Image"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2795,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                lineNumber: 2789,
+                                columnNumber: 13
+                            }, this),
+                            shareId && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "export-button-icon",
+                                onClick: async ()=>{
+                                    try {
+                                        await navigator.clipboard.writeText(`${window.location.origin}/pool/${shareId}`);
+                                        setErrorMessage('Share URL copied to clipboard!');
+                                        setMessageType('success');
+                                        setTimeout(()=>{
+                                            setErrorMessage(null);
+                                            setMessageType(null);
+                                        }, 3000);
+                                    } catch (err) {
+                                        setErrorMessage('Failed to copy to clipboard');
+                                        setMessageType('error');
+                                        setTimeout(()=>{
+                                            setErrorMessage(null);
+                                            setMessageType(null);
+                                        }, 3000);
+                                    }
+                                },
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                        width: "20",
+                                        height: "20",
+                                        viewBox: "0 0 24 24",
+                                        fill: "none",
+                                        stroke: "currentColor",
+                                        strokeWidth: "2",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                                d: "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2820,
+                                                columnNumber: 19
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                                d: "M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                                lineNumber: 2821,
+                                                columnNumber: 19
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2819,
+                                        columnNumber: 17
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        className: "button-tooltip",
+                                        children: "Share URL"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                                        lineNumber: 2823,
+                                        columnNumber: 17
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/components/DeckBuilder.jsx",
+                                lineNumber: 2798,
+                                columnNumber: 15
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/DeckBuilder.jsx",
+                        lineNumber: 2773,
+                        columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                lineNumber: 2242,
+                lineNumber: 2556,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5604,7 +6661,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     fill: "currentColor"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2411,
+                                    lineNumber: 2839,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("rect", {
@@ -5615,7 +6672,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     fill: "currentColor"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2412,
+                                    lineNumber: 2840,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("rect", {
@@ -5626,7 +6683,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     fill: "currentColor"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2413,
+                                    lineNumber: 2841,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("rect", {
@@ -5637,13 +6694,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     fill: "currentColor"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2414,
+                                    lineNumber: 2842,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 2410,
+                            lineNumber: 2838,
                             columnNumber: 13
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
                             width: "20",
@@ -5659,7 +6716,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     fill: "none"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2418,
+                                    lineNumber: 2846,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
@@ -5669,7 +6726,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     fill: "none"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2419,
+                                    lineNumber: 2847,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
@@ -5679,7 +6736,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     fill: "none"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2420,
+                                    lineNumber: 2848,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
@@ -5689,18 +6746,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     fill: "none"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2421,
+                                    lineNumber: 2849,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 2417,
+                            lineNumber: 2845,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2403,
+                        lineNumber: 2831,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5721,17 +6778,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 strokeLinecap: "round"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2432,
+                                lineNumber: 2860,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 2431,
+                            lineNumber: 2859,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2425,
+                        lineNumber: 2853,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5773,7 +6830,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     }
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2453,
+                                    lineNumber: 2881,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5790,13 +6847,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     children: "3"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 2458,
+                                    lineNumber: 2886,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 2452,
+                            lineNumber: 2880,
                             columnNumber: 13
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                             src: "/icons/heroism.png",
@@ -5808,18 +6865,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             }
                         }, void 0, false, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 2472,
+                            lineNumber: 2900,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2435,
+                        lineNumber: 2863,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                lineNumber: 2402,
+                lineNumber: 2830,
                 columnNumber: 7
             }, this),
             filterDrawerOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -5838,7 +6895,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                         }
                     }, void 0, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2483,
+                        lineNumber: 2911,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5852,7 +6909,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                         children: "Filters"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 2498,
+                                        lineNumber: 2926,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5860,13 +6917,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                         children: "×"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 2499,
+                                        lineNumber: 2927,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2497,
+                                lineNumber: 2925,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5876,7 +6933,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                         children: "Aspects"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 2502,
+                                        lineNumber: 2930,
                                         columnNumber: 13
                                     }, this),
                                     ASPECTS.map((aspect, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -5937,7 +6994,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                     }
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                    lineNumber: 2509,
+                                                    lineNumber: 2937,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -5952,13 +7009,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                    lineNumber: 2560,
+                                                    lineNumber: 2988,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, aspect, true, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 2504,
+                                            lineNumber: 2932,
                                             columnNumber: 15
                                         }, this)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -6016,32 +7073,32 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                 }
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                lineNumber: 2567,
+                                                lineNumber: 2995,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: NO_ASPECT_LABEL
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                lineNumber: 2616,
+                                                lineNumber: 3044,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, NO_ASPECT_LABEL, true, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 2566,
+                                        lineNumber: 2994,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2501,
+                                lineNumber: 2929,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2496,
+                        lineNumber: 2924,
                         columnNumber: 11
                     }, this)
                 ]
@@ -6076,20 +7133,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 children: leadersExpanded && basesExpanded ? '▼' : '▶'
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2650,
+                                lineNumber: 3078,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                 children: "Leaders & Bases"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2651,
+                                lineNumber: 3079,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2628,
+                        lineNumber: 3056,
                         columnNumber: 11
                     }, this),
                     leadersExpanded && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6112,12 +7169,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 2667,
+                                            lineNumber: 3095,
                                             columnNumber: 21
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 2666,
+                                        lineNumber: 3094,
                                         columnNumber: 19
                                     }, this),
                                     leadersExpanded && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6155,7 +7212,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                             draggable: false
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 2700,
+                                                            lineNumber: 3128,
                                                             columnNumber: 33
                                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                             className: "card-placeholder",
@@ -6165,7 +7222,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     children: card.name || 'Card'
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 2708,
+                                                                    lineNumber: 3136,
                                                                     columnNumber: 35
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6176,13 +7233,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     children: card.rarity
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 2709,
+                                                                    lineNumber: 3137,
                                                                     columnNumber: 35
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 2707,
+                                                            lineNumber: 3135,
                                                             columnNumber: 33
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6192,41 +7249,41 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                 children: "Showcase"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 2715,
+                                                                lineNumber: 3143,
                                                                 columnNumber: 53
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 2714,
+                                                            lineNumber: 3142,
                                                             columnNumber: 31
                                                         }, this)
                                                     ]
                                                 }, cardId, true, {
                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                    lineNumber: 2679,
+                                                    lineNumber: 3107,
                                                     columnNumber: 29
                                                 }, this);
                                             })
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 2671,
+                                            lineNumber: 3099,
                                             columnNumber: 23
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 2670,
+                                        lineNumber: 3098,
                                         columnNumber: 21
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2665,
+                                lineNumber: 3093,
                                 columnNumber: 17
                             }, this) : null;
                         })()
                     }, void 0, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2656,
+                        lineNumber: 3084,
                         columnNumber: 13
                     }, this),
                     basesExpanded && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6261,12 +7318,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 2755,
+                                            lineNumber: 3183,
                                             columnNumber: 21
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 2754,
+                                        lineNumber: 3182,
                                         columnNumber: 19
                                     }, this),
                                     basesExpanded && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6304,7 +7361,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                             draggable: false
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 2788,
+                                                            lineNumber: 3216,
                                                             columnNumber: 33
                                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                             className: "card-placeholder",
@@ -6314,7 +7371,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     children: card.name || 'Card'
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 2796,
+                                                                    lineNumber: 3224,
                                                                     columnNumber: 35
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6325,13 +7382,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     children: card.rarity
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 2797,
+                                                                    lineNumber: 3225,
                                                                     columnNumber: 35
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 2795,
+                                                            lineNumber: 3223,
                                                             columnNumber: 33
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6341,41 +7398,41 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                 children: "Showcase"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 2803,
+                                                                lineNumber: 3231,
                                                                 columnNumber: 53
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 2802,
+                                                            lineNumber: 3230,
                                                             columnNumber: 31
                                                         }, this)
                                                     ]
                                                 }, cardId, true, {
                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                    lineNumber: 2767,
+                                                    lineNumber: 3195,
                                                     columnNumber: 29
                                                 }, this);
                                             })
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 2759,
+                                            lineNumber: 3187,
                                             columnNumber: 23
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 2758,
+                                        lineNumber: 3186,
                                         columnNumber: 21
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2753,
+                                lineNumber: 3181,
                                 columnNumber: 17
                             }, this) : null;
                         })()
                     }, void 0, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2731,
+                        lineNumber: 3159,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6402,7 +7459,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 children: deckExpanded ? '▼' : '▶'
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2838,
+                                lineNumber: 3266,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -6413,7 +7470,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2839,
+                                lineNumber: 3267,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -6474,13 +7531,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 })()
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 2841,
+                                lineNumber: 3269,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2818,
+                        lineNumber: 3246,
                         columnNumber: 11
                     }, this),
                     deckExpanded && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6571,7 +7628,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 2964,
+                                                                lineNumber: 3392,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -6588,13 +7645,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                 children: costSegment
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 2969,
+                                                                lineNumber: 3397,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 2963,
+                                                        lineNumber: 3391,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -6605,13 +7662,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 2982,
+                                                        lineNumber: 3410,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                lineNumber: 2962,
+                                                lineNumber: 3390,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6670,7 +7727,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                             draggable: false
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 3035,
+                                                                            lineNumber: 3463,
                                                                             columnNumber: 35
                                                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                             className: "card-placeholder",
@@ -6680,7 +7737,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                     children: card.name || 'Card'
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                    lineNumber: 3043,
+                                                                                    lineNumber: 3471,
                                                                                     columnNumber: 37
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6691,13 +7748,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                     children: card.rarity
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                    lineNumber: 3044,
+                                                                                    lineNumber: 3472,
                                                                                     columnNumber: 37
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 3042,
+                                                                            lineNumber: 3470,
                                                                             columnNumber: 35
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6707,36 +7764,36 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                 children: "Showcase"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                lineNumber: 3050,
+                                                                                lineNumber: 3478,
                                                                                 columnNumber: 55
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 3049,
+                                                                            lineNumber: 3477,
                                                                             columnNumber: 33
                                                                         }, this)
                                                                     ]
                                                                 }, cardId, true, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 2996,
+                                                                    lineNumber: 3424,
                                                                     columnNumber: 31
                                                                 }, this);
                                                             }));
                                                     })()
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                    lineNumber: 2985,
+                                                    lineNumber: 3413,
                                                     columnNumber: 23
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                lineNumber: 2984,
+                                                lineNumber: 3412,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, `cost-${costSegment}`, true, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 2958,
+                                        lineNumber: 3386,
                                         columnNumber: 17
                                     }, this);
                                     if (sortedCards.length > 0) {
@@ -6753,7 +7810,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             children: blocksEmpty
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 3072,
+                                            lineNumber: 3500,
                                             columnNumber: 19
                                         }, this)
                                     ]
@@ -6848,7 +7905,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3148,
+                                                        lineNumber: 3576,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -6880,13 +7937,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         children: sortedCards.length === 0 ? 'ADD ALL' : 'Remove All'
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3149,
+                                                        lineNumber: 3577,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                lineNumber: 3146,
+                                                lineNumber: 3574,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -6913,7 +7970,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: `UNITS (${unitsCards.length})`
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3188,
+                                                                        lineNumber: 3616,
                                                                         columnNumber: 29
                                                                     }, this),
                                                                     (()=>{
@@ -6942,14 +7999,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                             children: subtitleParts.join(', ')
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 3215,
+                                                                            lineNumber: 3643,
                                                                             columnNumber: 33
                                                                         }, this) : null;
                                                                     })()
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3181,
+                                                                lineNumber: 3609,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7005,7 +8062,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         draggable: false
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 3275,
+                                                                                        lineNumber: 3703,
                                                                                         columnNumber: 39
                                                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                                         className: "card-placeholder",
@@ -7015,7 +8072,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                 children: card.name || 'Card'
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 3283,
+                                                                                                lineNumber: 3711,
                                                                                                 columnNumber: 41
                                                                                             }, this),
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7026,13 +8083,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                 children: card.rarity
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 3284,
+                                                                                                lineNumber: 3712,
                                                                                                 columnNumber: 41
                                                                                             }, this)
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 3282,
+                                                                                        lineNumber: 3710,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7042,31 +8099,31 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                             children: "Showcase"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 3290,
+                                                                                            lineNumber: 3718,
                                                                                             columnNumber: 59
                                                                                         }, this)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 3289,
+                                                                                        lineNumber: 3717,
                                                                                         columnNumber: 37
                                                                                     }, this)
                                                                                 ]
                                                                             }, cardId, true, {
                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                lineNumber: 3237,
+                                                                                lineNumber: 3665,
                                                                                 columnNumber: 35
                                                                             }, this);
                                                                         }));
                                                                 })()
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3226,
+                                                                lineNumber: 3654,
                                                                 columnNumber: 27
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3180,
+                                                        lineNumber: 3608,
                                                         columnNumber: 25
                                                     }, this),
                                                     upgradesCards.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7077,7 +8134,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3304,
+                                                                lineNumber: 3732,
                                                                 columnNumber: 29
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7095,12 +8152,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     children: `UPGRADES (${upgradesCards.length})`
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 3310,
+                                                                    lineNumber: 3738,
                                                                     columnNumber: 29
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3306,
+                                                                lineNumber: 3734,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7156,7 +8213,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         draggable: false
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 3368,
+                                                                                        lineNumber: 3796,
                                                                                         columnNumber: 39
                                                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                                         className: "card-placeholder",
@@ -7166,7 +8223,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                 children: card.name || 'Card'
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 3376,
+                                                                                                lineNumber: 3804,
                                                                                                 columnNumber: 41
                                                                                             }, this),
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7177,13 +8234,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                 children: card.rarity
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 3377,
+                                                                                                lineNumber: 3805,
                                                                                                 columnNumber: 41
                                                                                             }, this)
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 3375,
+                                                                                        lineNumber: 3803,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7193,31 +8250,31 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                             children: "Showcase"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 3383,
+                                                                                            lineNumber: 3811,
                                                                                             columnNumber: 59
                                                                                         }, this)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 3382,
+                                                                                        lineNumber: 3810,
                                                                                         columnNumber: 37
                                                                                     }, this)
                                                                                 ]
                                                                             }, cardId, true, {
                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                lineNumber: 3330,
+                                                                                lineNumber: 3758,
                                                                                 columnNumber: 35
                                                                             }, this);
                                                                         }));
                                                                 })()
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3319,
+                                                                lineNumber: 3747,
                                                                 columnNumber: 27
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3302,
+                                                        lineNumber: 3730,
                                                         columnNumber: 25
                                                     }, this),
                                                     eventsCards.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7228,7 +8285,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3397,
+                                                                lineNumber: 3825,
                                                                 columnNumber: 29
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7246,12 +8303,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     children: `EVENTS (${eventsCards.length})`
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 3403,
+                                                                    lineNumber: 3831,
                                                                     columnNumber: 29
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3399,
+                                                                lineNumber: 3827,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7307,7 +8364,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         draggable: false
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 3461,
+                                                                                        lineNumber: 3889,
                                                                                         columnNumber: 39
                                                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                                         className: "card-placeholder",
@@ -7317,7 +8374,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                 children: card.name || 'Card'
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 3469,
+                                                                                                lineNumber: 3897,
                                                                                                 columnNumber: 41
                                                                                             }, this),
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7328,13 +8385,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                 children: card.rarity
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 3470,
+                                                                                                lineNumber: 3898,
                                                                                                 columnNumber: 41
                                                                                             }, this)
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 3468,
+                                                                                        lineNumber: 3896,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7344,43 +8401,43 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                             children: "Showcase"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 3476,
+                                                                                            lineNumber: 3904,
                                                                                             columnNumber: 59
                                                                                         }, this)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 3475,
+                                                                                        lineNumber: 3903,
                                                                                         columnNumber: 37
                                                                                     }, this)
                                                                                 ]
                                                                             }, cardId, true, {
                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                lineNumber: 3423,
+                                                                                lineNumber: 3851,
                                                                                 columnNumber: 35
                                                                             }, this);
                                                                         }));
                                                                 })()
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3412,
+                                                                lineNumber: 3840,
                                                                 columnNumber: 27
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3395,
+                                                        lineNumber: 3823,
                                                         columnNumber: 25
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                lineNumber: 3177,
+                                                lineNumber: 3605,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, aspectKey, true, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 3142,
+                                        lineNumber: 3570,
                                         columnNumber: 17
                                     }, this);
                                     if (sortedCards.length > 0) {
@@ -7397,7 +8454,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             children: blocksEmpty
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 3500,
+                                            lineNumber: 3928,
                                             columnNumber: 19
                                         }, this)
                                     ]
@@ -7406,7 +8463,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                         })()
                     }, void 0, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 2903,
+                        lineNumber: 3331,
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7433,7 +8490,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 children: sideboardExpanded ? '▼' : '▶'
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 3532,
+                                lineNumber: 3960,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -7444,13 +8501,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 3533,
+                                lineNumber: 3961,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 3512,
+                        lineNumber: 3940,
                         columnNumber: 11
                     }, this),
                     (()=>{
@@ -7521,7 +8578,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                 draggable: false
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3609,
+                                                                lineNumber: 4037,
                                                                 columnNumber: 21
                                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                                 className: "card-placeholder",
@@ -7531,7 +8588,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: card.name || 'Card'
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3617,
+                                                                        lineNumber: 4045,
                                                                         columnNumber: 23
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7542,13 +8599,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: card.rarity
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3618,
+                                                                        lineNumber: 4046,
                                                                         columnNumber: 23
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3616,
+                                                                lineNumber: 4044,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7558,47 +8615,47 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     children: "Showcase"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 3624,
+                                                                    lineNumber: 4052,
                                                                     columnNumber: 41
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3623,
+                                                                lineNumber: 4051,
                                                                 columnNumber: 19
                                                             }, this)
                                                         ]
                                                     }, cardId, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3571,
+                                                        lineNumber: 3999,
                                                         columnNumber: 17
                                                     }, this);
                                                 }));
                                         })()
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                        lineNumber: 3554,
+                                        lineNumber: 3982,
                                         columnNumber: 23
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 3553,
+                                    lineNumber: 3981,
                                     columnNumber: 21
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 3552,
+                                lineNumber: 3980,
                                 columnNumber: 19
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 3550,
+                            lineNumber: 3978,
                             columnNumber: 15
                         }, this);
                     })()
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                lineNumber: 2626,
+                lineNumber: 3054,
                 columnNumber: 9
             }, this),
             viewMode === 'list' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7645,7 +8702,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             children: leadersExpanded ? '▼' : '▶'
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 3667,
+                                            lineNumber: 4095,
                                             columnNumber: 19
                                         }, this),
                                         "Leaders (",
@@ -7654,7 +8711,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 3662,
+                                    lineNumber: 4090,
                                     columnNumber: 17
                                 }, this),
                                 leadersExpanded && leaderPositions.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("table", {
@@ -7673,12 +8730,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                             disabled: true
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3675,
+                                                            lineNumber: 4103,
                                                             columnNumber: 25
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3674,
+                                                        lineNumber: 4102,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -7690,7 +8747,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3677,
+                                                        lineNumber: 4105,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -7702,7 +8759,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3680,
+                                                        lineNumber: 4108,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -7714,7 +8771,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3683,
+                                                        lineNumber: 4111,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -7726,18 +8783,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3686,
+                                                        lineNumber: 4114,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                lineNumber: 3673,
+                                                lineNumber: 4101,
                                                 columnNumber: 21
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 3672,
+                                            lineNumber: 4100,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("tbody", {
@@ -7749,7 +8806,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         children: symbol
                                                     }, i, false, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3696,
+                                                        lineNumber: 4124,
                                                         columnNumber: 45
                                                     }, this) : null;
                                                 }).filter(Boolean) : null;
@@ -7778,12 +8835,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3713,
+                                                                lineNumber: 4141,
                                                                 columnNumber: 29
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3712,
+                                                            lineNumber: 4140,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -7803,7 +8860,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: card.name || 'Unknown'
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3728,
+                                                                        lineNumber: 4156,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     card.subtitle && !card.isBase && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7811,18 +8868,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: card.subtitle
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3740,
+                                                                        lineNumber: 4168,
                                                                         columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3727,
+                                                                lineNumber: 4155,
                                                                 columnNumber: 29
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3726,
+                                                            lineNumber: 4154,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -7844,7 +8901,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         }
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3747,
+                                                                        lineNumber: 4175,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -7861,18 +8918,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: card.cost
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3752,
+                                                                        lineNumber: 4180,
                                                                         columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3746,
+                                                                lineNumber: 4174,
                                                                 columnNumber: 31
                                                             }, this) : '-'
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3744,
+                                                            lineNumber: 4172,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -7881,12 +8938,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                 children: "Neutral"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3768,
+                                                                lineNumber: 4196,
                                                                 columnNumber: 90
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3767,
+                                                            lineNumber: 4195,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -7896,31 +8953,31 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                             children: card.rarity || 'Unknown'
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3770,
+                                                            lineNumber: 4198,
                                                             columnNumber: 27
                                                         }, this)
                                                     ]
                                                 }, `leader-${cardId}-${idx}`, true, {
                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                    lineNumber: 3701,
+                                                    lineNumber: 4129,
                                                     columnNumber: 25
                                                 }, this);
                                             })
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 3691,
+                                            lineNumber: 4119,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 3671,
+                                    lineNumber: 4099,
                                     columnNumber: 19
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 3661,
+                            lineNumber: 4089,
                             columnNumber: 15
                         }, this);
                     })(),
@@ -7962,7 +9019,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             children: basesExpanded ? '▼' : '▶'
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 3805,
+                                            lineNumber: 4233,
                                             columnNumber: 19
                                         }, this),
                                         "Bases (",
@@ -7971,7 +9028,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 3800,
+                                    lineNumber: 4228,
                                     columnNumber: 17
                                 }, this),
                                 basesExpanded && basePositions.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("table", {
@@ -7990,12 +9047,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                             disabled: true
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3813,
+                                                            lineNumber: 4241,
                                                             columnNumber: 25
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3812,
+                                                        lineNumber: 4240,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8007,7 +9064,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3815,
+                                                        lineNumber: 4243,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8019,7 +9076,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3818,
+                                                        lineNumber: 4246,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8031,7 +9088,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3821,
+                                                        lineNumber: 4249,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8043,18 +9100,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3824,
+                                                        lineNumber: 4252,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                lineNumber: 3811,
+                                                lineNumber: 4239,
                                                 columnNumber: 21
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 3810,
+                                            lineNumber: 4238,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("tbody", {
@@ -8066,7 +9123,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                         children: symbol
                                                     }, i, false, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3834,
+                                                        lineNumber: 4262,
                                                         columnNumber: 45
                                                     }, this) : null;
                                                 }).filter(Boolean) : null;
@@ -8095,12 +9152,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3851,
+                                                                lineNumber: 4279,
                                                                 columnNumber: 29
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3850,
+                                                            lineNumber: 4278,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -8115,7 +9172,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: card.name || 'Unknown'
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3866,
+                                                                        lineNumber: 4294,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     card.subtitle && !card.isBase && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -8123,18 +9180,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: card.subtitle
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3873,
+                                                                        lineNumber: 4301,
                                                                         columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3865,
+                                                                lineNumber: 4293,
                                                                 columnNumber: 29
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3864,
+                                                            lineNumber: 4292,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -8156,7 +9213,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         }
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3880,
+                                                                        lineNumber: 4308,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8173,18 +9230,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: card.cost
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3885,
+                                                                        lineNumber: 4313,
                                                                         columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3879,
+                                                                lineNumber: 4307,
                                                                 columnNumber: 31
                                                             }, this) : '-'
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3877,
+                                                            lineNumber: 4305,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -8193,12 +9250,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                 children: "Neutral"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3901,
+                                                                lineNumber: 4329,
                                                                 columnNumber: 90
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3900,
+                                                            lineNumber: 4328,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -8208,31 +9265,31 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                             children: card.rarity || 'Unknown'
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 3903,
+                                                            lineNumber: 4331,
                                                             columnNumber: 27
                                                         }, this)
                                                     ]
                                                 }, `base-${cardId}-${idx}`, true, {
                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                    lineNumber: 3839,
+                                                    lineNumber: 4267,
                                                     columnNumber: 25
                                                 }, this);
                                             })
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 3829,
+                                            lineNumber: 4257,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 3809,
+                                    lineNumber: 4237,
                                     columnNumber: 19
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 3799,
+                            lineNumber: 4227,
                             columnNumber: 15
                         }, this);
                     })(),
@@ -8254,7 +9311,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     children: "Pool"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 3927,
+                                    lineNumber: 4355,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -8272,7 +9329,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 3931,
+                                            lineNumber: 4359,
                                             columnNumber: 19
                                         }, this),
                                         deckCardPositions.length > 0 && (()=>{
@@ -8363,7 +9420,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: isExpanded ? '▼' : '▶'
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3996,
+                                                                        lineNumber: 4424,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -8384,7 +9441,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                 }
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                lineNumber: 3998,
+                                                                                lineNumber: 4426,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8401,13 +9458,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                 children: costSegment
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                lineNumber: 4003,
+                                                                                lineNumber: 4431,
                                                                                 columnNumber: 35
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 3997,
+                                                                        lineNumber: 4425,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8418,13 +9475,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 4016,
+                                                                        lineNumber: 4444,
                                                                         columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 3991,
+                                                                lineNumber: 4419,
                                                                 columnNumber: 31
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -8460,12 +9517,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                             }
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4023,
+                                                                                            lineNumber: 4451,
                                                                                             columnNumber: 41
                                                                                         }, this)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4022,
+                                                                                        lineNumber: 4450,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8477,7 +9534,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4044,
+                                                                                        lineNumber: 4472,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8489,7 +9546,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4047,
+                                                                                        lineNumber: 4475,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8501,7 +9558,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4050,
+                                                                                        lineNumber: 4478,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8513,7 +9570,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4053,
+                                                                                        lineNumber: 4481,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8525,18 +9582,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4056,
+                                                                                        lineNumber: 4484,
                                                                                         columnNumber: 39
                                                                                     }, this)
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                lineNumber: 4021,
+                                                                                lineNumber: 4449,
                                                                                 columnNumber: 37
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 4020,
+                                                                            lineNumber: 4448,
                                                                             columnNumber: 35
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("tbody", {
@@ -8548,7 +9605,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         children: symbol
                                                                                     }, i, false, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4066,
+                                                                                        lineNumber: 4494,
                                                                                         columnNumber: 61
                                                                                     }, this) : null;
                                                                                 }).filter(Boolean) : null;
@@ -8570,12 +9627,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                 }
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 4074,
+                                                                                                lineNumber: 4502,
                                                                                                 columnNumber: 45
                                                                                             }, this)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4073,
+                                                                                            lineNumber: 4501,
                                                                                             columnNumber: 43
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -8600,7 +9657,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                         children: card.name || 'Unknown'
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                        lineNumber: 4087,
+                                                                                                        lineNumber: 4515,
                                                                                                         columnNumber: 47
                                                                                                     }, this),
                                                                                                     card.subtitle && !card.isBase && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -8608,25 +9665,25 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                         children: card.subtitle
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                        lineNumber: 4106,
+                                                                                                        lineNumber: 4534,
                                                                                                         columnNumber: 49
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 4086,
+                                                                                                lineNumber: 4514,
                                                                                                 columnNumber: 45
                                                                                             }, this)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4085,
+                                                                                            lineNumber: 4513,
                                                                                             columnNumber: 43
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
                                                                                             children: getFormattedType(card)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4110,
+                                                                                            lineNumber: 4538,
                                                                                             columnNumber: 43
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -8648,7 +9705,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                         }
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                        lineNumber: 4116,
+                                                                                                        lineNumber: 4544,
                                                                                                         columnNumber: 49
                                                                                                     }, this),
                                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8665,18 +9722,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                         children: card.cost
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                        lineNumber: 4121,
+                                                                                                        lineNumber: 4549,
                                                                                                         columnNumber: 49
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 4115,
+                                                                                                lineNumber: 4543,
                                                                                                 columnNumber: 47
                                                                                             }, this) : '-'
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4113,
+                                                                                            lineNumber: 4541,
                                                                                             columnNumber: 43
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -8685,12 +9742,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                 children: "Neutral"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 4137,
+                                                                                                lineNumber: 4565,
                                                                                                 columnNumber: 106
                                                                                             }, this)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4136,
+                                                                                            lineNumber: 4564,
                                                                                             columnNumber: 43
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -8700,36 +9757,36 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                             children: card.rarity || 'Unknown'
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4139,
+                                                                                            lineNumber: 4567,
                                                                                             columnNumber: 43
                                                                                         }, this)
                                                                                     ]
                                                                                 }, `deck-cost-${costSegment}-${cardId}-${idx}`, true, {
                                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                    lineNumber: 4070,
+                                                                                    lineNumber: 4498,
                                                                                     columnNumber: 41
                                                                                 }, this);
                                                                             })
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 4061,
+                                                                            lineNumber: 4489,
                                                                             columnNumber: 35
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 4019,
+                                                                    lineNumber: 4447,
                                                                     columnNumber: 33
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 4018,
+                                                                lineNumber: 4446,
                                                                 columnNumber: 31
                                                             }, this)
                                                         ]
                                                     }, `cost-${costSegment}`, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 3990,
+                                                        lineNumber: 4418,
                                                         columnNumber: 29
                                                     }, this);
                                                 });
@@ -8825,7 +9882,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: isExpanded ? '▼' : '▶'
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 4210,
+                                                                        lineNumber: 4638,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     getAspectCombinationIcons(aspectKey),
@@ -8836,7 +9893,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: getAspectCombinationDisplayName(aspectKey)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 4212,
+                                                                        lineNumber: 4640,
                                                                         columnNumber: 33
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8847,13 +9904,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 4213,
+                                                                        lineNumber: 4641,
                                                                         columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 4205,
+                                                                lineNumber: 4633,
                                                                 columnNumber: 31
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -8906,12 +9963,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                             }
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4220,
+                                                                                            lineNumber: 4648,
                                                                                             columnNumber: 41
                                                                                         }, this)
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4219,
+                                                                                        lineNumber: 4647,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8923,7 +9980,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4264,
+                                                                                        lineNumber: 4692,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8935,7 +9992,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4267,
+                                                                                        lineNumber: 4695,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8947,7 +10004,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4270,
+                                                                                        lineNumber: 4698,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8959,7 +10016,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4273,
+                                                                                        lineNumber: 4701,
                                                                                         columnNumber: 39
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -8971,18 +10028,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4276,
+                                                                                        lineNumber: 4704,
                                                                                         columnNumber: 39
                                                                                     }, this)
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                lineNumber: 4218,
+                                                                                lineNumber: 4646,
                                                                                 columnNumber: 37
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 4217,
+                                                                            lineNumber: 4645,
                                                                             columnNumber: 35
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("tbody", {
@@ -8994,7 +10051,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                         children: symbol
                                                                                     }, i, false, {
                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                        lineNumber: 4286,
+                                                                                        lineNumber: 4714,
                                                                                         columnNumber: 61
                                                                                     }, this) : null;
                                                                                 }).filter(Boolean) : null;
@@ -9016,12 +10073,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                 }
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 4294,
+                                                                                                lineNumber: 4722,
                                                                                                 columnNumber: 45
                                                                                             }, this)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4293,
+                                                                                            lineNumber: 4721,
                                                                                             columnNumber: 43
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -9046,7 +10103,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                         children: card.name || 'Unknown'
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                        lineNumber: 4307,
+                                                                                                        lineNumber: 4735,
                                                                                                         columnNumber: 47
                                                                                                     }, this),
                                                                                                     card.subtitle && !card.isBase && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -9054,25 +10111,25 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                         children: card.subtitle
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                        lineNumber: 4326,
+                                                                                                        lineNumber: 4754,
                                                                                                         columnNumber: 49
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 4306,
+                                                                                                lineNumber: 4734,
                                                                                                 columnNumber: 45
                                                                                             }, this)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4305,
+                                                                                            lineNumber: 4733,
                                                                                             columnNumber: 43
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
                                                                                             children: getFormattedType(card)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4330,
+                                                                                            lineNumber: 4758,
                                                                                             columnNumber: 43
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -9094,7 +10151,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                         }
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                        lineNumber: 4336,
+                                                                                                        lineNumber: 4764,
                                                                                                         columnNumber: 49
                                                                                                     }, this),
                                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -9111,18 +10168,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                         children: card.cost
                                                                                                     }, void 0, false, {
                                                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                        lineNumber: 4341,
+                                                                                                        lineNumber: 4769,
                                                                                                         columnNumber: 49
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 4335,
+                                                                                                lineNumber: 4763,
                                                                                                 columnNumber: 47
                                                                                             }, this) : '-'
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4333,
+                                                                                            lineNumber: 4761,
                                                                                             columnNumber: 43
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -9131,12 +10188,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                                 children: "Neutral"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                                lineNumber: 4357,
+                                                                                                lineNumber: 4785,
                                                                                                 columnNumber: 106
                                                                                             }, this)
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4356,
+                                                                                            lineNumber: 4784,
                                                                                             columnNumber: 43
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -9146,36 +10203,36 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                             children: card.rarity || 'Unknown'
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                            lineNumber: 4359,
+                                                                                            lineNumber: 4787,
                                                                                             columnNumber: 43
                                                                                         }, this)
                                                                                     ]
                                                                                 }, `deck-${aspectKey}-${cardId}-${idx}`, true, {
                                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                    lineNumber: 4290,
+                                                                                    lineNumber: 4718,
                                                                                     columnNumber: 41
                                                                                 }, this);
                                                                             })
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 4281,
+                                                                            lineNumber: 4709,
                                                                             columnNumber: 35
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 4216,
+                                                                    lineNumber: 4644,
                                                                     columnNumber: 33
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 4215,
+                                                                lineNumber: 4643,
                                                                 columnNumber: 31
                                                             }, this)
                                                         ]
                                                     }, aspectKey, true, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 4204,
+                                                        lineNumber: 4632,
                                                         columnNumber: 29
                                                     }, this);
                                                 });
@@ -9184,7 +10241,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 3930,
+                                    lineNumber: 4358,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -9202,7 +10259,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 4375,
+                                            lineNumber: 4803,
                                             columnNumber: 19
                                         }, this),
                                         (()=>{
@@ -9250,12 +10307,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         }
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 4393,
+                                                                        lineNumber: 4821,
                                                                         columnNumber: 31
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 4392,
+                                                                    lineNumber: 4820,
                                                                     columnNumber: 29
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -9267,7 +10324,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 4414,
+                                                                    lineNumber: 4842,
                                                                     columnNumber: 29
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -9279,7 +10336,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 4417,
+                                                                    lineNumber: 4845,
                                                                     columnNumber: 29
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -9291,7 +10348,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 4420,
+                                                                    lineNumber: 4848,
                                                                     columnNumber: 29
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -9303,18 +10360,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 4423,
+                                                                    lineNumber: 4851,
                                                                     columnNumber: 29
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                            lineNumber: 4391,
+                                                            lineNumber: 4819,
                                                             columnNumber: 27
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 4390,
+                                                        lineNumber: 4818,
                                                         columnNumber: 25
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("tbody", {
@@ -9326,7 +10383,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                     children: symbol
                                                                 }, i, false, {
                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                    lineNumber: 4433,
+                                                                    lineNumber: 4861,
                                                                     columnNumber: 49
                                                                 }, this) : null;
                                                             }).filter(Boolean) : null;
@@ -9358,12 +10415,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                             }
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 4449,
+                                                                            lineNumber: 4877,
                                                                             columnNumber: 33
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 4448,
+                                                                        lineNumber: 4876,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -9383,7 +10440,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                     children: card.name || 'Unknown'
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                    lineNumber: 4462,
+                                                                                    lineNumber: 4890,
                                                                                     columnNumber: 35
                                                                                 }, this),
                                                                                 card.subtitle && !card.isBase && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -9391,18 +10448,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                     children: card.subtitle
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                    lineNumber: 4474,
+                                                                                    lineNumber: 4902,
                                                                                     columnNumber: 37
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 4461,
+                                                                            lineNumber: 4889,
                                                                             columnNumber: 33
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 4460,
+                                                                        lineNumber: 4888,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -9424,7 +10481,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                     }
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                    lineNumber: 4481,
+                                                                                    lineNumber: 4909,
                                                                                     columnNumber: 37
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -9441,18 +10498,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                                     children: card.cost
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                                    lineNumber: 4486,
+                                                                                    lineNumber: 4914,
                                                                                     columnNumber: 37
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 4480,
+                                                                            lineNumber: 4908,
                                                                             columnNumber: 35
                                                                         }, this) : '-'
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 4478,
+                                                                        lineNumber: 4906,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -9461,12 +10518,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                             children: "Neutral"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                            lineNumber: 4502,
+                                                                            lineNumber: 4930,
                                                                             columnNumber: 94
                                                                         }, this)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 4501,
+                                                                        lineNumber: 4929,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -9476,45 +10533,45 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                                                         children: card.rarity || 'Unknown'
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                        lineNumber: 4504,
+                                                                        lineNumber: 4932,
                                                                         columnNumber: 31
                                                                     }, this)
                                                                 ]
                                                             }, `sideboard-${cardId}-${idx}`, true, {
                                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                                lineNumber: 4437,
+                                                                lineNumber: 4865,
                                                                 columnNumber: 29
                                                             }, this);
                                                         })
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                        lineNumber: 4428,
+                                                        lineNumber: 4856,
                                                         columnNumber: 25
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                                lineNumber: 4389,
+                                                lineNumber: 4817,
                                                 columnNumber: 23
                                             }, this) : null;
                                         })()
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 4374,
+                                    lineNumber: 4802,
                                     columnNumber: 17
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 3926,
+                            lineNumber: 4354,
                             columnNumber: 15
                         }, this);
                     })()
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                lineNumber: 3642,
+                lineNumber: 4070,
                 columnNumber: 9
             }, this),
             selectedCard && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$CardModal$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -9522,14 +10579,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 onClose: ()=>setSelectedCard(null)
             }, void 0, false, {
                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                lineNumber: 4520,
+                lineNumber: 4948,
                 columnNumber: 9
             }, this),
             hoveredCardPreview && (()=>{
                 const card = hoveredCardPreview.card;
                 const hasBackImage = card.backImageUrl && card.isLeader;
                 const isHorizontal = card.isLeader || card.isBase;
-                const borderRadius = '18px' // Slightly smaller than 24px to reduce clipping
+                const borderRadius = '23px' // Slightly smaller than 24px to reduce clipping
                 ;
                 // Calculate dimensions
                 let previewWidth, previewHeight;
@@ -9562,18 +10619,21 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                         flexDirection: 'row',
                         gap: '20px'
                     },
+                    onMouseEnter: handlePreviewMouseEnter,
                     onMouseLeave: handlePreviewMouseLeave,
                     children: hasBackImage ? // Show both front (horizontal) and back (vertical) side by side for leaders
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : '',
                                 style: {
                                     width: '504px',
                                     height: '360px',
                                     overflow: 'hidden',
                                     borderRadius: borderRadius,
-                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
-                                    border: '2px solid rgba(255, 255, 255, 0.3)'
+                                    boxShadow: card.isFoil && (!card.isLeader || card.isShowcase) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
+                                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                                    position: 'relative'
                                 },
                                 children: card.imageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                     src: card.imageUrl,
@@ -9586,7 +10646,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     }
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 4578,
+                                    lineNumber: 5008,
                                     columnNumber: 21
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     style: {
@@ -9612,7 +10672,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 4600,
+                                            lineNumber: 5030,
                                             columnNumber: 23
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -9622,28 +10682,30 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             children: card.rarity
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 4603,
+                                            lineNumber: 5033,
                                             columnNumber: 23
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 4589,
+                                    lineNumber: 5019,
                                     columnNumber: 21
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 4569,
+                                lineNumber: 4998,
                                 columnNumber: 17
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : '',
                                 style: {
                                     width: '360px',
                                     height: '504px',
                                     overflow: 'hidden',
                                     borderRadius: borderRadius,
-                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
-                                    border: '2px solid rgba(255, 255, 255, 0.3)'
+                                    boxShadow: card.isFoil && (!card.isLeader || card.isShowcase) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
+                                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                                    position: 'relative'
                                 },
                                 children: card.backImageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                     src: card.backImageUrl,
@@ -9656,7 +10718,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     }
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 4619,
+                                    lineNumber: 5050,
                                     columnNumber: 21
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     style: {
@@ -9682,7 +10744,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 4641,
+                                            lineNumber: 5072,
                                             columnNumber: 23
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -9692,30 +10754,32 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                             children: card.rarity
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                                            lineNumber: 4644,
+                                            lineNumber: 5075,
                                             columnNumber: 23
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 4630,
+                                    lineNumber: 5061,
                                     columnNumber: 21
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 4610,
+                                lineNumber: 5040,
                                 columnNumber: 17
                             }, this)
                         ]
                     }, void 0, true) : // Single card (non-leader, base, or leader without back)
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : '',
                         style: {
                             width: `${previewWidth}px`,
                             height: `${previewHeight}px`,
                             overflow: 'hidden',
                             borderRadius: borderRadius,
-                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
-                            border: '2px solid rgba(255, 255, 255, 0.3)'
+                            boxShadow: card.isFoil && (!card.isLeader || card.isShowcase) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
+                            border: '2px solid rgba(255, 255, 255, 0.3)',
+                            position: 'relative'
                         },
                         children: card.imageUrl ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                             src: card.imageUrl,
@@ -9728,7 +10792,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             }
                         }, void 0, false, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 4662,
+                            lineNumber: 5094,
                             columnNumber: 19
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             style: {
@@ -9751,7 +10815,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     children: card.name || 'Card'
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 4684,
+                                    lineNumber: 5116,
                                     columnNumber: 21
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -9761,23 +10825,23 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                     children: card.rarity
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                                    lineNumber: 4687,
+                                    lineNumber: 5119,
                                     columnNumber: 21
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 4673,
+                            lineNumber: 5105,
                             columnNumber: 19
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/DeckBuilder.jsx",
-                        lineNumber: 4653,
+                        lineNumber: 5084,
                         columnNumber: 15
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                    lineNumber: 4544,
+                    lineNumber: 4972,
                     columnNumber: 11
                 }, this);
             })(),
@@ -9798,7 +10862,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 children: tooltip.text
             }, void 0, false, {
                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                lineNumber: 4699,
+                lineNumber: 5131,
                 columnNumber: 9
             }, this),
             deckImageModal && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -9820,7 +10884,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             children: "×"
                         }, void 0, false, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 4724,
+                            lineNumber: 5156,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
@@ -9829,7 +10893,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                             className: "deck-image-modal-image"
                         }, void 0, false, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 4733,
+                            lineNumber: 5165,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -9839,7 +10903,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 onClick: ()=>{
                                     const a = document.createElement('a');
                                     a.href = deckImageModal;
-                                    a.download = `deck-${setCode}-${Date.now()}.png`;
+                                    // Generate filename with pool name and timestamp
+                                    const now = new Date();
+                                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                                    const day = String(now.getDate()).padStart(2, '0');
+                                    let hours = now.getHours();
+                                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                                    hours = hours % 12;
+                                    hours = hours ? hours : 12;
+                                    const timeStr = `${month}${day}_${hours}${minutes}${ampm}`;
+                                    const displayName = poolName || `${setCode} ${poolType === 'draft' ? 'Draft' : 'Sealed'}`;
+                                    // Sanitize filename - remove invalid characters
+                                    const sanitizedName = displayName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                                    a.download = `${sanitizedName}_${timeStr}.png`;
                                     document.body.appendChild(a);
                                     a.click();
                                     document.body.removeChild(a);
@@ -9847,29 +10924,29 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                                 children: "Download Image"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                                lineNumber: 4739,
+                                lineNumber: 5171,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/DeckBuilder.jsx",
-                            lineNumber: 4738,
+                            lineNumber: 5170,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/DeckBuilder.jsx",
-                    lineNumber: 4723,
+                    lineNumber: 5155,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/DeckBuilder.jsx",
-                lineNumber: 4719,
+                lineNumber: 5151,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/DeckBuilder.jsx",
-        lineNumber: 2209,
+        lineNumber: 2476,
         columnNumber: 5
     }, this);
 }

@@ -13,12 +13,19 @@
 }
 
 .deck-builder-header {
-  text-align: center;
-  margin-bottom: 1rem;
+  text-align: left;
+  margin-bottom: 2rem;
+  margin-left: 0;
+  padding-left: 0;
   position: relative;
 }
 
+.deck-builder-header h1 {
+  text-align: center;
+}
+
 .deck-builder-header .back-button {
+  text-align: left;
   position: absolute;
   top: 0;
   left: 0;
@@ -26,7 +33,7 @@
 
 .deck-builder-header h1 {
   color: #fff;
-  margin: 1rem 0;
+  margin: 1rem 0 2.5rem;
   font-size: 2.5rem;
 }
 
@@ -48,8 +55,8 @@
   justify-content: space-between;
   align-items: center;
   gap: .5rem;
-  width: calc(100% + -2rem - 139px);
-  margin: 0 164px .75rem calc(2rem - 25px);
+  width: calc(100% + -4rem - 70px);
+  margin: 0 calc(2rem + 95px) .75rem calc(2rem - 25px);
   padding: .5rem 1rem;
   font-size: 1rem;
   transition: all .3s;
@@ -58,10 +65,29 @@
   top: 20px;
 }
 
+.deck-info-bar:not(.sticky) {
+  justify-content: space-between;
+}
+
 .deck-info-bar.sticky {
-  width: calc(100% + -2rem - 139px);
-  margin-left: calc(2rem - 25px);
-  margin-right: 164px;
+  justify-content: flex-start;
+  gap: 0;
+  width: calc(100% - 1.25rem - 80px);
+  margin-left: 1.25rem;
+  margin-right: 80px;
+}
+
+.deck-info-bar.sticky .deck-counts-info {
+  flex-shrink: 0;
+  order: 2;
+  margin-left: auto;
+  margin-right: 20px;
+}
+
+.deck-info-bar.sticky .header-buttons-in-nav {
+  flex-shrink: 0;
+  order: 3;
+  margin-left: 0;
 }
 
 .selected-cards-info {
@@ -154,26 +180,152 @@
   justify-content: center;
   gap: 1rem;
   margin-top: 1.5rem;
+  margin-bottom: .5rem;
+  transition: opacity .3s, height .3s, margin .3s;
   display: flex;
+}
+
+.header-buttons.hidden {
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
 .export-button {
   color: #fff;
   cursor: pointer;
-  background: #000000b3;
-  border: 2px solid #fff6;
-  border-radius: 6px;
-  padding: .75rem 1.5rem;
+  background: none;
+  border: none;
+  align-items: center;
+  gap: .5rem;
+  padding: .5rem .75rem;
   font-size: 1rem;
   font-weight: 600;
-  transition: all .3s;
+  transition: all .2s;
+  display: flex;
+}
+
+.export-button svg {
+  flex-shrink: 0;
 }
 
 .export-button:hover {
-  background: #000000d9;
-  border-color: #8a2be2cc;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px #8a2be299;
+  color: #8a2be2;
+  transform: translateY(-1px);
+}
+
+.header-buttons-in-nav {
+  align-items: center;
+  gap: .5rem;
+  margin-left: auto;
+  margin-right: 0;
+  display: flex;
+}
+
+.export-button-icon {
+  color: #fff;
+  cursor: pointer;
+  background: none;
+  border: none;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  transition: all .2s;
+  display: flex;
+  position: relative;
+}
+
+.export-button-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.export-button-icon:hover {
+  color: #8a2be2;
+  transform: translateY(-1px);
+}
+
+.export-button-icon .button-tooltip {
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 1001;
+  background: #000000e6;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  padding: .25rem .5rem;
+  font-size: .75rem;
+  transition: opacity .2s, visibility .2s;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.export-button-icon:hover .button-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.deck-info-bar.sticky .sticky-nav-buttons {
+  align-items: center;
+  gap: .5rem;
+  margin-left: auto;
+  margin-right: 0;
+  display: flex;
+}
+
+.sticky-nav-button {
+  color: #fff;
+  cursor: pointer;
+  background: none;
+  border: none;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  transition: all .2s;
+  display: flex;
+  position: relative;
+}
+
+.sticky-nav-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.sticky-nav-button:hover {
+  color: #8a2be2;
+  transform: translateY(-1px);
+}
+
+.sticky-nav-button .button-tooltip {
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 1001;
+  background: #000000e6;
+  border-radius: 4px;
+  margin-top: 8px;
+  padding: .25rem .5rem;
+  font-size: .75rem;
+  transition: opacity .2s;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.sticky-nav-button:hover .button-tooltip {
+  opacity: 1;
 }
 
 .leaders-bases-section {
@@ -293,7 +445,7 @@
   border: 2px solid #fff3;
   border-radius: 12px;
   flex-direction: column;
-  padding: 1rem;
+  padding: .75rem;
   display: flex;
   overflow: visible;
 }
@@ -387,12 +539,12 @@
 
 .cards-grid {
   box-sizing: border-box;
-  grid-template-columns: repeat(auto-fill, 120px);
+  grid-template-columns: repeat(auto-fill, 85px);
   justify-content: start;
   gap: .5rem;
   width: 100%;
   margin-top: .5rem;
-  padding: 8px;
+  padding: 6px;
   display: grid;
 }
 
@@ -450,7 +602,7 @@
   touch-action: none;
   background: #0009;
   border: none;
-  border-radius: 8px;
+  border-radius: 13px;
   width: 85px;
   transition: transform .1s, box-shadow .1s;
   position: relative;
@@ -469,7 +621,7 @@
   opacity: 0;
   pointer-events: none;
   background: linear-gradient(45deg, red, #ff7f00, #ff0, #0f0, #00f, indigo, #9400d3, red) 0 0 / 400% 400%;
-  border-radius: 9px;
+  border-radius: 14px;
   transition: opacity .3s;
   animation: 3s linear infinite rainbow-border;
   position: absolute;
@@ -477,12 +629,12 @@
 }
 
 .canvas-card.leader:before, .canvas-card.base:before {
-  border-radius: 9px;
+  border-radius: 14px;
   inset: -1px;
 }
 
 .canvas-card > * {
-  border-radius: 8px;
+  border-radius: 13px;
   overflow: hidden;
 }
 
@@ -613,6 +765,24 @@
   right: 4px;
 }
 
+.card-preview-enlarged .card-preview-foil {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 15px #ffffff80;
+}
+
+.card-preview-enlarged .card-preview-foil:after {
+  content: "";
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(125deg, #ff00004d 0%, #ff7f004d 15%, #ffff004d 30%, #00ff004d 45%, #0000ff4d 60%, #4b00824d 75%, #9400d34d 90%, #ff00004d 100%) 0 0 / 200% 200%;
+  border-radius: 18px;
+  animation: 3s ease-in-out infinite foil-shimmer;
+  position: absolute;
+  inset: 0;
+}
+
 .canvas-card .badge {
   text-transform: uppercase;
   -webkit-backdrop-filter: blur(4px);
@@ -663,7 +833,7 @@
   gap: .75rem;
   display: flex;
   position: fixed;
-  top: 20px;
+  top: 70px;
   right: 20px;
 }
 
@@ -871,7 +1041,11 @@
 }
 
 .list-section {
+  width: 100%;
+  max-width: 800px;
   margin-bottom: 4rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .deck-aspect-subsection {
@@ -899,6 +1073,9 @@
   background: #0009;
   border-radius: 8px;
   width: 100%;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
   overflow: hidden;
 }
 
@@ -951,6 +1128,7 @@
   border-left: none;
   border-right: none;
   padding: .35rem .75rem;
+  line-height: 1.5;
 }
 
 .list-table td.aspects-cell {
@@ -964,8 +1142,6 @@
 .list-table td:nth-child(3), .list-table td:nth-child(4), .list-table td:nth-child(5) {
   vertical-align: middle;
   text-align: center;
-  padding-top: .5rem;
-  padding-bottom: .5rem;
 }
 
 .list-table td:nth-child(6) {

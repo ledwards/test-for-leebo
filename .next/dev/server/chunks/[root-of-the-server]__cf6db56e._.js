@@ -189,7 +189,8 @@ function createToken(user) {
     return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jsonwebtoken$2f$index$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].sign({
         id: user.id,
         email: user.email,
-        username: user.username
+        username: user.username,
+        avatar_url: user.avatar_url
     }, JWT_SECRET, {
         expiresIn: '30d'
     });

@@ -37,13 +37,15 @@ function Home() {
             console.error('Failed to load cards:', error);
         });
     }, []);
-    // Handle URL-based routing for legal pages
+    // Handle URL-based routing for legal pages and set selection
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         const path = window.location.pathname;
         if (path === '/terms-of-service') {
             setView('terms-of-service');
         } else if (path === '/privacy-policy') {
             setView('privacy-policy');
+        } else if (path === '/sets') {
+            setView('set-selection');
         }
     }, []);
     // Handle browser back/forward navigation
@@ -54,6 +56,8 @@ function Home() {
                 setView('terms-of-service');
             } else if (path === '/privacy-policy') {
                 setView('privacy-policy');
+            } else if (path === '/sets') {
+                setView('set-selection');
             } else if (path === '/' || path === '') {
                 setView('landing');
             }
@@ -74,12 +78,11 @@ function Home() {
         }
     }, []);
     const handleSealedClick = ()=>{
-        setView('set-selection');
+        window.location.href = '/sets';
     };
     const handleSetSelect = (setCode)=>{
-        setSelectedSet(setCode);
-        setView('sealed-pod');
-        sessionStorage.removeItem('sealedPod');
+        // Navigate to create a new pool for this set
+        window.location.href = `/pools/new?set=${setCode}`;
     };
     const handleBack = ()=>{
         if (view === 'terms-of-service' || view === 'privacy-policy') {
@@ -140,14 +143,14 @@ function Home() {
                             children: "Warning"
                         }, void 0, false, {
                             fileName: "[project]/app/page.js",
-                            lineNumber: 130,
+                            lineNumber: 133,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                             children: "Going back will lose your current sealed pod and regenerate a new one. Are you sure you want to continue?"
                         }, void 0, false, {
                             fileName: "[project]/app/page.js",
-                            lineNumber: 131,
+                            lineNumber: 134,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -159,7 +162,7 @@ function Home() {
                                     children: "Yes, Go Back"
                                 }, void 0, false, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 133,
+                                    lineNumber: 136,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -168,31 +171,31 @@ function Home() {
                                     children: "Cancel"
                                 }, void 0, false, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 136,
+                                    lineNumber: 139,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/page.js",
-                            lineNumber: 132,
+                            lineNumber: 135,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/page.js",
-                    lineNumber: 129,
+                    lineNumber: 132,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 128,
+                lineNumber: 131,
                 columnNumber: 9
             }, this),
             view === 'landing' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$LandingPage$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                 onSealedClick: handleSealedClick
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 144,
+                lineNumber: 147,
                 columnNumber: 9
             }, this),
             view === 'set-selection' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$SetSelection$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -200,7 +203,7 @@ function Home() {
                 onBack: handleBack
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 147,
+                lineNumber: 150,
                 columnNumber: 9
             }, this),
             view === 'sealed-pod' && selectedSet && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$SealedPod$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -210,7 +213,7 @@ function Home() {
                 onPacksGenerated: handleSealedPodGenerated
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 150,
+                lineNumber: 153,
                 columnNumber: 9
             }, this),
             view === 'deck-builder' && deckCards.length > 0 && selectedSet && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$DeckBuilder$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -220,27 +223,27 @@ function Home() {
                 savedState: sessionStorage.getItem('deckBuilderState')
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 158,
+                lineNumber: 161,
                 columnNumber: 9
             }, this),
             view === 'terms-of-service' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$TermsOfService$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                 onBack: handleBack
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 166,
+                lineNumber: 169,
                 columnNumber: 9
             }, this),
             view === 'privacy-policy' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$PrivacyPolicy$2e$jsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                 onBack: handleBack
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 169,
+                lineNumber: 172,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/page.js",
-        lineNumber: 126,
+        lineNumber: 129,
         columnNumber: 5
     }, this);
 }
