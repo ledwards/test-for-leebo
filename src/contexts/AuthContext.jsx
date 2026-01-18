@@ -13,11 +13,25 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Load session on mount
     loadSession()
+    
+    // Also reload session when URL has auth=success (after Discord OAuth)
+    // or auth=already_logged_in (if already had session)
+    const urlParams = new URLSearchParams(window.location.search)
+    const authParam = urlParams.get('auth')
+    if (authParam === 'success' || authParam === 'already_logged_in') {
+      // Small delay to ensure cookie is set
+      setTimeout(() => {
+        loadSession()
+      }, 100)
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname)
+    }
   }, [])
 
   async function loadSession() {
     try {
       const session = await getSession()
+      console.log('AuthContext: Loaded session:', session)
       setUser(session)
     } catch (error) {
       console.error('Failed to load session:', error)
@@ -28,6 +42,14 @@ export function AuthProvider({ children }) {
   }
 
   async function signIn() {
+    // Check if we already have a valid session
+    const session = await getSession()
+    if (session) {
+      console.log('Already logged in, refreshing session')
+      setUser(session)
+      return
+    }
+    // No session, go through OAuth
     signInWithDiscord()
   }
 

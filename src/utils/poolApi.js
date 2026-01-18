@@ -1,124 +1,137 @@
-// API client for card pools
-
+// API client for card pool operations
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api'
 
 /**
- * Create a new card pool
+ * Save a card pool to the database
  * @param {Object} poolData - Pool data
- * @param {string} poolData.setCode - Set code
- * @param {Array} poolData.cards - Array of cards
- * @param {Array} [poolData.packs] - Array of packs (optional)
- * @param {Object} [poolData.deckBuilderState] - Deck builder state (optional)
- * @param {boolean} [poolData.isPublic] - Whether pool is public
- * @returns {Promise<Object>} Created pool data
+ * @param {string} poolData.setCode - Set code (e.g., 'SOR')
+ * @param {Array} poolData.cards - Array of all cards in the pool
+ * @param {Array} poolData.packs - Array of pack arrays (for sealed pods)
+ * @param {Object} poolData.deckBuilderState - Optional deck builder state
+ * @param {boolean} poolData.isPublic - Whether pool is public
+ * @returns {Promise<Object>} Saved pool with shareId and shareUrl
  */
-export async function createPool(poolData) {
-  const response = await fetch(`${API_BASE}/pools`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-    body: JSON.stringify(poolData),
-  })
+export async function savePool(poolData) {
+  try {
+    const response = await fetch(`${API_BASE}/pools`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(poolData),
+    })
 
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Failed to create pool')
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Failed to save pool')
+    }
+
+    const data = await response.json()
+    return data.data
+  } catch (error) {
+    console.error('Failed to save pool:', error)
+    throw error
   }
-
-  const data = await response.json()
-  return data.data
 }
 
 /**
- * Get a card pool by share ID
- * @param {string} shareId - Share ID
+ * Load a pool by share ID
+ * @param {string} shareId - Share ID of the pool
  * @returns {Promise<Object>} Pool data
  */
-export async function getPool(shareId) {
-  const response = await fetch(`${API_BASE}/pools/${shareId}`, {
-    credentials: 'include',
-  })
+export async function loadPool(shareId) {
+  try {
+    const response = await fetch(`${API_BASE}/pools/${shareId}`, {
+      credentials: 'include',
+    })
 
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error('Pool not found')
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Failed to load pool')
     }
-    const error = await response.json()
-    throw new Error(error.message || 'Failed to get pool')
-  }
 
-  const data = await response.json()
-  return data.data
+    const data = await response.json()
+    return data.data
+  } catch (error) {
+    console.error('Failed to load pool:', error)
+    throw error
+  }
 }
 
 /**
- * Update a card pool
- * @param {string} shareId - Share ID
+ * Update a pool (e.g., deck builder state)
+ * @param {string} shareId - Share ID of the pool
  * @param {Object} updates - Fields to update
  * @returns {Promise<Object>} Updated pool data
  */
 export async function updatePool(shareId, updates) {
-  const response = await fetch(`${API_BASE}/pools/${shareId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-    body: JSON.stringify(updates),
-  })
+  try {
+    const response = await fetch(`${API_BASE}/pools/${shareId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(updates),
+    })
 
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Failed to update pool')
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Failed to update pool')
+    }
+
+    const data = await response.json()
+    return data.data
+  } catch (error) {
+    console.error('Failed to update pool:', error)
+    throw error
   }
-
-  const data = await response.json()
-  return data.data
 }
 
 /**
- * Delete a card pool
- * @param {string} shareId - Share ID
- * @returns {Promise<void>}
+ * Delete a pool
+ * @param {string} shareId - Share ID of the pool
+ * @returns {Promise<boolean>} Success status
  */
 export async function deletePool(shareId) {
-  const response = await fetch(`${API_BASE}/pools/${shareId}`, {
-    method: 'DELETE',
-    credentials: 'include',
-  })
+  try {
+    const response = await fetch(`${API_BASE}/pools/${shareId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
 
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Failed to delete pool')
+    return response.ok
+  } catch (error) {
+    console.error('Failed to delete pool:', error)
+    return false
   }
 }
 
 /**
- * Get user's pools (pool history)
+ * Fetch all pools for a user
  * @param {string} userId - User ID
- * @param {Object} [options] - Query options
- * @param {number} [options.limit] - Number of results (default: 20)
- * @param {number} [options.offset] - Offset for pagination (default: 0)
- * @returns {Promise<Object>} Pools data with pagination
+ * @returns {Promise<Array>} Array of pool objects
  */
-export async function getUserPools(userId, options = {}) {
-  const { limit = 20, offset = 0 } = options
-  const params = new URLSearchParams({
-    limit: limit.toString(),
-    offset: offset.toString(),
-  })
+export async function fetchUserPools(userId) {
+  try {
+    const response = await fetch(`${API_BASE}/pools/user/${userId}`, {
+      credentials: 'include',
+    })
 
-  const response = await fetch(`${API_BASE}/pools/user/${userId}?${params}`, {
-    credentials: 'include',
-  })
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Failed to fetch user pools')
+    }
 
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Failed to get user pools')
+    const data = await response.json()
+    console.log('fetchUserPools response:', data)
+    // API returns { data: { pools: [...], total, limit, offset } } or { pools: [...] }
+    const pools = data.data?.pools || data.pools || []
+    console.log('Extracted pools:', pools.length)
+    return pools
+  } catch (error) {
+    console.error('Failed to fetch user pools:', error)
+    throw error
   }
-
-  const data = await response.json()
-  return data.data
 }

@@ -5,8 +5,59 @@
   background-image: linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%), linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%), linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url("/background-images/bg-texture-crop.png");
   background-size: 100% 100%, 100% 100%, 100% 100%, 150% auto;
   background-repeat: no-repeat, no-repeat, no-repeat, repeat-y;
-  background-position: center center, center center, center center, center center;
+  background-position: center center, center center, center center, center 400px;
   color: white;
+  position: relative;
+}
+
+.set-art-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 400px;
+  z-index: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.set-art-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%), linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%), linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8));
+  background-size: 100% 100%, 100% 100%, 100% 100%;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-position: center center, center center, center center;
+  pointer-events: none;
+}
+
+.set-art-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7), rgb(9, 9, 9));
+  pointer-events: none;
+}
+
+.sealed-pod-content {
+  position: relative;
+  z-index: 1;
+}
+
+.top-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  align-items: center;
 }
 
 .back-button {
@@ -17,11 +68,28 @@
   border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
-  margin-bottom: 2rem;
   transition: all 0.3s ease;
 }
 
-.back-button:hover {
+.refresh-button {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
+}
+
+.back-button:hover,
+.refresh-button:hover {
   background: rgba(0, 0, 0, 0.85);
   border-color: rgba(255, 0, 0, 0.8);
   transform: translateY(-2px);
@@ -31,6 +99,59 @@
 .sealed-pod-header {
   text-align: center;
   margin-bottom: 2rem;
+}
+
+.saving-indicator {
+  color: #4CAF50;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
+.share-info {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 1.5rem auto 0;
+  padding: 0.25rem 0.375rem;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: fit-content;
+}
+
+.share-url {
+  font-size: 0.7rem;
+  color: #ccc;
+  margin: 0;
+  word-break: break-all;
+  white-space: nowrap;
+  user-select: all;
+  -webkit-user-select: all;
+  -moz-user-select: all;
+  -ms-user-select: all;
+  cursor: text;
+}
+
+.share-url::selection {
+  background: rgba(88, 101, 242, 0.3);
+}
+
+.copy-share-button {
+  background: rgba(88, 101, 242, 0.8);
+  border: 1px solid rgba(88, 101, 242, 1);
+  color: white;
+  padding: 0.2rem 0.375rem;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.copy-share-button:hover {
+  background: rgba(88, 101, 242, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(88, 101, 242, 0.4);
 }
 
 .sealed-pod h1 {
@@ -75,47 +196,69 @@
 .packs-container {
   max-width: 1400px;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
   gap: 3rem;
 }
 
 .pack-details {
-  background: #1a1a1a;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   padding: 0;
   position: relative;
   padding-top: 0.5rem;
 }
 
+.tooltip {
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 8px;
+}
+
 .pack-details h2 {
   position: absolute;
-  top: -0.5em;
+  top: 0;
   left: 1em;
   margin: 0;
-  padding: 0 0.5em;
+  padding: 0.25em 0.75em;
   background: #1a1a1a;
   color: white;
-  font-size: 1.8rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.2;
   border-radius: 999px;
   border: 2px solid rgba(255, 255, 255, 0.2);
+  transform: translateY(-50%);
 }
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
   padding: 1.5rem;
   align-items: start;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.cards-grid > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .card-item {
   background: rgba(0, 0, 0, 0.6);
   border: none;
-  border-radius: 8px;
+  border-radius: 13px;
   position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   aspect-ratio: 2.5 / 3.5;
@@ -128,7 +271,7 @@
   content: '';
   position: absolute;
   inset: -1px;
-  border-radius: 9px;
+  border-radius: 14px;
   background: linear-gradient(
     45deg,
     #ff0000,
@@ -149,7 +292,7 @@
 }
 
 .card-item > * {
-  border-radius: 8px;
+  border-radius: 13px;
   overflow: hidden;
 }
 
@@ -222,6 +365,38 @@
   50% {
     background-position: 100% 50%;
   }
+}
+
+/* Apply same foil treatment to enlarged card preview */
+.card-preview-enlarged .card-preview-foil {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-preview-enlarged .card-preview-foil::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 0, 0, 0.3) 0%,
+    rgba(255, 127, 0, 0.3) 15%,
+    rgba(255, 255, 0, 0.3) 30%,
+    rgba(0, 255, 0, 0.3) 45%,
+    rgba(0, 0, 255, 0.3) 60%,
+    rgba(75, 0, 130, 0.3) 75%,
+    rgba(148, 0, 211, 0.3) 90%,
+    rgba(255, 0, 0, 0.3) 100%
+  );
+  background-size: 200% 200%;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 2;
+  animation: foil-shimmer 3s ease-in-out infinite;
 }
 
 .card-item.hyperspace {
@@ -327,7 +502,7 @@
 }
 
 .rate-card {
-  max-width: 1400px;
+  max-width: 800px;
   margin: 3rem auto 2rem;
   background: rgba(0, 0, 0, 0.8);
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -384,15 +559,15 @@
 }
 
 .rarity-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   margin-top: 0.5rem;
 }
 
 .rarity-stats div {
   padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
   border-radius: 4px;
 }
 
@@ -406,7 +581,7 @@
 
 @media (max-width: 768px) {
   .cards-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 0.75rem;
   }
   
@@ -415,6 +590,7 @@
   }
   
   .packs-container {
+    grid-template-columns: 1fr;
     gap: 2rem;
   }
   

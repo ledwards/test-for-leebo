@@ -3,13 +3,18 @@ import { query } from '@/lib/db.js'
 import { getSession, requireAuth } from '@/lib/auth.js'
 import { generateShareId } from '@/lib/utils.js'
 import { jsonResponse, errorResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils.js'
+import { getSetConfig } from '@/src/utils/setConfigs/index.js'
 
 export async function POST(request) {
   try {
     const body = await parseBody(request)
     validateRequired(body, ['setCode', 'cards'])
 
-    const { setCode, cards, packs, deckBuilderState, isPublic = false } = body
+    const { setCode, cards, packs, deckBuilderState, isPublic = true, shareId: clientShareId, poolType = 'sealed' } = body
+
+    // Get set name from config
+    const setConfig = getSetConfig(setCode)
+    const setName = setConfig?.setName || setCode
 
     // Get user session (optional - allow anonymous pools)
     let userId = null
@@ -20,43 +25,139 @@ export async function POST(request) {
       // Anonymous pool - allowed
     }
 
-    // Generate shareable ID
-    let shareId = generateShareId(8)
+    // Use client-provided shareId if available, otherwise generate one
+    let shareId = clientShareId
     let attempts = 0
     const maxAttempts = 10
 
-    // Ensure unique share ID
-    while (attempts < maxAttempts) {
-      const existing = await query(
-        'SELECT id FROM card_pools WHERE share_id = $1',
-        [shareId]
-      )
-      if (existing.rows.length === 0) {
-        break
-      }
+    // If client provided shareId, use it. Otherwise generate one.
+    if (!shareId) {
       shareId = generateShareId(8)
-      attempts++
+    }
+
+    // Helper function to generate default pool name
+    const generatePoolName = (shareId, poolType, setCode) => {
+      const formatType = poolType === 'draft' ? 'Draft' : 'Sealed'
+      return `${setCode} ${formatType} (${shareId})`
+    }
+
+    // Insert pool with retry logic to handle unique constraint violations
+    // This is more robust than checking first because it handles race conditions
+    let result
+    while (attempts < maxAttempts) {
+      try {
+        // Calculate default name for this shareId
+        const defaultName = generatePoolName(shareId, poolType, setCode)
+        
+        // Try to insert with current shareId
+        try {
+          result = await query(
+            `INSERT INTO card_pools (user_id, share_id, set_code, set_name, pool_type, name, cards, packs, deck_builder_state, is_public)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+             RETURNING id, share_id, created_at`,
+            [
+              userId,
+              shareId,
+              setCode,
+              setName,
+              poolType,
+              defaultName,
+              JSON.stringify(cards),
+              packs ? JSON.stringify(packs) : null,
+              deckBuilderState ? JSON.stringify(deckBuilderState) : null,
+              isPublic,
+            ]
+          )
+          // Success - break out of retry loop
+          break
+        } catch (error) {
+          // If name column doesn't exist, try without it
+          if (error.message.includes('name')) {
+            try {
+              result = await query(
+                `INSERT INTO card_pools (user_id, share_id, set_code, set_name, pool_type, cards, packs, deck_builder_state, is_public)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                 RETURNING id, share_id, created_at`,
+                [
+                  userId,
+                  shareId,
+                  setCode,
+                  setName,
+                  poolType,
+                  JSON.stringify(cards),
+                  packs ? JSON.stringify(packs) : null,
+                  deckBuilderState ? JSON.stringify(deckBuilderState) : null,
+                  isPublic,
+                ]
+              )
+              // Success - break out of retry loop
+              break
+            } catch (innerError) {
+              // If set_name or pool_type columns don't exist, use fallback query
+              if (innerError.message.includes('set_name') || innerError.message.includes('pool_type')) {
+                result = await query(
+                  `INSERT INTO card_pools (user_id, share_id, set_code, cards, packs, deck_builder_state, is_public)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7)
+                   RETURNING id, share_id, created_at`,
+                  [
+                    userId,
+                    shareId,
+                    setCode,
+                    JSON.stringify(cards),
+                    packs ? JSON.stringify(packs) : null,
+                    deckBuilderState ? JSON.stringify(deckBuilderState) : null,
+                    isPublic,
+                  ]
+                )
+                // Success - break out of retry loop
+                break
+              }
+              throw innerError
+            }
+          }
+          // If set_name or pool_type columns don't exist, use fallback query
+          else if (error.message.includes('set_name') || error.message.includes('pool_type')) {
+            result = await query(
+              `INSERT INTO card_pools (user_id, share_id, set_code, cards, packs, deck_builder_state, is_public)
+               VALUES ($1, $2, $3, $4, $5, $6, $7)
+               RETURNING id, share_id, created_at`,
+              [
+                userId,
+                shareId,
+                setCode,
+                JSON.stringify(cards),
+                packs ? JSON.stringify(packs) : null,
+                deckBuilderState ? JSON.stringify(deckBuilderState) : null,
+                isPublic,
+              ]
+            )
+            // Success - break out of retry loop
+            break
+          }
+          // If it's a unique constraint violation, generate a new ID and retry
+          if (error.message.includes('duplicate key') || error.message.includes('UNIQUE constraint') || error.code === '23505') {
+            shareId = generateShareId(8)
+            attempts++
+            continue
+          }
+          // For other errors, rethrow
+          throw error
+        }
+      } catch (error) {
+        // If it's a unique constraint violation, generate a new ID and retry
+        if (error.message.includes('duplicate key') || error.message.includes('UNIQUE constraint') || error.code === '23505') {
+          shareId = generateShareId(8)
+          attempts++
+          continue
+        }
+        // For other errors, rethrow
+        throw error
+      }
     }
 
     if (attempts >= maxAttempts) {
-      throw new Error('Failed to generate unique share ID')
+      throw new Error('Failed to generate unique share ID after multiple attempts')
     }
-
-    // Insert pool
-    const result = await query(
-      `INSERT INTO card_pools (user_id, share_id, set_code, cards, packs, deck_builder_state, is_public)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id, share_id, created_at`,
-      [
-        userId,
-        shareId,
-        setCode,
-        JSON.stringify(cards),
-        packs ? JSON.stringify(packs) : null,
-        deckBuilderState ? JSON.stringify(deckBuilderState) : null,
-        isPublic,
-      ]
-    )
 
     const pool = result.rows[0]
     const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'

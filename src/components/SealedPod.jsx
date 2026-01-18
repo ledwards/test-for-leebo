@@ -4,31 +4,49 @@ import { getCachedCards, isCacheInitialized } from '../utils/cardCache'
 import { fetchSetCards } from '../utils/api'
 import { generateSealedPod } from '../utils/boosterPack'
 import { getDistributionPeriod, DISTRIBUTION_PERIODS, allowsSpecialInFoil } from '../utils/rarityConfig'
+import { savePool } from '../utils/poolApi'
+import { useAuth } from '../contexts/AuthContext'
+import { getSetConfig } from '../utils/setConfigs'
+import { getPackArtUrl } from '../utils/packArt'
 import CardModal from './CardModal'
 
 // Helper function to get set name from set code
 function getSetName(setCode) {
-  const setNames = {
-    'SOR': 'Spark of Rebellion',
-    'SHD': 'Shadows of the Galaxy',
-    'TWI': 'Twilight of the Republic',
-    'JTL': 'Jump to Lightspeed',
-    'LOF': 'Legends of the Force',
-    'SEC': 'Secrets of Power'
-  }
-  return setNames[setCode] || setCode
+  const config = getSetConfig(setCode)
+  return config?.setName || setCode
 }
 
-function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
+// Helper function to get set color from set code
+function getSetColor(setCode) {
+  const config = getSetConfig(setCode)
+  return config?.color || '#ffffff'
+}
+
+function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPacks = null, shareId = null, poolType = 'sealed', setName = null, isLoading = false }) {
+  const { user } = useAuth()
   const [cards, setCards] = useState([])
   const [packs, setPacks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedCard, setSelectedCard] = useState(null)
   const [hoveredCardPreview, setHoveredCardPreview] = useState(null) // { card, x, y } for enlarged preview
+  const [savedShareId, setSavedShareId] = useState(shareId)
+  const [saving, setSaving] = useState(false)
   const previewTimeoutRef = useRef(null)
+  const [tooltip, setTooltip] = useState({ show: false, text: '', x: 0, y: 0 })
+  const tooltipTimeoutRef = useRef(null)
 
   useEffect(() => {
+    // Skip loading cards if we have initialPacks (pool data from URL)
+    if (initialPacks && initialPacks.length > 0) {
+      // Extract cards from packs for card lookup/display purposes
+      const allCardsFromPacks = initialPacks.flat()
+      setCards(allCardsFromPacks)
+      setError(null) // Clear any error since we have pool data
+      setLoading(false)
+      return
+    }
+
     const loadCards = async () => {
       try {
         setLoading(true)
@@ -45,20 +63,27 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
         }
         
         if (cardsData.length === 0) {
-          setError(`No card data available for set ${setCode}. Please populate src/data/cards.json with card data.`)
+          // Only set error if we don't have initialPacks (which means we have pool data)
+          // If we have initialPacks, we don't need cards from cache/API
+          if (!initialPacks || initialPacks.length === 0) {
+            setError(`No card data available for set ${setCode}. Please populate src/data/cards.json with card data.`)
+          }
           setCards([])
         } else {
           setCards(cardsData)
         }
       } catch (err) {
-        setError(err.message)
+        // Only set error if we don't have initialPacks
+        if (!initialPacks || initialPacks.length === 0) {
+          setError(err.message)
+        }
         setCards([])
       } finally {
         setLoading(false)
       }
     }
     loadCards()
-  }, [setCode])
+  }, [setCode, initialPacks])
 
   // Cleanup preview timeout
   useEffect(() => {
@@ -66,10 +91,47 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
       if (previewTimeoutRef.current) {
         clearTimeout(previewTimeoutRef.current)
       }
+      if (tooltipTimeoutRef.current) {
+        clearTimeout(tooltipTimeoutRef.current)
+      }
     }
   }, [])
 
+  // Tooltip handlers
+  const showTooltip = (text, event) => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current)
+    }
+    const rect = event.currentTarget.getBoundingClientRect()
+    setTooltip({
+      show: true,
+      text,
+      x: rect.left,
+      y: rect.top + rect.height / 2,
+      alignLeft: true
+    })
+    // Auto-hide after 2 seconds
+    tooltipTimeoutRef.current = setTimeout(() => {
+      setTooltip({ show: false, text: '', x: 0, y: 0, alignLeft: false })
+    }, 2000)
+  }
+
+  const hideTooltip = () => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current)
+      tooltipTimeoutRef.current = null
+    }
+    setTooltip({ show: false, text: '', x: 0, y: 0, alignLeft: false })
+  }
+
   useEffect(() => {
+    // If initialPacks provided (from URL), use those
+    if (initialPacks && initialPacks.length > 0) {
+      setPacks(initialPacks)
+      setLoading(false)
+      return
+    }
+
     // Check if we have saved packs in sessionStorage
     const savedSealedPod = sessionStorage.getItem('sealedPod')
     if (savedSealedPod) {
@@ -93,8 +155,43 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
       if (onPacksGenerated) {
         onPacksGenerated(generatedPacks, setCode)
       }
+      // Auto-save to database if user is logged in
+      autoSavePool(generatedPacks, setCode)
     }
-  }, [cards, setCode, onPacksGenerated])
+  }, [cards, setCode, onPacksGenerated, initialPacks])
+
+  // Auto-save pool to database when packs are generated
+  const autoSavePool = async (generatedPacks, setCode) => {
+    if (!user || savedShareId) {
+      // Don't save if not logged in or already saved
+      return
+    }
+
+    try {
+      setSaving(true)
+      const allCards = generatedPacks.flat()
+      const poolData = {
+        setCode,
+        cards: allCards,
+        packs: generatedPacks,
+        isPublic: false,
+      }
+
+      const saved = await savePool(poolData)
+      setSavedShareId(saved.shareId)
+      
+      // Update URL without page reload
+      const newUrl = `/pool/${saved.shareId}`
+      window.history.replaceState({}, '', newUrl)
+      
+      console.log('Pool saved:', saved.shareId)
+    } catch (error) {
+      console.error('Failed to auto-save pool:', error)
+      // Don't show error to user - silent fail is okay
+    } finally {
+      setSaving(false)
+    }
+  }
 
 
   const getRarityColor = (rarity) => {
@@ -112,26 +209,52 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
     }
   }
 
-  if (loading) {
+  // Show loading placeholder for packs if isLoading prop is true
+  const showPacksLoading = isLoading && (!packs || packs.length === 0)
+
+  const packArtUrl = setCode ? getPackArtUrl(setCode) : null
+  const setArtStyle = packArtUrl ? {
+    backgroundImage: `url("${packArtUrl}")`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center center',
+    backgroundRepeat: 'no-repeat'
+  } : {}
+
+  // Only show full loading screen if we're loading cards AND don't have initialPacks
+  if (loading && !initialPacks && !isLoading) {
     return (
       <div className="sealed-pod">
-        <div className="loading">Loading cards...</div>
+        {packArtUrl && (
+          <div className="set-art-header" style={setArtStyle}></div>
+        )}
+        <div className="sealed-pod-content">
+          <div className="loading"></div>
+        </div>
       </div>
     )
   }
 
-  if (error || cards.length === 0) {
+  // Don't show error if:
+  // 1. We have initialPacks (pool data from URL)
+  // 2. We're still loading (isLoading)
+  // 3. We have packs already loaded
+  // Only show error if we don't have packs AND we're not loading AND we don't have initialPacks
+  if ((error || cards.length === 0) && (!packs || packs.length === 0) && !isLoading && !initialPacks) {
     return (
       <div className="sealed-pod">
-        <button className="back-button" onClick={onBack}>
-          ← Back to Sets
-        </button>
-        <div className="error">
-          <h2>No Card Data Available</h2>
-          <p>{error || `No cards found for set ${setCode}.`}</p>
-          <p>To use this app, you need to populate <code>src/data/cards.json</code> with card data.</p>
-          <p>Each card should have the following structure:</p>
-          <pre style={{ textAlign: 'left', background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '8px', overflow: 'auto' }}>
+        {packArtUrl && (
+          <div className="set-art-header" style={setArtStyle}></div>
+        )}
+        <div className="sealed-pod-content">
+          <button className="back-button" onClick={onBack}>
+            ← Back to Sets
+          </button>
+          <div className="error">
+            <h2>No Card Data Available</h2>
+            <p>{error || `No cards found for set ${setCode}.`}</p>
+            <p>To use this app, you need to populate <code>src/data/cards.json</code> with card data.</p>
+            <p>Each card should have the following structure:</p>
+            <pre style={{ textAlign: 'left', background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '8px', overflow: 'auto' }}>
 {`{
   "id": "unique-card-id",
   "name": "Card Name",
@@ -144,30 +267,68 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
   "isBase": false,
   "imageUrl": "https://..."
 }`}
-          </pre>
+            </pre>
+          </div>
+          <button onClick={onBack}>Go Back</button>
         </div>
-        <button onClick={onBack}>Go Back</button>
       </div>
     )
   }
 
+  const handleRefresh = () => {
+    // Navigate to /pools/new?set=SETCODE to generate a new pool
+    if (setCode) {
+      window.location.href = `/pools/new?set=${setCode}`
+    }
+  }
+
   return (
     <div className="sealed-pod">
-      <button className="back-button" onClick={onBack}>
-        ← Back to Sets
-      </button>
-      <div className="sealed-pod-header">
-        <h1>Sealed Pod - {setCode}</h1>
-        <p className="instruction">All 6 packs are displayed below</p>
+      {packArtUrl && (
+        <div className="set-art-header" style={setArtStyle}></div>
+      )}
+      <div className="sealed-pod-content">
+        <div className="top-buttons">
+          <button className="back-button" onClick={onBack}>
+            ← Back to Sets
+          </button>
+          <button 
+            className="refresh-button" 
+            onClick={handleRefresh}
+            title="Refresh Pool"
+            aria-label="Refresh Pool"
+          >
+            ↻
+          </button>
+        </div>
+        <div className="sealed-pod-header">
+        <h1>
+          {poolType === 'draft' ? 'Draft Pod' : 'Sealed Pod'}
+        </h1>
+        {saving && <p className="saving-indicator"></p>}
         {packs.length > 0 && (
-          <button className="build-deck-button" onClick={() => onBuildDeck(packs.flat(), setCode)}>
+          <button 
+            className="build-deck-button" 
+            onClick={() => {
+              const allCards = packs.flat()
+              if (savedShareId) {
+                // Navigate to deck builder with share ID
+                window.location.href = `/pool/${savedShareId}/deck`
+              } else {
+                onBuildDeck(allCards, setCode)
+              }
+            }}
+          >
             Build Deck
           </button>
         )}
       </div>
       
       <div className="packs-container">
-        {packs.map((pack, index) => (
+        {showPacksLoading ? (
+          <div className="loading"></div>
+        ) : (
+          packs.map((pack, index) => (
           <div key={index} className="pack-details">
             <h2>Pack {index + 1}</h2>
             <div className="cards-grid">
@@ -271,7 +432,8 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
               ))}
             </div>
           </div>
-        ))}
+        ))
+        )}
       </div>
       
       {/* Rate Card */}
@@ -585,7 +747,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
         const card = hoveredCardPreview.card
         const hasBackImage = card.backImageUrl && card.isLeader
         const isHorizontal = card.isLeader || card.isBase
-        const borderRadius = '18px' // Slightly smaller than 24px to reduce clipping
+        const borderRadius = '23px' // Slightly smaller than 24px to reduce clipping
         
         // Calculate dimensions
         let previewWidth, previewHeight
@@ -626,13 +788,15 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
               // Show both front (horizontal) and back (vertical) side by side for leaders
               <>
                 {/* Front - horizontal */}
-                <div style={{
+                <div className={card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : ''} style={{
                   width: '504px',
                   height: '360px',
                   overflow: 'hidden',
                   borderRadius: borderRadius,
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  boxShadow: (card.isFoil && (!card.isLeader || card.isShowcase)) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
+                  alignSelf: 'center', // Vertically center the front side
+                  position: 'relative',
                 }}>
                   {card.imageUrl ? (
                     <img
@@ -667,13 +831,14 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
                   )}
                 </div>
                 {/* Back - vertical */}
-                <div style={{
+                <div className={card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : ''} style={{
                   width: '360px',
                   height: '504px',
                   overflow: 'hidden',
                   borderRadius: borderRadius,
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  boxShadow: (card.isFoil && (!card.isLeader || card.isShowcase)) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
+                  position: 'relative',
                 }}>
                   {card.backImageUrl ? (
                     <img
@@ -710,13 +875,14 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
               </>
             ) : (
               // Single card (non-leader, base, or leader without back)
-              <div style={{
+              <div className={card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : ''} style={{
                 width: `${previewWidth}px`,
                 height: `${previewHeight}px`,
                 overflow: 'hidden',
                 borderRadius: borderRadius,
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                boxShadow: card.isFoil && (!card.isLeader || card.isShowcase) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
                 border: '2px solid rgba(255, 255, 255, 0.3)',
+                position: 'relative',
               }}>
                 {card.imageUrl ? (
                   <img
@@ -754,6 +920,26 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated }) {
           </div>
         )
       })()}
+      {tooltip.show && (
+        <div 
+          className="tooltip"
+          style={{
+            position: 'fixed',
+            left: `${tooltip.x}px`,
+            top: `${tooltip.y}px`,
+            transform: tooltip.alignLeft 
+              ? 'translateX(-100%) translateY(-50%)' 
+              : 'translateX(-50%) translateY(-100%)',
+            zIndex: 10000,
+            pointerEvents: 'none',
+            marginRight: '20px',
+            marginTop: tooltip.alignLeft ? '0' : '-8px'
+          }}
+        >
+          {tooltip.text}
+        </div>
+      )}
+      </div>
     </div>
   )
 }

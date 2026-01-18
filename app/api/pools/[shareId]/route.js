@@ -7,37 +7,131 @@ import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/ut
 
 export async function GET(request, { params }) {
   try {
-    const { shareId } = params
-    const pool = await queryRow(
-      `SELECT 
-        cp.*,
-        u.id as owner_id,
-        u.username as owner_username
-       FROM card_pools cp
-       LEFT JOIN users u ON cp.user_id = u.id
-       WHERE cp.share_id = $1`,
-      [shareId]
-    )
+    const { shareId } = await params
+    
+    // Try to get pool with new columns first, fallback to old schema if columns don't exist
+    let pool
+    try {
+      pool = await queryRow(
+        `SELECT 
+          cp.id,
+          cp.user_id,
+          cp.share_id,
+          cp.set_code,
+          cp.set_name,
+          cp.pool_type,
+          cp.name,
+          cp.cards,
+          cp.packs,
+          cp.deck_builder_state,
+          cp.is_public,
+          cp.created_at,
+          cp.updated_at,
+          u.id as owner_id,
+          u.username as owner_username
+         FROM card_pools cp
+         LEFT JOIN users u ON cp.user_id = u.id
+         WHERE cp.share_id = $1`,
+        [shareId]
+      )
+    } catch (error) {
+      // If columns don't exist, use fallback query
+      if (error.message.includes('name') || error.message.includes('set_name') || error.message.includes('pool_type')) {
+        try {
+          pool = await queryRow(
+            `SELECT 
+              cp.id,
+              cp.user_id,
+              cp.share_id,
+              cp.set_code,
+              cp.set_name,
+              cp.pool_type,
+              cp.cards,
+              cp.packs,
+              cp.deck_builder_state,
+              cp.is_public,
+              cp.created_at,
+              cp.updated_at,
+              u.id as owner_id,
+              u.username as owner_username
+             FROM card_pools cp
+             LEFT JOIN users u ON cp.user_id = u.id
+             WHERE cp.share_id = $1`,
+            [shareId]
+          )
+          // Add default values for missing columns
+          if (pool) {
+            pool.name = null
+            pool.set_name = pool.set_name || null
+            pool.pool_type = pool.pool_type || 'sealed'
+          }
+        } catch (innerError) {
+          // If set_name or pool_type columns don't exist either
+          if (innerError.message.includes('set_name') || innerError.message.includes('pool_type')) {
+            pool = await queryRow(
+              `SELECT 
+                cp.*,
+                u.id as owner_id,
+                u.username as owner_username
+               FROM card_pools cp
+               LEFT JOIN users u ON cp.user_id = u.id
+               WHERE cp.share_id = $1`,
+              [shareId]
+            )
+            // Add default values for missing columns
+            if (pool) {
+              pool.name = null
+              pool.set_name = null
+              pool.pool_type = 'sealed'
+            }
+          } else {
+            throw innerError
+          }
+        }
+      } else {
+        throw error
+      }
+    }
 
     if (!pool) {
       return errorResponse('Pool not found', 404)
     }
 
-    // Check if user can access (public or owner)
-    const session = getSession(request)
-    const isOwner = session && session.id === pool.user_id
+    // ShareId is the access mechanism - if you have the shareId, you can view it
+    // Only check ownership for write operations (PUT/DELETE)
+    // For GET, allow access to any pool by shareId
 
-    if (!pool.is_public && !isOwner) {
-      return errorResponse('Pool not found or access denied', 404)
+    // Parse JSON fields from database
+    let cards = null
+    let packs = null
+    let deckBuilderState = null
+    
+    try {
+      cards = typeof pool.cards === 'string' ? JSON.parse(pool.cards) : pool.cards
+      packs = pool.packs ? (typeof pool.packs === 'string' ? JSON.parse(pool.packs) : pool.packs) : null
+      deckBuilderState = pool.deck_builder_state ? (typeof pool.deck_builder_state === 'string' ? JSON.parse(pool.deck_builder_state) : pool.deck_builder_state) : null
+    } catch (parseError) {
+      console.error('Error parsing pool JSON fields:', parseError)
+    }
+
+    // Generate default name if it doesn't exist
+    let name = pool.name
+    if (!name) {
+      const formatType = (pool.pool_type || 'sealed') === 'draft' ? 'Draft' : 'Sealed'
+      const setCode = pool.set_code || ''
+      name = `${setCode} ${formatType} (${pool.share_id})`
     }
 
     return jsonResponse({
       id: pool.id,
       shareId: pool.share_id,
       setCode: pool.set_code,
-      cards: pool.cards,
-      packs: pool.packs,
-      deckBuilderState: pool.deck_builder_state,
+      setName: pool.set_name || null, // Handle case where column doesn't exist
+      poolType: pool.pool_type || 'sealed',
+      name: name,
+      cards,
+      packs,
+      deckBuilderState,
       isPublic: pool.is_public,
       createdAt: pool.created_at,
       updatedAt: pool.updated_at,
@@ -55,7 +149,7 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { shareId } = params
+    const { shareId } = await params
     const session = requireAuth(request)
     const body = await parseBody(request)
 
@@ -98,6 +192,10 @@ export async function PUT(request, { params }) {
       updates.push(`set_code = $${paramIndex++}`)
       values.push(body.setCode)
     }
+    if (body.name !== undefined) {
+      updates.push(`name = $${paramIndex++}`)
+      values.push(body.name)
+    }
 
     if (updates.length === 0) {
       return errorResponse('No fields to update', 400)
@@ -124,7 +222,7 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const { shareId } = params
+    const { shareId } = await params
     const session = requireAuth(request)
 
     // Check ownership

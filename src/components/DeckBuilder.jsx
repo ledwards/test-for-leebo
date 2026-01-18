@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import './DeckBuilder.css'
 import './AspectIcons.css'
-import { getCachedCards, isCacheInitialized } from '../utils/cardCache'
+import { getCachedCards, isCacheInitialized, initializeCardCache } from '../utils/cardCache'
 import { fetchSetCards } from '../utils/api'
 import CardModal from './CardModal'
 import { getAspectColor } from '../utils/aspectColors'
 import CostIcon from './CostIcon'
+import { updatePool } from '../utils/poolApi'
 
 // Get aspect symbol for list view using individual icon files
 const getAspectSymbol = (aspect, size = 'medium') => {
@@ -44,7 +45,7 @@ const SORT_OPTIONS = ['aspect', 'cost']
 
 // getAspectColor is now imported from utils/aspectColors
 
-function DeckBuilder({ cards, setCode, onBack, savedState }) {
+function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareId = null, poolCreatedAt = null, poolType = 'sealed', poolName = null, poolOwnerUsername = null }) {
   // Helper function to format card type for display
   const getFormattedType = useCallback((card) => {
     if (card.type === 'Unit') {
@@ -109,6 +110,79 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
   const [errorMessage, setErrorMessage] = useState(null)
   const [messageType, setMessageType] = useState(null) // 'error' or 'success'
   const [isInfoBarSticky, setIsInfoBarSticky] = useState(false)
+  
+  // Function to get aspect color name
+  const getAspectColorName = (aspect) => {
+    const aspectColorMap = {
+      'Vigilance': 'Blue',
+      'Command': 'Green',
+      'Aggression': 'Red',
+      'Cunning': 'Yellow',
+      'Villainy': 'Purple',
+      'Heroism': 'Orange'
+    }
+    return aspectColorMap[aspect] || aspect
+  }
+
+  // Function to update pool name when leader or base changes
+  const updatePoolName = useCallback(async (leaderCard, baseCard) => {
+    if (!shareId || !setCode) return
+    
+    try {
+      const formatType = poolType === 'draft' ? 'Draft' : 'Sealed'
+      
+      const leaderName = leaderCard?.name || ''
+      
+      // For base: if common, use aspect color name; if rare, use base name
+      let baseName = ''
+      if (baseCard) {
+        if (baseCard.rarity === 'Common') {
+          // Get the first aspect and convert to color name
+          const aspects = baseCard.aspects || []
+          if (aspects.length > 0) {
+            baseName = getAspectColorName(aspects[0])
+          } else {
+            baseName = baseCard.name || ''
+          }
+        } else {
+          // Rare or other rarities: use the base name
+          baseName = baseCard.name || ''
+        }
+      }
+      
+      // Format: {Set Abbrv} {Format} ({Leader Name} {Base Name})
+      const parts = [setCode, formatType]
+      
+      // Add leader/base in parentheses if they exist
+      const leaderBaseParts = []
+      if (leaderName) leaderBaseParts.push(leaderName)
+      if (baseName) leaderBaseParts.push(baseName)
+      
+      if (leaderBaseParts.length > 0) {
+        parts.push('(' + leaderBaseParts.join(' ') + ')')
+      }
+      
+      const name = parts.join(' ')
+      
+      await updatePool(shareId, { name })
+    } catch (err) {
+      console.error('Failed to update pool name:', err)
+      // Don't show error to user - this is a background operation
+    }
+  }, [shareId, poolType, setCode])
+  
+  // Update pool name when leader or base changes
+  useEffect(() => {
+    if (!shareId || !poolCreatedAt) return
+    
+    const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
+    const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
+    
+    // Only update if at least one is selected
+    if (leaderCard || baseCard) {
+      updatePoolName(leaderCard, baseCard)
+    }
+  }, [activeLeader, activeBase, cardPositions, shareId, poolCreatedAt, updatePoolName])
   const [selectedCard, setSelectedCard] = useState(null)
   const [deckImageModal, setDeckImageModal] = useState(null) // URL for deck image modal
   const [hoveredCardPreview, setHoveredCardPreview] = useState(null) // { card, x, y } for enlarged preview
@@ -253,11 +327,21 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
   }
 
   const handleCardMouseLeave = () => {
+    // Clear the timeout if it exists (preview hasn't shown yet)
     if (previewTimeoutRef.current) {
       clearTimeout(previewTimeoutRef.current)
       previewTimeoutRef.current = null
     }
-    setHoveredCardPreview(null)
+    
+    // Don't clear the preview if it's already showing
+    // This allows the mouse to move from the card to the preview without the preview disappearing
+    // The preview's own onMouseLeave will handle clearing it when you move away
+    // Only clear if the preview was never shown (timeout was still pending)
+  }
+
+  const handlePreviewMouseEnter = () => {
+    // Keep preview visible when hovering over it
+    // Don't clear the timeout or preview
   }
 
   const handlePreviewMouseLeave = () => {
@@ -282,15 +366,19 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     }
   }, [])
 
-  // Load all cards from the set
+  // Load all cards from the set - optimize for speed
   useEffect(() => {
     const loadSetCards = async () => {
       try {
-        let cardsData = []
-        if (isCacheInitialized()) {
-          cardsData = getCachedCards(setCode)
+        // Initialize cache first if not already initialized (should be instant from JSON)
+        if (!isCacheInitialized()) {
+          await initializeCardCache()
         }
         
+        // Get cards from cache (instant)
+        let cardsData = getCachedCards(setCode)
+        
+        // If cache doesn't have cards, try API as fallback
         if (cardsData.length === 0) {
           cardsData = await fetchSetCards(setCode)
         }
@@ -509,7 +597,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         <img 
           src={`/icons/${aspectName}.png`}
           alt={parts[0]}
-          style={{ width: '39px', height: '39px' }}
+          style={{ width: '1em', height: '1em', verticalAlign: 'middle' }}
         />
       )
     } else {
@@ -524,7 +612,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 key={i}
                 src={`/icons/${aspectName}.png`}
                 alt={part}
-                style={{ width: '39px', height: '39px', display: 'block' }}
+                style={{ width: '1em', height: '1em', display: 'block', verticalAlign: 'middle' }}
               />
             )
           }).filter(Boolean)}
@@ -610,7 +698,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
   useEffect(() => {
     if (savedState && Object.keys(cardPositions).length === 0) {
       try {
-        const state = JSON.parse(savedState)
+        // Handle both string and object savedState
+        const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState
+        
         if (state.cardPositions && Object.keys(state.cardPositions).length > 0) {
           // Ensure all cards have enabled property (default to true)
           // Also remove any bases/leaders that might have been in 'main' section
@@ -638,13 +728,21 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
             Aggression: true
           })
           setSortOption(state.sortOption || 'aspect')
+          
+          // Restore active leader and base
+          if (state.activeLeader) {
+            setActiveLeader(state.activeLeader)
+          }
+          if (state.activeBase) {
+            setActiveBase(state.activeBase)
+          }
         }
       } catch (e) {
         console.error('Failed to restore deck builder state:', e)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Only run once on mount
+  }, [savedState]) // Run when savedState changes
 
   // Detect when deck-info-bar becomes sticky
   useEffect(() => {
@@ -690,20 +788,29 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
 
 
   // Initialize card positions in sections
+  // Can initialize with just pool cards, then enhance when all set cards load
   useEffect(() => {
-    if (cards.length > 0 && allSetCards.length > 0 && Object.keys(cardPositions).length === 0) {
+    // Don't initialize if we have saved state to restore (it will be restored in the other useEffect)
+    if (savedState) return
+    
+    // Initialize immediately with pool cards if we have them
+    // We only need allSetCards for the common bases, which can be added later
+    if (cards.length > 0 && Object.keys(cardPositions).length === 0) {
       const poolCards = cards.filter(card => !card.isBase && !card.isLeader)
       const poolLeaders = cards.filter(card => card.isLeader)
       
+      // Get common bases from all set cards if available, otherwise skip (will be added later)
       const commonBasesMap = new Map()
-      allSetCards
-        .filter(card => card.isBase && card.rarity === 'Common')
-        .forEach(card => {
-          const key = card.name
-          if (!commonBasesMap.has(key)) {
-            commonBasesMap.set(key, card)
-          }
-        })
+      if (allSetCards.length > 0) {
+        allSetCards
+          .filter(card => card.isBase && card.rarity === 'Common')
+          .forEach(card => {
+            const key = card.name
+            if (!commonBasesMap.has(key)) {
+              commonBasesMap.set(key, card)
+            }
+          })
+      }
       
       // Sort bases by aspect: Vigilance, Command, Aggression, Cunning
       const aspectOrder = ['Vigilance', 'Command', 'Aggression', 'Cunning']
@@ -837,20 +944,155 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
     }
   }, [cards, allSetCards, savedState])
 
-  // Save deck builder state to sessionStorage whenever it changes
+  // Add common bases when allSetCards loads (even if cardPositions already exist)
   useEffect(() => {
-    if (Object.keys(cardPositions).length > 0) {
+    // Only run if we have allSetCards, cardPositions exist, and we haven't added common bases yet
+    if (allSetCards.length > 0 && Object.keys(cardPositions).length > 0 && setCode) {
+      // Check if common bases are already in cardPositions
+      const hasCommonBases = Object.values(cardPositions).some(
+        pos => pos.card.isBase && pos.card.rarity === 'Common'
+      )
+      
+      // If no common bases found, add them
+      if (!hasCommonBases) {
+        // Get common bases from all set cards
+        const commonBasesMap = new Map()
+        allSetCards
+          .filter(card => card.isBase && card.rarity === 'Common')
+          .forEach(card => {
+            const key = card.name
+            if (!commonBasesMap.has(key)) {
+              commonBasesMap.set(key, card)
+            }
+          })
+        
+        // Sort bases by aspect
+        const aspectOrder = ['Vigilance', 'Command', 'Aggression', 'Cunning']
+        const getAspectSortValue = (card) => {
+          const aspects = card.aspects || []
+          if (aspects.length === 0) return 999
+          for (let i = 0; i < aspectOrder.length; i++) {
+            if (aspects.includes(aspectOrder[i])) {
+              return i
+            }
+          }
+          return 999
+        }
+        
+        const uniqueCommonBases = Array.from(commonBasesMap.values()).sort((a, b) => {
+          const aValue = getAspectSortValue(a)
+          const bValue = getAspectSortValue(b)
+          if (aValue !== bValue) {
+            return aValue - bValue
+          }
+          return (a.name || '').localeCompare(b.name || '')
+        })
+        
+        // Find the leaders-bases section bounds
+        const leadersBasesBounds = sectionBounds['leaders-bases']
+        if (leadersBasesBounds && uniqueCommonBases.length > 0) {
+          const updatedPositions = { ...cardPositions }
+          const leaderBaseWidth = 168
+          const leaderBaseHeight = 120
+          const spacing = 20
+          const padding = 50
+          
+          // Find existing bases to determine starting position
+          const existingBases = Object.values(cardPositions)
+            .filter(pos => pos.section === 'leaders-bases' && pos.card.isBase)
+          
+          // Calculate starting position: after existing bases or at section start
+          let startY = leadersBasesBounds.minY
+          let startX = padding
+          const itemsPerRow = Math.floor((window.innerWidth - 100) / (leaderBaseWidth + spacing))
+          
+          if (existingBases.length > 0) {
+            // Find the bottom-right position of existing bases
+            const maxY = Math.max(...existingBases.map(pos => pos.y + leaderBaseHeight))
+            const maxX = Math.max(...existingBases.map(pos => pos.x + leaderBaseWidth))
+            startY = maxY + spacing
+            // If we need a new row, reset X
+            if (maxX + leaderBaseWidth + spacing > window.innerWidth - padding) {
+              startX = padding
+            } else {
+              startX = maxX + spacing
+            }
+          }
+          
+          // Add common bases
+          uniqueCommonBases.forEach((card, index) => {
+            const row = Math.floor(index / itemsPerRow)
+            const col = index % itemsPerRow
+            const cardId = `base-common-${index}-${card.id || `${card.name}-${card.set}`}`
+            
+            // Check if this base already exists (avoid duplicates)
+            const baseExists = Object.values(cardPositions).some(
+              pos => pos.card.isBase && pos.card.name === card.name && pos.card.rarity === 'Common'
+            )
+            
+            if (!baseExists) {
+              updatedPositions[cardId] = {
+                x: startX + col * (leaderBaseWidth + spacing),
+                y: startY + row * (leaderBaseHeight + spacing),
+                card: card,
+                section: 'leaders-bases',
+                visible: true,
+                zIndex: 1
+              }
+            }
+          })
+          
+          // Update bounds if needed
+          const updatedBounds = { ...sectionBounds }
+          if (uniqueCommonBases.length > 0) {
+            const totalRows = Math.ceil(uniqueCommonBases.length / itemsPerRow)
+            const newMaxY = startY + (totalRows - 1) * (leaderBaseHeight + spacing) + leaderBaseHeight
+            if (updatedBounds['leaders-bases']) {
+              updatedBounds['leaders-bases'].maxY = Math.max(updatedBounds['leaders-bases'].maxY, newMaxY)
+            }
+          }
+          
+          setCardPositions(updatedPositions)
+          setSectionBounds(updatedBounds)
+        }
+      }
+    }
+  }, [allSetCards, cardPositions, sectionBounds, setCode])
+
+  // Save deck builder state to sessionStorage and database whenever it changes
+  useEffect(() => {
+    // Save state if we have card positions OR if leader/base selection changes
+    // This ensures state is saved even when only leader/base changes
+    if (Object.keys(cardPositions).length > 0 || activeLeader || activeBase) {
+      // Determine which cards are in deck vs sideboard
+      const deckCardIds = Object.entries(cardPositions)
+        .filter(([_, pos]) => pos.section === 'deck')
+        .map(([cardId, _]) => cardId)
+      
+      const sideboardCardIds = Object.entries(cardPositions)
+        .filter(([_, pos]) => pos.section === 'sideboard')
+        .map(([cardId, _]) => cardId)
+      
       const stateToSave = {
-        cardPositions,
+        cardPositions: Object.keys(cardPositions).length > 0 ? cardPositions : {},
         sectionLabels,
         sectionBounds,
         canvasHeight,
         aspectFilters,
-        sortOption
+        sortOption,
+        activeLeader,
+        activeBase,
+        deckCardIds,
+        sideboardCardIds
       }
-      sessionStorage.setItem('deckBuilderState', JSON.stringify(stateToSave))
+      const stateJson = JSON.stringify(stateToSave)
+      sessionStorage.setItem('deckBuilderState', stateJson)
+      // Also save to pool if onStateChange callback is provided
+      if (onStateChange) {
+        onStateChange(stateToSave)
+      }
     }
-  }, [cardPositions, sectionLabels, sectionBounds, canvasHeight, aspectFilters, sortOption])
+  }, [cardPositions, sectionLabels, sectionBounds, canvasHeight, aspectFilters, sortOption, activeLeader, activeBase, onStateChange])
 
   // Cleanup: Remove any bases/leaders from deck/sideboard sections and move cards based on enabled state
   useEffect(() => {
@@ -1904,7 +2146,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
       ctx.fillStyle = '#000000'
       ctx.fillRect(0, 0, width, totalHeight)
       
-      const cardRadius = 8 // Border radius matching app style
+      const cardRadius = 13 // Border radius matching app style
       
       // Helper to draw rounded rectangle
       const drawRoundedRect = (x, y, width, height, radius) => {
@@ -2174,12 +2416,37 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing
       }
       
-      // Draw Protect the Pod stamp at bottom
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
+      // Draw pool name and timestamp at bottom
+      const now = new Date()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const day = String(now.getDate()).padStart(2, '0')
+      let hours = now.getHours()
+      const minutes = String(now.getMinutes()).padStart(2, '0')
+      const ampm = hours >= 12 ? 'PM' : 'AM'
+      hours = hours % 12
+      hours = hours ? hours : 12
+      const timeStr = `${month}/${day} ${hours}:${minutes} ${ampm}`
+      
+      const displayName = poolName || `${setCode} ${poolType === 'draft' ? 'Draft' : 'Sealed'}`
+      
+      // Draw pool name
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
       ctx.font = 'bold 24px Arial'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'bottom'
-      ctx.fillText('Protect the Pod', width / 2, totalHeight - padding / 2)
+      ctx.fillText(displayName, width / 2, totalHeight - padding / 2 - 40)
+      
+      // Draw "by {username}" if available
+      if (poolOwnerUsername) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+        ctx.font = '20px Arial'
+        ctx.fillText(`by ${poolOwnerUsername}`, width / 2, totalHeight - padding / 2 - 15)
+      }
+      
+      // Draw timestamp below name (or below "by username" if present)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+      ctx.font = '18px Arial'
+      ctx.fillText(timeStr, width / 2, totalHeight - padding / 2)
       
       // Show image in modal instead of downloading
       canvas.toBlob((blob) => {
@@ -2213,25 +2480,72 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         </button>
         <h1>Deck Builder</h1>
         
-        <div className="header-buttons">
-          <button className="export-button" onClick={exportJSON}>
-            Export JSON
-          </button>
+        <div className={`header-buttons ${isInfoBarSticky ? 'hidden' : ''}`}>
           <button className="export-button" onClick={copyJSON}>
-            Copy JSON
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span>Copy JSON</span>
+          </button>
+          <button className="export-button" onClick={exportJSON}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Download</span>
           </button>
           <button className="export-button" onClick={exportDeckImage}>
-            Deck Image
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <span>Deck Image</span>
           </button>
+          {shareId && (
+            <button 
+              className="export-button" 
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(`${window.location.origin}/pool/${shareId}`)
+                  setErrorMessage('Share URL copied to clipboard!')
+                  setMessageType('success')
+                  setTimeout(() => {
+                    setErrorMessage(null)
+                    setMessageType(null)
+                  }, 3000)
+                } catch (err) {
+                  setErrorMessage('Failed to copy to clipboard')
+                  setMessageType('error')
+                  setTimeout(() => {
+                    setErrorMessage(null)
+                    setMessageType(null)
+                  }, 3000)
+                }
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              <span>Share URL</span>
+            </button>
+          )}
         </div>
         {errorMessage && (
           <div className="error-message" style={{ 
-            marginTop: '1rem', 
-            padding: '0.75rem', 
-            background: messageType === 'error' ? 'rgba(255, 0, 0, 0.2)' : 'rgba(0, 100, 255, 0.2)', 
-            border: messageType === 'error' ? '1px solid #ff0000' : '1px solid #0066ff', 
+            marginTop: '1rem',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            padding: '0.5rem 1rem', 
+            background: messageType === 'error' ? 'rgba(255, 0, 0, 0.2)' : errorMessage.includes('Generating') ? 'rgba(138, 43, 226, 0.2)' : 'rgba(0, 100, 255, 0.2)', 
+            border: messageType === 'error' ? '1px solid #ff0000' : errorMessage.includes('Generating') ? '1px solid #8a2be2' : '1px solid #0066ff', 
             borderRadius: '4px',
-            color: messageType === 'error' ? '#ffcccc' : '#cce5ff'
+            color: messageType === 'error' ? '#ffcccc' : errorMessage.includes('Generating') ? '#dda0dd' : '#cce5ff',
+            width: 'fit-content',
+            fontSize: '0.875rem'
           }}>
             {errorMessage}
           </div>
@@ -2272,6 +2586,35 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 <span 
                   className="selected-card-name"
                   style={{ color: getAspectColor(cardPositions[activeLeader].card) }}
+                  onMouseEnter={(e) => {
+                    if (isInfoBarSticky) {
+                      handleCardMouseEnter(cardPositions[activeLeader].card, e)
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (isInfoBarSticky) {
+                      handleCardMouseLeave()
+                    }
+                  }}
+                  onTouchStart={(e) => {
+                    if (isInfoBarSticky) {
+                      longPressTimeoutRef.current = setTimeout(() => {
+                        handleCardMouseEnter(cardPositions[activeLeader].card, e)
+                      }, 500)
+                    }
+                  }}
+                  onTouchEnd={() => {
+                    if (longPressTimeoutRef.current) {
+                      clearTimeout(longPressTimeoutRef.current)
+                      longPressTimeoutRef.current = null
+                    }
+                  }}
+                  onTouchCancel={() => {
+                    if (longPressTimeoutRef.current) {
+                      clearTimeout(longPressTimeoutRef.current)
+                      longPressTimeoutRef.current = null
+                    }
+                  }}
                 >
                   {cardPositions[activeLeader].card.name}
                 </span>
@@ -2314,6 +2657,35 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
               <span 
                 className="selected-card-name"
                 style={{ color: getAspectColor(cardPositions[activeBase].card) }}
+                onMouseEnter={(e) => {
+                  if (isInfoBarSticky) {
+                    handleCardMouseEnter(cardPositions[activeBase].card, e)
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (isInfoBarSticky) {
+                    handleCardMouseLeave()
+                  }
+                }}
+                onTouchStart={(e) => {
+                  if (isInfoBarSticky) {
+                    longPressTimeoutRef.current = setTimeout(() => {
+                      handleCardMouseEnter(cardPositions[activeBase].card, e)
+                    }, 500)
+                  }
+                }}
+                onTouchEnd={() => {
+                  if (longPressTimeoutRef.current) {
+                    clearTimeout(longPressTimeoutRef.current)
+                    longPressTimeoutRef.current = null
+                  }
+                }}
+                onTouchCancel={() => {
+                  if (longPressTimeoutRef.current) {
+                    clearTimeout(longPressTimeoutRef.current)
+                    longPressTimeoutRef.current = null
+                  }
+                }}
               >
                 {cardPositions[activeBase].card.name}
               </span>
@@ -2397,6 +2769,62 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
               })()})
             </span>
         </div>
+        {isInfoBarSticky && (
+          <div className="header-buttons-in-nav">
+            <button className="export-button-icon" onClick={copyJSON}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span className="button-tooltip">Copy JSON</span>
+            </button>
+            <button className="export-button-icon" onClick={exportJSON}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span className="button-tooltip">Download</span>
+            </button>
+            <button className="export-button-icon" onClick={exportDeckImage}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              <span className="button-tooltip">Deck Image</span>
+            </button>
+            {shareId && (
+              <button 
+                className="export-button-icon" 
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(`${window.location.origin}/pool/${shareId}`)
+                    setErrorMessage('Share URL copied to clipboard!')
+                    setMessageType('success')
+                    setTimeout(() => {
+                      setErrorMessage(null)
+                      setMessageType(null)
+                    }, 3000)
+                  } catch (err) {
+                    setErrorMessage('Failed to copy to clipboard')
+                    setMessageType('error')
+                    setTimeout(() => {
+                      setErrorMessage(null)
+                      setMessageType(null)
+                    }, 3000)
+                  }
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+                <span className="button-tooltip">Share URL</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
       
       <div className="view-controls">
@@ -4525,7 +4953,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
         const card = hoveredCardPreview.card
         const hasBackImage = card.backImageUrl && card.isLeader
         const isHorizontal = card.isLeader || card.isBase
-        const borderRadius = '18px' // Slightly smaller than 24px to reduce clipping
+        const borderRadius = '23px' // Slightly smaller than 24px to reduce clipping
         
         // Calculate dimensions
         let previewWidth, previewHeight
@@ -4560,19 +4988,21 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
               flexDirection: 'row', // Side by side for leaders with back
               gap: '20px',
             }}
+            onMouseEnter={handlePreviewMouseEnter}
             onMouseLeave={handlePreviewMouseLeave}
           >
             {hasBackImage ? (
               // Show both front (horizontal) and back (vertical) side by side for leaders
               <>
                 {/* Front - horizontal */}
-                <div style={{
+                <div className={card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : ''} style={{
                   width: '504px',
                   height: '360px',
                   overflow: 'hidden',
                   borderRadius: borderRadius,
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  boxShadow: (card.isFoil && (!card.isLeader || card.isShowcase)) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
+                  position: 'relative',
                 }}>
                   {card.imageUrl ? (
                     <img
@@ -4607,13 +5037,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                   )}
                 </div>
                 {/* Back - vertical */}
-                <div style={{
+                <div className={card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : ''} style={{
                   width: '360px',
                   height: '504px',
                   overflow: 'hidden',
                   borderRadius: borderRadius,
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  boxShadow: (card.isFoil && (!card.isLeader || card.isShowcase)) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
+                  position: 'relative',
                 }}>
                   {card.backImageUrl ? (
                     <img
@@ -4650,13 +5081,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
               </>
             ) : (
               // Single card (non-leader, base, or leader without back)
-              <div style={{
+              <div className={card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : ''} style={{
                 width: `${previewWidth}px`,
                 height: `${previewHeight}px`,
                 overflow: 'hidden',
                 borderRadius: borderRadius,
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                boxShadow: (card.isFoil && (!card.isLeader || card.isShowcase)) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
                 border: '2px solid rgba(255, 255, 255, 0.3)',
+                position: 'relative',
               }}>
                 {card.imageUrl ? (
                   <img
@@ -4741,7 +5173,23 @@ function DeckBuilder({ cards, setCode, onBack, savedState }) {
                 onClick={() => {
                   const a = document.createElement('a')
                   a.href = deckImageModal
-                  a.download = `deck-${setCode}-${Date.now()}.png`
+                  
+                  // Generate filename with pool name and timestamp
+                  const now = new Date()
+                  const month = String(now.getMonth() + 1).padStart(2, '0')
+                  const day = String(now.getDate()).padStart(2, '0')
+                  let hours = now.getHours()
+                  const minutes = String(now.getMinutes()).padStart(2, '0')
+                  const ampm = hours >= 12 ? 'PM' : 'AM'
+                  hours = hours % 12
+                  hours = hours ? hours : 12
+                  const timeStr = `${month}${day}_${hours}${minutes}${ampm}`
+                  
+                  const displayName = poolName || `${setCode} ${poolType === 'draft' ? 'Draft' : 'Sealed'}`
+                  // Sanitize filename - remove invalid characters
+                  const sanitizedName = displayName.replace(/[^a-z0-9]/gi, '_').toLowerCase()
+                  
+                  a.download = `${sanitizedName}_${timeStr}.png`
                   document.body.appendChild(a)
                   a.click()
                   document.body.removeChild(a)

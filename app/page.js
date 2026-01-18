@@ -23,13 +23,15 @@ export default function Home() {
     })
   }, [])
 
-  // Handle URL-based routing for legal pages
+  // Handle URL-based routing for legal pages and set selection
   useEffect(() => {
     const path = window.location.pathname
     if (path === '/terms-of-service') {
       setView('terms-of-service')
     } else if (path === '/privacy-policy') {
       setView('privacy-policy')
+    } else if (path === '/sets') {
+      setView('set-selection')
     }
   }, [])
 
@@ -41,6 +43,8 @@ export default function Home() {
         setView('terms-of-service')
       } else if (path === '/privacy-policy') {
         setView('privacy-policy')
+      } else if (path === '/sets') {
+        setView('set-selection')
       } else if (path === '/' || path === '') {
         setView('landing')
       }
@@ -63,13 +67,12 @@ export default function Home() {
   }, [])
 
   const handleSealedClick = () => {
-    setView('set-selection')
+    window.location.href = '/sets'
   }
 
   const handleSetSelect = (setCode) => {
-    setSelectedSet(setCode)
-    setView('sealed-pod')
-    sessionStorage.removeItem('sealedPod')
+    // Navigate to create a new pool for this set
+    window.location.href = `/pools/new?set=${setCode}`
   }
 
   const handleBack = () => {

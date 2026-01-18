@@ -8,32 +8,52 @@ const __dirname = dirname(__filename)
 
 const tests = [
   {
-    name: 'Pack Distribution Tests',
+    name: 'Sheet Composition Inspection',
     command: 'npm',
-    args: ['run', 'test-distribution'],
-    description: 'Comprehensive pack generation and distribution tests',
-    requiresServer: false
+    args: ['run', 'test-inspect'],
+    description: 'Verify R/L sheet composition and legendary ratios',
+    requiresServer: false,
+    category: 'sheet-system'
   },
   {
-    name: 'Duplicate/Triplicate Rate Tests',
+    name: 'Rarity Rate Tests (All Sets)',
     command: 'npm',
-    args: ['run', 'test-duplicates', 'SOR', '500'],
-    description: 'Statistical test for duplicate rates in sealed pods',
-    requiresServer: false
+    args: ['run', 'test-rarity'],
+    description: 'Test ALL rarity rates across all 6 sets - observed vs definitional (1000 packs per set)',
+    requiresServer: false,
+    category: 'sheet-system'
   },
   {
-    name: 'API Tests',
+    name: 'Sheet-Based Pack Tests (SOR)',
     command: 'npm',
-    args: ['run', 'test-api'],
-    description: 'API endpoint tests (requires dev server: npm run dev or vercel dev)',
-    requiresServer: true
+    args: ['run', 'test-sheets', 'SOR'],
+    description: 'Comprehensive sheet-based pack tests for Set 1 (duplicates, belts, structure)',
+    requiresServer: false,
+    category: 'sheet-system'
+  },
+  {
+    name: 'Sheet-Based Pack Tests (JTL)',
+    command: 'npm',
+    args: ['run', 'test-sheets', 'JTL'],
+    description: 'Comprehensive sheet-based pack tests for Set 4 (includes Special foils, pod duplicates/triplicates)',
+    requiresServer: false,
+    category: 'sheet-system'
   },
   {
     name: 'Database Connection Tests',
     command: 'npm',
     args: ['run', 'test-db'],
     description: 'Database connection and query tests',
-    requiresServer: false
+    requiresServer: false,
+    category: 'infrastructure'
+  },
+  {
+    name: 'API Tests',
+    command: 'npm',
+    args: ['run', 'test-api'],
+    description: 'API endpoint tests (requires dev server: npm run dev or vercel dev)',
+    requiresServer: true,
+    category: 'infrastructure'
   }
 ]
 
@@ -74,6 +94,17 @@ async function runAllTests() {
   console.log(`Total test suites: ${tests.length}`)
   console.log(`Started at: ${new Date().toISOString()}`)
   console.log()
+  
+  // Group tests by category
+  const categories = {
+    'sheet-system': tests.filter(t => t.category === 'sheet-system'),
+    'infrastructure': tests.filter(t => t.category === 'infrastructure')
+  }
+  
+  console.log('Test Categories:')
+  console.log(`  Sheet System Tests: ${categories['sheet-system'].length}`)
+  console.log(`  Infrastructure Tests: ${categories['infrastructure'].length}`)
+  console.log()
   console.log('Note: Some tests require the dev server to be running.')
   console.log('      Start it with: npm run dev (or vercel dev)')
   console.log()
@@ -101,10 +132,29 @@ async function runAllTests() {
   const passed = results.filter(r => r.passed).length
   const failed = results.filter(r => !r.passed).length
   
-  results.forEach(result => {
-    const status = result.passed ? '✅ PASS' : '❌ FAIL'
-    const serverNote = result.requiresServer ? ' (requires server)' : ''
-    console.log(`${status} - ${result.name}${serverNote}`)
+  // Group results by category
+  const categorizedResults = {
+    'sheet-system': [],
+    'infrastructure': []
+  }
+  
+  tests.forEach((test, index) => {
+    categorizedResults[test.category].push({
+      ...results[index],
+      name: test.name
+    })
+  })
+  
+  // Display by category
+  Object.entries(categorizedResults).forEach(([category, categoryResults]) => {
+    if (categoryResults.length > 0) {
+      console.log(`\n${category.toUpperCase().replace('-', ' ')}:`)
+      categoryResults.forEach(result => {
+        const status = result.passed ? '✅ PASS' : '❌ FAIL'
+        const serverNote = result.requiresServer ? ' (requires server)' : ''
+        console.log(`  ${status} - ${result.name}${serverNote}`)
+      })
+    }
   })
   
   console.log('\n' + '-'.repeat(80))

@@ -91,7 +91,7 @@ function SetSelection({ onSetSelect, onBack }) {
   if (loading) {
     return (
       <div className="set-selection">
-        <div className="loading">Loading sets...</div>
+        <div className="loading"></div>
       </div>
     )
   }

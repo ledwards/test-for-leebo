@@ -8,7 +8,7 @@ export default function AuthButton() {
   if (loading) {
     return (
       <div className="auth-button loading">
-        <span>Loading...</span>
+        <span></span>
       </div>
     )
   }

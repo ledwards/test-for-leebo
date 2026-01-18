@@ -12,20 +12,27 @@
 }
 
 .deck-builder-header {
-  margin-bottom: 1rem;
-  text-align: center;
+  margin-bottom: 2rem;
   position: relative;
+  text-align: left;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.deck-builder-header h1 {
+  text-align: center;
 }
 
 .deck-builder-header .back-button {
   position: absolute;
   left: 0;
   top: 0;
+  text-align: left;
 }
 
 .deck-builder-header h1 {
   font-size: 2.5rem;
-  margin: 1rem 0;
+  margin: 1rem 0 2.5rem 0;
   color: white;
 }
 
@@ -55,17 +62,35 @@
   transition: all 0.3s ease;
   font-size: 1rem;
   box-sizing: border-box;
-  /* Non-sticky: margins to avoid overlap with right-side buttons and tooltips (buttons at right: 20px, width: 44px, tooltip ~120px, so need 20px + 44px + 120px + 20px spacing - 40px = 164px) */
   margin-left: calc(2rem - 20px - 5px);
-  margin-right: calc(20px + 44px + 120px + 20px - 40px); /* 20px (button right position) + 44px (button width) + 120px (tooltip width) + 20px (spacing) - 40px (wider) */
-  width: calc(100% - (2rem - 20px - 5px) - (20px + 44px + 120px + 20px - 40px)); /* Account for left and right margins */
+  margin-right: calc(2rem - 20px - 5px + 120px);
+  width: calc(100% - (2rem - 20px - 5px) - (2rem - 20px - 5px + 120px));
 }
 
-/* When sticky, keep same height and left positioning */
+.deck-info-bar:not(.sticky) {
+  justify-content: space-between;
+}
+
+/* When sticky, buttons on left of deck-counts-info, deck-counts-info on far right */
 .deck-info-bar.sticky {
-  margin-left: calc(2rem - 20px - 5px); /* Same as non-sticky */
-  margin-right: calc(20px + 44px + 120px + 20px - 40px); /* Same as non-sticky - clears buttons and tooltips */
-  width: calc(100% - (2rem - 20px - 5px) - (20px + 44px + 120px + 20px - 40px)); /* Same as non-sticky */
+  margin-left: 1.25rem; /* Match card blocks: container padding (1rem) + section margin (0.25rem) */
+  margin-right: 80px; /* Space for Discord icon (40px width + 20px right + 20px spacing) */
+  width: calc(100% - 1.25rem - 80px);
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.deck-info-bar.sticky .deck-counts-info {
+  margin-left: auto;
+  margin-right: 20px;
+  order: 2;
+  flex-shrink: 0;
+}
+
+.deck-info-bar.sticky .header-buttons-in-nav {
+  order: 3;
+  margin-left: 0;
+  flex-shrink: 0;
 }
 
 .selected-cards-info {
@@ -163,26 +188,153 @@
   gap: 1rem;
   justify-content: center;
   margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
   flex-wrap: wrap;
+  transition: opacity 0.3s ease, height 0.3s ease, margin 0.3s ease;
+}
+
+.header-buttons.hidden {
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
 .export-button {
-  background: rgba(0, 0, 0, 0.7);
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  border: none;
   color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.export-button svg {
+  flex-shrink: 0;
 }
 
 .export-button:hover {
-  background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(138, 43, 226, 0.8);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(138, 43, 226, 0.6);
+  color: rgba(138, 43, 226, 1);
+  transform: translateY(-1px);
+}
+
+.header-buttons-in-nav {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.export-button-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.export-button-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.export-button-icon:hover {
+  color: rgba(138, 43, 226, 1);
+  transform: translateY(-1px);
+}
+
+.export-button-icon .button-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 1001;
+}
+
+.export-button-icon:hover .button-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Sticky nav buttons (icon-only) */
+.deck-info-bar.sticky .sticky-nav-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.sticky-nav-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.sticky-nav-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.sticky-nav-button:hover {
+  color: rgba(138, 43, 226, 1);
+  transform: translateY(-1px);
+}
+
+.sticky-nav-button .button-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 1001;
+}
+
+.sticky-nav-button:hover .button-tooltip {
+  opacity: 1;
 }
 
 /* Leaders & Bases Section - Flex Container */
@@ -315,7 +467,7 @@
   background: rgba(0, 0, 0, 0.6);
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  padding: 1rem;
+  padding: 0.75rem;
   overflow: visible;
   box-sizing: border-box;
   display: flex;
@@ -436,10 +588,10 @@
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 120px);
+  grid-template-columns: repeat(auto-fill, 85px);
   gap: 0.5rem;
   margin-top: 0.5rem;
-  padding: 8px;
+  padding: 6px;
   width: 100%;
   box-sizing: border-box;
   justify-content: start;
@@ -500,7 +652,7 @@
   aspect-ratio: 2.5 / 3.5;
   background: rgba(0, 0, 0, 0.6);
   border: none;
-  border-radius: 8px;
+  border-radius: 13px;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
   cursor: pointer;
   isolation: isolate;
@@ -521,7 +673,7 @@
   content: '';
   position: absolute;
   inset: -1px;
-  border-radius: 9px;
+  border-radius: 14px;
   background: linear-gradient(
     45deg,
     #ff0000,
@@ -545,11 +697,11 @@
 .canvas-card.leader::before,
 .canvas-card.base::before {
   inset: -1px;
-  border-radius: 9px;
+  border-radius: 14px;
 }
 
 .canvas-card > * {
-  border-radius: 8px;
+  border-radius: 13px;
   overflow: hidden;
 }
 
@@ -716,6 +868,39 @@
   pointer-events: none;
 }
 
+/* Apply same foil treatment to enlarged card preview */
+.card-preview-enlarged .card-preview-foil {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-preview-enlarged .card-preview-foil::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 0, 0, 0.3) 0%,
+    rgba(255, 127, 0, 0.3) 15%,
+    rgba(255, 255, 0, 0.3) 30%,
+    rgba(0, 255, 0, 0.3) 45%,
+    rgba(0, 0, 255, 0.3) 60%,
+    rgba(75, 0, 130, 0.3) 75%,
+    rgba(148, 0, 211, 0.3) 90%,
+    rgba(255, 0, 0, 0.3) 100%
+  );
+  background-size: 200% 200%;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 2;
+  animation: foil-shimmer 3s ease-in-out infinite;
+  border-radius: 18px;
+}
+
 .canvas-card .badge {
   font-size: 0.65rem;
   padding: 2px 6px;
@@ -761,7 +946,7 @@
 
 .view-controls {
   position: fixed;
-  top: 20px;
+  top: 70px; /* Start below Discord avatar (20px top + 40px avatar height + 10px gap) */
   right: 20px;
   display: flex;
   flex-direction: column;
@@ -973,6 +1158,10 @@
 
 .list-section {
   margin-bottom: 4rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 .deck-aspect-subsection {
@@ -996,11 +1185,14 @@
 
 .list-table {
   width: 100%;
+  max-width: 800px;
   table-layout: fixed;
   border-collapse: collapse;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 8px;
   overflow: hidden;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .list-table thead {
@@ -1051,6 +1243,7 @@
 
 .list-table td {
   padding: 0.35rem 0.75rem;
+  line-height: 1.5;
   border-left: none;
   border-right: none;
   color: white;
@@ -1071,8 +1264,6 @@
 .list-table td:nth-child(5) {
   vertical-align: middle;
   text-align: center;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
 }
 
 /* Rarity column - right aligned */
