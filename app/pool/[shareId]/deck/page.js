@@ -65,7 +65,7 @@ export default function DeckBuilderPage({ params }) {
 
   // Always render DeckBuilder immediately - show UI structure even while loading
   // Cards will be empty initially and populate once pool data loads
-  const allCards = pool ? (pool.packs ? pool.packs.flat() : pool.cards) || [] : []
+  const allCards = pool ? (pool.packs ? pool.packs.flatMap(pack => pack.cards) : pool.cards) || [] : []
   const setCode = pool?.setCode || null
   // Handle deckBuilderState - it might be a string or object
   const savedState = pool?.deckBuilderState 

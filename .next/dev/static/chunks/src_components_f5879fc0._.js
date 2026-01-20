@@ -1315,7 +1315,9 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
             // Skip loading cards if we have initialPacks (pool data from URL)
             if (initialPacks && initialPacks.length > 0) {
                 // Extract cards from packs for card lookup/display purposes
-                const allCardsFromPacks = initialPacks.flat();
+                const allCardsFromPacks = initialPacks.flatMap({
+                    "SealedPod.useEffect.allCardsFromPacks": (pack)=>pack.cards
+                }["SealedPod.useEffect.allCardsFromPacks"]);
                 setCards(allCardsFromPacks);
                 setError(null); // Clear any error since we have pool data
                 setLoading(false);
@@ -1461,7 +1463,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
         }
         try {
             setSaving(true);
-            const allCards = generatedPacks.flat();
+            const allCards = generatedPacks.flatMap((pack)=>pack.cards);
             const poolData = {
                 setCode,
                 cards: allCards,
@@ -1729,7 +1731,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                             packs.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                 className: "build-deck-button",
                                 onClick: ()=>{
-                                    const allCards = packs.flat();
+                                    const allCards = packs.flatMap((pack)=>pack.cards);
                                     if (savedShareId) {
                                         // Navigate to deck builder with share ID
                                         window.location.href = `/pool/${savedShareId}/deck`;
@@ -1772,7 +1774,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "cards-grid",
-                                        children: pack.map((card, cardIndex)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        children: pack.cards.map((card, cardIndex)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: `card-item ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''} ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`,
                                                 onClick: ()=>setSelectedCard(card),
                                                 onMouseEnter: (e)=>{
@@ -1974,7 +1976,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                                 packs.forEach((pack, packIndex)=>{
                                     let uncommonCount = 0;
                                     let nonLeaderBaseFoilCount = 0;
-                                    pack.forEach((card, cardIndex)=>{
+                                    pack.cards.forEach((card, cardIndex)=>{
                                         // Count rarities
                                         if (card.rarity) {
                                             stats.rarityCounts[card.rarity] = (stats.rarityCounts[card.rarity] || 0) + 1;

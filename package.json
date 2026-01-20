@@ -9,22 +9,10 @@
     "start": "next start",
     "lint": "eslint .",
     "fetch-cards": "node scripts/fetchCards.js",
-    "test": "node --no-warnings scripts/run-all-tests.js",
-    "test-sheets": "node --no-warnings scripts/testSheetPacks.js",
-    "test-rarity": "node --no-warnings scripts/testRarityRates.js",
-    "test-inspect": "node --no-warnings scripts/inspectSheets.js",
-    "test-belts": "node --no-warnings scripts/testBelts.js",
-    "test-colors": "node --no-warnings scripts/testColumnColors.js",
-    "test-separation": "node --no-warnings scripts/testLeaderSeparation.js",
-    "visualize-sheets": "node --no-warnings scripts/visualizeSheets.js",
     "migrate": "node scripts/migrate.js dev",
     "migrate:dev": "node scripts/migrate.js dev",
     "migrate:prod": "node scripts/migrate.js prod",
-    "migrate:status": "node scripts/migrate.js dev status && node scripts/migrate.js prod status",
-    "test-db": "node scripts/test-db-connection.js dev",
-    "test-db:dev": "node scripts/test-db-connection.js dev",
-    "test-db:prod": "node scripts/test-db-connection.js prod",
-    "test-api": "node scripts/test-api.js"
+    "migrate:status": "node scripts/migrate.js dev status && node scripts/migrate.js prod status"
   },
   "dependencies": {
     "@vercel/postgres": "^0.10.0",

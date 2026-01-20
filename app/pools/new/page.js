@@ -62,7 +62,7 @@ export default function NewPoolPage() {
 
         // Generate new sealed pod (client-side, fast)
         const generatedPacks = generateSealedPod(cards, setCode)
-        const allCards = generatedPacks.flat()
+        const allCards = generatedPacks.flatMap(pack => pack.cards)
 
         // Generate share ID client-side using nanoid
         const shareId = nanoid(8)

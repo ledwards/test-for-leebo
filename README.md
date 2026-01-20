@@ -94,16 +94,6 @@ The card data file has been pre-populated with **4,973 cards** from all 6 expans
 - **LOF** (Legends of the Force): 1,152 cards
 - **SEC** (Secrets of Power): 1,150 cards
 
-Each card includes:
-- Card ID, name, set code, number
-- Rarity (Common, Uncommon, Rare, Legendary)
-- Type (Leader, Base, Unit, Event, etc.)
-- Aspects, traits, arenas
-- Cost, power, HP
-- Card text, keywords, artist
-- Image URLs (front and back if applicable)
-- Whether the card is a Leader or Base
-
 #### Refreshing Card Data
 
 To refresh the card data from the API, run:
@@ -112,44 +102,21 @@ To refresh the card data from the API, run:
 npm run fetch-cards
 ```
 
-This will fetch the latest card data from swu-db.com and update `src/data/cards.json`.
-
-The app will:
-1. First try to fetch cards from swu-db.com API (if available)
-2. Fall back to loading from `src/data/cards.json`
-3. Show an error if no card data is available
-
 ## Booster Pack Rules
 
 Based on the official article: [Boosting Ahead of Release](https://starwarsunlimited.com/articles/boosting-ahead-of-release)
 
 Each booster pack contains exactly 16 cards with the specified distribution above.
 
-### Sheet-Based Pack Generation
-
-The app uses a realistic **sheet-based collation system** that simulates how real TCG packs are manufactured:
-- Cards are generated from 11×11 sheets (121 cards each)
-- Packs are filled sequentially with advancing pointers
-- Common cards use a **belt system** to ensure aspect diversity and prevent duplicates
-- Different legendary rates for Sets 1-3 vs Sets 4-6
-
-#### Belt System
-
-The belt system prevents duplicate common cards by separating cards into two completely disjoint belts:
-- **Belt A**: Vigilance + Command aspects (blue/green) + ~50% of Neutral/Hero/Villain cards
-- **Belt B**: Aggression + Cunning aspects (red/yellow) + ~50% of Neutral/Hero/Villain cards
-- Packs alternate pulls between belts (A, B, A, B, A, B, A, B, A) ensuring 4-5 cards from each belt
-- **Zero duplicates guaranteed** - belts have no overlap
-
-#### Set Differences: Sets 1-3 vs Sets 4-6
+### Set Differences: Sets 1-3 vs Sets 4-6
 
 **Legendary Drop Rates:**
 - **Sets 1-3 (SOR, SHD, TWI)**: 16 legendaries per set → ~13.3% legendary rate (~1 in 7.5 packs)
-- **Sets 4-6 (JTL, LOF, SEC)**: 20 legendaries per set → ~16.7% legendary rate (~1 in 6 packs) - **HIGHER**
+- **Sets 4-6 (JTL, LOF, SEC)**: 20 legendaries per set → ~16.7% legendary rate (~1 in 6 packs)
 
 **Special Rarity Cards:**
 - **Sets 1-3**: Special rarity only for leaders (8 per set), not in foil slots
-- **Sets 4-6**: Special rarity for leaders (8) + non-leader specials (8) = 16 total, **can appear in foil slots** (~1.5-2%)
+- **Sets 4-6**: Special rarity for leaders (8) + non-leader specials (8) = 16 total, can appear in foil slots (~1.5-2%)
 
 **Card Counts:**
 | Set | Commons | Uncommons | Rares | Legendaries | Specials (non-leader) |
@@ -161,84 +128,39 @@ The belt system prevents duplicate common cards by separating cards into two com
 | LOF | 100 | 60 | 46 | **20** | **8** |
 | SEC | 100 | 60 | 50 | **20** | **8** |
 
-See `MANUFACTURING_RULES.md` for detailed implementation of the manufacturing rules.
-
-## Quick Reference
-
-### Essential Commands
+## Commands
 
 ```bash
 # Development
 npm install                  # Install dependencies
 npm run dev                  # Start development server
 npm run build                # Build for production
+npm run lint                 # Run linter
 
-# Testing
-npm test                     # Run all tests
-npm run test-sheets SOR      # Test specific set
-npm run test-rarity          # Test all rarity rates
-
-# Visualization
-npm run visualize-sheets SOR # Generate sheet visualizations
-# Then open: sheets/SOR/index.html
+# Database
+npm run migrate:dev          # Run migrations (dev)
+npm run migrate:prod         # Run migrations (prod)
 
 # Data management
 npm run fetch-cards          # Refresh card data from API
 ```
 
-### Testing
-
-Run the complete test suite:
-
-```bash
-npm test
-```
-
-Individual test suites:
-
-```bash
-npm run test-inspect         # Inspect sheet composition
-npm run test-rarity          # Test ALL rarity rates (all sets)
-npm run test-sheets SOR      # Comprehensive pack tests for a set
-npm run test-belts           # Test belt system (zero duplicates)
-npm run test-colors          # Test color constraints
-npm run test-separation      # Test sheet separation
-npm run visualize-sheets SOR # Generate visual sheet representations
-                            # Then open sheets/SOR/index.html
-npm run test-db              # Database connection test
-npm run test-api             # API tests (requires server)
-```
-
-See `TESTING_GUIDE.md` for detailed testing instructions and `SHEET_VISUALIZATION_GUIDE.md` for sheet visualization.
-
-### Code Structure
+## Code Structure
 
 ```
 src/
 ├── utils/
-│   ├── sheetGeneration.js      # Manufacturing rules, belt system
-│   ├── packBuilder.js          # Pack generation, pointer management
 │   ├── setConfigs/             # Set-specific parameters (SOR, SHD, TWI, JTL, LOF, SEC)
-│   ├── sheetVisualization.js   # Sheet visualization
-│   └── cardCache.js            # Card data management
+│   ├── cardCache.js            # Card data management
+│   └── cardFilters.js          # Card filtering logic
 ├── data/
 │   └── cards.json              # 4,973 cards from all sets
 └── components/                 # React UI components
 
-scripts/
-├── run-all-tests.js            # Main test runner
-├── testSheetPacks.js           # Comprehensive pack tests
-├── testRarityRates.js          # Rarity rate validation
-├── testBelts.js                # Belt system tests
-└── visualizeSheets.js          # Generate sheet visualizations
+app/
+├── api/                        # API routes
+└── [pages]                     # Next.js pages
 ```
-
-### Documentation
-
-- **`TESTING_GUIDE.md`** - Comprehensive testing instructions, verification checklist, troubleshooting
-- **`MANUFACTURING_RULES.md`** - The 5 manufacturing rules, belt system explanation, test results
-- **`SHEET_VISUALIZATION_GUIDE.md`** - How to generate and inspect sheet visualizations
-- **`src/data/CARD_DATA_STRUCTURE.md`** - Card data format reference
 
 ## Future Features
 

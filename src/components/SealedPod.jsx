@@ -40,7 +40,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
     // Skip loading cards if we have initialPacks (pool data from URL)
     if (initialPacks && initialPacks.length > 0) {
       // Extract cards from packs for card lookup/display purposes
-      const allCardsFromPacks = initialPacks.flat()
+      const allCardsFromPacks = initialPacks.flatMap(pack => pack.cards)
       setCards(allCardsFromPacks)
       setError(null) // Clear any error since we have pool data
       setLoading(false)
@@ -169,7 +169,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
 
     try {
       setSaving(true)
-      const allCards = generatedPacks.flat()
+      const allCards = generatedPacks.flatMap(pack => pack.cards)
       const poolData = {
         setCode,
         cards: allCards,
@@ -310,7 +310,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
           <button 
             className="build-deck-button" 
             onClick={() => {
-              const allCards = packs.flat()
+              const allCards = packs.flatMap(pack => pack.cards)
               if (savedShareId) {
                 // Navigate to deck builder with share ID
                 window.location.href = `/pool/${savedShareId}/deck`
@@ -332,7 +332,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
           <div key={index} className="pack-details">
             <h2>Pack {index + 1}</h2>
             <div className="cards-grid">
-              {pack.map((card, cardIndex) => (
+              {pack.cards.map((card, cardIndex) => (
                 <div
                   key={cardIndex}
                   className={`card-item ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''} ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`}
@@ -470,8 +470,8 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
             packs.forEach((pack, packIndex) => {
               let uncommonCount = 0
               let nonLeaderBaseFoilCount = 0
-              
-              pack.forEach((card, cardIndex) => {
+
+              pack.cards.forEach((card, cardIndex) => {
                 // Count rarities
                 if (card.rarity) {
                   stats.rarityCounts[card.rarity] = (stats.rarityCounts[card.rarity] || 0) + 1

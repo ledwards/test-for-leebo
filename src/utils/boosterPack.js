@@ -1,42 +1,110 @@
-// Booster pack generation logic based on:
-// https://starwarsunlimited.com/articles/boosting-ahead-of-release
-//
-// IMPORTANT: This file now uses sheet-based pack generation for realistic TCG collation.
-// The old random generation system has been replaced with a printer/sheet-based model.
-
-import { generateBoosterPack as generateBoosterPackFromSheets, generateSealedPod as generateSealedPodFromSheets } from './packBuilder.js'
+/**
+ * Booster Pack Generation (Stub)
+ *
+ * Simple random generation for pack contents.
+ *
+ * Pack structure:
+ * - 1 Leader
+ * - 1 Base (common)
+ * - 9 Commons
+ * - 3 Uncommons
+ * - 1 Rare or Legendary
+ * - 1 Foil (any rarity)
+ *
+ * Total: 16 cards
+ */
 
 /**
- * Generate a single booster pack according to SWU rules
- * 
- * Pack contents:
- * - 1 Leader card (guaranteed, in leader slot only)
- * - 1 Base card (guaranteed, in base slot only)
- * - 9 Common cards (alternating between Belt A and Belt B)
- * - 3 Uncommon cards (3rd slot can be upgraded)
- * - 1 Rare or Legendary card
- * - 1 Foil card (can be any rarity)
- * 
- * Total: 16 cards
- * 
- * NEW: Uses sheet-based generation system for realistic pack collation.
- * Cards are pulled sequentially from print sheets, simulating actual TCG manufacturing.
- * 
- * Variants:
- * - Hyperspace variant: ~2/3 of packs have at least one hyperspace card
- * - Showcase variant: ~1 in 288 packs for leaders
- * - Foil: Standard foil ~5/6, Hyperspace foil ~1/6
+ * Pick a random element from an array
  */
-export function generateBoosterPack(cards, setCode) {
-  return generateBoosterPackFromSheets(cards, setCode)
+function pickRandom(arr) {
+  if (!arr || arr.length === 0) return null
+  return arr[Math.floor(Math.random() * arr.length)]
 }
 
 /**
- * Generate 6 booster packs for a sealed pod
- * 
- * NEW: Uses sheet-based generation with sequential pulls from same sheets,
- * ensuring realistic pack-to-pack variation and proper collation.
+ * Pick N random elements from an array (without replacement)
  */
-export function generateSealedPod(cards, setCode) {
-  return generateSealedPodFromSheets(cards, setCode, 6)
+function pickRandomN(arr, n) {
+  if (!arr || arr.length === 0) return []
+  const shuffled = [...arr].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, n)
+}
+
+/**
+ * Filter cards by set, getting only normal variants
+ */
+function getNormalCards(cards, setCode) {
+  return cards.filter(c =>
+    c.set === setCode &&
+    c.variantType === 'Normal'
+  )
+}
+
+/**
+ * Generate a single booster pack
+ * @param {Array} cards - All cards
+ * @param {string} setCode - Set code (SOR, SHD, etc.)
+ * @returns {Object} Pack object with cards array
+ */
+export function generateBoosterPack(cards, setCode) {
+  const normalCards = getNormalCards(cards, setCode)
+
+  // Filter by type/rarity
+  const leaders = normalCards.filter(c => c.isLeader)
+  const bases = normalCards.filter(c => c.isBase && c.rarity === 'Common')
+  const commons = normalCards.filter(c => c.rarity === 'Common' && !c.isLeader && !c.isBase)
+  const uncommons = normalCards.filter(c => c.rarity === 'Uncommon')
+  const rares = normalCards.filter(c => c.rarity === 'Rare')
+  const legendaries = normalCards.filter(c => c.rarity === 'Legendary')
+
+  // All cards for foil slot
+  const allForFoil = normalCards.filter(c => !c.isLeader && !c.isBase)
+
+  // Build pack
+  const packCards = []
+
+  // 1 Leader
+  const leader = pickRandom(leaders)
+  if (leader) packCards.push({ ...leader })
+
+  // 1 Base
+  const base = pickRandom(bases)
+  if (base) packCards.push({ ...base })
+
+  // 9 Commons
+  const selectedCommons = pickRandomN(commons, 9)
+  selectedCommons.forEach(c => packCards.push({ ...c }))
+
+  // 3 Uncommons
+  const selectedUncommons = pickRandomN(uncommons, 3)
+  selectedUncommons.forEach(c => packCards.push({ ...c }))
+
+  // 1 Rare or Legendary (roughly 1 in 6 chance for legendary)
+  const isLegendary = Math.random() < 0.167
+  const rareOrLegendary = isLegendary ? pickRandom(legendaries) : pickRandom(rares)
+  if (rareOrLegendary) packCards.push({ ...rareOrLegendary })
+
+  // 1 Foil (any rarity, mark as foil)
+  const foilCard = pickRandom(allForFoil)
+  if (foilCard) packCards.push({ ...foilCard, isFoil: true })
+
+  return {
+    cards: packCards
+  }
+}
+
+/**
+ * Generate a sealed pod (6 booster packs)
+ * @param {Array} cards - All cards
+ * @param {string} setCode - Set code
+ * @param {number} packCount - Number of packs (default 6)
+ * @returns {Array} Array of pack objects (each with cards array)
+ */
+export function generateSealedPod(cards, setCode, packCount = 6) {
+  const packs = []
+  for (let i = 0; i < packCount; i++) {
+    packs.push(generateBoosterPack(cards, setCode))
+  }
+  return packs
 }

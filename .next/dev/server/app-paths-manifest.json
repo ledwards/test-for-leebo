@@ -3,7 +3,6 @@
   "/api/pools/[shareId]/route": "app/api/pools/[shareId]/route.js",
   "/api/pools/route": "app/api/pools/route.js",
   "/api/pools/user/[userId]/route": "app/api/pools/user/[userId]/route.js",
-  "/history/page": "app/history/page.js",
   "/page": "app/page.js",
   "/pool/[shareId]/deck/page": "app/pool/[shareId]/deck/page.js",
   "/pool/[shareId]/page": "app/pool/[shareId]/page.js",
