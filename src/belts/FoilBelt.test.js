@@ -1,0 +1,222 @@
+/**
+ * FoilBelt Tests
+ *
+ * Run with: node src/belts/FoilBelt.test.js
+ */
+
+import { FoilBelt } from './FoilBelt.js'
+import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
+
+let passed = 0
+let failed = 0
+
+function test(name, fn) {
+  try {
+    fn()
+    console.log(`✓ ${name}`)
+    passed++
+  } catch (e) {
+    console.log(`✗ ${name}`)
+    console.log(`  ${e.message}`)
+    failed++
+  }
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message || 'Assertion failed')
+}
+
+function assertEqual(actual, expected, message) {
+  if (actual !== expected) {
+    throw new Error(message || `Expected ${expected}, got ${actual}`)
+  }
+}
+
+async function runTests() {
+  console.log('Initializing card cache...')
+  await initializeCardCache()
+  console.log('')
+  console.log('FoilBelt Tests')
+  console.log('==============')
+
+  test('initializes with a set code and loads non-leader, non-base cards', () => {
+    const belt = new FoilBelt('SOR')
+    assert(belt.fillingPool.length > 0, 'Filling pool should not be empty')
+    assert(belt.fillingPool.every(c => !c.isLeader), 'No leaders in filling pool')
+    assert(belt.fillingPool.every(c => !c.isBase), 'No bases in filling pool')
+    assert(belt.fillingPool.every(c => c.set === 'SOR'), 'All cards should be from SOR set')
+    assert(belt.fillingPool.every(c => c.variantType === 'Normal'), 'All cards should be normal variants')
+  })
+
+  test('hopper is filled on initialization', () => {
+    const belt = new FoilBelt('SOR')
+    assert(belt.hopper.length > 0, 'Hopper should not be empty after init')
+  })
+
+  test('next() returns a foil card', () => {
+    const belt = new FoilBelt('SOR')
+    const card = belt.next()
+    assert(card !== null, 'next() should return a card')
+    assert(card.isFoil === true, 'Returned card should be marked as foil')
+    assert(!card.isLeader, 'Returned card should not be a leader')
+    assert(!card.isBase, 'Returned card should not be a base')
+    assert(card.set === 'SOR', 'Returned card should be from correct set')
+  })
+
+  test('next() removes card from hopper', () => {
+    const belt = new FoilBelt('SOR')
+    const initialSize = belt.size
+    belt.next()
+    assertEqual(belt.size, initialSize - 1, 'Hopper size should decrease by 1')
+  })
+
+  test('next() returns a copy, not the original', () => {
+    const belt = new FoilBelt('SOR')
+    const card1 = belt.next()
+    card1.modified = true
+    const card2 = belt.next()
+    assert(card2.modified === undefined, 'Cards should be copies, not references')
+  })
+
+  test('hopper refills when depleted', () => {
+    const belt = new FoilBelt('SOR')
+
+    // Get the boot size
+    const bootSize = belt._calculateBootSize()
+
+    // Drain the hopper to below threshold
+    while (belt.size > bootSize) {
+      belt.next()
+    }
+
+    // Next call should trigger refill
+    belt.next()
+
+    // After refill, hopper should be larger than boot size
+    assert(belt.size > bootSize, `Hopper should refill. Size: ${belt.size}, threshold: ${bootSize}`)
+  })
+
+  test('commons appear most frequently in hopper', () => {
+    const belt = new FoilBelt('SOR')
+
+    // Sample many cards
+    const counts = { Common: 0, Uncommon: 0, Rare: 0, Legendary: 0 }
+    for (let i = 0; i < 500; i++) {
+      const card = belt.next()
+      counts[card.rarity] = (counts[card.rarity] || 0) + 1
+    }
+
+    // Commons (54x) should appear more than uncommons (18x)
+    // Uncommons should appear more than rares (6x)
+    // Rares should appear more than legendaries (1x)
+    assert(counts.Common > counts.Uncommon,
+      `Commons (${counts.Common}) should appear more than uncommons (${counts.Uncommon})`)
+    assert(counts.Uncommon > counts.Rare,
+      `Uncommons (${counts.Uncommon}) should appear more than rares (${counts.Rare})`)
+    assert(counts.Rare > counts.Legendary,
+      `Rares (${counts.Rare}) should appear more than legendaries (${counts.Legendary})`)
+  })
+
+  test('rarity distribution roughly matches expected ratios', () => {
+    const belt = new FoilBelt('SOR')
+
+    // Sample a large number of cards
+    const counts = { Common: 0, Uncommon: 0, Rare: 0, Legendary: 0, Special: 0 }
+    const sampleSize = 1000
+    for (let i = 0; i < sampleSize; i++) {
+      const card = belt.next()
+      counts[card.rarity] = (counts[card.rarity] || 0) + 1
+    }
+
+    // Ratios depend on card pool composition and quantity multipliers
+    // Common (54x) should be much more than uncommon (18x)
+    // The actual ratio depends on how many unique cards of each rarity exist
+    const commonToUncommon = counts.Common / counts.Uncommon
+    assert(commonToUncommon > 2 && commonToUncommon < 6,
+      `Common:Uncommon ratio should be 2-6, got ${commonToUncommon.toFixed(2)}`)
+
+    // Uncommon (18x) should be more than rare (6x)
+    const uncommonToRare = counts.Uncommon / counts.Rare
+    assert(uncommonToRare > 1 && uncommonToRare < 5,
+      `Uncommon:Rare ratio should be 1-5, got ${uncommonToRare.toFixed(2)}`)
+
+    // Rare (6x) should be more than legendary+special (1x each)
+    // Actual ratio varies based on card pool and random sampling
+    const legendarySpecialCount = (counts.Legendary || 0) + (counts.Special || 0)
+    if (legendarySpecialCount > 0) {
+      const rareToLegendarySpecial = counts.Rare / legendarySpecialCount
+      assert(rareToLegendarySpecial > 2,
+        `Rare:Legendary+Special ratio should be > 2, got ${rareToLegendarySpecial.toFixed(2)}`)
+    }
+  })
+
+  test('different belt instances start at different positions', () => {
+    const firstCards = new Set()
+    for (let i = 0; i < 10; i++) {
+      const belt = new FoilBelt('SOR')
+      firstCards.add(belt.peek(1)[0].id)
+    }
+
+    // With random start, we should see variation
+    assert(firstCards.size > 1, 'Different belt instances should start at different positions')
+  })
+
+  test('peek() returns cards without removing them', () => {
+    const belt = new FoilBelt('SOR')
+    const peeked = belt.peek(3)
+    const sizeBefore = belt.size
+
+    assertEqual(peeked.length, 3, 'peek(3) should return 3 cards')
+    assertEqual(belt.size, sizeBefore, 'peek() should not change hopper size')
+
+    // Verify peeked cards are marked as foil
+    assert(peeked.every(c => c.isFoil), 'Peeked cards should be marked as foil')
+
+    // Verify peek matches what next() returns
+    const next1 = belt.next()
+    assertEqual(next1.id, peeked[0].id, 'First peeked card should match first next()')
+  })
+
+  test('all cards in filling pool have valid rarities', () => {
+    const belt = new FoilBelt('SOR')
+    const validRarities = ['Common', 'Uncommon', 'Rare', 'Legendary']
+    assert(
+      belt.fillingPool.every(c => validRarities.includes(c.rarity)),
+      'All cards should have valid rarities (no Special for sets 1-3)'
+    )
+  })
+
+  test('sets 1-3 exclude Special rarity from foil pool', () => {
+    // SOR is set 1, SHD is set 2, TWI is set 3
+    for (const setCode of ['SOR', 'SHD', 'TWI']) {
+      const belt = new FoilBelt(setCode)
+      const hasSpecial = belt.fillingPool.some(c => c.rarity === 'Special')
+      assert(!hasSpecial, `${setCode} should not have Special rarity in foil pool`)
+    }
+  })
+
+  test('sets 4-6 include Special rarity in foil pool', () => {
+    // JTL is set 4, LOF is set 5, SEC is set 6
+    for (const setCode of ['JTL', 'LOF', 'SEC']) {
+      const belt = new FoilBelt(setCode)
+      const hasSpecial = belt.fillingPool.some(c => c.rarity === 'Special')
+      assert(hasSpecial, `${setCode} should have Special rarity in foil pool`)
+    }
+  })
+
+  test('sets 4-6 use Rare rate (6x) for Special rarity', () => {
+    const belt = new FoilBelt('JTL')
+    assertEqual(belt.rarityQuantities.Special, 6, 'Special should use 6x rate in sets 4-6')
+  })
+
+  test('sets 1-3 use Legendary rate (1x) for Special rarity', () => {
+    const belt = new FoilBelt('SOR')
+    assertEqual(belt.rarityQuantities.Special, 1, 'Special should use 1x rate in sets 1-3')
+  })
+
+  console.log('')
+  console.log(`Results: ${passed} passed, ${failed} failed`)
+  process.exit(failed > 0 ? 1 : 0)
+}
+
+runTests()

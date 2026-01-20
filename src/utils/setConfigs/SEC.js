@@ -35,18 +35,18 @@ export const SEC_CONFIG = {
   packRules: {
     rareBasesInRareSlot: true,
     specialInFoilSlot: true,
-    specialInFoilRate: 0.015,
-    hyperspacePackRate: 0.667,
   },
 
-  // Upgrade slot configuration
-  upgradeSlot: {
-    hyperspaceChance: 0.25,
-    rarityDistribution: {
-      Common: 0.60,
-      Uncommon: 0.25,
-      Rare: 0.12,
-      Legendary: 0.03,
-    }
+  // Upgrade probabilities (chance for slot to be upgraded)
+  upgradeProbabilities: {
+    leaderToHyperspace: 1/6,
+    baseToHyperspace: 1/6,
+    leaderToShowcase: 1/(2*6*24),
+    rareToHyperspaceRL: 1/15,
+    foilToHyperfoil: 1/15,
+    thirdUCToHyperspaceRL: 1/10,
+    firstUCToHyperspaceUC: 1/10,
+    secondUCToHyperspaceUC: 1/10,
+    commonToHyperspace: 1/6,
   }
 }

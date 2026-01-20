@@ -38,25 +38,18 @@ export const SOR_CONFIG = {
 
     // Special rarity cards can appear in foil/hyperfoil slots only
     specialInFoilSlot: false,
-
-    // Special rarity rate in foil slot (when applicable)
-    specialInFoilRate: 0, // Not applicable for this set
-
-    // Hyperspace rate: ~2/3 of packs have at least one hyperspace card
-    hyperspacePackRate: 0.667,
   },
 
-  // Upgrade slot configuration
-  upgradeSlot: {
-    // Chance for upgrade slot to be hyperspace
-    hyperspaceChance: 0.25, // ~25%
-
-    // Rarity distribution when upgrade slot is hyperspace
-    rarityDistribution: {
-      Common: 0.60,    // ~60%
-      Uncommon: 0.25,  // ~25%
-      Rare: 0.12,      // ~12%
-      Legendary: 0.03, // ~3%
-    }
+  // Upgrade probabilities (chance for slot to be upgraded)
+  upgradeProbabilities: {
+    leaderToHyperspace: 1/6,           // 1/6 chance
+    baseToHyperspace: 1/6,             // 1/6 chance
+    leaderToShowcase: 1/(2*6*24),      // 1/288 chance
+    rareToHyperspaceRL: 1/15,          // 1/15 chance
+    foilToHyperfoil: 1/15,             // 1/15 chance
+    thirdUCToHyperspaceRL: 1/10,       // 1/10 chance (upgrades to R/L, not UC)
+    firstUCToHyperspaceUC: 1/10,       // 1/10 chance
+    secondUCToHyperspaceUC: 1/10,      // 1/10 chance
+    commonToHyperspace: 1/6,           // 1/6 chance (picks one random common)
   }
 }

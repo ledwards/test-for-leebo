@@ -1,10 +1,10 @@
 /**
- * Booster Pack Generation (Stub)
+ * Booster Pack Generation
  *
- * Simple random generation for pack contents.
+ * Uses belts to provide cards for pack slots.
  *
  * Pack structure:
- * - 1 Leader
+ * - 1 Leader (from LeaderBelt)
  * - 1 Base (common)
  * - 9 Commons
  * - 3 Uncommons
@@ -14,31 +14,270 @@
  * Total: 16 cards
  */
 
+import { LeaderBelt } from '../belts/LeaderBelt.js'
+import { BaseBelt } from '../belts/BaseBelt.js'
+import { FoilBelt } from '../belts/FoilBelt.js'
+import { RareLegendaryBelt } from '../belts/RareLegendaryBelt.js'
+import { UncommonBelt } from '../belts/UncommonBelt.js'
+import { CommonBelt, getCommonPools } from '../belts/CommonBelt.js'
+import { ShowcaseLeaderBelt } from '../belts/ShowcaseLeaderBelt.js'
+import { HyperfoilBelt } from '../belts/HyperfoilBelt.js'
+import { HyperspaceLeaderBelt } from '../belts/HyperspaceLeaderBelt.js'
+import { HyperspaceBaseBelt } from '../belts/HyperspaceBaseBelt.js'
+import { HyperspaceUncommonBelt } from '../belts/HyperspaceUncommonBelt.js'
+import { HyperspaceCommonBelt } from '../belts/HyperspaceCommonBelt.js'
+import { HyperspaceRareLegendaryBelt } from '../belts/HyperspaceRareLegendaryBelt.js'
+import { getSetConfig } from './setConfigs/index.js'
+
+// Cache belts by set code so we reuse the same belt across pack generation
+const beltCache = new Map()
+
+// Track which common belt to start with for alternating (true = start with A)
+let startWithBeltA = true
+
 /**
- * Pick a random element from an array
+ * Get or create a LeaderBelt for a set
  */
-function pickRandom(arr) {
-  if (!arr || arr.length === 0) return null
-  return arr[Math.floor(Math.random() * arr.length)]
+function getLeaderBelt(setCode) {
+  const key = `leader-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new LeaderBelt(setCode))
+  }
+  return beltCache.get(key)
 }
 
 /**
- * Pick N random elements from an array (without replacement)
+ * Get or create a BaseBelt for a set
  */
-function pickRandomN(arr, n) {
-  if (!arr || arr.length === 0) return []
-  const shuffled = [...arr].sort(() => Math.random() - 0.5)
-  return shuffled.slice(0, n)
+function getBaseBelt(setCode) {
+  const key = `base-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new BaseBelt(setCode))
+  }
+  return beltCache.get(key)
 }
 
 /**
- * Filter cards by set, getting only normal variants
+ * Get or create a FoilBelt for a set
  */
-function getNormalCards(cards, setCode) {
-  return cards.filter(c =>
-    c.set === setCode &&
-    c.variantType === 'Normal'
+function getFoilBelt(setCode) {
+  const key = `foil-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new FoilBelt(setCode))
+  }
+  return beltCache.get(key)
+}
+
+/**
+ * Get or create a RareLegendaryBelt for a set
+ */
+function getRareLegendaryBelt(setCode) {
+  const key = `rarelegendary-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new RareLegendaryBelt(setCode))
+  }
+  return beltCache.get(key)
+}
+
+/**
+ * Get or create an UncommonBelt for a set
+ */
+function getUncommonBelt(setCode) {
+  const key = `uncommon-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new UncommonBelt(setCode))
+  }
+  return beltCache.get(key)
+}
+
+/**
+ * Get or create CommonBelts A and B for a set
+ */
+function getCommonBelts(setCode) {
+  const keyA = `common-a-${setCode}`
+  const keyB = `common-b-${setCode}`
+
+  if (!beltCache.has(keyA) || !beltCache.has(keyB)) {
+    const { poolA, poolB } = getCommonPools(setCode)
+    beltCache.set(keyA, new CommonBelt(setCode, poolA))
+    beltCache.set(keyB, new CommonBelt(setCode, poolB))
+  }
+
+  return {
+    beltA: beltCache.get(keyA),
+    beltB: beltCache.get(keyB)
+  }
+}
+
+// === Variant Belt Getters ===
+
+function getShowcaseLeaderBelt(setCode) {
+  const key = `showcase-leader-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new ShowcaseLeaderBelt(setCode))
+  }
+  return beltCache.get(key)
+}
+
+function getHyperfoilBelt(setCode) {
+  const key = `hyperfoil-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new HyperfoilBelt(setCode))
+  }
+  return beltCache.get(key)
+}
+
+function getHyperspaceLeaderBelt(setCode) {
+  const key = `hyperspace-leader-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new HyperspaceLeaderBelt(setCode))
+  }
+  return beltCache.get(key)
+}
+
+function getHyperspaceBaseBelt(setCode) {
+  const key = `hyperspace-base-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new HyperspaceBaseBelt(setCode))
+  }
+  return beltCache.get(key)
+}
+
+function getHyperspaceUncommonBelt(setCode) {
+  const key = `hyperspace-uncommon-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new HyperspaceUncommonBelt(setCode))
+  }
+  return beltCache.get(key)
+}
+
+function getHyperspaceCommonBelt(setCode) {
+  const key = `hyperspace-common-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new HyperspaceCommonBelt(setCode))
+  }
+  return beltCache.get(key)
+}
+
+function getHyperspaceRareLegendaryBelt(setCode) {
+  const key = `hyperspace-rarelegendary-${setCode}`
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new HyperspaceRareLegendaryBelt(setCode))
+  }
+  return beltCache.get(key)
+}
+
+/**
+ * Clear belt cache (useful for testing or resetting state)
+ */
+export function clearBeltCache() {
+  beltCache.clear()
+  startWithBeltA = true // Reset alternating state
+}
+
+/**
+ * Check if an upgrade should happen based on probability
+ */
+function shouldUpgrade(probability) {
+  return Math.random() < probability
+}
+
+/**
+ * Apply upgrade pass to a pack
+ * Checks each slot for possible upgrades based on set-level probabilities
+ *
+ * @param {Object} pack - Pack with cards array
+ * @param {string} setCode - Set code
+ * @returns {Object} Pack with upgraded cards
+ */
+function applyUpgradePass(pack, setCode) {
+  const config = getSetConfig(setCode)
+  const probs = config?.upgradeProbabilities || {}
+
+  // Find card indices by type
+  const leaderIndex = pack.cards.findIndex(c => c.isLeader)
+  const baseIndex = pack.cards.findIndex(c => c.isBase)
+  const foilIndex = pack.cards.findIndex(c => c.isFoil)
+
+  // Find uncommon indices (cards with Uncommon rarity, not leaders/bases/foils)
+  const uncommonIndices = []
+  pack.cards.forEach((c, i) => {
+    if (c.rarity === 'Uncommon' && !c.isLeader && !c.isBase && !c.isFoil) {
+      uncommonIndices.push(i)
+    }
+  })
+
+  // Find rare/legendary slot (Rare or Legendary, not foil)
+  const rareIndex = pack.cards.findIndex(c =>
+    (c.rarity === 'Rare' || c.rarity === 'Legendary') &&
+    !c.isFoil && !c.isLeader && !c.isBase
   )
+
+  // Find common indices (Common rarity, not leaders/bases)
+  const commonIndices = []
+  pack.cards.forEach((c, i) => {
+    if (c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil) {
+      commonIndices.push(i)
+    }
+  })
+
+  // 1. Leader upgrades (Showcase takes precedence if both hit)
+  if (leaderIndex >= 0) {
+    if (probs.leaderToShowcase && shouldUpgrade(probs.leaderToShowcase)) {
+      // Upgrade to Showcase leader
+      const showcaseBelt = getShowcaseLeaderBelt(setCode)
+      pack.cards[leaderIndex] = showcaseBelt.next()
+    } else if (probs.leaderToHyperspace && shouldUpgrade(probs.leaderToHyperspace)) {
+      // Upgrade to Hyperspace leader
+      const hsBelt = getHyperspaceLeaderBelt(setCode)
+      pack.cards[leaderIndex] = hsBelt.next()
+    }
+  }
+
+  // 2. Base upgrade
+  if (baseIndex >= 0 && probs.baseToHyperspace && shouldUpgrade(probs.baseToHyperspace)) {
+    const hsBelt = getHyperspaceBaseBelt(setCode)
+    pack.cards[baseIndex] = hsBelt.next()
+  }
+
+  // 3. Rare slot upgrade to Hyperspace R/L
+  if (rareIndex >= 0 && probs.rareToHyperspaceRL && shouldUpgrade(probs.rareToHyperspaceRL)) {
+    const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode)
+    pack.cards[rareIndex] = hsRLBelt.next()
+  }
+
+  // 4. Foil upgrade to Hyperfoil
+  if (foilIndex >= 0 && probs.foilToHyperfoil && shouldUpgrade(probs.foilToHyperfoil)) {
+    const hyperfoilBelt = getHyperfoilBelt(setCode)
+    pack.cards[foilIndex] = hyperfoilBelt.next()
+  }
+
+  // 5. Third UC upgrade to Hyperspace R/L (not UC!)
+  if (uncommonIndices.length >= 3 && probs.thirdUCToHyperspaceRL && shouldUpgrade(probs.thirdUCToHyperspaceRL)) {
+    const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode)
+    pack.cards[uncommonIndices[2]] = hsRLBelt.next()
+  }
+
+  // 6. First UC upgrade to Hyperspace UC
+  if (uncommonIndices.length >= 1 && probs.firstUCToHyperspaceUC && shouldUpgrade(probs.firstUCToHyperspaceUC)) {
+    const hsUCBelt = getHyperspaceUncommonBelt(setCode)
+    pack.cards[uncommonIndices[0]] = hsUCBelt.next()
+  }
+
+  // 7. Second UC upgrade to Hyperspace UC
+  if (uncommonIndices.length >= 2 && probs.secondUCToHyperspaceUC && shouldUpgrade(probs.secondUCToHyperspaceUC)) {
+    const hsUCBelt = getHyperspaceUncommonBelt(setCode)
+    pack.cards[uncommonIndices[1]] = hsUCBelt.next()
+  }
+
+  // 8. Common upgrade (pick one random common and replace with HS common)
+  if (commonIndices.length > 0 && probs.commonToHyperspace && shouldUpgrade(probs.commonToHyperspace)) {
+    const randomCommonIndex = commonIndices[Math.floor(Math.random() * commonIndices.length)]
+    const hsCommonBelt = getHyperspaceCommonBelt(setCode)
+    pack.cards[randomCommonIndex] = hsCommonBelt.next()
+  }
+
+  return pack
 }
 
 /**
@@ -48,50 +287,56 @@ function getNormalCards(cards, setCode) {
  * @returns {Object} Pack object with cards array
  */
 export function generateBoosterPack(cards, setCode) {
-  const normalCards = getNormalCards(cards, setCode)
-
-  // Filter by type/rarity
-  const leaders = normalCards.filter(c => c.isLeader)
-  const bases = normalCards.filter(c => c.isBase && c.rarity === 'Common')
-  const commons = normalCards.filter(c => c.rarity === 'Common' && !c.isLeader && !c.isBase)
-  const uncommons = normalCards.filter(c => c.rarity === 'Uncommon')
-  const rares = normalCards.filter(c => c.rarity === 'Rare')
-  const legendaries = normalCards.filter(c => c.rarity === 'Legendary')
-
-  // All cards for foil slot
-  const allForFoil = normalCards.filter(c => !c.isLeader && !c.isBase)
+  // Get belts
+  const leaderBelt = getLeaderBelt(setCode)
+  const baseBelt = getBaseBelt(setCode)
+  const foilBelt = getFoilBelt(setCode)
+  const rareLegendaryBelt = getRareLegendaryBelt(setCode)
+  const uncommonBelt = getUncommonBelt(setCode)
+  const { beltA: commonBeltA, beltB: commonBeltB } = getCommonBelts(setCode)
 
   // Build pack
   const packCards = []
 
-  // 1 Leader
-  const leader = pickRandom(leaders)
-  if (leader) packCards.push({ ...leader })
+  // 1 Leader (from belt)
+  const leader = leaderBelt.next()
+  if (leader) packCards.push(leader)
 
-  // 1 Base
-  const base = pickRandom(bases)
-  if (base) packCards.push({ ...base })
+  // 1 Base (from belt)
+  const base = baseBelt.next()
+  if (base) packCards.push(base)
 
-  // 9 Commons
-  const selectedCommons = pickRandomN(commons, 9)
-  selectedCommons.forEach(c => packCards.push({ ...c }))
+  // 9 Commons (alternating between Belt A and Belt B)
+  // Pattern: A,B,A,B,A,B,A,B,A or B,A,B,A,B,A,B,A,B
+  const firstBelt = startWithBeltA ? commonBeltA : commonBeltB
+  const secondBelt = startWithBeltA ? commonBeltB : commonBeltA
 
-  // 3 Uncommons
-  const selectedUncommons = pickRandomN(uncommons, 3)
-  selectedUncommons.forEach(c => packCards.push({ ...c }))
-
-  // 1 Rare or Legendary (roughly 1 in 6 chance for legendary)
-  const isLegendary = Math.random() < 0.167
-  const rareOrLegendary = isLegendary ? pickRandom(legendaries) : pickRandom(rares)
-  if (rareOrLegendary) packCards.push({ ...rareOrLegendary })
-
-  // 1 Foil (any rarity, mark as foil)
-  const foilCard = pickRandom(allForFoil)
-  if (foilCard) packCards.push({ ...foilCard, isFoil: true })
-
-  return {
-    cards: packCards
+  for (let i = 0; i < 9; i++) {
+    const belt = (i % 2 === 0) ? firstBelt : secondBelt
+    const common = belt.next()
+    if (common) packCards.push(common)
   }
+
+  // Toggle for next pack
+  startWithBeltA = !startWithBeltA
+
+  // 3 Uncommons (from belt)
+  for (let i = 0; i < 3; i++) {
+    const uncommon = uncommonBelt.next()
+    if (uncommon) packCards.push(uncommon)
+  }
+
+  // 1 Rare or Legendary (from belt)
+  const rareOrLegendary = rareLegendaryBelt.next()
+  if (rareOrLegendary) packCards.push(rareOrLegendary)
+
+  // 1 Foil (from belt, already marked as foil)
+  const foilCard = foilBelt.next()
+  if (foilCard) packCards.push(foilCard)
+
+  // Create pack and apply upgrade pass
+  const pack = { cards: packCards }
+  return applyUpgradePass(pack, setCode)
 }
 
 /**
@@ -102,6 +347,10 @@ export function generateBoosterPack(cards, setCode) {
  * @returns {Array} Array of pack objects (each with cards array)
  */
 export function generateSealedPod(cards, setCode, packCount = 6) {
+  // Clear belt cache for fresh pod generation
+  // This ensures each sealed pod starts with a fresh belt at random position
+  clearBeltCache()
+
   const packs = []
   for (let i = 0; i < packCount; i++) {
     packs.push(generateBoosterPack(cards, setCode))
