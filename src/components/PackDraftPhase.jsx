@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import PlayerCircle from './PlayerCircle'
 import DraftableCard from './DraftableCard'
 import PassDirectionArrow from './PassDirectionArrow'
@@ -10,6 +10,16 @@ import TimerPanel from './TimerPanel'
 import DraftReviewModal from './DraftReviewModal'
 import './PackDraftPhase.css'
 
+const ReviewIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+    <polyline points="14 2 14 8 20 8"></polyline>
+    <line x1="16" y1="13" x2="8" y2="13"></line>
+    <line x1="16" y1="17" x2="8" y2="17"></line>
+    <polyline points="10 9 9 9 8 9"></polyline>
+  </svg>
+)
+
 function PackDraftPhase({
   draft,
   players,
@@ -18,9 +28,35 @@ function PackDraftPhase({
   onPick,
   loading,
   error,
+  isHost,
+  onTogglePause,
 }) {
   const [selectedCard, setSelectedCard] = useState(null)
   const [showReviewModal, setShowReviewModal] = useState(false)
+  const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState(null)
+  const previewTimeoutRef = useRef(null)
+
+  const handleLeaderNameMouseEnter = (e, leader) => {
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current)
+    }
+    const rect = e.currentTarget.getBoundingClientRect()
+    previewTimeoutRef.current = setTimeout(() => {
+      let previewX = rect.right + 20
+      const previewY = rect.top + rect.height / 2
+      if (previewX + 504 > window.innerWidth) {
+        previewX = rect.left - 504 - 20
+      }
+      setHoveredLeaderPreview({ leader, x: previewX, y: previewY })
+    }, 500)
+  }
+
+  const handleLeaderNameMouseLeave = () => {
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current)
+    }
+    setHoveredLeaderPreview(null)
+  }
 
   const currentPack = myPlayer?.currentPack || []
   const draftedCards = myPlayer?.draftedCards || []
@@ -61,10 +97,7 @@ function PackDraftPhase({
   return (
     <div className="pack-draft-phase">
       <div className="phase-header">
-        <h2>Pack {packNumber} - Pick {pickInPack}</h2>
-        <p className="phase-description">
-          Select a card from the pack. Cards pass to the {passDirection}.
-        </p>
+        <h2>Round {packNumber} - Pick {pickInPack}</h2>
       </div>
 
       <div className="draft-layout">
@@ -76,6 +109,9 @@ function PackDraftPhase({
             showStatus={true}
             draft={draft}
             showTimers={true}
+            hideEmptySeats={true}
+            isHost={isHost}
+            onTogglePause={onTogglePause}
           />
           <PassDirectionArrow direction={passDirection} />
           {showTimer && (
@@ -95,7 +131,12 @@ function PackDraftPhase({
               {draftedLeaders.length > 0 ? (
                 <span className="info-value">
                   {draftedLeaders.map((l, idx) => (
-                    <span key={idx}>
+                    <span
+                      key={idx}
+                      className="leader-name-hoverable"
+                      onMouseEnter={(e) => handleLeaderNameMouseEnter(e, l)}
+                      onMouseLeave={handleLeaderNameMouseLeave}
+                    >
                       {l.name}
                       {idx < draftedLeaders.length - 1 ? ', ' : ''}
                     </span>
@@ -115,7 +156,8 @@ function PackDraftPhase({
                 <span className="info-value">{draftedCards.length}/{(draft?.packSize || 14) * 3 - 6}</span>
               </span>
               <button className="review-button" onClick={() => setShowReviewModal(true)}>
-                Review
+                <ReviewIcon />
+                <span>Review</span>
               </button>
             </div>
           </div>
@@ -157,8 +199,36 @@ function PackDraftPhase({
           draftedCards={draftedCards}
           draftedLeaders={draftedLeaders}
           packSize={draft?.packSize || 14}
+          draft={draft}
+          players={players}
           onClose={() => setShowReviewModal(false)}
         />
+      )}
+
+      {hoveredLeaderPreview && (
+        <div
+          className="card-preview-enlarged"
+          style={{
+            position: 'fixed',
+            left: `${hoveredLeaderPreview.x}px`,
+            top: `${hoveredLeaderPreview.y}px`,
+            zIndex: 10000,
+            pointerEvents: 'none',
+            transform: 'translateY(-50%)'
+          }}
+        >
+          <img
+            src={hoveredLeaderPreview.leader.imageUrl}
+            alt={hoveredLeaderPreview.leader.name}
+            style={{
+              width: '504px',
+              height: 'auto',
+              borderRadius: '23px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+              border: '2px solid rgba(255, 255, 255, 0.3)'
+            }}
+          />
+        </div>
       )}
     </div>
   )

@@ -22,7 +22,7 @@ export async function GET(request, { params }) {
     let pools
     try {
       pools = await queryRows(
-        `SELECT 
+        `SELECT
           id,
           share_id,
           set_code,
@@ -46,7 +46,7 @@ export async function GET(request, { params }) {
       if (error.message.includes('name') || error.message.includes('set_name') || error.message.includes('pool_type')) {
         try {
           pools = await queryRows(
-            `SELECT 
+            `SELECT
               id,
               share_id,
               set_code,
@@ -73,7 +73,7 @@ export async function GET(request, { params }) {
           // If set_name or pool_type columns don't exist either
           if (innerError.message.includes('set_name') || innerError.message.includes('pool_type')) {
             pools = await queryRows(
-              `SELECT 
+              `SELECT
                 id,
                 share_id,
                 set_code,
@@ -118,9 +118,9 @@ export async function GET(request, { params }) {
         if (!name) {
           const formatType = (pool.pool_type || 'sealed') === 'draft' ? 'Draft' : 'Sealed'
           const setCode = pool.set_code || ''
-          name = `${setCode} ${formatType} (${pool.share_id})`
+          name = `${setCode} ${formatType}`
         }
-        
+
         return {
           id: pool.id,
           shareId: pool.share_id,

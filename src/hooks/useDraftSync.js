@@ -60,6 +60,9 @@ export function useDraftSync(shareId, { pollInterval = 2000, enabled = true } = 
           completedAt: data.completedAt,
           pickStartedAt: data.pickStartedAt,
           stateVersion: data.stateVersion,
+          paused: data.paused,
+          pausedAt: data.pausedAt,
+          pausedDurationSeconds: data.pausedDurationSeconds,
         }))
         stateVersionRef.current = data.stateVersion
       }

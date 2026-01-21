@@ -1,16 +1,15 @@
 .draftable-card {
   position: relative;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
-  background: #1e1e1e;
-  border: 2px solid #333;
+  background: transparent;
 }
 
 .draftable-card:hover:not(.disabled) {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
 }
 
 .draftable-card.disabled {
@@ -19,25 +18,7 @@
 }
 
 .draftable-card.selected {
-  border-color: #4a90d9;
-  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.3);
-}
-
-/* Rarity borders */
-.draftable-card.legendary {
-  border-color: #FF9800;
-}
-
-.draftable-card.rare {
-  border-color: #2196F3;
-}
-
-.draftable-card.uncommon {
-  border-color: #4CAF50;
-}
-
-.draftable-card.common {
-  border-color: #666;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.8);
 }
 
 /* Foil effect - rainbow shimmer */
@@ -87,22 +68,15 @@
   box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
 }
 
-.card-image-container {
+.draftable-card .card-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
+
+.draftable-card .card-placeholder {
   aspect-ratio: 5 / 7;
-  position: relative;
-  overflow: hidden;
-}
-
-.card-image-container .card-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 8px 8px 0 0;
-}
-
-.card-placeholder {
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -110,7 +84,7 @@
   background: #2a2a2a;
   padding: 10px;
   text-align: center;
-  border-radius: 8px 8px 0 0;
+  border-radius: 12px;
 }
 
 .placeholder-name {
@@ -122,29 +96,6 @@
 .placeholder-rarity {
   font-size: 0.7rem;
   color: #888;
-}
-
-
-
-.card-info {
-  padding: 6px 8px;
-  background: #1e1e1e;
-}
-
-.card-name {
-  font-size: 0.75rem;
-  color: white;
-  margin-bottom: 4px;
-  line-height: 1.2;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto;
-}
-
-.card-rarity-badge {
-  font-size: 0.7rem;
-  color: #888;
-  text-transform: uppercase;
 }
 
 /* Card preview tooltip */

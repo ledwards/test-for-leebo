@@ -28,7 +28,10 @@ export async function GET(request, { params }) {
         dp.draft_state,
         dp.started_at,
         dp.completed_at,
-        dp.pick_started_at
+        dp.pick_started_at,
+        dp.paused,
+        dp.paused_at,
+        dp.paused_duration_seconds
        FROM draft_pods dp
        WHERE dp.share_id = $1`,
       [shareId]
@@ -56,7 +59,10 @@ export async function GET(request, { params }) {
           dp.draft_state,
           dp.started_at,
           dp.completed_at,
-          dp.pick_started_at
+          dp.pick_started_at,
+          dp.paused,
+          dp.paused_at,
+          dp.paused_duration_seconds
          FROM draft_pods dp
          WHERE dp.share_id = $1`,
         [shareId]
@@ -153,6 +159,9 @@ export async function GET(request, { params }) {
       startedAt: pod.started_at,
       completedAt: pod.completed_at,
       pickStartedAt: pod.pick_started_at,
+      paused: pod.paused === true,
+      pausedAt: pod.paused_at,
+      pausedDurationSeconds: pod.paused_duration_seconds || 0,
     })
   } catch (error) {
     return handleApiError(error)

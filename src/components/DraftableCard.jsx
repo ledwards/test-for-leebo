@@ -98,6 +98,7 @@ function DraftableCard({
       clearTimeout(previewTimeoutRef.current)
       previewTimeoutRef.current = null
     }
+    setHoveredCardPreview(null)
   }
 
   const handlePreviewMouseLeave = () => {
@@ -107,34 +108,25 @@ function DraftableCard({
   return (
     <>
       <div
-        className={`draftable-card ${getRarityClass(card.rarity)} ${disabled ? 'disabled' : ''} ${selected ? 'selected' : ''} ${card.isFoil ? 'foil' : ''} ${card.treatment === 'hyperspace' ? 'hyperspace' : ''}`}
+        className={`draftable-card ${disabled ? 'disabled' : ''} ${selected ? 'selected' : ''} ${card.isFoil ? 'foil' : ''} ${card.treatment === 'hyperspace' ? 'hyperspace' : ''}`}
         onClick={handleClick}
         onContextMenu={handleRightClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="card-image-container">
-          {card.imageUrl && !imageError ? (
-            <img
-              src={card.imageUrl}
-              alt={card.name}
-              onError={() => setImageError(true)}
-              className="card-image"
-            />
-          ) : (
-            <div className="card-placeholder">
-              <div className="placeholder-name">{card.name}</div>
-              <div className="placeholder-rarity">{card.rarity}</div>
-            </div>
-          )}
-        </div>
-
-        <div className="card-info">
-          <div className="card-name" title={card.name}>
-            {card.name}
+        {card.imageUrl && !imageError ? (
+          <img
+            src={card.imageUrl}
+            alt={card.name}
+            onError={() => setImageError(true)}
+            className="card-image"
+          />
+        ) : (
+          <div className="card-placeholder">
+            <div className="placeholder-name">{card.name}</div>
+            <div className="placeholder-rarity">{card.rarity}</div>
           </div>
-          <div className="card-rarity-badge">{card.rarity}</div>
-        </div>
+        )}
       </div>
 
       {hoveredCardPreview && (() => {

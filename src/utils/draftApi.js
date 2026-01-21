@@ -250,6 +250,31 @@ export async function makePick(shareId, cardId) {
 }
 
 /**
+ * Toggle pause state (host only)
+ * @param {string} shareId - Share ID of the draft
+ * @returns {Promise<Object>} Pause result with paused state
+ */
+export async function togglePause(shareId) {
+  try {
+    const response = await fetch(`${API_BASE}/draft/${shareId}/pause`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Failed to toggle pause')
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Failed to toggle pause:', error)
+    throw error
+  }
+}
+
+/**
  * Delete a draft pod (host only)
  * @param {string} shareId - Share ID of the draft
  * @returns {Promise<boolean>} Success status

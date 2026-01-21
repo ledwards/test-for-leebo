@@ -130,6 +130,25 @@
   color: white;
   padding: 3px 0;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.player-tooltip-portal .tooltip-leader-name {
+  flex-shrink: 0;
+}
+
+.player-tooltip-portal .tooltip-aspects {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.player-tooltip-portal .tooltip-aspect-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
 }
 
 @media (max-width: 500px) {

@@ -1,10 +1,14 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import './DraftReviewModal.css'
+import TimerPanel from './TimerPanel'
 
-function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, packSize = 14 }) {
-  const [sortMode, setSortMode] = useState('pick') // 'pick', 'cost', 'type'
+function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, packSize = 14, draft, players = [] }) {
+  const [sortMode, setSortMode] = useState('pick') // 'pick', 'cost', 'type', 'aspect'
+  const [groupMode, setGroupMode] = useState('none') // 'none', 'cost', 'type', 'aspect'
+  const [hoveredCardPreview, setHoveredCardPreview] = useState(null)
+  const previewTimeoutRef = useRef(null)
 
   // Get aspect key for grouping (same logic as DeckBuilder)
   const getAspectKey = (card) => {
@@ -37,14 +41,37 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
     return key
   }
 
-  // Calculate pack and pick for each card (reverse chronological = newest first)
+  // Get card type for grouping
+  const getTypeKey = (card) => {
+    const type = card.type || 'Unknown'
+    const priority = {
+      'Leader': 'A_Leader',
+      'Base': 'B_Base',
+      'Unit': 'C_Unit',
+      'Upgrade': 'D_Upgrade',
+      'Event': 'E_Event',
+    }
+    return priority[type] || `F_${type}`
+  }
+
+  const getTypeLabel = (key) => {
+    if (key.startsWith('A_')) return 'Leader'
+    if (key.startsWith('B_')) return 'Base'
+    if (key.startsWith('C_')) return 'Unit'
+    if (key.startsWith('D_')) return 'Upgrade'
+    if (key.startsWith('E_')) return 'Event'
+    if (key.startsWith('F_')) return key.substring(2)
+    return key
+  }
+
+  // Calculate pack and pick for each card
   const cardsWithPickInfo = useMemo(() => {
     return draftedCards.map((card, index) => {
-      // Total picks = 3 packs × (pack_size - 2) cards each
+      // Total picks = 3 rounds × 14 cards each
       // Cards are in order picked, so index 0 = first pick
       const pickNumber = index + 1
-      const packNumber = Math.floor(index / (packSize - 2)) + 1
-      const pickInPack = (index % (packSize - 2)) + 1
+      const packNumber = Math.floor(index / 14) + 1
+      const pickInPack = (index % 14) + 1
 
       return {
         ...card,
@@ -53,17 +80,24 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
         pickInPack,
       }
     })
-  }, [draftedCards, packSize])
+  }, [draftedCards])
 
   // Sort and group cards based on mode
   const { groups, sortedCards } = useMemo(() => {
-    if (sortMode === 'pick') {
-      // Reverse chronological order (newest first)
-      const sorted = [...cardsWithPickInfo].reverse()
-      return { groups: null, sortedCards: sorted }
+    if (groupMode === 'none') {
+      // Group by round in pick order mode
+      const roundGroups = {}
+
+      cardsWithPickInfo.forEach(card => {
+        const roundKey = `Round ${card.packNumber}`
+        if (!roundGroups[roundKey]) roundGroups[roundKey] = []
+        roundGroups[roundKey].push(card)
+      })
+
+      return { groups: roundGroups, sortedCards: null }
     }
 
-    if (sortMode === 'cost') {
+    if (groupMode === 'cost') {
       // Group by cost
       const costGroups = {}
       const costSegments = [0, 1, 2, 3, 4, 5, 6, 7, '8+']
@@ -83,7 +117,27 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
       return { groups: costGroups, sortedCards: null }
     }
 
-    if (sortMode === 'type') {
+    if (groupMode === 'type') {
+      // Group by card type
+      const typeGroups = {}
+
+      cardsWithPickInfo.forEach(card => {
+        const key = getTypeKey(card)
+        if (!typeGroups[key]) typeGroups[key] = []
+        typeGroups[key].push(card)
+      })
+
+      // Sort groups by key
+      const sortedKeys = Object.keys(typeGroups).sort()
+      const sortedGroups = {}
+      sortedKeys.forEach(key => {
+        sortedGroups[key] = typeGroups[key].sort((a, b) => (a.cost || 0) - (b.cost || 0))
+      })
+
+      return { groups: sortedGroups, sortedCards: null }
+    }
+
+    if (groupMode === 'aspect') {
       // Group by aspect
       const aspectGroups = {}
 
@@ -104,22 +158,49 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
     }
 
     return { groups: null, sortedCards: cardsWithPickInfo }
-  }, [cardsWithPickInfo, sortMode])
+  }, [cardsWithPickInfo, groupMode])
 
-  const cycleSortMode = () => {
-    if (sortMode === 'pick') setSortMode('cost')
-    else if (sortMode === 'cost') setSortMode('type')
-    else setSortMode('pick')
+  const handleCardMouseEnter = (e, card) => {
+    // Clear any existing timeout
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current)
+    }
+
+    const rect = e.currentTarget.getBoundingClientRect()
+
+    // Set timeout to show preview after 1 second
+    previewTimeoutRef.current = setTimeout(() => {
+      let previewX = rect.right + 20
+      const previewY = rect.top
+
+      // If too close to right edge, show on left
+      if (previewX + 360 > window.innerWidth) {
+        previewX = rect.left - 360 - 20
+      }
+
+      setHoveredCardPreview({
+        card,
+        x: previewX,
+        y: previewY
+      })
+    }, 1000)
+  }
+
+  const handleCardMouseLeave = () => {
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current)
+    }
+    setHoveredCardPreview(null)
   }
 
   const renderCard = (card) => (
-    <div key={`${card.id}-${card.pickNumber}`} className="review-card">
+    <div
+      key={`${card.id}-${card.pickNumber}`}
+      className="review-card"
+      onMouseEnter={(e) => handleCardMouseEnter(e, card)}
+      onMouseLeave={handleCardMouseLeave}
+    >
       <img src={card.imageUrl} alt={card.name} className="review-card-image" />
-      {sortMode === 'pick' && (
-        <div className="review-card-pick-label">
-          Pack {card.packNumber} Pick {card.pickInPack}
-        </div>
-      )}
     </div>
   )
 
@@ -132,9 +213,38 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
         </div>
 
         <div className="review-controls">
-          <button className="sort-toggle-button" onClick={cycleSortMode}>
-            Sort By: {sortMode === 'pick' ? 'Pick Order' : sortMode === 'cost' ? 'Cost' : 'Type'}
-          </button>
+          <div className="review-controls-left">
+            <h3 className="review-controls-heading">Group By</h3>
+            <button
+              className={`sort-button ${sortMode === 'pick' ? 'active' : ''}`}
+              onClick={() => { setSortMode('pick'); setGroupMode('none'); }}
+            >
+              Pick Order
+            </button>
+            <button
+              className={`sort-button ${groupMode === 'cost' ? 'active' : ''}`}
+              onClick={() => { setSortMode('cost'); setGroupMode('cost'); }}
+            >
+              Cost
+            </button>
+            <button
+              className={`sort-button ${groupMode === 'type' ? 'active' : ''}`}
+              onClick={() => { setSortMode('type'); setGroupMode('type'); }}
+            >
+              Type
+            </button>
+            <button
+              className={`sort-button ${groupMode === 'aspect' ? 'active' : ''}`}
+              onClick={() => { setSortMode('aspect'); setGroupMode('aspect'); }}
+            >
+              Aspect
+            </button>
+          </div>
+          {draft && players && (
+            <div className="review-controls-right">
+              <TimerPanel draft={draft} players={players} compact={false} />
+            </div>
+          )}
         </div>
 
         <div className="review-content">
@@ -143,7 +253,12 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
               <h3>Leaders</h3>
               <div className="review-leaders">
                 {draftedLeaders.map((leader, idx) => (
-                  <div key={idx} className="review-leader">
+                  <div
+                    key={idx}
+                    className="review-leader"
+                    onMouseEnter={(e) => handleCardMouseEnter(e, leader)}
+                    onMouseLeave={handleCardMouseLeave}
+                  >
                     <img src={leader.imageUrl} alt={leader.name} className="review-leader-image" />
                   </div>
                 ))}
@@ -153,41 +268,79 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
 
           <div className="review-section">
             <h3>Cards ({draftedCards.length})</h3>
-            {sortMode === 'pick' ? (
-              <div className="review-cards-grid">
-                {sortedCards.map(renderCard)}
-              </div>
-            ) : (
-              <div className="review-groups">
-                {Object.entries(groups).map(([groupKey, groupCards]) => {
-                  if (groupCards.length === 0) return null
+            {Object.entries(groups).map(([groupKey, groupCards]) => {
+              if (groupCards.length === 0) return null
 
-                  const label = sortMode === 'cost'
-                    ? groupKey
-                    : getAspectLabel(groupKey)
+              const label = groupMode === 'none'
+                ? groupKey
+                : groupMode === 'cost'
+                ? groupKey
+                : groupMode === 'type'
+                ? getTypeLabel(groupKey)
+                : getAspectLabel(groupKey)
 
-                  return (
-                    <div key={groupKey} className="review-group">
-                      <div className="review-group-header">
-                        <div className="review-group-icon">
-                          {sortMode === 'cost' ? (
-                            <span className="cost-icon">{label}</span>
-                          ) : (
-                            <span className="aspect-label">{label}</span>
-                          )}
+              return (
+                <div key={groupKey} className="review-group">
+                  <div className="review-group-header">
+                    <div className="review-group-icon">
+                      {groupMode === 'none' ? (
+                        <span className="type-label">{label}</span>
+                      ) : groupMode === 'cost' ? (
+                        <div className="cost-icon-container">
+                          <img src="/icons/cost.png" alt="Cost" className="cost-icon-image" />
+                          <span className="cost-icon-number">{label}</span>
                         </div>
-                        <span className="review-group-count">({groupCards.length})</span>
-                      </div>
-                      <div className="review-cards-grid">
-                        {groupCards.map(renderCard)}
-                      </div>
+                      ) : groupMode === 'aspect' ? (
+                        <div className="aspect-icon-container">
+                          {label !== 'Neutral' && label.split('/').map((aspect, idx) => (
+                            <img
+                              key={idx}
+                              src={`/icons/${aspect.toLowerCase()}.png`}
+                              alt={aspect}
+                              className="aspect-icon-image"
+                            />
+                          ))}
+                          <span className="aspect-label">{label}</span>
+                        </div>
+                      ) : (
+                        <span className="type-label">{label}</span>
+                      )}
                     </div>
-                  )
-                })}
-              </div>
-            )}
+                    <span className="review-group-count">({groupCards.length})</span>
+                  </div>
+                  <div className="review-cards-grid">
+                    {groupCards.map(renderCard)}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
+
+        {hoveredCardPreview && (
+          <div
+            className="card-preview-enlarged"
+            style={{
+              position: 'fixed',
+              left: `${hoveredCardPreview.x}px`,
+              top: `${hoveredCardPreview.y}px`,
+              zIndex: 10000,
+              pointerEvents: 'none'
+            }}
+          >
+            <img
+              src={hoveredCardPreview.card.imageUrl}
+              alt={hoveredCardPreview.card.name}
+              style={{
+                width: '360px',
+                height: 'auto',
+                borderRadius: '13px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                border: '2px solid rgba(255, 255, 255, 0.3)'
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   )

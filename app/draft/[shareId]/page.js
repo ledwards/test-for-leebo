@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { useDraftSync } from '../../../src/hooks/useDraftSync'
-import { joinDraft, leaveDraft, startDraft, randomizeSeats, makePick, updateSettings } from '../../../src/utils/draftApi'
+import { joinDraft, leaveDraft, startDraft, randomizeSeats, makePick, updateSettings, togglePause } from '../../../src/utils/draftApi'
 import DraftLobby from '../../../src/components/DraftLobby'
 import LeaderDraftPhase from '../../../src/components/LeaderDraftPhase'
 import PackDraftPhase from '../../../src/components/PackDraftPhase'
@@ -160,6 +160,20 @@ export default function DraftRoomPage({ params }) {
     router.push('/draft')
   }
 
+  const handleTogglePause = async () => {
+    if (actionLoading) return
+    setActionLoading(true)
+    setError(null)
+    try {
+      await togglePause(shareId)
+      await forcePoll()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const handleBuildDeck = async () => {
     if (actionLoading) return
     setActionLoading(true)
@@ -274,6 +288,8 @@ export default function DraftRoomPage({ params }) {
             onPick={handlePick}
             loading={actionLoading}
             error={error}
+            isHost={isHost}
+            onTogglePause={handleTogglePause}
           />
         )
       }
@@ -288,6 +304,8 @@ export default function DraftRoomPage({ params }) {
             onPick={handlePick}
             loading={actionLoading}
             error={error}
+            isHost={isHost}
+            onTogglePause={handleTogglePause}
           />
         )
       }
@@ -399,8 +417,8 @@ export default function DraftRoomPage({ params }) {
             <button className="back-button" onClick={handleBack}>
               ← Back
             </button>
-            <h1>{draft.setName || draft.setCode} Draft</h1>
-            <div className="draft-status">
+            <div className="draft-header-center">
+              <h1>{draft.setName || draft.setCode} Draft</h1>
               <span className={`status-badge ${status}`}>
                 {status === 'waiting' ? 'Lobby' : status === 'active' ? 'Drafting' : 'Complete'}
               </span>

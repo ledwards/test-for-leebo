@@ -9,7 +9,8 @@ function PlayerSeat({
   seatNumber,
   isCurrentUser,
   isEmpty,
-  showStatus = false
+  showStatus = false,
+  enableTooltip = true
 }) {
   const [showTooltip, setShowTooltip] = useState(false)
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 })
@@ -29,15 +30,25 @@ function PlayerSeat({
     }
   }
 
-  // Format leader aspects for tooltip
-  const formatLeaderWithAspects = (leader) => {
-    if (!leader.aspects || leader.aspects.length === 0) {
-      return leader.name
-    }
-    return `${leader.name} (${leader.aspects.join('/')})`
+  // Render aspect icons for tooltip
+  const renderAspectIcons = (aspects) => {
+    if (!aspects || aspects.length === 0) return null
+    return (
+      <span className="tooltip-aspects">
+        {aspects.map((aspect, idx) => (
+          <img
+            key={idx}
+            src={`/icons/${aspect.toLowerCase()}.png`}
+            alt={aspect}
+            className="tooltip-aspect-icon"
+          />
+        ))}
+      </span>
+    )
   }
 
   const handleMouseEnter = () => {
+    if (!enableTooltip) return
     if (seatRef.current) {
       const rect = seatRef.current.getBoundingClientRect()
       setTooltipPos({
@@ -100,7 +111,8 @@ function PlayerSeat({
               <div className="tooltip-header">Leaders</div>
               {draftedLeaders.map((leader, idx) => (
                 <div key={idx} className="tooltip-leader">
-                  {formatLeaderWithAspects(leader)}
+                  <span className="tooltip-leader-name">{leader.name}</span>
+                  {renderAspectIcons(leader.aspects)}
                 </div>
               ))}
             </>

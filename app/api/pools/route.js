@@ -38,7 +38,7 @@ export async function POST(request) {
     // Helper function to generate default pool name
     const generatePoolName = (shareId, poolType, setCode) => {
       const formatType = poolType === 'draft' ? 'Draft' : 'Sealed'
-      return `${setCode} ${formatType} (${shareId})`
+      return `${setCode} ${formatType}`
     }
 
     // Insert pool with retry logic to handle unique constraint violations
@@ -48,7 +48,7 @@ export async function POST(request) {
       try {
         // Calculate default name for this shareId
         const defaultName = generatePoolName(shareId, poolType, setCode)
-        
+
         // Try to insert with current shareId
         try {
           result = await query(

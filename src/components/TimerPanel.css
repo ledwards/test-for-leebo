@@ -44,3 +44,56 @@
   line-height: 2.5rem;
   font-weight: bold;
 }
+
+/* Pause button */
+.pause-button {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.pause-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.pause-button.resume {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: #FFC107;
+  color: #FFC107;
+}
+
+.pause-button.resume:hover {
+  background: rgba(255, 193, 7, 0.3);
+}
+
+/* Paused display */
+.paused-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #FFC107;
+}
+
+.paused-display svg {
+  width: 24px;
+  height: 24px;
+}
+
+.paused-text {
+  font-size: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}

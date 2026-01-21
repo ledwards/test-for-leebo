@@ -3,33 +3,18 @@
   margin: 0 auto;
 }
 
-.waiting-title {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.animated-dots::after {
-  content: '';
-  animation: dots 1.5s steps(4, end) infinite;
-}
-
-@keyframes dots {
-  0% { content: ''; }
-  25% { content: '.'; }
-  50% { content: '..'; }
-  75% { content: '...'; }
-  100% { content: ''; }
-}
-
 /* Two-column layout matching LeaderDraftPhase */
 .lobby-layout {
   display: flex;
-  gap: 30px;
+  gap: 40px;
   align-items: flex-start;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 .players-section {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -46,10 +31,12 @@
 .controls-section {
   flex: 1;
   min-width: 0;
+  max-width: 400px;
 }
 
 .player-actions {
   background: #1e1e1e;
+  border: 2px solid #333;
   border-radius: 12px;
   padding: 30px;
   text-align: center;
@@ -89,6 +76,7 @@
 
 .spectator-notice {
   background: #1e1e1e;
+  border: 2px solid #333;
   border-radius: 12px;
   padding: 30px;
   text-align: center;

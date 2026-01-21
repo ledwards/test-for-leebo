@@ -22,8 +22,8 @@ export async function checkAndEnforceTimeout(podId) {
 
   if (!pod) return false
 
-  // Only enforce timeouts on active, timed drafts
-  if (pod.status !== 'active' || pod.timed === false) {
+  // Only enforce timeouts on active, timed, non-paused drafts
+  if (pod.status !== 'active' || pod.timed === false || pod.paused === true) {
     return false
   }
 
@@ -31,18 +31,6 @@ export async function checkAndEnforceTimeout(podId) {
   if (!pod.pick_started_at) {
     return false
   }
-
-  const pickStartedAt = new Date(pod.pick_started_at).getTime()
-  const timeoutMs = (pod.pick_timeout_seconds || 120) * 1000
-  const now = Date.now()
-  const elapsed = now - pickStartedAt
-
-  if (elapsed < timeoutMs) {
-    // Timeout not reached yet
-    return false
-  }
-
-  console.log('[TIMEOUT] Pick timeout exceeded, forcing picks for pod:', pod.share_id)
 
   // Get players who haven't picked
   const players = await queryRows(
@@ -56,6 +44,26 @@ export async function checkAndEnforceTimeout(podId) {
     // Everyone has picked, nothing to do
     return false
   }
+
+  // Use last player timer if only one player is picking
+  const isLastPlayer = players.length === 1
+  const timeoutSeconds = isLastPlayer
+    ? (pod.timer_seconds || 30)
+    : (pod.pick_timeout_seconds || 120)
+
+  const pickStartedAt = new Date(pod.pick_started_at).getTime()
+  const timeoutMs = timeoutSeconds * 1000
+  const now = Date.now()
+  // Subtract any accumulated paused time from elapsed calculation
+  const pausedDurationMs = (pod.paused_duration_seconds || 0) * 1000
+  const elapsed = now - pickStartedAt - pausedDurationMs
+
+  if (elapsed < timeoutMs) {
+    // Timeout not reached yet
+    return false
+  }
+
+  console.log(`[TIMEOUT] ${isLastPlayer ? 'Last player' : 'Pick'} timeout exceeded, forcing picks for pod:`, pod.share_id)
 
   // Parse draft state
   const draftState = typeof pod.draft_state === 'string'

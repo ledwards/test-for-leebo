@@ -570,84 +570,6 @@
   color: #ff6b6b;
 }
 
-.rate-card {
-  max-width: 800px;
-  margin: 3rem auto 2rem;
-  background: rgba(0, 0, 0, 0.8);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  padding: 2rem;
-  color: white;
-}
-
-.rate-card h2 {
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  font-size: 2rem;
-  color: white;
-  text-align: center;
-}
-
-.rate-card-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.rate-card-section {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding-bottom: 1.5rem;
-}
-
-.rate-card-section:last-child {
-  border-bottom: none;
-}
-
-.rate-card-section h3 {
-  margin-top: 0;
-  margin-bottom: 0.75rem;
-  font-size: 1.3rem;
-  color: white;
-}
-
-.rate-card-section p {
-  margin: 0.5rem 0;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.rate-card-section ul {
-  margin: 0.5rem 0;
-  padding-left: 1.5rem;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.rate-card-section li {
-  margin: 0.25rem 0;
-  line-height: 1.5;
-}
-
-.rarity-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.rarity-stats div {
-  padding: 0.5rem;
-  background: transparent;
-  border-radius: 4px;
-}
-
-.foil-positions {
-  margin-top: 0.75rem;
-}
-
-.foil-positions ul {
-  margin-top: 0.5rem;
-}
-
 @media (max-width: 768px) {
   .cards-grid {
     gap: 0.4rem;
@@ -673,14 +595,5 @@
   .packs-container {
     grid-template-columns: 1fr;
     gap: 2rem;
-  }
-
-  .rate-card {
-    padding: 1.5rem;
-    margin: 2rem 1rem;
-  }
-
-  .rarity-stats {
-    grid-template-columns: 1fr;
   }
 }

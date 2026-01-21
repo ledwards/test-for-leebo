@@ -10,6 +10,8 @@ import './CountdownTimer.css'
  * @param {number} warningThreshold - Seconds at which to show warning (red/flash)
  * @param {boolean} active - Whether the timer is active
  * @param {string} label - Label to show before the timer
+ * @param {boolean} paused - Whether the timer is paused
+ * @param {number} pausedDurationSeconds - Total seconds the timer has been paused
  */
 function CountdownTimer({
   totalSeconds,
@@ -18,6 +20,8 @@ function CountdownTimer({
   active = true,
   label,
   compact = false,
+  paused = false,
+  pausedDurationSeconds = 0,
 }) {
   const [remainingSeconds, setRemainingSeconds] = useState(totalSeconds)
 
@@ -31,7 +35,8 @@ function CountdownTimer({
     const calculateRemaining = () => {
       const startTime = new Date(startedAt).getTime()
       const now = Date.now()
-      const elapsed = Math.floor((now - startTime) / 1000)
+      // Subtract paused duration from elapsed time
+      const elapsed = Math.floor((now - startTime) / 1000) - pausedDurationSeconds
       const remaining = Math.max(0, totalSeconds - elapsed)
       setRemainingSeconds(remaining)
     }
@@ -39,11 +44,12 @@ function CountdownTimer({
     // Calculate immediately
     calculateRemaining()
 
-    // Update every second
-    const interval = setInterval(calculateRemaining, 1000)
-
-    return () => clearInterval(interval)
-  }, [totalSeconds, startedAt, active])
+    // Only update every second if not paused
+    if (!paused) {
+      const interval = setInterval(calculateRemaining, 1000)
+      return () => clearInterval(interval)
+    }
+  }, [totalSeconds, startedAt, active, paused, pausedDurationSeconds])
 
   const isWarning = remainingSeconds <= warningThreshold && remainingSeconds > 0
   const isExpired = remainingSeconds === 0

@@ -1,6 +1,7 @@
 .host-controls {
-  padding: 20px;
+  padding: 24px;
   background: #1e1e1e;
+  border: 2px solid #333;
   border-radius: 12px;
 }
 

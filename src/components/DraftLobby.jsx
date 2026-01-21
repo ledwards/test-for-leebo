@@ -22,16 +22,13 @@ function DraftLobby({
 
   return (
     <div className="draft-lobby">
-      {!isFull && (
-        <h2 className="waiting-title">Waiting for Players<span className="animated-dots"></span></h2>
-      )}
-
       <div className="lobby-layout">
         <div className="players-section">
           <PlayerCircle
             players={players}
             maxPlayers={maxPlayers}
             currentUserId={draft?.myPlayer?.id}
+            enableTooltip={false}
           />
           <p className="player-count">
             {players.length} / {maxPlayers} players

@@ -8,7 +8,7 @@ import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/ut
 export async function GET(request, { params }) {
   try {
     const { shareId } = await params
-    
+
     // Try to get pool with new columns first, fallback to old schema if columns don't exist
     let pool
     try {
@@ -42,7 +42,7 @@ export async function GET(request, { params }) {
       if (error.message.includes('name') || error.message.includes('set_name') || error.message.includes('pool_type')) {
         try {
           pool = await queryRow(
-            `SELECT 
+            `SELECT
               cp.id,
               cp.user_id,
               cp.share_id,
@@ -72,7 +72,7 @@ export async function GET(request, { params }) {
           // If set_name or pool_type columns don't exist either
           if (innerError.message.includes('set_name') || innerError.message.includes('pool_type')) {
             pool = await queryRow(
-              `SELECT 
+              `SELECT
                 cp.*,
                 u.id as owner_id,
                 u.username as owner_username
@@ -108,7 +108,7 @@ export async function GET(request, { params }) {
     let cards = null
     let packs = null
     let deckBuilderState = null
-    
+
     try {
       cards = typeof pool.cards === 'string' ? JSON.parse(pool.cards) : pool.cards
       packs = pool.packs ? (typeof pool.packs === 'string' ? JSON.parse(pool.packs) : pool.packs) : null
@@ -122,7 +122,7 @@ export async function GET(request, { params }) {
     if (!name) {
       const formatType = (pool.pool_type || 'sealed') === 'draft' ? 'Draft' : 'Sealed'
       const setCode = pool.set_code || ''
-      name = `${setCode} ${formatType} (${pool.share_id})`
+      name = `${setCode} ${formatType}`
     }
 
     return jsonResponse({
@@ -207,7 +207,7 @@ export async function PUT(request, { params }) {
 
     values.push(shareId)
     const result = await query(
-      `UPDATE card_pools 
+      `UPDATE card_pools
        SET ${updates.join(', ')}, updated_at = NOW()
        WHERE share_id = $${paramIndex}
        RETURNING *`,
