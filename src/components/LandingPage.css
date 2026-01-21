@@ -25,10 +25,45 @@
 
 .landing-content h2.subtitle {
   font-size: 1.5rem;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   color: white;
   font-weight: 400; /* Barlow regular */
   line-height: 1.4;
+}
+
+.active-draft-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(74, 144, 217, 0.2);
+  border: 1px solid rgba(74, 144, 217, 0.5);
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.active-draft-banner span {
+  color: #80c0ff;
+  font-size: 1rem;
+}
+
+.rejoin-button {
+  padding: 6px 16px;
+  background: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rejoin-button:hover {
+  background: #5ba0e9;
+  transform: translateY(-1px);
 }
 
 .mode-selection {

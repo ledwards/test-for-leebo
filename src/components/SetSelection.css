@@ -9,24 +9,7 @@
   color: white;
 }
 
-.back-button {
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  margin-bottom: 2rem;
-  transition: all 0.3s ease;
-}
-
-.back-button:hover {
-  background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(255, 0, 0, 0.8);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
-}
+/* Back button uses global styles from App.css */
 
 .set-selection h1 {
   text-align: center;

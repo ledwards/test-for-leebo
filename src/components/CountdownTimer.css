@@ -1,0 +1,57 @@
+.countdown-timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.countdown-timer.compact {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timer-label {
+  color: #888;
+  line-height: 2rem;
+}
+
+.countdown-timer.compact .timer-label {
+  line-height: 1.2;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.timer-value {
+  color: white;
+  font-variant-numeric: tabular-nums;
+  font-size: 2rem;
+  line-height: 2rem;
+}
+
+.countdown-timer.compact .timer-value {
+  font-size: 2.5rem;
+  line-height: 2.5rem;
+  font-weight: bold;
+}
+
+.countdown-timer.inactive .timer-value {
+  color: #666;
+}
+
+.countdown-timer.warning .timer-value {
+  color: #ff4444;
+  animation: flash 1s ease-in-out infinite;
+}
+
+.countdown-timer.expired .timer-value {
+  color: #ff0000;
+  animation: flash 0.5s ease-in-out infinite;
+}
+
+@keyframes flash {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

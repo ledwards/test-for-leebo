@@ -1,15 +1,46 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 import './LandingPage.css'
 
-function LandingPage({ onSealedClick }) {
+function LandingPage({ onSealedClick, onDraftClick }) {
   const { user, loading, signIn } = useAuth()
-  
+  const router = useRouter()
+  const [activeDraft, setActiveDraft] = useState(null)
+
   // Debug: Log auth state
   useEffect(() => {
     console.log('LandingPage: Auth state - user:', user, 'loading:', loading)
+  }, [user, loading])
+
+  // Check for active drafts when user is logged in
+  useEffect(() => {
+    if (!user || loading) {
+      setActiveDraft(null)
+      return
+    }
+
+    const checkActiveDrafts = async () => {
+      try {
+        const response = await fetch('/api/draft/history', {
+          credentials: 'include',
+        })
+        if (response.ok) {
+          const data = await response.json()
+          // Find first active draft (waiting or active status)
+          const active = data.pods?.find(
+            pod => pod.status === 'waiting' || pod.status === 'leader_draft' || pod.status === 'pack_draft'
+          )
+          setActiveDraft(active || null)
+        }
+      } catch (err) {
+        console.error('Failed to check active drafts:', err)
+      }
+    }
+
+    checkActiveDrafts()
   }, [user, loading])
 
   return (
@@ -20,13 +51,23 @@ function LandingPage({ onSealedClick }) {
           The Fan-Made Open Source<br />
           Star Wars Unlimited Limited Simulator
         </h2>
+        {activeDraft && (
+          <div className="active-draft-banner">
+            <span>You have an active Draft Pod.</span>
+            <button
+              className="rejoin-button"
+              onClick={() => router.push(`/draft/${activeDraft.shareId}`)}
+            >
+              Rejoin?
+            </button>
+          </div>
+        )}
         <div className="mode-selection">
           <button className="mode-button sealed-button" onClick={onSealedClick}>
             Sealed
           </button>
-          <button className="mode-button draft-button" disabled>
+          <button className="mode-button draft-button" onClick={onDraftClick}>
             Draft
-            <span className="coming-soon">(Coming Soon)</span>
           </button>
         </div>
         {!loading && !user && (

@@ -1,0 +1,194 @@
+.leader-draft-phase {
+  padding: 20px;
+  margin: 0 auto;
+}
+
+.phase-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.draft-info-header {
+  background: #1e1e1e;
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.my-leaders-info {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.draft-progress-info {
+  display: flex;
+  gap: 20px;
+}
+
+.draft-progress-info .progress-item {
+  display: flex;
+  gap: 8px;
+}
+
+.info-label {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.info-value {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.review-button {
+  background: #4a90d9;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  margin-left: auto;
+}
+
+.review-button:hover {
+  background: #5a9fe9;
+  transform: translateY(-1px);
+}
+
+.phase-header h2 {
+  margin-bottom: 10px;
+}
+
+.phase-description {
+  color: #888;
+}
+
+.draft-layout {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.players-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cards-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.drafted-leaders {
+  margin-bottom: 30px;
+}
+
+.drafted-leaders h3 {
+  margin-bottom: 15px;
+  font-size: 1rem;
+  color: #888;
+}
+
+.drafted-leaders-grid {
+  display: flex;
+  gap: 15px;
+}
+
+.drafted-leader {
+  width: 100px;
+  height: 140px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1e1e1e;
+  border: 2px solid #333;
+}
+
+.drafted-leader img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.drafted-leader.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+}
+
+.drafted-leader.empty span {
+  font-size: 2rem;
+  color: #444;
+}
+
+.available-leaders h3 {
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.leaders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.no-leaders {
+  color: #888;
+  text-align: center;
+  padding: 40px;
+  background: #1e1e1e;
+  border-radius: 8px;
+}
+
+.phase-error {
+  margin-top: 20px;
+  padding: 12px;
+  background: #f44336;
+  color: white;
+  border-radius: 8px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .draft-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .players-section {
+    width: 100%;
+  }
+
+  .cards-section {
+    width: 100%;
+  }
+}
+
+@media (max-width: 500px) {
+  .drafted-leaders-grid {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .drafted-leader {
+    width: 80px;
+    height: 112px;
+  }
+
+  .leaders-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

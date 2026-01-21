@@ -1,0 +1,154 @@
+.host-controls {
+  padding: 20px;
+  background: #1e1e1e;
+  border-radius: 12px;
+}
+
+.host-controls h3 {
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  color: #888;
+  text-align: center;
+}
+
+/* Settings section - below header with bottom border */
+.draft-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.settings-row {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.setting-item {
+  display: flex;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.setting-label {
+  color: #888;
+}
+
+.setting-value {
+  color: white;
+}
+
+.setting-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: white;
+}
+
+.setting-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Controls section */
+.controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.controls-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.secondary-controls {
+  margin-bottom: 5px;
+}
+
+/* Secondary buttons - transparent with icon */
+.control-button.secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-button.secondary:hover:not(:disabled) {
+  color: rgba(138, 43, 226, 1);
+  transform: translateY(-1px);
+}
+
+.control-button.secondary:disabled {
+  color: #555;
+  cursor: not-allowed;
+}
+
+/* Primary button - Build Deck style with green glow */
+.control-button.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 32px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.control-button.primary:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(0, 255, 0, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+}
+
+.control-button.primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+}
+
+.control-button.primary:disabled {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #555;
+  cursor: not-allowed;
+}
+
+.min-players-note {
+  text-align: center;
+  color: #f59e0b;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.ready-to-start {
+  text-align: center;
+  color: #4CAF50;
+  font-size: 0.9rem;
+  margin: 10px 0 0 0;
+  font-weight: 500;
+}

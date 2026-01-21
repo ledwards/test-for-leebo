@@ -161,7 +161,7 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
             </div>
 
             <div className="auth-widget-drawer-menu">
-              {recentPools.length > 0 && (
+              {(loadingPools || recentPools.length > 0) && (
                 <>
                   <a
                     href="/history"
@@ -178,7 +178,12 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
                     </svg>
                     <span>History</span>
                   </a>
-                  {recentPools.map((pool) => {
+                  {loadingPools && (
+                    <div className="auth-widget-drawer-menu-item auth-widget-loading-pools">
+                      Loading...
+                    </div>
+                  )}
+                  {!loadingPools && recentPools.map((pool) => {
                     const isOnDeckPage = pathname?.includes('/deck')
                     const poolUrl = isOnDeckPage 
                       ? `/pool/${pool.shareId}/deck`
@@ -213,17 +218,19 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
                       </a>
                     )
                   })}
-                  <a
-                    href="/history"
-                    className="auth-widget-drawer-menu-item more-link"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      router.push('/history')
-                      setDrawerOpen(false)
-                    }}
-                  >
-                    More...
-                  </a>
+                  {!loadingPools && recentPools.length > 0 && (
+                    <a
+                      href="/history"
+                      className="auth-widget-drawer-menu-item more-link"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        router.push('/history')
+                        setDrawerOpen(false)
+                      }}
+                    >
+                      More...
+                    </a>
+                  )}
                 </>
               )}
               <button 

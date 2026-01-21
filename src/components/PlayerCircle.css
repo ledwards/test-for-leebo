@@ -1,0 +1,114 @@
+.player-circle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.circle-container {
+  position: relative;
+  width: 400px;
+  height: 400px;
+}
+
+/* Seat positions arranged in perfect circle - 8 positions at 45° intervals */
+/* Position 1 is bottom center (current user), going clockwise: 2=bottom-left, 3=left, etc */
+.seat-wrapper {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+/* Using circle math: x = 50% + radius * sin(angle), y = 50% + radius * cos(angle) */
+/* radius = 42% to keep seats well inside container */
+/* Position 1: 180° (bottom) */
+.seat-position-1 {
+  left: 50%;
+  top: 92%;
+}
+
+/* Position 2: 225° (bottom-left) */
+.seat-position-2 {
+  left: 20.3%;
+  top: 79.7%;
+}
+
+/* Position 3: 270° (left) */
+.seat-position-3 {
+  left: 8%;
+  top: 50%;
+}
+
+/* Position 4: 315° (top-left) */
+.seat-position-4 {
+  left: 20.3%;
+  top: 20.3%;
+}
+
+/* Position 5: 0° (top) */
+.seat-position-5 {
+  left: 50%;
+  top: 8%;
+}
+
+/* Position 6: 45° (top-right) */
+.seat-position-6 {
+  left: 79.7%;
+  top: 20.3%;
+}
+
+/* Position 7: 90° (right) */
+.seat-position-7 {
+  left: 92%;
+  top: 50%;
+}
+
+/* Position 8: 135° (bottom-right) */
+.seat-position-8 {
+  left: 79.7%;
+  top: 79.7%;
+}
+
+.circle-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 140px;
+  height: 140px;
+  background: #1e1e1e;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #333;
+  padding: 10px;
+}
+
+.center-label {
+  font-size: 1rem;
+  color: #888;
+}
+
+.circle-timers {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .circle-container {
+    width: 320px;
+    height: 320px;
+  }
+
+  .circle-center {
+    width: 100px;
+    height: 100px;
+  }
+
+  .center-label {
+    font-size: 0.85rem;
+  }
+}

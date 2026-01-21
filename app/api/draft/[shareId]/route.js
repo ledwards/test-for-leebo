@@ -1,0 +1,164 @@
+// GET /api/draft/:shareId - Get draft pod details
+// DELETE /api/draft/:shareId - Delete draft pod (host only)
+import { query, queryRow, queryRows } from '@/lib/db.js'
+import { getSession, requireAuth } from '@/lib/auth.js'
+import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
+import { getPackArtUrl } from '@/src/utils/packArt.js'
+
+export async function GET(request, { params }) {
+  try {
+    const { shareId } = await params
+    const session = getSession(request)
+
+    // Get draft pod
+    const pod = await queryRow(
+      `SELECT
+        dp.*,
+        u.username as host_username,
+        u.avatar_url as host_avatar
+       FROM draft_pods dp
+       LEFT JOIN users u ON dp.host_id = u.id
+       WHERE dp.share_id = $1`,
+      [shareId]
+    )
+
+    if (!pod) {
+      return errorResponse('Draft not found', 404)
+    }
+
+    // Get all players
+    const players = await queryRows(
+      `SELECT
+        dpp.*,
+        u.id as user_id,
+        u.username,
+        u.avatar_url
+       FROM draft_pod_players dpp
+       JOIN users u ON dpp.user_id = u.id
+       WHERE dpp.draft_pod_id = $1
+       ORDER BY dpp.seat_number`,
+      [pod.id]
+    )
+
+    // Find current user's player data if logged in
+    let myPlayer = null
+    if (session) {
+      myPlayer = players.find(p => p.user_id === session.id) || null
+    }
+
+    // Parse JSON fields
+    const draftState = typeof pod.draft_state === 'string'
+      ? JSON.parse(pod.draft_state)
+      : pod.draft_state || {}
+
+    const settings = typeof pod.settings === 'string'
+      ? JSON.parse(pod.settings)
+      : pod.settings || {}
+
+    // Format players for response
+    const formattedPlayers = players.map(p => {
+      const draftedLeaders = p.drafted_leaders
+        ? (typeof p.drafted_leaders === 'string' ? JSON.parse(p.drafted_leaders) : p.drafted_leaders)
+        : []
+
+      return {
+        id: p.id,
+        odId: p.user_id,
+        username: p.username,
+        avatarUrl: p.avatar_url,
+        seatNumber: p.seat_number,
+        pickStatus: p.pick_status,
+        // Only include pack info for current user
+        currentPack: session && p.user_id === session.id
+          ? (typeof p.current_pack === 'string' ? JSON.parse(p.current_pack) : p.current_pack)
+          : null,
+        draftedCardsCount: p.drafted_cards
+          ? (typeof p.drafted_cards === 'string' ? JSON.parse(p.drafted_cards) : p.drafted_cards).length
+          : 0,
+        draftedLeadersCount: draftedLeaders.length,
+        // Include leader info for all players (for tooltips)
+        draftedLeaders: draftedLeaders.map(l => ({
+          name: l.name,
+          aspects: l.aspects || [],
+        })),
+      }
+    })
+
+    return jsonResponse({
+      id: pod.id,
+      shareId: pod.share_id,
+      setCode: pod.set_code,
+      setName: pod.set_name,
+      setArtUrl: getPackArtUrl(pod.set_code),
+      status: pod.status,
+      maxPlayers: pod.max_players,
+      currentPlayers: pod.current_players,
+      timed: pod.timed !== false, // default true
+      timerEnabled: pod.timer_enabled,
+      timerSeconds: pod.timer_seconds,
+      pickTimeoutSeconds: pod.pick_timeout_seconds || 120,
+      stateVersion: pod.state_version,
+      draftState,
+      settings,
+      host: {
+        id: pod.host_id,
+        username: pod.host_username,
+        avatarUrl: pod.host_avatar,
+      },
+      players: formattedPlayers,
+      isHost: session ? pod.host_id === session.id : false,
+      isPlayer: !!myPlayer,
+      myPlayer: myPlayer ? {
+        id: myPlayer.id,
+        seatNumber: myPlayer.seat_number,
+        pickStatus: myPlayer.pick_status,
+        currentPack: typeof myPlayer.current_pack === 'string'
+          ? JSON.parse(myPlayer.current_pack)
+          : myPlayer.current_pack,
+        draftedCards: typeof myPlayer.drafted_cards === 'string'
+          ? JSON.parse(myPlayer.drafted_cards)
+          : myPlayer.drafted_cards || [],
+        leaders: typeof myPlayer.leaders === 'string'
+          ? JSON.parse(myPlayer.leaders)
+          : myPlayer.leaders || [],
+        draftedLeaders: typeof myPlayer.drafted_leaders === 'string'
+          ? JSON.parse(myPlayer.drafted_leaders)
+          : myPlayer.drafted_leaders || [],
+      } : null,
+      startedAt: pod.started_at,
+      completedAt: pod.completed_at,
+      createdAt: pod.created_at,
+      pickStartedAt: pod.pick_started_at,
+    })
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
+
+export async function DELETE(request, { params }) {
+  try {
+    const { shareId } = await params
+    const session = requireAuth(request)
+
+    // Get pod and verify host
+    const pod = await queryRow(
+      'SELECT * FROM draft_pods WHERE share_id = $1',
+      [shareId]
+    )
+
+    if (!pod) {
+      return errorResponse('Draft not found', 404)
+    }
+
+    if (pod.host_id !== session.id) {
+      return errorResponse('Only the host can delete the draft', 403)
+    }
+
+    // Delete pod (cascade will remove players)
+    await query('DELETE FROM draft_pods WHERE id = $1', [pod.id])
+
+    return jsonResponse({ message: 'Draft deleted successfully' })
+  } catch (error) {
+    return handleApiError(error)
+  }
+}

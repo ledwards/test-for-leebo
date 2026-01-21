@@ -22,7 +22,7 @@ function getSetColor(setCode) {
   return config?.color || '#ffffff'
 }
 
-function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPacks = null, shareId = null, poolType = 'sealed', setName = null, isLoading = false }) {
+function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPacks = null, shareId = null, poolType = 'sealed', setName = null, poolName = null, createdAt = null, isLoading = false }) {
   const { user } = useAuth()
   const [cards, setCards] = useState([])
   const [packs, setPacks] = useState([])
@@ -50,18 +50,18 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
     const loadCards = async () => {
       try {
         setLoading(true)
-        
+
         // First try to get from cache (fast, no loading)
         let cardsData = []
         if (isCacheInitialized()) {
           cardsData = getCachedCards(setCode)
         }
-        
+
         // If cache doesn't have cards, try API as fallback
         if (cardsData.length === 0) {
           cardsData = await fetchSetCards(setCode)
         }
-        
+
         if (cardsData.length === 0) {
           // Only set error if we don't have initialPacks (which means we have pool data)
           // If we have initialPacks, we don't need cards from cache/API
@@ -146,7 +146,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
         console.error('Failed to load saved sealed pod:', e)
       }
     }
-    
+
     // Generate new packs if no saved data
     if (cards.length > 0) {
       const generatedPacks = generateSealedPod(cards, setCode)
@@ -174,16 +174,17 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
         setCode,
         cards: allCards,
         packs: generatedPacks,
+        poolType: 'sealed',
         isPublic: false,
       }
 
       const saved = await savePool(poolData)
       setSavedShareId(saved.shareId)
-      
+
       // Update URL without page reload
       const newUrl = `/pool/${saved.shareId}`
       window.history.replaceState({}, '', newUrl)
-      
+
       console.log('Pool saved:', saved.shareId)
     } catch (error) {
       console.error('Failed to auto-save pool:', error)
@@ -247,7 +248,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
         )}
         <div className="sealed-pod-content">
           <button className="back-button" onClick={onBack}>
-            ← Back to Sets
+            ← {poolType === 'draft' ? 'Back to Pod' : 'Back to Sets'}
           </button>
           <div className="error">
             <h2>No Card Data Available</h2>
@@ -283,32 +284,47 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
   }
 
   return (
-    <div className="sealed-pod">
+    <div className={`sealed-pod ${poolType === 'draft' ? 'draft-mode' : 'sealed-mode'}`}>
       {packArtUrl && (
         <div className="set-art-header" style={setArtStyle}></div>
       )}
       <div className="sealed-pod-content">
         <div className="top-buttons">
           <button className="back-button" onClick={onBack}>
-            ← Back to Sets
+            ← {poolType === 'draft' ? 'Back to Pod' : 'Back to Sets'}
           </button>
-          <button 
-            className="refresh-button" 
-            onClick={handleRefresh}
-            title="Refresh Pool"
-            aria-label="Refresh Pool"
-          >
-            ↻
-          </button>
+          {poolType !== 'draft' && (
+            <button
+              className="refresh-button"
+              onClick={handleRefresh}
+              title="Refresh Pool"
+              aria-label="Refresh Pool"
+            >
+              ↻
+            </button>
+          )}
         </div>
         <div className="sealed-pod-header">
         <h1>
-          {poolType === 'draft' ? 'Draft Pod' : 'Sealed Pod'}
+          {poolName || (poolType === 'draft' ? 'Draft Pool' : 'Sealed Pool')}
         </h1>
+        {createdAt && (
+          <p className="pool-date">
+            {new Date(createdAt).toLocaleString('en-US', {
+              weekday: 'short',
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            })}
+          </p>
+        )}
         {saving && <p className="saving-indicator"></p>}
         {packs.length > 0 && (
-          <button 
-            className="build-deck-button" 
+          <button
+            className="build-deck-button"
             onClick={() => {
               const allCards = packs.flatMap(pack => pack.cards)
               if (savedShareId) {
@@ -323,14 +339,14 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
           </button>
         )}
       </div>
-      
+
       <div className="packs-container">
         {showPacksLoading ? (
           <div className="loading"></div>
         ) : (
           packs.map((pack, index) => (
           <div key={index} className="pack-details">
-            <h2>Pack {index + 1}</h2>
+            <h2>{pack.name || `${poolType === 'draft' ? 'Round' : 'Pack'} ${index + 1}`}</h2>
             <div className="cards-grid">
               {pack.cards.map((card, cardIndex) => (
                 <div
@@ -342,16 +358,16 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                     if (previewTimeoutRef.current) {
                       clearTimeout(previewTimeoutRef.current)
                     }
-                    
+
                     // Capture the rect immediately (before timeout)
                     const rect = e.currentTarget.getBoundingClientRect()
-                    
+
                     // Set timeout to show preview after 1 second
                     previewTimeoutRef.current = setTimeout(() => {
                       // Position the preview near the card (to the right, or left if too close to right edge)
                       let previewX = rect.right + 20
                       const previewY = rect.top
-                      
+
                       // Calculate preview dimensions based on card type
                       // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
                       // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
@@ -367,7 +383,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                         previewWidth = isHorizontal ? 504 : 360
                         previewHeight = isHorizontal ? 360 : 504
                       }
-                      
+
                       // Ensure preview stays within viewport bounds
                       // Check right edge
                       if (previewX + previewWidth > window.innerWidth) {
@@ -378,28 +394,28 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                           previewX = 10 // Small margin from left edge
                         }
                       }
-                      
+
                       // Check left edge
                       if (previewX < 0) {
                         previewX = 10 // Small margin from left edge
                       }
-                      
+
                       // Adjust vertical position to keep preview within viewport
                       // previewY is the center point (due to translateY(-50%))
                       const previewTop = previewY - previewHeight / 2
                       const previewBottom = previewY + previewHeight / 2
                       let adjustedY = previewY
-                      
+
                       // Check top edge
                       if (previewTop < 0) {
                         adjustedY = previewHeight / 2 + 10 // Position so top is 10px from top
                       }
-                      
+
                       // Check bottom edge
                       if (previewBottom > window.innerHeight) {
                         adjustedY = window.innerHeight - previewHeight / 2 - 10 // Position so bottom is 10px from bottom
                       }
-                      
+
                       setHoveredCardPreview({ card, x: previewX, y: adjustedY })
                     }, 1000)
                   }}
@@ -435,11 +451,11 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
         ))
         )}
       </div>
-      
+
       {/* Rate Card */}
-      {packs.length > 0 && (
+      {packs.length > 0 && poolType !== 'draft' && (
         <div className="rate-card">
-          <h2>Pack Rate Card</h2>
+          <h2>Pack Rate Card - {getSetName(setCode)}</h2>
           {(() => {
             // Analyze all packs
             const stats = {
@@ -466,7 +482,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
               foilSlotRarities: { Legendary: 0, Rare: 0, Uncommon: 0, Common: 0, Special: 0 },
               upgradeSlotRarities: { Legendary: 0, Rare: 0, Uncommon: 0, Common: 0, Special: 0 }
             }
-            
+
             packs.forEach((pack, packIndex) => {
               let uncommonCount = 0
               let nonLeaderBaseFoilCount = 0
@@ -476,7 +492,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                 if (card.rarity) {
                   stats.rarityCounts[card.rarity] = (stats.rarityCounts[card.rarity] || 0) + 1
                 }
-                
+
                 // Count leaders
                 if (card.isLeader) {
                   stats.leaders.total++
@@ -488,12 +504,12 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                     stats.leaders.legendary++
                   }
                 }
-                
+
                 // Count hyperspace
                 if (card.isHyperspace) {
                   stats.hyperspaceCount++
                 }
-                
+
                 // Count foils and track foil slot rarities
                 if (card.isFoil) {
                   stats.foilCount++
@@ -512,17 +528,17 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                     name: card.name
                   })
                 }
-                
+
                 // Check for showcase
                 if (card.isShowcase) {
                   stats.showcaseCount++
                 }
-                
+
                 // Track non-leader, non-base, non-foil cards
                 // The upgrade slot is around position 13-14 (after 1 leader, 1 base, 9 commons, 2 uncommons)
                 if (!card.isLeader && !card.isBase && !card.isFoil) {
                   nonLeaderBaseFoilCount++
-                  
+
                   // The upgrade slot is typically the 13th card (position 12 in 0-indexed)
                   // It can be a hyperspace variant of any rarity
                   if (nonLeaderBaseFoilCount === 12) {
@@ -539,13 +555,13 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                       }
                     }
                   }
-                  
+
                   // Also track uncommons for reference
                   if (card.rarity === 'Uncommon') {
                     uncommonCount++
                   }
                 }
-                
+
                 // Track Special rarity in foil slot
                 if (card.rarity === 'Special' && card.isFoil) {
                   stats.specialRarity.inFoilSlot++
@@ -557,17 +573,17 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                 }
               })
             })
-            
+
             const distributionPeriod = getDistributionPeriod(setCode)
             const isPreLawlessTime = distributionPeriod === DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
             const allowsSpecial = allowsSpecialInFoil(setCode)
-            
+
             // Format foil rate
             const foilRatePercent = (stats.foilCount / stats.totalPacks) * 100
-            const foilRateText = foilRatePercent === 100 
+            const foilRateText = foilRatePercent === 100
               ? `1 foil per pack`
               : `${stats.foilCount} foils in ${stats.totalPacks} packs (${foilRatePercent.toFixed(1)}% per pack)`
-            
+
             return (
               <div className="rate-card-content">
                 <div className="rate-card-section">
@@ -575,7 +591,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                   <p>Each pack contains: 1 Leader, 1 Base, 9 Commons, 3 Uncommons, 1 Rare/Legendary, 1 Foil</p>
                   <p>Total: 16 cards per pack</p>
                 </div>
-                
+
                 <div className="rate-card-section">
                   <h3>Leader Distribution</h3>
                   {stats.leaders.total > 0 && (
@@ -588,20 +604,14 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                     </>
                   )}
                 </div>
-                
+
                 <div className="rate-card-section">
                   <h3>Rarity Distribution (across all {stats.totalPacks} packs)</h3>
                   <div className="rarity-stats">
-                    <div><strong>Legendary (L):</strong> {stats.rarityCounts.Legendary} ({((stats.rarityCounts.Legendary / (stats.totalPacks * 16)) * 100).toFixed(1)}% observed, ~6.25% expected)</div>
-                    <div><strong>Rare (R):</strong> {stats.rarityCounts.Rare} ({((stats.rarityCounts.Rare / (stats.totalPacks * 16)) * 100).toFixed(1)}% observed, ~6.25% expected)</div>
-                    <div><strong>Uncommon (U):</strong> {stats.rarityCounts.Uncommon} ({((stats.rarityCounts.Uncommon / (stats.totalPacks * 16)) * 100).toFixed(1)}% observed, ~18.75% expected)</div>
-                    <div><strong>Common (C):</strong> {stats.rarityCounts.Common} ({((stats.rarityCounts.Common / (stats.totalPacks * 16)) * 100).toFixed(1)}% observed, ~56.25% expected)</div>
-                    {stats.rarityCounts.Special > 0 && (
-                      <div><strong>Special (S):</strong> {stats.rarityCounts.Special} ({((stats.rarityCounts.Special / (stats.totalPacks * 16)) * 100).toFixed(1)}% observed, ~0.1% expected)</div>
-                    )}
+                    <div><strong>Legendary (L):</strong> {stats.rarityCounts.Legendary} ({((stats.rarityCounts.Legendary / (stats.totalPacks * 16)) * 100).toFixed(1)}%, ~6.25% expected)</div>
                   </div>
                 </div>
-                
+
                 <div className="rate-card-section">
                   <h3>Foil Information</h3>
                   <p><strong>Foil Rate:</strong> {foilRateText}</p>
@@ -613,23 +623,23 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                   ) : (
                     <p><strong>Hyperspace Foil:</strong> {stats.hyperspaceFoilCount} (100% expected - all foils are hyperspace)</p>
                   )}
-                  
+
                   <p style={{ marginTop: '0.75em' }}><strong>Foil Slot Rarity Distribution:</strong></p>
                   <ul style={{ marginTop: '0.25em', marginLeft: '1.5em' }}>
                     {stats.foilSlotRarities.Legendary > 0 && (
-                      <li>Legendary (L): {stats.foilSlotRarities.Legendary} ({((stats.foilSlotRarities.Legendary / stats.foilCount) * 100).toFixed(1)}% observed)</li>
+                      <li>Legendary (L): {stats.foilSlotRarities.Legendary} ({((stats.foilSlotRarities.Legendary / stats.foilCount) * 100).toFixed(1)}%)</li>
                     )}
                     {stats.foilSlotRarities.Rare > 0 && (
-                      <li>Rare (R): {stats.foilSlotRarities.Rare} ({((stats.foilSlotRarities.Rare / stats.foilCount) * 100).toFixed(1)}% observed)</li>
+                      <li>Rare (R): {stats.foilSlotRarities.Rare} ({((stats.foilSlotRarities.Rare / stats.foilCount) * 100).toFixed(1)}%)</li>
                     )}
                     {stats.foilSlotRarities.Uncommon > 0 && (
-                      <li>Uncommon (U): {stats.foilSlotRarities.Uncommon} ({((stats.foilSlotRarities.Uncommon / stats.foilCount) * 100).toFixed(1)}% observed)</li>
+                      <li>Uncommon (U): {stats.foilSlotRarities.Uncommon} ({((stats.foilSlotRarities.Uncommon / stats.foilCount) * 100).toFixed(1)}%)</li>
                     )}
                     {stats.foilSlotRarities.Common > 0 && (
-                      <li>Common (C): {stats.foilSlotRarities.Common} ({((stats.foilSlotRarities.Common / stats.foilCount) * 100).toFixed(1)}% observed)</li>
+                      <li>Common (C): {stats.foilSlotRarities.Common} ({((stats.foilSlotRarities.Common / stats.foilCount) * 100).toFixed(1)}%)</li>
                     )}
                     {stats.foilSlotRarities.Special > 0 && (
-                      <li>Special (S): {stats.foilSlotRarities.Special} ({((stats.foilSlotRarities.Special / stats.foilCount) * 100).toFixed(1)}% observed)</li>
+                      <li>Special (S): {stats.foilSlotRarities.Special} ({((stats.foilSlotRarities.Special / stats.foilCount) * 100).toFixed(1)}%)</li>
                     )}
                   </ul>
                   {allowsSpecial && (
@@ -638,28 +648,28 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                     </p>
                   )}
                 </div>
-                
+
                 <div className="rate-card-section">
                   <h3>Hyperspace Variants</h3>
                   <p><strong>Total Hyperspace Cards:</strong> {stats.hyperspaceCount} ({((stats.hyperspaceCount / (stats.totalPacks * 16)) * 100).toFixed(1)}% of all cards)</p>
                   <p><strong>Hyperspace Rate:</strong> {((stats.hyperspaceCount / stats.totalPacks)).toFixed(1)} per pack (~66.7% expected per pack)</p>
                 </div>
-                
+
                 <div className="rate-card-section">
-                  <h3>Uncommon Upgrade Slot - {getSetName(setCode)}</h3>
+                  <h3>Uncommon Upgrade Slot</h3>
                   <p>The 3rd Uncommon slot can be upgraded to a Hyperspace variant of any rarity.</p>
-                  <p><strong>Upgrade Slot Hyperspace:</strong> {stats.upgradeSlotHyperspace} out of {stats.totalPacks} packs ({((stats.upgradeSlotHyperspace / stats.totalPacks) * 100).toFixed(1)}%, ~25% expected)</p>
-                  
+                  <p><strong>Upgrade Slot Hyperspace:</strong> {stats.upgradeSlotHyperspace} out of {stats.totalPacks} packs ({((stats.upgradeSlotHyperspace / stats.totalPacks) * 100).toFixed(1)}%, ~10% expected)</p>
+
                   {stats.upgradeSlotHyperspace > 0 && (
                     <>
                       <p style={{ marginTop: '0.75em' }}><strong>Upgrade Slot Rarity Distribution (when hyperspace):</strong></p>
                       <ul style={{ marginTop: '0.25em', marginLeft: '1.5em' }}>
-                        <li>Legendary (L): {stats.upgradeSlotRarities.Legendary || 0} ({stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Legendary || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0}% observed, ~3% expected)</li>
-                        <li>Rare (R): {stats.upgradeSlotRarities.Rare || 0} ({stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Rare || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0}% observed, ~12% expected)</li>
-                        <li>Uncommon (U): {stats.upgradeSlotRarities.Uncommon || 0} ({stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Uncommon || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0}% observed, ~25% expected)</li>
-                        <li>Common (C): {stats.upgradeSlotRarities.Common || 0} ({stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Common || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0}% observed, ~60% expected)</li>
+                        <li>Legendary (L): {stats.upgradeSlotRarities.Legendary || 0} ({stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Legendary || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0}%)</li>
+                        <li>Rare (R): {stats.upgradeSlotRarities.Rare || 0} ({stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Rare || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0}%, ~12% expected)</li>
+                        <li>Uncommon (U): {stats.upgradeSlotRarities.Uncommon || 0} ({stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Uncommon || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0}%, ~25% expected)</li>
+                        <li>Common (C): {stats.upgradeSlotRarities.Common || 0} ({stats.upgradeSlotHyperspace > 0 ? ((stats.upgradeSlotRarities.Common || 0) / stats.upgradeSlotHyperspace * 100).toFixed(1) : 0}%, ~60% expected)</li>
                         {stats.upgradeSlotRarities.Special > 0 && (
-                          <li>Special (S): {stats.upgradeSlotRarities.Special} ({((stats.upgradeSlotRarities.Special / stats.upgradeSlotHyperspace) * 100).toFixed(1)}% observed)</li>
+                          <li>Special (S): {stats.upgradeSlotRarities.Special} ({((stats.upgradeSlotRarities.Special / stats.upgradeSlotHyperspace) * 100).toFixed(1)}%)</li>
                         )}
                       </ul>
                     </>
@@ -670,74 +680,19 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                     </p>
                   )}
                 </div>
-                
+
                 {stats.showcaseCount > 0 && (
                   <div className="rate-card-section">
                     <h3>Showcase Leaders</h3>
                     <p><strong>Showcase Count:</strong> {stats.showcaseCount} ({((stats.showcaseCount / stats.totalPacks) * 100).toFixed(2)}%, ~0.35% expected per pack)</p>
                   </div>
                 )}
-                
-                <div className="rate-card-section">
-                  <h3>Special Rarity (S)</h3>
-                  {allowsSpecial ? (
-                    <>
-                      {stats.specialRarity.inFoilSlot > 0 && (
-                        <>
-                          <p>
-                            <strong>Foil Slot:</strong> {stats.specialRarity.inFoilSlot} out of {stats.foilCount} foils ({((stats.specialRarity.inFoilSlot / stats.foilCount) * 100).toFixed(2)}% observed, ~1-2% expected)
-                          </p>
-                          <ul style={{ marginLeft: '1.5em', marginTop: '0.25em' }}>
-                            {stats.specialRarity.inFoilSlotStandard > 0 && (
-                              <li>Standard Foil: {stats.specialRarity.inFoilSlotStandard} ({((stats.specialRarity.inFoilSlotStandard / stats.specialRarity.inFoilSlot) * 100).toFixed(1)}% of Special foils observed)</li>
-                            )}
-                            {stats.specialRarity.inFoilSlotHyperspace > 0 && (
-                              <li>Hyperspace Foil: {stats.specialRarity.inFoilSlotHyperspace} ({((stats.specialRarity.inFoilSlotHyperspace / stats.specialRarity.inFoilSlot) * 100).toFixed(1)}% of Special foils observed)</li>
-                            )}
-                          </ul>
-                        </>
-                      )}
-                      {stats.specialRarity.inUpgradeSlot > 0 && (
-                        <p style={{ marginTop: stats.specialRarity.inFoilSlot > 0 ? '0.5em' : '0' }}>
-                          <strong>Upgrade Slot:</strong> {stats.specialRarity.inUpgradeSlot} out of {stats.upgradeSlotHyperspace} upgrade slots ({((stats.specialRarity.inUpgradeSlot / stats.upgradeSlotHyperspace) * 100).toFixed(2)}% observed)
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <p>This set does not include Special rarity cards in booster packs.</p>
-                  )}
-                </div>
-                
-                <div className="rate-card-section">
-                  <h3>Pack Building Rules</h3>
-                  <ul>
-                    <li>Leaders can ONLY appear in leader slot (position 1)</li>
-                    <li><strong>Leader Rarity:</strong> Common leaders appear ~83.3% of the time (5/6), Rare/Legendary leaders appear ~16.7% of the time (1/6)</li>
-                    <li>Common bases can ONLY appear in base slot (position 2)</li>
-                    {['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC'].includes(setCode) && (
-                      <li>Rare bases CAN appear in rare slot</li>
-                    )}
-                    {allowsSpecial && (
-                      <>
-                        <li>Special rarity cards do NOT appear in regular slots</li>
-                        <li>Special rarity cards can ONLY appear in foil/hyperfoil slots</li>
-                        <li>Foil slot can be any rarity, including Special</li>
-                      </>
-                    )}
-                    {!allowsSpecial && (
-                      <li>Foil slot can be any rarity (L, R, U, C)</li>
-                    )}
-                    <li>Foil slot can be a duplicate of another card in the pack</li>
-                    <li>Upgrade slot (3rd uncommon) can be a duplicate</li>
-                    <li>Leaders are NEVER foil or hyperfoil</li>
-                  </ul>
-                </div>
               </div>
             )
           })()}
         </div>
       )}
-      
+
       {selectedCard && (
         <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
       )}
@@ -748,7 +703,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
         const hasBackImage = card.backImageUrl && card.isLeader
         const isHorizontal = card.isLeader || card.isBase
         const borderRadius = '23px' // Slightly smaller than 24px to reduce clipping
-        
+
         // Calculate dimensions
         let previewWidth, previewHeight
         if (hasBackImage) {
@@ -761,7 +716,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
           previewWidth = isHorizontal ? 504 : 360
           previewHeight = isHorizontal ? 360 : 504
         }
-        
+
         return (
           <div
             className="card-preview-enlarged"
@@ -921,14 +876,14 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
         )
       })()}
       {tooltip.show && (
-        <div 
+        <div
           className="tooltip"
           style={{
             position: 'fixed',
             left: `${tooltip.x}px`,
             top: `${tooltip.y}px`,
-            transform: tooltip.alignLeft 
-              ? 'translateX(-100%) translateY(-50%)' 
+            transform: tooltip.alignLeft
+              ? 'translateX(-100%) translateY(-50%)'
               : 'translateX(-50%) translateY(-100%)',
             zIndex: 10000,
             pointerEvents: 'none',

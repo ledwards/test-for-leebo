@@ -70,6 +70,10 @@ export default function Home() {
     window.location.href = '/sets'
   }
 
+  const handleDraftClick = () => {
+    window.location.href = '/draft'
+  }
+
   const handleSetSelect = (setCode) => {
     // Navigate to create a new pool for this set
     window.location.href = `/pools/new?set=${setCode}`
@@ -144,7 +148,7 @@ export default function Home() {
         </div>
       )}
       {view === 'landing' && (
-        <LandingPage onSealedClick={handleSealedClick} />
+        <LandingPage onSealedClick={handleSealedClick} onDraftClick={handleDraftClick} />
       )}
       {view === 'set-selection' && (
         <SetSelection onSetSelect={handleSetSelect} onBack={handleBack} />

@@ -13,7 +13,7 @@ export async function GET(request, { params }) {
     let pool
     try {
       pool = await queryRow(
-        `SELECT 
+        `SELECT
           cp.id,
           cp.user_id,
           cp.share_id,
@@ -27,10 +27,13 @@ export async function GET(request, { params }) {
           cp.is_public,
           cp.created_at,
           cp.updated_at,
+          cp.draft_pod_id,
+          dp.share_id as draft_share_id,
           u.id as owner_id,
           u.username as owner_username
          FROM card_pools cp
          LEFT JOIN users u ON cp.user_id = u.id
+         LEFT JOIN draft_pods dp ON cp.draft_pod_id = dp.id
          WHERE cp.share_id = $1`,
         [shareId]
       )
@@ -135,6 +138,7 @@ export async function GET(request, { params }) {
       isPublic: pool.is_public,
       createdAt: pool.created_at,
       updatedAt: pool.updated_at,
+      draftShareId: pool.draft_share_id || null,
       owner: pool.owner_id
         ? {
             id: pool.owner_id,
