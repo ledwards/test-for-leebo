@@ -158,6 +158,12 @@ export async function processBotTurns(podId) {
       break
     }
 
+    // Don't process bot turns while draft is paused
+    if (pod.paused === true) {
+      console.log('[BOT] Draft is paused, breaking')
+      break
+    }
+
     const draftState = typeof pod.draft_state === 'string'
       ? JSON.parse(pod.draft_state)
       : pod.draft_state || {}

@@ -344,6 +344,117 @@ async function runTests() {
   })
 
   console.log('')
+  console.log('Card + Foil Co-occurrence Tests')
+  console.log('================================')
+
+  test('single pack: card+foil pair rate should be low (ideal < 5%)', () => {
+    clearBeltCache()
+    const packCount = 500
+    let pairsFound = 0
+    const pairExamples = []
+
+    for (let i = 0; i < packCount; i++) {
+      const pack = generateBoosterPack(cards, 'SOR')
+      const foil = pack.cards.find(c => c.isFoil)
+      if (!foil) continue
+
+      const nonFoilMatch = pack.cards.find(c => c.id === foil.id && !c.isFoil)
+      if (nonFoilMatch) {
+        pairsFound++
+        if (pairExamples.length < 5) {
+          pairExamples.push(`Pack ${i}: "${foil.name}" (${foil.rarity})`)
+        }
+      }
+    }
+
+    const observedRate = pairsFound / packCount
+
+    // UX perspective: Getting same card as foil + non-foil feels bad
+    // Ideal: < 5% (1 in 20 packs)
+    // Acceptable: < 8%
+    // Current mechanics likely produce ~10% due to weighted foil selection
+    const idealRate = 0.05
+    const acceptableRate = 0.08
+
+    // Calculate statistical bounds for observed rate
+    const stdDev = Math.sqrt(packCount * observedRate * (1 - observedRate))
+    const margin = 1.96 * stdDev / packCount // 95% CI
+
+    console.log(`\x1b[36m   Card+foil pair rate: ${(observedRate * 100).toFixed(2)}% ± ${(margin * 100).toFixed(2)}% (${pairsFound}/${packCount})\x1b[0m`)
+    console.log(`\x1b[36m   Target: < ${idealRate * 100}% ideal, < ${acceptableRate * 100}% acceptable\x1b[0m`)
+
+    if (observedRate > acceptableRate) {
+      console.log(`\x1b[33m   ⚠️  Rate exceeds acceptable threshold\x1b[0m`)
+    }
+
+    assert(
+      observedRate <= idealRate,
+      `Card+foil pair rate (${(observedRate * 100).toFixed(1)}%) exceeds ideal threshold of ${idealRate * 100}%. ` +
+      `Players shouldn't frequently get the same card as both foil and non-foil. ` +
+      `Examples: ${pairExamples.join('; ')}`
+    )
+  })
+
+  test('sealed pod (6 packs): card+foil pairs should be uncommon (ideal < 30% of pods)', () => {
+    clearBeltCache()
+    const podCount = 100
+    let podsWithPairs = 0
+    let totalPairs = 0
+    const pairDetails = []
+
+    for (let p = 0; p < podCount; p++) {
+      const packs = generateSealedPod(cards, 'SOR', 6)
+      const allCards = packs.flatMap(pack => pack.cards)
+      const foils = allCards.filter(c => c.isFoil)
+      const nonFoils = allCards.filter(c => !c.isFoil)
+
+      let pairsInPod = 0
+      const pairNames = []
+      foils.forEach(foil => {
+        const match = nonFoils.find(c => c.id === foil.id)
+        if (match) {
+          pairsInPod++
+          pairNames.push(foil.name)
+        }
+      })
+
+      if (pairsInPod > 0) {
+        podsWithPairs++
+        totalPairs += pairsInPod
+        if (pairDetails.length < 5) {
+          pairDetails.push(`Pod ${p}: ${pairsInPod} pairs (${pairNames.slice(0, 3).join(', ')})`)
+        }
+      }
+    }
+
+    const podPairRate = podsWithPairs / podCount
+    const avgPairsPerPod = totalPairs / podCount
+
+    // UX perspective: In a sealed pool, getting same card as foil + non-foil
+    // anywhere in the 6 packs diminishes the "special" feeling of the foil
+    // Ideal: < 30% of pods have any such pair
+    // Acceptable: < 50%
+    // Current mechanics likely produce ~95%+ due to shared belts
+    const idealRate = 0.30
+    const acceptableRate = 0.50
+
+    console.log(`\x1b[36m   Pods with card+foil pairs: ${podsWithPairs}/${podCount} (${(podPairRate * 100).toFixed(1)}%)\x1b[0m`)
+    console.log(`\x1b[36m   Average pairs per pod: ${avgPairsPerPod.toFixed(2)}\x1b[0m`)
+    console.log(`\x1b[36m   Target: < ${idealRate * 100}% ideal, < ${acceptableRate * 100}% acceptable\x1b[0m`)
+
+    if (podPairRate > acceptableRate) {
+      console.log(`\x1b[33m   ⚠️  Rate exceeds acceptable threshold\x1b[0m`)
+    }
+
+    assert(
+      podPairRate <= idealRate,
+      `${(podPairRate * 100).toFixed(0)}% of sealed pods have card+foil pairs, exceeds ideal ${idealRate * 100}%. ` +
+      `This diminishes the value of foils when players commonly get both versions. ` +
+      `Examples: ${pairDetails.join('; ')}`
+    )
+  })
+
+  console.log('')
   console.log('Upgrade Pass Tests')
   console.log('==================')
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import DeckBuilder from '../../../../src/components/DeckBuilder'
 import { loadPool, updatePool } from '../../../../src/utils/poolApi'
 import '../../../../src/App.css'
@@ -10,6 +10,8 @@ export default function DeckBuilderPage({ params }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [shareId, setShareId] = useState(null)
+  const saveTimeoutRef = useRef(null)
+  const pendingStateRef = useRef(null)
 
   useEffect(() => {
     // Handle async params in Next.js 15+
@@ -52,16 +54,37 @@ export default function DeckBuilderPage({ params }) {
     }
   }
 
-  const handleDeckStateChange = async (deckBuilderState) => {
-    // Auto-save deck builder state to pool
-    if (pool && pool.shareId) {
-      try {
-        await updatePool(pool.shareId, { deckBuilderState })
-      } catch (err) {
-        console.error('Failed to save deck builder state:', err)
+  const handleDeckStateChange = useCallback((deckBuilderState) => {
+    // Debounced auto-save - only save after 2 seconds of no changes
+    pendingStateRef.current = deckBuilderState
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (pool && pool.shareId && pendingStateRef.current) {
+        try {
+          await updatePool(pool.shareId, { deckBuilderState: pendingStateRef.current })
+        } catch (err) {
+          console.error('Failed to save deck builder state:', err)
+        }
+      }
+    }, 2000)
+  }, [pool])
+
+  // Save pending state on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+      // Flush any pending save immediately on unmount
+      if (pendingStateRef.current && pool?.shareId) {
+        updatePool(pool.shareId, { deckBuilderState: pendingStateRef.current }).catch(() => {})
       }
     }
-  }
+  }, [pool])
 
   // Always render DeckBuilder immediately - show UI structure even while loading
   // Cards will be empty initially and populate once pool data loads

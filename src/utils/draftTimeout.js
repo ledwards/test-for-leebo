@@ -24,13 +24,11 @@ export async function checkAndEnforceTimeout(podId) {
 
   // Only enforce timeouts on active, timed, non-paused drafts
   if (pod.status !== 'active' || pod.timed === false || pod.paused === true) {
-    console.log('[TIMEOUT] Skipping - status:', pod.status, 'timed:', pod.timed, 'paused:', pod.paused)
     return false
   }
 
   // Check if timeout has passed
   if (!pod.pick_started_at) {
-    console.log('[TIMEOUT] Skipping - no pick_started_at')
     return false
   }
 
@@ -60,21 +58,10 @@ export async function checkAndEnforceTimeout(podId) {
   const pausedDurationMs = (pod.paused_duration_seconds || 0) * 1000
   const elapsed = now - pickStartedAt - pausedDurationMs
 
-  console.log('[TIMEOUT] Check:', {
-    isLastPlayer,
-    timeoutSeconds,
-    elapsed: Math.round(elapsed / 1000),
-    pickStartedAt: new Date(pickStartedAt).toISOString(),
-    pausedDurationSeconds: pod.paused_duration_seconds || 0,
-    playersStillPicking: players.length
-  })
-
   if (elapsed < timeoutMs) {
     // Timeout not reached yet
     return false
   }
-
-  console.log(`[TIMEOUT] ${isLastPlayer ? 'Last player' : 'Pick'} timeout exceeded, forcing picks for pod:`, pod.share_id)
 
   // Parse draft state
   const draftState = typeof pod.draft_state === 'string'
@@ -85,8 +72,6 @@ export async function checkAndEnforceTimeout(podId) {
 
   // Force picks for each player who hasn't picked
   for (const player of players) {
-    console.log('[TIMEOUT] Forcing pick for player:', player.user_id)
-
     if (phase === 'leader_draft') {
       await forceLeaderPick(player, draftState)
     } else if (phase === 'pack_draft') {
@@ -147,8 +132,6 @@ async function forceLeaderPick(player, draftState) {
      WHERE id = $3`,
     [JSON.stringify(remainingLeaders), JSON.stringify(draftedLeaders), player.id]
   )
-
-  console.log('[TIMEOUT] Forced leader pick:', pickedLeader.name, 'for player:', player.user_id)
 }
 
 /**
@@ -196,6 +179,4 @@ async function forcePackPick(player, draftState) {
      WHERE id = $3`,
     [JSON.stringify(remainingPack), JSON.stringify(draftedCards), player.id]
   )
-
-  console.log('[TIMEOUT] Forced card pick:', pickedCard.name, 'for player:', player.user_id)
 }

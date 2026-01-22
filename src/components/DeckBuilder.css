@@ -705,10 +705,9 @@
   background: rgba(0, 0, 0, 0.6);
   border: none;
   border-radius: 6px;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition: transform 0.1s ease;
   cursor: pointer;
   isolation: isolate;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   user-select: none;
   touch-action: none;
   overflow: visible;
@@ -774,12 +773,10 @@
 
 .canvas-card:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .canvas-card.hovered {
   transform: scale(1.125);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
 
 .canvas-card.selected {
@@ -820,7 +817,6 @@
 /* Leaders and bases are not rotated in deck builder */
 
 .canvas-card.foil {
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
   position: relative;
   overflow: hidden;
 }
@@ -861,7 +857,6 @@
 
 .canvas-card.hyperspace {
   border-color: #9C27B0 !important;
-  box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
 }
 
 .canvas-card.showcase {
@@ -1075,6 +1070,86 @@
   box-shadow: 0 6px 16px rgba(33, 150, 243, 0.6);
 }
 
+.remove-all-button {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.remove-all-button:hover {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: rgba(0, 255, 0, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+}
+
+.aspect-penalty-button {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.aspect-penalty-button:hover {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: rgba(0, 255, 0, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+}
+
+.aspect-penalty-button-active {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.aspect-penalty-button-active:hover {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: rgba(255, 0, 0, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
+}
+
+.aspect-penalty-warning-button {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 0, 0, 0.8);
+  color: #ff6666;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.aspect-penalty-warning-button:hover {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: rgba(255, 0, 0, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
+}
+
 .zoom-to-fit-container {
   position: fixed;
   top: 80px;
@@ -1237,7 +1312,7 @@
 
 .list-table {
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   table-layout: fixed;
   border-collapse: collapse;
   background: rgba(0, 0, 0, 0.6);
@@ -1494,11 +1569,11 @@
   .deck-builder {
     padding: 1rem;
   }
-  
+
   .deck-canvas {
     min-height: calc(100vh - 250px);
   }
-  
+
   .canvas-card {
     width: 100px;
   }

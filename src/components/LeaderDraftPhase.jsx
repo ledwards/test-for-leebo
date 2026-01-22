@@ -39,34 +39,9 @@ function LeaderDraftPhase({
     if (previewTimeoutRef.current) {
       clearTimeout(previewTimeoutRef.current)
     }
-    const rect = e.currentTarget.getBoundingClientRect()
     previewTimeoutRef.current = setTimeout(() => {
-      // Calculate preview width based on whether leader has back image
-      const hasBackImage = leader.backImageUrl
-      const previewWidth = hasBackImage ? 504 + 360 + 20 : 504
-      const previewHeight = hasBackImage ? 504 : 360
-
-      let previewX = rect.right + 20
-      let previewY = rect.top + rect.height / 2
-
-      // Ensure preview stays within viewport horizontally
-      if (previewX + previewWidth > window.innerWidth) {
-        previewX = rect.left - previewWidth - 20
-        if (previewX < 0) {
-          previewX = 10
-        }
-      }
-
-      // Ensure preview stays within viewport vertically
-      const previewTop = previewY - previewHeight / 2
-      const previewBottom = previewY + previewHeight / 2
-      if (previewTop < 10) {
-        previewY = previewHeight / 2 + 10
-      } else if (previewBottom > window.innerHeight - 10) {
-        previewY = window.innerHeight - previewHeight / 2 - 10
-      }
-
-      setHoveredLeaderPreview({ leader, x: previewX, y: previewY })
+      // Static preview in left half of screen
+      setHoveredLeaderPreview({ leader, x: null, y: null })
     }, 500)
   }
 
@@ -154,6 +129,7 @@ function LeaderDraftPhase({
                   key={idx}
                   card={leader}
                   disabled={true}
+                  useStaticPreview={true}
                 />
               ))}
               {Array(3 - draftedLeaders.length)
@@ -182,6 +158,7 @@ function LeaderDraftPhase({
                     onRightClick={(e) => handleCardRightClick(e, leader)}
                     disabled={!canPick || loading}
                     selected={false}
+                    useStaticPreview={true}
                   />
                 ))}
               </div>
@@ -214,29 +191,36 @@ function LeaderDraftPhase({
       {hoveredLeaderPreview && (() => {
         const leader = hoveredLeaderPreview.leader
         const hasBackImage = leader.backImageUrl
-        const previewWidth = hasBackImage ? 504 + 360 + 20 : 504
-        const previewHeight = hasBackImage ? 504 : 360
+
+        // Calculate scaled dimensions for static preview
+        const scale = 0.6 // Scale down to 60% for dual images
+        const scaledFrontWidth = 504 * scale
+        const scaledFrontHeight = 360 * scale
+        const scaledBackWidth = 360 * scale
+        const scaledBackHeight = 504 * scale
 
         return (
           <div
             className="card-preview-enlarged"
             style={{
               position: 'fixed',
-              left: `${hoveredLeaderPreview.x}px`,
-              top: `${hoveredLeaderPreview.y}px`,
+              left: '0',
+              top: '0',
+              width: '50vw',
+              height: '100vh',
               zIndex: 10000,
               pointerEvents: 'none',
-              transform: 'translateY(-50%)',
-              width: `${previewWidth}px`,
-              height: `${previewHeight}px`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             {hasBackImage ? (
-              <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                 {/* Front - horizontal */}
                 <div style={{
-                  width: '504px',
-                  height: '360px',
+                  width: `${scaledFrontWidth}px`,
+                  height: `${scaledFrontHeight}px`,
                   overflow: 'hidden',
                   borderRadius: '12px',
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
@@ -255,8 +239,8 @@ function LeaderDraftPhase({
                 </div>
                 {/* Back - vertical */}
                 <div style={{
-                  width: '360px',
-                  height: '504px',
+                  width: `${scaledBackWidth}px`,
+                  height: `${scaledBackHeight}px`,
                   overflow: 'hidden',
                   borderRadius: '12px',
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
@@ -275,17 +259,25 @@ function LeaderDraftPhase({
                 </div>
               </div>
             ) : (
-              <img
-                src={leader.imageUrl}
-                alt={leader.name}
-                style={{
-                  width: '504px',
-                  height: 'auto',
-                  borderRadius: '12px',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
-                  border: '2px solid rgba(255, 255, 255, 0.3)'
-                }}
-              />
+              <div style={{
+                width: `${504 * 1.5}px`,
+                height: `${360 * 1.5}px`,
+                overflow: 'hidden',
+                borderRadius: '24px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+              }}>
+                <img
+                  src={leader.imageUrl}
+                  alt={leader.name}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block',
+                  }}
+                />
+              </div>
             )}
           </div>
         )

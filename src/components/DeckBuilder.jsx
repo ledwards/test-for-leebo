@@ -113,18 +113,47 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [errorMessage, setErrorMessage] = useState(null)
   const [messageType, setMessageType] = useState(null) // 'error' or 'success'
   const [isInfoBarSticky, setIsInfoBarSticky] = useState(false)
+  const [showAspectPenalties, setShowAspectPenalties] = useState(false)
 
   // Function to get aspect color name
-  const getAspectColorName = (aspect) => {
-    const aspectColorMap = {
-      'Vigilance': 'Blue',
-      'Command': 'Green',
-      'Aggression': 'Red',
-      'Cunning': 'Yellow',
-      'Villainy': 'Purple',
-      'Heroism': 'Orange'
+  // Calculate aspect penalty for a card
+  const calculateAspectPenalty = (card, leaderCard, baseCard) => {
+    if (!leaderCard || !baseCard || !card.aspects || card.aspects.length === 0) {
+      return 0
     }
-    return aspectColorMap[aspect] || aspect
+
+    // Get my aspects (leader + base) - count each instance
+    const myAspects = [
+      ...(leaderCard.aspects || []),
+      ...(baseCard.aspects || [])
+    ]
+
+    // Get card's aspects - count each instance
+    const cardAspects = [...(card.aspects || [])]
+
+    // Subtract my aspects from card's aspects (one-for-one)
+    const remainingAspects = [...cardAspects]
+    for (const myAspect of myAspects) {
+      const index = remainingAspects.indexOf(myAspect)
+      if (index !== -1) {
+        remainingAspects.splice(index, 1)
+      }
+    }
+
+    // Each remaining aspect (out of aspect) adds +2 to cost
+    return remainingAspects.length * 2
+  }
+
+  const getAspectColorName = (card) => {
+    const aspectColorMap = {
+      'Vigilance': 'blue',
+      'Command': 'green',
+      'Aggression': 'red',
+      'Cunning': 'yellow',
+      'Villainy': 'purple',
+      'Heroism': 'orange',
+    }
+    return aspectColorMap[card.aspects?.[0]] || 'gray'
   }
 
   // Function to update pool name when leader or base changes
@@ -715,14 +744,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const groupCardsByName = useCallback((cardEntries) => {
     const groups = new Map()
 
-    cardEntries.forEach(({ cardId, position }) => {
+    cardEntries.forEach((cardEntry) => {
+      const { cardId, position, aspectPenalty } = cardEntry
       const card = position.card
       const baseName = card.name || 'Unknown'
 
       if (!groups.has(baseName)) {
         groups.set(baseName, [])
       }
-      groups.get(baseName).push({ cardId, position })
+      groups.get(baseName).push({ cardId, position, aspectPenalty })
     })
 
     // Convert to array and sort groups by first card's order
@@ -735,7 +765,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // Render a card stack (for identical cards)
   const renderCardStack = useCallback((group, renderCard) => {
     // Render all cards individually, no stacking
-    return group.cards.map((cardEntry, index) => renderCard(cardEntry, 0, false))
+    return group.cards.map((cardEntry, index) => renderCard(cardEntry, null, false))
   }, [])
 
   // Restore saved state on mount
@@ -1140,6 +1170,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // Cleanup: Remove any bases/leaders from deck/sideboard sections and move cards based on enabled state
   useEffect(() => {
     setCardPositions(prev => {
+      let hasChanges = false
       const updated = { ...prev }
       const toRemove = []
 
@@ -1148,6 +1179,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         // Remove bases and leaders from deck/sideboard sections
         if ((pos.section === 'deck' || pos.section === 'sideboard') && (pos.card.isBase || pos.card.isLeader)) {
           toRemove.push(cardId)
+          hasChanges = true
           return
         }
 
@@ -1158,11 +1190,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
           if (shouldBeInDeck && pos.section === 'sideboard') {
             // Move from sideboard to deck (card is enabled)
-          updated[cardId] = {
-            ...pos,
+            updated[cardId] = {
+              ...pos,
               section: 'deck',
               enabled: true
             }
+            hasChanges = true
           } else if (!shouldBeInDeck && pos.section === 'deck') {
             // Move from deck to sideboard (card is disabled)
             updated[cardId] = {
@@ -1170,9 +1203,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               section: 'sideboard',
               enabled: false
             }
-          } else {
-            // Keep in current section, enabled state already matches section
-            // No change needed
+            hasChanges = true
           }
         }
       })
@@ -1182,7 +1213,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         delete updated[cardId]
       })
 
-      return updated
+      // Only return new object if something changed, otherwise keep same reference
+      return hasChanges ? updated : prev
     })
   }, [aspectFilters, cardMatchesFilters])
 
@@ -1416,7 +1448,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
       return updated
     })
-  }, [sortOption, cardMatchesFilters, getAspectKey, sectionBounds])
+    // Note: sectionBounds intentionally excluded - this effect writes to it, including it would cause infinite loop
+  }, [sortOption, cardMatchesFilters, getAspectKey, showAspectPenalties, activeLeader, activeBase])
 
   const handleMouseDown = (e, cardId) => {
     if (e.button !== 0) return // Only left click
@@ -3404,15 +3437,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             letterSpacing: '1px',
             paddingBottom: '0.25rem',
             borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-            cursor: 'pointer',
             userSelect: 'none'
           }}
-          onClick={() => setDeckExpanded(!deckExpanded)}
           >
-            <span>{deckExpanded ? '▼' : '▶'}</span>
-            <span>Deck ({Object.values(cardPositions)
+            <span style={{ cursor: 'pointer' }} onClick={() => setDeckExpanded(!deckExpanded)}>{deckExpanded ? '▼' : '▶'}</span>
+            <span style={{ cursor: 'pointer' }} onClick={() => setDeckExpanded(!deckExpanded)}>Deck ({Object.values(cardPositions)
               .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length})</span>
-            <span
+            <button
               onClick={(e) => {
                 e.stopPropagation()
                 const deckCards = Object.entries(cardPositions)
@@ -3454,14 +3485,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   })
                 }
               }}
-              style={{
-                color: 'rgba(255, 255, 255, 0.7)',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                textDecoration: 'underline'
-              }}
-              onMouseEnter={(e) => e.target.style.color = 'rgba(255, 255, 255, 1)'}
-              onMouseLeave={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.7)'}
+              className="remove-all-button"
             >
               {(() => {
                 const deckCards = Object.entries(cardPositions)
@@ -3469,7 +3493,33 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 const activeDeckCards = deckCards.filter(([_, position]) => position.enabled !== false)
                 return activeDeckCards.length === 0 ? 'ADD ALL' : 'Remove All'
               })()}
-            </span>
+            </button>
+            {sortOption === 'cost' && (
+              <>
+                {activeLeader && activeBase ? (
+                  <button
+                    className={showAspectPenalties ? "aspect-penalty-button-active" : "aspect-penalty-button"}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowAspectPenalties(!showAspectPenalties)
+                    }}
+                  >
+                    {showAspectPenalties ? 'Hide Aspect Penalties' : 'Include Aspect Penalties'}
+                  </button>
+                ) : (
+                  <button
+                    className="aspect-penalty-warning-button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      // Scroll to top to select leader and base
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                  >
+                    Select a leader and base to include aspect penalties
+                  </button>
+                )}
+              </>
+            )}
           </div>
 
           {/* Deck Blocks Row */}
@@ -3492,10 +3542,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             })
 
             // Group cards by cost segment
+            const leaderCard = activeLeader ? cardPositions[activeLeader]?.card : null
+            const baseCard = activeBase ? cardPositions[activeBase]?.card : null
+
             deckCards.forEach(({ cardId, position }) => {
-              const cost = position.card.cost
+              const baseCost = position.card.cost
+              const penalty = showAspectPenalties ? calculateAspectPenalty(position.card, leaderCard, baseCard) : 0
+              const cost = (baseCost || 0) + penalty
               let segment
-              if (cost === null || cost === undefined || cost === 0) {
+              if (cost === 0) {
                 segment = 0
               } else if (cost >= 8) {
                 segment = '8+'
@@ -3507,7 +3562,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               if (!groupedByCost[segment]) {
                 groupedByCost[segment] = []
               }
-              groupedByCost[segment].push({ cardId, position })
+              groupedByCost[segment].push({ cardId, position, aspectPenalty: penalty > 0 ? penalty : undefined })
             })
 
             // Render cost segments as blocks, with empty ones at the end
@@ -3559,17 +3614,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         {(() => {
                           const groupedCards = groupCardsByName(sortedCards)
                           return groupedCards.map(group => renderCardStack(group, (cardEntry, stackIndex, isStacked) => {
-                            const { cardId, position } = cardEntry
+                            const { cardId, position, aspectPenalty } = cardEntry
                             const card = position.card
                             const isSelected = selectedCards.has(cardId)
                             const isHovered = hoveredCard === cardId
                             const isDisabled = !position.enabled
+                            const hasPenalty = aspectPenalty && aspectPenalty > 0
+                            // Explicitly set to undefined if 0 to prevent rendering
+                            const penaltyToShow = aspectPenalty > 0 ? aspectPenalty : undefined
 
                             return (
                               <div
                                 key={cardId}
-                                className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''} ${isStacked ? 'stacked' : ''}`}
-                                style={isStacked && stackIndex > 0 ? {
+                                className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''} ${isStacked ? 'stacked' : ''} ${hasPenalty ? 'aspect-penalty' : ''}`}
+                                style={isStacked && stackIndex ? {
                                   left: `${stackIndex * 24}px`,
                                   zIndex: stackIndex
                                 } : {}}
@@ -3617,6 +3675,39 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                     <div className="card-rarity" style={{ color: getRarityColor(card.rarity) }}>
                                       {card.rarity}
                                     </div>
+                                  </div>
+                                )}
+                                {penaltyToShow && (
+                                  <div style={{
+                                    position: 'absolute',
+                                    top: '15px',
+                                    left: '15px',
+                                    width: '32px',
+                                    height: '32px',
+                                    pointerEvents: 'none',
+                                    zIndex: 100
+                                  }}>
+                                    <img
+                                      src="/icons/cost.png"
+                                      alt="cost"
+                                      style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'contain'
+                                      }}
+                                    />
+                                    <span style={{
+                                      position: 'absolute',
+                                      top: '50%',
+                                      left: '50%',
+                                      transform: 'translate(-50%, -50%)',
+                                      color: 'white',
+                                      fontWeight: 'bold',
+                                      fontSize: '16px',
+                                      textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
+                                    }}>
+                                      +{penaltyToShow}
+                                    </span>
                                   </div>
                                 )}
                                 <div className="card-badges">
@@ -3719,7 +3810,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <h3 className="card-block-header">
                     {getAspectCombinationIcons(aspectKey)}
                     <span>({sortedCards.length})</span>
-                    <span
+                    <button
+                      className="remove-all-button"
                       onClick={(e) => {
                         e.stopPropagation()
                         setCardPositions(prev => {
@@ -3735,17 +3827,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           return updated
                         })
                       }}
-                      style={{
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem',
-                        textDecoration: 'underline'
-                      }}
-                      onMouseEnter={(e) => e.target.style.color = 'rgba(255, 255, 255, 1)'}
-                      onMouseLeave={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.7)'}
                     >
                       {sortedCards.length === 0 ? 'ADD ALL' : 'Remove All'}
-                    </span>
+                    </button>
                   </h3>
                   <div className="card-block-content">
                       {/* Units Section */}
@@ -3810,7 +3894,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                   <div
                                     key={cardId}
                                     className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''} ${isStacked ? 'stacked' : ''}`}
-                                    style={isStacked && stackIndex > 0 ? {
+                                    style={isStacked && stackIndex ? {
                                       left: `${stackIndex * 24}px`,
                                       zIndex: stackIndex
                                     } : {}}
@@ -3903,7 +3987,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                   <div
                                     key={cardId}
                                     className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''} ${isStacked ? 'stacked' : ''}`}
-                                    style={isStacked && stackIndex > 0 ? {
+                                    style={isStacked && stackIndex ? {
                                       left: `${stackIndex * 24}px`,
                                       zIndex: stackIndex
                                     } : {}}
@@ -3996,7 +4080,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                   <div
                                     key={cardId}
                                     className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''} ${isStacked ? 'stacked' : ''}`}
-                                    style={isStacked && stackIndex > 0 ? {
+                                    style={isStacked && stackIndex ? {
                                       left: `${stackIndex * 24}px`,
                                       zIndex: stackIndex
                                     } : {}}
@@ -4144,7 +4228,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <div
                   key={cardId}
                   className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''} ${isStacked ? 'stacked' : ''}`}
-                  style={isStacked && stackIndex > 0 ? {
+                  style={isStacked && stackIndex ? {
                     left: `${stackIndex * 24}px`,
                     zIndex: stackIndex
                   } : {}}

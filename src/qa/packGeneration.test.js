@@ -385,6 +385,155 @@ async function runQA() {
       console.log(`\x1b[36m   2σ outliers: ${dupWarningOutliers.length} pods (${dupWarningOutliers.slice(0, 3).map(o => `#${o.index}(${o.count})`).join(', ')}...)\x1b[0m`)
     }
 
+    // ===== CARD + FOIL CO-OCCURRENCE TESTS =====
+    console.log('')
+    console.log('\x1b[36m✨ Testing Card + Foil Co-occurrence...\x1b[0m')
+
+    // Test: Within individual packs, card+foil pair rate should be low
+    // UX goal: Players shouldn't frequently get same card as both foil and non-foil
+    test(`${setCode}: card+foil pairs within single packs should be rare (ideal < 5%)`, () => {
+      let pairsFound = 0
+      const pairExamples = []
+
+      allPacks.forEach((pack, packIndex) => {
+        const foil = pack.cards.find(c => c.isFoil)
+        if (!foil) return
+
+        const nonFoilMatch = pack.cards.find(c => c.id === foil.id && !c.isFoil)
+        if (nonFoilMatch) {
+          pairsFound++
+          if (pairExamples.length < 3) {
+            pairExamples.push(`"${foil.name}" (${foil.rarity})`)
+          }
+        }
+      })
+
+      const n = allPacks.length
+      const observedRate = pairsFound / n
+
+      // UX thresholds:
+      // Ideal: < 5% (1 in 20 packs) - foil feels special
+      // Acceptable: < 8% - occasional overlap is OK
+      // Current mechanics likely produce ~7-10% due to weighted foil selection toward commons
+      const idealRate = 0.05
+      const acceptableRate = 0.08
+
+      console.log(`\x1b[36m   Single pack card+foil pair rate: ${(observedRate * 100).toFixed(2)}% (${pairsFound}/${n})\x1b[0m`)
+      console.log(`\x1b[36m   Target: < ${idealRate * 100}% ideal, < ${acceptableRate * 100}% acceptable\x1b[0m`)
+
+      if (observedRate > acceptableRate) {
+        console.log(`\x1b[33m   ⚠️  Rate ${(observedRate * 100).toFixed(1)}% exceeds acceptable threshold\x1b[0m`)
+      }
+
+      if (observedRate > idealRate) {
+        throw new Error(
+          `Card+foil pair rate (${(observedRate * 100).toFixed(1)}%) exceeds ideal ${idealRate * 100}% for ${setCode}. ` +
+          `Players shouldn't frequently get same card as foil + non-foil. Examples: ${pairExamples.join('; ')}`
+        )
+      }
+    })
+
+    // Test: Across sealed pods, card+foil pairs should be uncommon
+    // UX goal: In a sealed pool, foils should feel special - not duplicated by non-foil version
+    test(`${setCode}: card+foil pairs within sealed pods should be uncommon (ideal < 30%)`, () => {
+      let podsWithPairs = 0
+      let totalPairs = 0
+      const podPairCounts = []
+
+      pods.forEach(pod => {
+        const allCardsInPod = pod.flatMap(pack => pack.cards)
+        const foils = allCardsInPod.filter(c => c.isFoil)
+        const nonFoils = allCardsInPod.filter(c => !c.isFoil)
+
+        let pairsInPod = 0
+        foils.forEach(foil => {
+          const matchingNonFoil = nonFoils.find(c => c.id === foil.id)
+          if (matchingNonFoil) {
+            pairsInPod++
+          }
+        })
+
+        podPairCounts.push(pairsInPod)
+        if (pairsInPod > 0) {
+          podsWithPairs++
+          totalPairs += pairsInPod
+        }
+      })
+
+      const podPairRate = podsWithPairs / pods.length
+      const avgPairsPerPod = totalPairs / pods.length
+      const stats = calculateStats(podPairCounts)
+
+      // UX thresholds:
+      // Ideal: < 30% of pods have any card+foil pair
+      // Acceptable: < 50%
+      // Current mechanics likely produce ~95%+ due to shared belts across 6 packs
+      const idealRate = 0.30
+      const acceptableRate = 0.50
+
+      console.log(`\x1b[36m   Pods with card+foil pairs: ${podsWithPairs}/${pods.length} (${(podPairRate * 100).toFixed(1)}%)\x1b[0m`)
+      console.log(`\x1b[36m   Pairs per pod: mean=${stats.mean.toFixed(2)}, σ=${stats.stdDev.toFixed(2)}, max=${stats.max}\x1b[0m`)
+      console.log(`\x1b[36m   Target: < ${idealRate * 100}% ideal, < ${acceptableRate * 100}% acceptable\x1b[0m`)
+
+      if (podPairRate > acceptableRate) {
+        console.log(`\x1b[33m   ⚠️  Rate ${(podPairRate * 100).toFixed(0)}% exceeds acceptable threshold\x1b[0m`)
+      }
+
+      if (podPairRate > idealRate) {
+        throw new Error(
+          `${(podPairRate * 100).toFixed(0)}% of pods have card+foil pairs, exceeds ideal ${idealRate * 100}% for ${setCode}. ` +
+          `Foils lose their special feeling when the same card appears as non-foil in the pool.`
+        )
+      }
+    })
+
+    // Test: Average pairs per pod should be low
+    // Even if some pods have pairs, the average should be controlled
+    test(`${setCode}: average card+foil pairs per pod should be low (ideal < 0.5)`, () => {
+      let totalPairs = 0
+      const podPairCounts = []
+
+      pods.forEach(pod => {
+        const allCardsInPod = pod.flatMap(pack => pack.cards)
+        const foils = allCardsInPod.filter(c => c.isFoil)
+        const nonFoils = allCardsInPod.filter(c => !c.isFoil)
+
+        let pairsInPod = 0
+        foils.forEach(foil => {
+          const matchingNonFoil = nonFoils.find(c => c.id === foil.id)
+          if (matchingNonFoil) {
+            pairsInPod++
+          }
+        })
+        podPairCounts.push(pairsInPod)
+        totalPairs += pairsInPod
+      })
+
+      const avgPairsPerPod = totalPairs / pods.length
+      const stats = calculateStats(podPairCounts)
+
+      // UX thresholds:
+      // Ideal: < 0.5 pairs per pod on average (most pods have 0, some have 1)
+      // Acceptable: < 1.0 pairs per pod
+      // Current mechanics likely produce ~2.5-3 pairs per pod
+      const idealAvg = 0.5
+      const acceptableAvg = 1.0
+
+      console.log(`\x1b[36m   Average pairs per pod: ${avgPairsPerPod.toFixed(2)}\x1b[0m`)
+      console.log(`\x1b[36m   Target: < ${idealAvg} ideal, < ${acceptableAvg} acceptable\x1b[0m`)
+
+      if (avgPairsPerPod > acceptableAvg) {
+        console.log(`\x1b[33m   ⚠️  Average ${avgPairsPerPod.toFixed(2)} exceeds acceptable threshold\x1b[0m`)
+      }
+
+      if (avgPairsPerPod > idealAvg) {
+        throw new Error(
+          `Average pairs per pod (${avgPairsPerPod.toFixed(2)}) exceeds ideal ${idealAvg} for ${setCode}. ` +
+          `With 6 packs and 6 foils, most pods should have 0 pairs, not ${avgPairsPerPod.toFixed(1)}.`
+        )
+      }
+    })
+
     // Card variety tests
     test(`${setCode}: good card variety across all packs`, () => {
       const cardFrequency = new Map()

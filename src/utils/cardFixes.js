@@ -19,15 +19,8 @@ function applyIndividualFixes(cards) {
   cardFixes.forEach(fix => {
     const card = cards.find(c => c.id === fix.id)
     if (card) {
-      const oldValue = card[fix.field]
       card[fix.field] = fix.value
       fixCount++
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`  [Fix] ${fix.id} (${card.name}): ${fix.field} = ${fix.value} (was: ${oldValue})`)
-      }
-    } else if (process.env.NODE_ENV === 'development') {
-      console.warn(`  [Fix Warning] Card not found: ${fix.id}`)
     }
   })
 
@@ -103,12 +96,7 @@ export function applyCardFixes(cardData) {
   const cards = JSON.parse(JSON.stringify(rawCards))
 
   if (cards.length === 0) {
-    console.warn('[CardFixes] No cards to process')
     return { cards, metadata }
-  }
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[CardFixes] Processing ${cards.length} cards...`)
   }
 
   // Track total fixes
@@ -124,9 +112,6 @@ export function applyCardFixes(cardData) {
 
   // Apply custom transforms
   const transformCount = applyCustomTransforms(cards)
-
-  // Log summary
-  console.log(`[CardFixes] Applied ${totalFixes} fixes (${individualFixCount} individual, ${batchFixCount} batch, ${transformCount} custom transforms) to ${cards.length} cards`)
 
   return {
     cards,

@@ -248,11 +248,6 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content draft-review-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Draft Review</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-
         <div className="review-controls">
           <div className="review-controls-left">
             <h3 className="review-controls-heading">Group By</h3>
@@ -281,11 +276,14 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
               Aspect
             </button>
           </div>
-          {draft && players && (
-            <div className="review-controls-right">
+          <div className="review-controls-center">
+            {draft && players && (
               <TimerPanel draft={draft} players={players} compact={false} />
-            </div>
-          )}
+            )}
+          </div>
+          <div className="review-controls-right">
+            <button className="modal-close" onClick={onClose}>×</button>
+          </div>
         </div>
 
         <div className="review-content">
@@ -362,7 +360,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
           const previewCard = hoveredCardPreview.card
           const hasBackImage = previewCard.backImageUrl && previewCard.isLeader
           const isHorizontal = previewCard.isLeader || previewCard.isBase
-          const borderRadius = '12px'
+          const borderRadius = '14px'
 
           let previewWidth, previewHeight
           if (hasBackImage) {

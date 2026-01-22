@@ -10,7 +10,8 @@ function DraftableCard({
   onRightClick,
   onHover,
   disabled = false,
-  selected = false
+  selected = false,
+  useStaticPreview = false
 }) {
   const [imageError, setImageError] = useState(false)
   const [hoveredCardPreview, setHoveredCardPreview] = useState(null)
@@ -51,33 +52,38 @@ function DraftableCard({
 
     // Set timeout to show preview after hovering
     previewTimeoutRef.current = setTimeout(() => {
-      // Calculate preview dimensions
-      const isHorizontal = card.isLeader || card.isBase
-      const hasBackImage = card.backImageUrl && card.isLeader
-      let previewWidth, previewHeight
-      if (hasBackImage) {
-        previewWidth = 504 + 360 + 20
-        previewHeight = 504
+      if (useStaticPreview) {
+        // Static preview in left half of screen
+        setHoveredCardPreview({ card, x: null, y: null })
       } else {
-        previewWidth = isHorizontal ? 504 : 360
-        previewHeight = isHorizontal ? 360 : 504
+        // Calculate preview dimensions
+        const isHorizontal = card.isLeader || card.isBase
+        const hasBackImage = card.backImageUrl && card.isLeader
+        let previewWidth, previewHeight
+        if (hasBackImage) {
+          previewWidth = 504 + 360 + 20
+          previewHeight = 504
+        } else {
+          previewWidth = isHorizontal ? 504 : 360
+          previewHeight = isHorizontal ? 360 : 504
+        }
+
+        // Start centered above the card
+        let previewX = rect.left + (rect.width / 2) - (previewWidth / 2)
+        let previewY = rect.top - previewHeight - 10
+
+        // Clamp to viewport - NEVER go outside
+        const margin = 10
+        const maxX = window.innerWidth - previewWidth - margin
+        const maxY = window.innerHeight - previewHeight - margin
+
+        if (previewX < margin) previewX = margin
+        if (previewX > maxX) previewX = Math.max(margin, maxX)
+        if (previewY < margin) previewY = margin
+        if (previewY > maxY) previewY = Math.max(margin, maxY)
+
+        setHoveredCardPreview({ card, x: previewX, y: previewY })
       }
-
-      // Start centered above the card
-      let previewX = rect.left + (rect.width / 2) - (previewWidth / 2)
-      let previewY = rect.top - previewHeight - 10
-
-      // Clamp to viewport - NEVER go outside
-      const margin = 10
-      const maxX = window.innerWidth - previewWidth - margin
-      const maxY = window.innerHeight - previewHeight - margin
-
-      if (previewX < margin) previewX = margin
-      if (previewX > maxX) previewX = Math.max(margin, maxX)
-      if (previewY < margin) previewY = margin
-      if (previewY > maxY) previewY = Math.max(margin, maxY)
-
-      setHoveredCardPreview({ card, x: previewX, y: previewY })
     }, 400)
   }
 
@@ -131,27 +137,59 @@ function DraftableCard({
             previewHeight = isHorizontal ? 360 : 504
           }
 
+          // Static preview positioning (left half of screen)
+          const staticStyle = useStaticPreview ? {
+            position: 'fixed',
+            left: '0',
+            top: '0',
+            width: '50vw',
+            height: '100vh',
+            zIndex: 10000,
+            pointerEvents: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          } : {
+            position: 'fixed',
+            left: `${hoveredCardPreview.x}px`,
+            top: `${hoveredCardPreview.y}px`,
+            zIndex: 10000,
+            pointerEvents: 'none',
+            width: `${previewWidth}px`,
+            height: `${previewHeight}px`,
+          }
+
+          // Calculate scaled dimensions for static preview
+          let scaledFrontWidth, scaledFrontHeight, scaledBackWidth, scaledBackHeight
+          if (useStaticPreview && hasBackImage) {
+            // Scale down to fit both images in left half
+            // Target: fit within ~45vw width and ~90vh height
+            const scale = 0.6 // Scale down to 60% of original size
+            scaledFrontWidth = 504 * scale
+            scaledFrontHeight = 360 * scale
+            scaledBackWidth = 360 * scale
+            scaledBackHeight = 504 * scale
+          } else if (useStaticPreview) {
+            // Single image - use more space
+            const scale = isHorizontal ? 1.5 : 1.2
+            scaledFrontWidth = previewWidth * scale
+            scaledFrontHeight = previewHeight * scale
+          }
+
           return (
             <div
               className="card-preview-enlarged"
               style={{
-                position: 'fixed',
-                left: `${hoveredCardPreview.x}px`,
-                top: `${hoveredCardPreview.y}px`,
-                zIndex: 10000,
-                pointerEvents: 'none',
-                width: `${previewWidth}px`,
-                height: `${previewHeight}px`,
-                borderRadius: borderRadius,
+                ...staticStyle,
                 overflow: 'visible',
               }}
             >
               {hasBackImage ? (
-                <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: useStaticPreview ? '15px' : '20px', alignItems: 'center' }}>
                   {/* Front - horizontal */}
                   <div className={previewCard.isFoil ? 'card-preview-foil' : ''} style={{
-                    width: '504px',
-                    height: '360px',
+                    width: useStaticPreview ? `${scaledFrontWidth}px` : '504px',
+                    height: useStaticPreview ? `${scaledFrontHeight}px` : '360px',
                     overflow: 'hidden',
                     borderRadius: borderRadius,
                     boxShadow: previewCard.isFoil ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
@@ -172,8 +210,8 @@ function DraftableCard({
                   </div>
                   {/* Back - vertical */}
                   <div className={previewCard.isFoil ? 'card-preview-foil' : ''} style={{
-                    width: '360px',
-                    height: '504px',
+                    width: useStaticPreview ? `${scaledBackWidth}px` : '360px',
+                    height: useStaticPreview ? `${scaledBackHeight}px` : '504px',
                     overflow: 'hidden',
                     borderRadius: borderRadius,
                     boxShadow: previewCard.isFoil ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
@@ -195,10 +233,10 @@ function DraftableCard({
                 </div>
               ) : (
                 <div className={previewCard.isFoil ? 'card-preview-foil' : ''} style={{
-                  width: `${previewWidth}px`,
-                  height: `${previewHeight}px`,
+                  width: useStaticPreview ? `${scaledFrontWidth}px` : `${previewWidth}px`,
+                  height: useStaticPreview ? `${scaledFrontHeight}px` : `${previewHeight}px`,
                   overflow: 'hidden',
-                  borderRadius: borderRadius,
+                  borderRadius: useStaticPreview ? '24px' : borderRadius,
                   boxShadow: previewCard.isFoil ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
                   position: 'relative',

@@ -427,9 +427,6 @@ export default function DraftRoomPage({ params }) {
             <div className="draft-header-center">
               <div className="draft-title-row">
                 <h1>{draft.setName || draft.setCode} Draft</h1>
-                <span className={`status-badge ${status}`}>
-                  {status === 'waiting' ? 'Lobby' : status === 'active' ? 'Drafting' : 'Complete'}
-                </span>
               </div>
               {status === 'active' && draftState?.phase === 'leader_draft' && (
                 <span className="draft-round-info">Leader Round {draftState?.leaderRound || 1}/3</span>
