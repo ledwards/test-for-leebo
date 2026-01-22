@@ -85,10 +85,28 @@
   transition: all 0.3s ease;
 }
 
+.circle-center.last-player {
+  border-color: #f44336;
+  background: rgba(244, 67, 54, 0.15);
+  box-shadow: 0 0 20px rgba(244, 67, 54, 0.4);
+  animation: pulse-red 1s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(244, 67, 54, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(244, 67, 54, 0.7);
+  }
+}
+
+/* Paused takes precedence over last-player */
 .circle-center.paused {
   border-color: #FFC107;
   background: rgba(255, 193, 7, 0.15);
   box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+  animation: none;
 }
 
 .center-label {

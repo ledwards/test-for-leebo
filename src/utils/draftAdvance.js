@@ -41,7 +41,8 @@ export async function checkAndAdvanceLeaderDraft(podId, draftState, pod) {
       `UPDATE draft_pods
        SET draft_state = $1,
            state_version = state_version + 1,
-           pick_started_at = NOW()
+           pick_started_at = NOW(),
+           paused_duration_seconds = 0
        WHERE id = $2`,
       [JSON.stringify(draftState), podId]
     )
@@ -55,29 +56,28 @@ export async function checkAndAdvanceLeaderDraft(podId, draftState, pod) {
     )
 
   } else if (currentRound === 2) {
-    // Each player should have exactly 1 leader left - auto-pick it
-    for (const player of players) {
-      const leaders = typeof player.leaders === 'string'
-        ? JSON.parse(player.leaders)
-        : player.leaders || []
+    // Move to round 3 - let players confirm their final leader
+    draftState.leaderRound = 3
+    await query(
+      `UPDATE draft_pods
+       SET draft_state = $1,
+           state_version = state_version + 1,
+           pick_started_at = NOW(),
+           paused_duration_seconds = 0
+       WHERE id = $2`,
+      [JSON.stringify(draftState), podId]
+    )
 
-      const draftedLeaders = typeof player.drafted_leaders === 'string'
-        ? JSON.parse(player.drafted_leaders)
-        : player.drafted_leaders || []
+    // Reset pick status for round 3
+    await query(
+      `UPDATE draft_pod_players
+       SET pick_status = 'picking'
+       WHERE draft_pod_id = $1`,
+      [podId]
+    )
 
-      if (leaders.length > 0) {
-        draftedLeaders.push(leaders[0])
-        await query(
-          `UPDATE draft_pod_players
-           SET drafted_leaders = $1,
-               leaders = '[]'
-           WHERE id = $2`,
-          [JSON.stringify(draftedLeaders), player.id]
-        )
-      }
-    }
-
-    // Transition to pack draft phase
+  } else if (currentRound === 3) {
+    // Round 3 complete - transition to pack draft phase
     draftState.phase = 'pack_draft'
     draftState.packNumber = 1
     draftState.pickInPack = 1
@@ -105,7 +105,8 @@ export async function checkAndAdvanceLeaderDraft(podId, draftState, pod) {
       `UPDATE draft_pods
        SET draft_state = $1,
            state_version = state_version + 1,
-           pick_started_at = NOW()
+           pick_started_at = NOW(),
+           paused_duration_seconds = 0
        WHERE id = $2`,
       [JSON.stringify(draftState), podId]
     )
@@ -224,7 +225,8 @@ export async function checkAndAdvancePackDraft(podId, draftState, pod) {
       `UPDATE draft_pods
        SET draft_state = $1,
            state_version = state_version + 1,
-           pick_started_at = NOW()
+           pick_started_at = NOW(),
+           paused_duration_seconds = 0
        WHERE id = $2`,
       [JSON.stringify(draftState), podId]
     )
@@ -241,7 +243,8 @@ export async function checkAndAdvancePackDraft(podId, draftState, pod) {
       `UPDATE draft_pods
        SET draft_state = $1,
            state_version = state_version + 1,
-           pick_started_at = NOW()
+           pick_started_at = NOW(),
+           paused_duration_seconds = 0
        WHERE id = $2`,
       [JSON.stringify(draftState), podId]
     )

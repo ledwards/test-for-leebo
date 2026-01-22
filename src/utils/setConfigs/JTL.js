@@ -9,9 +9,6 @@ export const JTL_CONFIG = {
   setNumber: 4,
   color: '#FFD700', // Yellow
 
-  // Distribution period
-  distributionPeriod: 'pre-lawless-time',
-
   // Card counts (Normal variants only)
   cardCounts: {
     leaders: {

@@ -5,7 +5,7 @@
  * Two belts are used: Belt A (Vigilance/Command) and Belt B (Aggression/Cunning).
  * Neutral cards (no matching aspects) are randomly divided to balance the belts.
  *
- * Seam deduplication ensures no duplicates within 5 slots of each other.
+ * Seam deduplication ensures no duplicates within 10 slots of each other.
  *
  * Packs pull 9 commons alternating between belts: A,B,A,B,A,B,A,B,A
  * Next pack starts with the opposite belt: B,A,B,A,B,A,B,A,B
@@ -105,15 +105,20 @@ export class CommonBelt {
     this._fillIfNeeded()
 
     // Start at random position to simulate having printed some packs already
-    const startPosition = Math.floor(Math.random() * this.hopper.length)
-    this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
+    // TEMPORARILY DISABLED FOR TESTING
+    // // TEMPORARILY DISABLED: const startPosition = Math.floor(Math.random() * this.hopper.length)
+    // // TEMPORARILY DISABLED: this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
   }
 
   /**
    * Fill the hopper if it needs more cards
    */
   _fillIfNeeded() {
-    while (this.hopper.length <= this.fillingPool.length) {
+    // Safety check: if no cards in filling pool, can't fill
+    if (this.fillingPool.length === 0) {
+      return
+    }
+    while (this.hopper.length < this.fillingPool.length) {
       this._fill()
     }
   }
@@ -136,15 +141,15 @@ export class CommonBelt {
 
   /**
    * Seam deduplication
-   * Look at the first 5 cards in the segment (the seam).
-   * For each, check if it has a duplicate within 5 slots.
+   * Look at the first 10 cards in the segment (the seam).
+   * For each, check if it has a duplicate within 10 slots.
    * If so, swap with a random card from the back half of the segment.
    */
   _seamDedup(segmentStart, segmentLength, depth = 0) {
     // Prevent infinite recursion
     if (depth > 10) return
 
-    const seamSize = Math.min(5, segmentLength)
+    const seamSize = Math.min(10, segmentLength)
     const backHalfStart = segmentStart + Math.floor(segmentLength / 2)
     const backHalfEnd = segmentStart + segmentLength
 
@@ -152,9 +157,9 @@ export class CommonBelt {
       const cardIndex = segmentStart + i
       const card = this.hopper[cardIndex]
 
-      // Check for duplicates within 5 slots (before and after)
+      // Check for duplicates within 10 slots (before and after)
       let hasDuplicate = false
-      for (let offset = -5; offset <= 5; offset++) {
+      for (let offset = -10; offset <= 10; offset++) {
         if (offset === 0) continue
         const checkIndex = cardIndex + offset
         if (checkIndex < 0 || checkIndex >= this.hopper.length) continue

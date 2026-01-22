@@ -1,8 +1,10 @@
 // Script to fetch all cards from swu-db.com API and populate cards.json
+// Automatically runs post-processing to apply fixes
 
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { execSync } from 'child_process'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -22,7 +24,7 @@ const SETS = [
  */
 async function fetchSetCardsFromAPI(setCode) {
   const url = `${API_BASE}/cards/${setCode.toLowerCase()}?format=json`
-  
+
   try {
     const response = await fetch(url)
     if (response.ok) {
@@ -69,6 +71,9 @@ function transformCard(apiCard) {
     lowPrice: apiCard.LowPrice ? parseFloat(apiCard.LowPrice) : null,
     isLeader: apiCard.Type === 'Leader',
     isBase: apiCard.Type === 'Base',
+    isFoil: false,
+    isHyperspace: false,
+    isShowcase: false,
     imageUrl: apiCard.FrontArt || null,
     backImageUrl: apiCard.BackArt || null,
   }
@@ -79,9 +84,9 @@ function transformCard(apiCard) {
  */
 async function fetchSetCards(setCode) {
   console.log(`\nFetching cards for ${setCode}...`)
-  
+
   const apiCards = await fetchSetCardsFromAPI(setCode)
-  
+
   if (apiCards.length === 0) {
     console.warn(`  No cards found for ${setCode}`)
     return []
@@ -89,7 +94,7 @@ async function fetchSetCards(setCode) {
 
   // Transform all cards
   const cards = apiCards.map(card => transformCard(card))
-  
+
   console.log(`  ✓ Fetched ${cards.length} cards from ${setCode}`)
   return cards
 }
@@ -100,9 +105,9 @@ async function fetchSetCards(setCode) {
 async function main() {
   console.log('Starting card data fetch from swu-db.com API...')
   console.log(`Sets to fetch: ${SETS.map(s => s.code).join(', ')}`)
-  
+
   const allCards = []
-  
+
   for (const set of SETS) {
     try {
       const cards = await fetchSetCards(set.code)
@@ -111,11 +116,10 @@ async function main() {
       console.error(`Error fetching ${set.code}:`, error)
     }
   }
-  
+
   console.log(`\n✓ Total cards fetched: ${allCards.length}`)
-  
-  // Write to cards.json
-  const outputPath = path.join(__dirname, '../src/data/cards.json')
+
+  // Prepare output data
   const output = {
     cards: allCards,
     metadata: {
@@ -130,14 +134,37 @@ async function main() {
       })),
     },
   }
-  
+
+  // Write raw data (before post-processing)
+  const rawDataPath = path.join(__dirname, '../src/data/cards.raw.json')
+  fs.writeFileSync(rawDataPath, JSON.stringify(output, null, 2))
+  console.log(`\n✓ Raw data written to ${rawDataPath}`)
+
+  // Write to cards.json (will be overwritten by post-processing)
+  const outputPath = path.join(__dirname, '../src/data/cards.json')
   fs.writeFileSync(outputPath, JSON.stringify(output, null, 2))
-  console.log(`\n✓ Cards written to ${outputPath}`)
+  console.log(`✓ Cards written to ${outputPath}`)
+
   console.log(`\nCard counts by set:`)
   SETS.forEach(set => {
     const count = allCards.filter(c => c.set === set.code).length
     console.log(`  ${set.code}: ${count} cards`)
   })
+
+  // Run post-processing
+  console.log('\n' + '='.repeat(50))
+  console.log('Running post-processing...')
+  console.log('='.repeat(50) + '\n')
+
+  try {
+    execSync('node scripts/postProcessCards.js', {
+      cwd: path.join(__dirname, '..'),
+      stdio: 'inherit'
+    })
+  } catch (error) {
+    console.error('Error running post-processing:', error.message)
+    process.exit(1)
+  }
 }
 
 main().catch(console.error)

@@ -1,7 +1,12 @@
 // Card data utilities
 // This module handles loading and managing card data from the definition file
+// Card fixes are applied at runtime to ensure all code uses corrected data
 
-import cardData from '../data/cards.json' with { type: 'json' }
+import cardDataRaw from '../data/cards.json' with { type: 'json' }
+import { applyCardFixes } from './cardFixes.js'
+
+// Apply fixes once at module load
+const processedData = applyCardFixes(cardDataRaw)
 
 /**
  * Get all cards for a specific set
@@ -9,10 +14,10 @@ import cardData from '../data/cards.json' with { type: 'json' }
  * @returns {Array} Array of cards from that set
  */
 export function getCardsBySet(setCode) {
-  if (!cardData.cards || cardData.cards.length === 0) {
+  if (!processedData.cards || processedData.cards.length === 0) {
     return []
   }
-  return cardData.cards.filter((card) => card.set === setCode)
+  return processedData.cards.filter((card) => card.set === setCode)
 }
 
 /**
@@ -20,7 +25,15 @@ export function getCardsBySet(setCode) {
  * @returns {Array} All cards in the database
  */
 export function getAllCards() {
-  return cardData.cards || []
+  return processedData.cards || []
+}
+
+/**
+ * Get metadata about the card data
+ * @returns {Object} Metadata including fix count
+ */
+export function getCardMetadata() {
+  return processedData.metadata || {}
 }
 
 /**

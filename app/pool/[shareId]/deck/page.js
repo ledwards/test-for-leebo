@@ -23,7 +23,7 @@ export default function DeckBuilderPage({ params }) {
   useEffect(() => {
     async function fetchPool() {
       if (!shareId) return
-      
+
       try {
         setLoading(true)
         const poolData = await loadPool(shareId)
@@ -68,9 +68,9 @@ export default function DeckBuilderPage({ params }) {
   const allCards = pool ? (pool.packs ? pool.packs.flatMap(pack => pack.cards) : pool.cards) || [] : []
   const setCode = pool?.setCode || null
   // Handle deckBuilderState - it might be a string or object
-  const savedState = pool?.deckBuilderState 
-    ? (typeof pool.deckBuilderState === 'string' 
-        ? pool.deckBuilderState 
+  const savedState = pool?.deckBuilderState
+    ? (typeof pool.deckBuilderState === 'string'
+        ? pool.deckBuilderState
         : JSON.stringify(pool.deckBuilderState))
     : null
 
@@ -94,6 +94,7 @@ export default function DeckBuilderPage({ params }) {
         poolType={pool?.poolType}
         poolName={pool?.name}
         poolOwnerUsername={pool?.owner?.username}
+        poolOwnerId={pool?.owner?.id || pool?.userId}
       />
     </div>
   )

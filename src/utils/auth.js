@@ -11,11 +11,11 @@ export async function getSession() {
     const response = await fetch(`${API_BASE}/auth/session`, {
       credentials: 'include',
     })
-    
+
     if (!response.ok) {
       return null
     }
-    
+
     const data = await response.json()
     return data.data?.user || null
   } catch (error) {
@@ -28,7 +28,9 @@ export async function getSession() {
  * Sign in with Discord
  */
 export function signInWithDiscord() {
-  window.location.href = `${API_BASE}/auth/signin/discord`
+  // Store current URL to return after login
+  const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
+  window.location.href = `${API_BASE}/auth/signin/discord?return_to=${returnTo}`
 }
 
 /**
@@ -41,11 +43,11 @@ export async function signOut() {
       method: 'POST',
       credentials: 'include',
     })
-    
+
     if (!response.ok) {
       return false
     }
-    
+
     // Reload page to clear client-side state
     window.location.reload()
     return true

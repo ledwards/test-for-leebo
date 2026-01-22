@@ -4,8 +4,7 @@ import { useState, useRef } from 'react'
 import PlayerCircle from './PlayerCircle'
 import DraftableCard from './DraftableCard'
 import PassDirectionArrow from './PassDirectionArrow'
-import DraftTimer from './DraftTimer'
-import CardModal from './CardModal'
+
 import TimerPanel from './TimerPanel'
 import DraftReviewModal from './DraftReviewModal'
 import './PackDraftPhase.css'
@@ -31,7 +30,7 @@ function PackDraftPhase({
   isHost,
   onTogglePause,
 }) {
-  const [selectedCard, setSelectedCard] = useState(null)
+
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState(null)
   const previewTimeoutRef = useRef(null)
@@ -69,10 +68,6 @@ function PackDraftPhase({
   // Pack draft: pack 1 & 3 pass left, pack 2 passes right
   const passDirection = packNumber % 2 === 1 ? 'left' : 'right'
 
-  // Check if only one player is left picking (for timer)
-  const playersStillPicking = players.filter(p => p.pickStatus === 'picking').length
-  const showTimer = draft?.timerEnabled && playersStillPicking === 1 && canPick
-
   // Sort cards by rarity
   const sortCards = (cards) => {
     const sorted = [...cards]
@@ -89,17 +84,12 @@ function PackDraftPhase({
     onPick(card.id)
   }
 
-  const handleCardRightClick = (e, card) => {
+  const handleCardRightClick = (e) => {
     e.preventDefault()
-    setSelectedCard(card)
   }
 
   return (
     <div className="pack-draft-phase">
-      <div className="phase-header">
-        <h2>Round {packNumber} - Pick {pickInPack}</h2>
-      </div>
-
       <div className="draft-layout">
         <div className="players-section">
           <PlayerCircle
@@ -114,14 +104,6 @@ function PackDraftPhase({
             onTogglePause={onTogglePause}
           />
           <PassDirectionArrow direction={passDirection} />
-          {showTimer && (
-            <DraftTimer
-              seconds={draft?.timerSeconds || 30}
-              onTimeout={() => {
-                // Server handles timeout
-              }}
-            />
-          )}
         </div>
 
         <div className="cards-section">
@@ -190,9 +172,7 @@ function PackDraftPhase({
 
       {error && <div className="phase-error">{error}</div>}
 
-      {selectedCard && (
-        <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
-      )}
+
 
       {showReviewModal && (
         <DraftReviewModal
@@ -205,31 +185,85 @@ function PackDraftPhase({
         />
       )}
 
-      {hoveredLeaderPreview && (
-        <div
-          className="card-preview-enlarged"
-          style={{
-            position: 'fixed',
-            left: `${hoveredLeaderPreview.x}px`,
-            top: `${hoveredLeaderPreview.y}px`,
-            zIndex: 10000,
-            pointerEvents: 'none',
-            transform: 'translateY(-50%)'
-          }}
-        >
-          <img
-            src={hoveredLeaderPreview.leader.imageUrl}
-            alt={hoveredLeaderPreview.leader.name}
+      {hoveredLeaderPreview && (() => {
+        const leader = hoveredLeaderPreview.leader
+        const hasBackImage = leader.backImageUrl
+        const previewWidth = hasBackImage ? 504 + 360 + 20 : 504
+        const previewHeight = hasBackImage ? 504 : 360
+
+        return (
+          <div
+            className="card-preview-enlarged"
             style={{
-              width: '504px',
-              height: 'auto',
-              borderRadius: '23px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
-              border: '2px solid rgba(255, 255, 255, 0.3)'
+              position: 'fixed',
+              left: `${hoveredLeaderPreview.x}px`,
+              top: `${hoveredLeaderPreview.y}px`,
+              zIndex: 10000,
+              pointerEvents: 'none',
+              transform: 'translateY(-50%)',
+              width: `${previewWidth}px`,
+              height: `${previewHeight}px`,
             }}
-          />
-        </div>
-      )}
+          >
+            {hasBackImage ? (
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                {/* Front - horizontal */}
+                <div style={{
+                  width: '504px',
+                  height: '360px',
+                  overflow: 'hidden',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                }}>
+                  <img
+                    src={leader.imageUrl}
+                    alt={leader.name}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                </div>
+                {/* Back - vertical */}
+                <div style={{
+                  width: '360px',
+                  height: '504px',
+                  overflow: 'hidden',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                }}>
+                  <img
+                    src={leader.backImageUrl}
+                    alt={`${leader.name} - Back`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <img
+                src={leader.imageUrl}
+                alt={leader.name}
+                style={{
+                  width: '504px',
+                  height: 'auto',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                }}
+              />
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }

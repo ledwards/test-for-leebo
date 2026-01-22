@@ -8,8 +8,10 @@ import { joinDraft, leaveDraft, startDraft, randomizeSeats, makePick, updateSett
 import DraftLobby from '../../../src/components/DraftLobby'
 import LeaderDraftPhase from '../../../src/components/LeaderDraftPhase'
 import PackDraftPhase from '../../../src/components/PackDraftPhase'
+import { getPackArtUrl } from '../../../src/utils/packArt'
 import '../../../src/App.css'
 import '../draft.css'
+import '../../../src/components/SealedPod.css'
 
 const InfoIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ verticalAlign: 'middle' }}>
@@ -202,7 +204,7 @@ export default function DraftRoomPage({ params }) {
   // Loading state
   if (authLoading || !shareId || loading) {
     return (
-      <div className="app draft-page-bg">
+      <div className="draft-page-bg">
         <div className="loading-container">
           <div className="loading"></div>
         </div>
@@ -213,7 +215,7 @@ export default function DraftRoomPage({ params }) {
   // Auth required
   if (!isAuthenticated) {
     return (
-      <div className="app draft-page-bg">
+      <div className="draft-page-bg">
         <div className="login-required">
           <h2>Sign In Required</h2>
           <p>Please sign in to join this draft</p>
@@ -228,7 +230,7 @@ export default function DraftRoomPage({ params }) {
   // Error state
   if (syncError && !draft) {
     return (
-      <div className="app draft-page-bg">
+      <div className="draft-page-bg">
         <div className="error-container">
           <h2>Error</h2>
           <p>{syncError}</p>
@@ -243,7 +245,7 @@ export default function DraftRoomPage({ params }) {
   // Draft not found
   if (!draft) {
     return (
-      <div className="app draft-page-bg">
+      <div className="draft-page-bg">
         <div className="error-container">
           <h2>Draft Not Found</h2>
           <p>This draft may have been deleted or the code is incorrect.</p>
@@ -403,25 +405,38 @@ export default function DraftRoomPage({ params }) {
     return <div className="loading"></div>
   }
 
+  const packArtUrl = draft?.setArtUrl || (draft?.setCode ? getPackArtUrl(draft.setCode) : null)
+
+  const setArtStyle = packArtUrl ? {
+    backgroundImage: `url("${packArtUrl}")`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center center',
+  } : {}
+
   return (
-    <div className="app draft-page-bg">
-      {draft.setArtUrl && (
-        <div
-          className="set-art-header"
-          style={{ backgroundImage: `url("${draft.setArtUrl}")` }}
-        ></div>
+    <div className="sealed-pod">
+      {packArtUrl && (
+        <div className="set-art-header" style={setArtStyle}></div>
       )}
-      <div className="draft-room-content">
+      <div className="sealed-pod-content">
         <div className="draft-room">
           <div className="draft-header">
             <button className="back-button" onClick={handleBack}>
               ← Back
             </button>
             <div className="draft-header-center">
-              <h1>{draft.setName || draft.setCode} Draft</h1>
-              <span className={`status-badge ${status}`}>
-                {status === 'waiting' ? 'Lobby' : status === 'active' ? 'Drafting' : 'Complete'}
-              </span>
+              <div className="draft-title-row">
+                <h1>{draft.setName || draft.setCode} Draft</h1>
+                <span className={`status-badge ${status}`}>
+                  {status === 'waiting' ? 'Lobby' : status === 'active' ? 'Drafting' : 'Complete'}
+                </span>
+              </div>
+              {status === 'active' && draftState?.phase === 'leader_draft' && (
+                <span className="draft-round-info">Leader Round {draftState?.leaderRound || 1}/3</span>
+              )}
+              {status === 'active' && draftState?.phase === 'pack_draft' && (
+                <span className="draft-round-info">Round {draftState?.packNumber || 1} - Pick {draftState?.pickInPack || 1}</span>
+              )}
             </div>
           </div>
 

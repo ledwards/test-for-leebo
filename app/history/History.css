@@ -48,7 +48,7 @@
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 1.5rem;
   overflow-x: auto;
 }
@@ -87,7 +87,7 @@
   border-radius: 4px;
 }
 
-.history-edit-button {
+.history-show-button {
   display: inline-block;
   background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -100,11 +100,12 @@
   cursor: pointer;
 }
 
-.history-edit-button:hover {
+.history-show-button:hover {
   background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(255, 0, 0, 0.8);
+  border-color: rgba(0, 255, 0, 0.8);
+  color: white;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
   text-decoration: none;
 }
 
@@ -129,7 +130,9 @@
 .history-tabs {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: -1px;
+  position: relative;
+  z-index: 1;
 }
 
 .history-tab {
@@ -150,9 +153,9 @@
 }
 
 .history-tab.active {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
   color: white;
-  border-bottom-color: transparent;
+  border-bottom-color: rgba(0, 0, 0, 0.5);
 }
 
 .history-pool-link {
@@ -169,4 +172,15 @@
 
 .history-no-pool {
   color: rgba(255, 255, 255, 0.4);
+}
+
+.history-pool-name {
+  color: white;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.history-pool-name:hover {
+  color: #4da6ff;
+  text-decoration: underline;
 }

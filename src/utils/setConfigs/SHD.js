@@ -9,9 +9,6 @@ export const SHD_CONFIG = {
   setNumber: 2,
   color: '#9B59B6', // Purple
 
-  // Distribution period
-  distributionPeriod: 'pre-lawless-time',
-
   // Card counts (Normal variants only)
   cardCounts: {
     leaders: {

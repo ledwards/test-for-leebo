@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../src/contexts/AuthContext'
+import AuthWidget from '../../src/components/AuthWidget'
 import '../../src/App.css'
 import './draft.css'
 
@@ -29,7 +30,10 @@ export default function DraftLandingPage() {
         })
         if (response.ok) {
           const data = await response.json()
-          setHistory(data.data?.pods || [])
+          const allPods = data.data?.pods || data.pods || []
+
+          // Show all drafts (no filtering)
+          setHistory(allPods)
         }
       } catch (err) {
         console.error('Failed to fetch draft history:', err)
@@ -39,7 +43,7 @@ export default function DraftLandingPage() {
     }
 
     fetchHistory()
-  }, [isAuthenticated])
+  }, [isAuthenticated, user])
 
   const handleCreateDraft = () => {
     if (!isAuthenticated) {
@@ -83,7 +87,8 @@ export default function DraftLandingPage() {
   }
 
   return (
-    <div className="app draft-page-bg">
+    <div className="draft-page-bg">
+      <AuthWidget />
       <div className="draft-landing">
         <div className="back-button-container">
           <button className="back-button" onClick={handleBack}>

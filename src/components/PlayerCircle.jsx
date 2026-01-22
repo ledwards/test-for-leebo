@@ -14,6 +14,15 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
   const currentUser = players.find(p => p.id === currentUserId)
   const userSeat = currentUser?.seatNumber || 1
 
+  // Debug: log if current user not found
+  if (!currentUser && currentUserId && players.length > 0) {
+    console.warn('[PlayerCircle] Current user not found!', {
+      currentUserId,
+      playerIds: players.map(p => ({ id: p.id, type: typeof p.id })),
+      currentUserIdType: typeof currentUserId
+    })
+  }
+
   // Create array of seats (filled or empty)
   let seats = []
   for (let i = 1; i <= maxPlayers; i++) {
@@ -35,15 +44,22 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
   const getPositionStyle = (index, totalSeats) => {
     // Start from bottom (180 degrees) and go clockwise
     // Current user should be at the bottom
-    const currentUserIndex = seats.findIndex(s => s.isCurrentUser)
+    let currentUserIndex = seats.findIndex(s => s.isCurrentUser)
+
+    // If current user not found, default to first seat at bottom
+    if (currentUserIndex === -1) {
+      currentUserIndex = 0
+    }
 
     // Rotate so current user is at bottom (index 0 position)
     let adjustedIndex = index - currentUserIndex
     if (adjustedIndex < 0) adjustedIndex += totalSeats
 
-    // Calculate angle: start at 180° (bottom), go clockwise
+    // Calculate angle: start at 0° (bottom in our coordinate system), go clockwise
+    // cos(0°) = 1 gives top = 92% (bottom of container)
+    // sin increases clockwise from bottom
     const angleStep = 360 / totalSeats
-    const angle = 180 + (adjustedIndex * angleStep)
+    const angle = adjustedIndex * angleStep
     const angleRad = (angle * Math.PI) / 180
 
     // radius as percentage (42% to keep seats inside container)
@@ -57,9 +73,14 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
     }
   }
 
+  // Check if only one player is left picking (last player timer mode)
+  const playersStillPicking = players.filter(p => p.pickStatus === 'picking').length
+  const isLastPlayerTimer = playersStillPicking === 1 && draft?.status === 'active'
+
   // Get CSS class for position (only used when not hiding empty seats)
   const getDisplayPosition = (seatNumber) => {
-    // Rotate seats so current user is at position 1
+    // Rotate seats so current user is at position 1 (bottom)
+    // userSeat defaults to 1 if current user not found
     let position = seatNumber - userSeat + 1
     if (position <= 0) position += maxPlayers
     return position
@@ -95,7 +116,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
         })}
 
         {/* Center area */}
-        <div className={`circle-center ${draft?.paused ? 'paused' : ''}`}>
+        <div className={`circle-center ${draft?.paused ? 'paused' : ''} ${isLastPlayerTimer ? 'last-player' : ''}`}>
           {showTimers && draft ? (
             <div className="circle-timers">
               <TimerPanel

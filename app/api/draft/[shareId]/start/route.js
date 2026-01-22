@@ -91,6 +91,7 @@ export async function POST(request, { params }) {
            all_packs = $2,
            started_at = NOW(),
            pick_started_at = NOW(),
+           paused_duration_seconds = 0,
            state_version = state_version + 1
        WHERE id = $3`,
       [

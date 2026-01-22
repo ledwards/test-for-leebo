@@ -3,10 +3,6 @@
   margin: 0 auto;
 }
 
-.phase-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
 
 .draft-info-header {
   background: #1e1e1e;
@@ -81,18 +77,11 @@
   box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
 }
 
-.phase-header h2 {
-  margin-bottom: 10px;
-}
-
-.phase-description {
-  color: #888;
-}
 
 .draft-layout {
   display: flex;
   gap: 30px;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .players-section {
@@ -105,7 +94,6 @@
 
 .cards-section {
   flex: 1;
-  min-width: 0;
   background: rgba(30, 30, 30, 0.8);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -132,7 +120,7 @@
 .drafted-leader {
   width: 168px;
   height: 120px;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   background: #1e1e1e;
   border: 2px solid #333;
@@ -164,8 +152,9 @@
 
 .leaders-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, 168px);
   gap: 15px;
+  justify-content: start;
 }
 
 .no-leaders {
@@ -211,7 +200,4 @@
     height: 100px;
   }
 
-  .leaders-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }

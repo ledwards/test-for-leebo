@@ -7,7 +7,7 @@ import { savePool } from '../utils/poolApi'
 import { useAuth } from '../contexts/AuthContext'
 import { getSetConfig } from '../utils/setConfigs'
 import { getPackArtUrl } from '../utils/packArt'
-import CardModal from './CardModal'
+
 
 // Helper function to get set name from set code
 function getSetName(setCode) {
@@ -27,7 +27,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
   const [packs, setPacks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [selectedCard, setSelectedCard] = useState(null)
+
   const [hoveredCardPreview, setHoveredCardPreview] = useState(null) // { card, x, y } for enlarged preview
   const [savedShareId, setSavedShareId] = useState(shareId)
   const [saving, setSaving] = useState(false)
@@ -351,7 +351,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                 <div
                   key={cardIndex}
                   className={`card-item ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''} ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`}
-                  onClick={() => setSelectedCard(card)}
+
                   onMouseEnter={(e) => {
                     // Clear any existing timeout
                     if (previewTimeoutRef.current) {
@@ -361,7 +361,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                     // Capture the rect immediately (before timeout)
                     const rect = e.currentTarget.getBoundingClientRect()
 
-                    // Set timeout to show preview after 1 second
+                    // Set timeout to show preview after hovering
                     previewTimeoutRef.current = setTimeout(() => {
                       // Position the preview near the card (to the right, or left if too close to right edge)
                       let previewX = rect.right + 20
@@ -416,7 +416,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                       }
 
                       setHoveredCardPreview({ card, x: previewX, y: adjustedY })
-                    }, 1000)
+                    }, 400)
                   }}
                   onMouseLeave={() => {
                     if (previewTimeoutRef.current) {
@@ -451,16 +451,14 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
         )}
       </div>
 
-      {selectedCard && (
-        <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
-      )}
+
 
       {/* Enlarged card preview (3x size) */}
       {hoveredCardPreview && (() => {
         const card = hoveredCardPreview.card
         const hasBackImage = card.backImageUrl && card.isLeader
         const isHorizontal = card.isLeader || card.isBase
-        const borderRadius = '23px' // Slightly smaller than 24px to reduce clipping
+        const borderRadius = '12px'
 
         // Calculate dimensions
         let previewWidth, previewHeight

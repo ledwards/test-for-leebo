@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import PlayerCircle from './PlayerCircle'
 import DraftableCard from './DraftableCard'
 import PassDirectionArrow from './PassDirectionArrow'
-import CardModal from './CardModal'
+
 import TimerPanel from './TimerPanel'
 import DraftReviewModal from './DraftReviewModal'
 import './LeaderDraftPhase.css'
@@ -30,7 +30,7 @@ function LeaderDraftPhase({
   isHost,
   onTogglePause,
 }) {
-  const [selectedCard, setSelectedCard] = useState(null)
+
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState(null)
   const previewTimeoutRef = useRef(null)
@@ -41,11 +41,31 @@ function LeaderDraftPhase({
     }
     const rect = e.currentTarget.getBoundingClientRect()
     previewTimeoutRef.current = setTimeout(() => {
+      // Calculate preview width based on whether leader has back image
+      const hasBackImage = leader.backImageUrl
+      const previewWidth = hasBackImage ? 504 + 360 + 20 : 504
+      const previewHeight = hasBackImage ? 504 : 360
+
       let previewX = rect.right + 20
-      const previewY = rect.top + rect.height / 2
-      if (previewX + 504 > window.innerWidth) {
-        previewX = rect.left - 504 - 20
+      let previewY = rect.top + rect.height / 2
+
+      // Ensure preview stays within viewport horizontally
+      if (previewX + previewWidth > window.innerWidth) {
+        previewX = rect.left - previewWidth - 20
+        if (previewX < 0) {
+          previewX = 10
+        }
       }
+
+      // Ensure preview stays within viewport vertically
+      const previewTop = previewY - previewHeight / 2
+      const previewBottom = previewY + previewHeight / 2
+      if (previewTop < 10) {
+        previewY = previewHeight / 2 + 10
+      } else if (previewBottom > window.innerHeight - 10) {
+        previewY = window.innerHeight - previewHeight / 2 - 10
+      }
+
       setHoveredLeaderPreview({ leader, x: previewX, y: previewY })
     }, 500)
   }
@@ -67,25 +87,15 @@ function LeaderDraftPhase({
     onPick(card.id)
   }
 
-  const handleCardRightClick = (e, card) => {
+  const handleCardRightClick = (e) => {
     e.preventDefault()
-    setSelectedCard(card)
   }
 
-  // Leader draft: round 1 passes right, round 2 passes left
-  const passDirection = round === 1 ? 'right' : 'left'
+  // Leader draft: round 1 passes right, round 2 passes left, round 3 no passing
+  const passDirection = round === 1 ? 'right' : round === 2 ? 'left' : null
 
   return (
     <div className="leader-draft-phase">
-      <div className="phase-header">
-        <h2>Leader Draft - Round {round}/2</h2>
-        <p className="phase-description">
-          Pick 1 leader from your available options.
-          {round === 1 && ' Remaining leaders will pass to the right.'}
-          {round === 2 && ' Remaining leader will auto-pick for round 3.'}
-        </p>
-      </div>
-
       <div className="draft-layout">
         <div className="players-section">
           <PlayerCircle
@@ -99,7 +109,7 @@ function LeaderDraftPhase({
             isHost={isHost}
             onTogglePause={onTogglePause}
           />
-          <PassDirectionArrow direction={passDirection} />
+          {passDirection && <PassDirectionArrow direction={passDirection} />}
         </div>
 
         <div className="cards-section">
@@ -140,13 +150,11 @@ function LeaderDraftPhase({
             <h3>Your Drafted Leaders ({draftedLeaders.length}/3)</h3>
             <div className="drafted-leaders-grid">
               {draftedLeaders.map((leader, idx) => (
-                <div key={idx} className="drafted-leader">
-                  <img
-                    src={leader.imageUrl}
-                    alt={leader.name}
-                    onClick={() => setSelectedCard(leader)}
-                  />
-                </div>
+                <DraftableCard
+                  key={idx}
+                  card={leader}
+                  disabled={true}
+                />
               ))}
               {Array(3 - draftedLeaders.length)
                 .fill(null)
@@ -160,7 +168,9 @@ function LeaderDraftPhase({
 
           <div className="available-leaders">
             <h3>
-              {canPick ? 'Select a Leader' : 'Waiting for pick...'}
+              {canPick
+                ? (round === 3 ? 'Confirm Your Final Leader' : 'Select a Leader')
+                : 'Waiting for pick...'}
             </h3>
             {leaders.length > 0 ? (
               <div className="leaders-grid">
@@ -188,9 +198,7 @@ function LeaderDraftPhase({
 
       {error && <div className="phase-error">{error}</div>}
 
-      {selectedCard && (
-        <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
-      )}
+
 
       {showReviewModal && (
         <DraftReviewModal
@@ -203,31 +211,85 @@ function LeaderDraftPhase({
         />
       )}
 
-      {hoveredLeaderPreview && (
-        <div
-          className="card-preview-enlarged"
-          style={{
-            position: 'fixed',
-            left: `${hoveredLeaderPreview.x}px`,
-            top: `${hoveredLeaderPreview.y}px`,
-            zIndex: 10000,
-            pointerEvents: 'none',
-            transform: 'translateY(-50%)'
-          }}
-        >
-          <img
-            src={hoveredLeaderPreview.leader.imageUrl}
-            alt={hoveredLeaderPreview.leader.name}
+      {hoveredLeaderPreview && (() => {
+        const leader = hoveredLeaderPreview.leader
+        const hasBackImage = leader.backImageUrl
+        const previewWidth = hasBackImage ? 504 + 360 + 20 : 504
+        const previewHeight = hasBackImage ? 504 : 360
+
+        return (
+          <div
+            className="card-preview-enlarged"
             style={{
-              width: '504px',
-              height: 'auto',
-              borderRadius: '23px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
-              border: '2px solid rgba(255, 255, 255, 0.3)'
+              position: 'fixed',
+              left: `${hoveredLeaderPreview.x}px`,
+              top: `${hoveredLeaderPreview.y}px`,
+              zIndex: 10000,
+              pointerEvents: 'none',
+              transform: 'translateY(-50%)',
+              width: `${previewWidth}px`,
+              height: `${previewHeight}px`,
             }}
-          />
-        </div>
-      )}
+          >
+            {hasBackImage ? (
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                {/* Front - horizontal */}
+                <div style={{
+                  width: '504px',
+                  height: '360px',
+                  overflow: 'hidden',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                }}>
+                  <img
+                    src={leader.imageUrl}
+                    alt={leader.name}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                </div>
+                {/* Back - vertical */}
+                <div style={{
+                  width: '360px',
+                  height: '504px',
+                  overflow: 'hidden',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                }}>
+                  <img
+                    src={leader.backImageUrl}
+                    alt={`${leader.name} - Back`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <img
+                src={leader.imageUrl}
+                alt={leader.name}
+                style={{
+                  width: '504px',
+                  height: 'auto',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                }}
+              />
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }

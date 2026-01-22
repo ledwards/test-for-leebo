@@ -9,9 +9,6 @@ export const SOR_CONFIG = {
   setNumber: 1,
   color: '#CC0000', // Darker red
 
-  // Distribution period
-  distributionPeriod: 'pre-lawless-time',
-
   // Card counts (Normal variants only)
   cardCounts: {
     leaders: {

@@ -1,10 +1,24 @@
 .draftable-card {
   position: relative;
-  border-radius: 12px;
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
+  aspect-ratio: 2.5 / 3.5;
+  flex-shrink: 0;
+  flex-grow: 0;
+  border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
   background: transparent;
+}
+
+.draftable-card.leader,
+.draftable-card.base {
+  width: 168px;
+  min-width: 168px;
+  max-width: 168px;
+  aspect-ratio: 3.5 / 2.5;
 }
 
 .draftable-card:hover:not(.disabled) {
@@ -72,7 +86,7 @@
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 12px;
+  border-radius: 6px;
 }
 
 .draftable-card .card-placeholder {
@@ -84,7 +98,7 @@
   background: #2a2a2a;
   padding: 10px;
   text-align: center;
-  border-radius: 12px;
+  border-radius: 6px;
 }
 
 .placeholder-name {
@@ -131,4 +145,5 @@
   mix-blend-mode: overlay;
   pointer-events: none;
   z-index: 2;
-  animation: foil-shimmer 3
+  animation: foil-shimmer 3s ease-in-out infinite;
+}

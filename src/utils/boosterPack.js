@@ -226,55 +226,64 @@ function applyUpgradePass(pack, setCode) {
     if (probs.leaderToShowcase && shouldUpgrade(probs.leaderToShowcase)) {
       // Upgrade to Showcase leader
       const showcaseBelt = getShowcaseLeaderBelt(setCode)
-      pack.cards[leaderIndex] = showcaseBelt.next()
+      const upgraded = showcaseBelt.next()
+      if (upgraded) pack.cards[leaderIndex] = upgraded
     } else if (probs.leaderToHyperspace && shouldUpgrade(probs.leaderToHyperspace)) {
       // Upgrade to Hyperspace leader
       const hsBelt = getHyperspaceLeaderBelt(setCode)
-      pack.cards[leaderIndex] = hsBelt.next()
+      const upgraded = hsBelt.next()
+      if (upgraded) pack.cards[leaderIndex] = upgraded
     }
   }
 
   // 2. Base upgrade
   if (baseIndex >= 0 && probs.baseToHyperspace && shouldUpgrade(probs.baseToHyperspace)) {
     const hsBelt = getHyperspaceBaseBelt(setCode)
-    pack.cards[baseIndex] = hsBelt.next()
+    const upgraded = hsBelt.next()
+    if (upgraded) pack.cards[baseIndex] = upgraded
   }
 
   // 3. Rare slot upgrade to Hyperspace R/L
   if (rareIndex >= 0 && probs.rareToHyperspaceRL && shouldUpgrade(probs.rareToHyperspaceRL)) {
     const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode)
-    pack.cards[rareIndex] = hsRLBelt.next()
+    const upgraded = hsRLBelt.next()
+    if (upgraded) pack.cards[rareIndex] = upgraded
   }
 
   // 4. Foil upgrade to Hyperfoil
   if (foilIndex >= 0 && probs.foilToHyperfoil && shouldUpgrade(probs.foilToHyperfoil)) {
     const hyperfoilBelt = getHyperfoilBelt(setCode)
-    pack.cards[foilIndex] = hyperfoilBelt.next()
+    const upgraded = hyperfoilBelt.next()
+    if (upgraded) pack.cards[foilIndex] = upgraded
   }
 
   // 5. Third UC upgrade to Hyperspace R/L (not UC!)
   if (uncommonIndices.length >= 3 && probs.thirdUCToHyperspaceRL && shouldUpgrade(probs.thirdUCToHyperspaceRL)) {
     const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode)
-    pack.cards[uncommonIndices[2]] = hsRLBelt.next()
+    const upgraded = hsRLBelt.next()
+    if (upgraded) pack.cards[uncommonIndices[2]] = upgraded
   }
 
   // 6. First UC upgrade to Hyperspace UC
   if (uncommonIndices.length >= 1 && probs.firstUCToHyperspaceUC && shouldUpgrade(probs.firstUCToHyperspaceUC)) {
     const hsUCBelt = getHyperspaceUncommonBelt(setCode)
-    pack.cards[uncommonIndices[0]] = hsUCBelt.next()
+    const upgraded = hsUCBelt.next()
+    if (upgraded) pack.cards[uncommonIndices[0]] = upgraded
   }
 
   // 7. Second UC upgrade to Hyperspace UC
   if (uncommonIndices.length >= 2 && probs.secondUCToHyperspaceUC && shouldUpgrade(probs.secondUCToHyperspaceUC)) {
     const hsUCBelt = getHyperspaceUncommonBelt(setCode)
-    pack.cards[uncommonIndices[1]] = hsUCBelt.next()
+    const upgraded = hsUCBelt.next()
+    if (upgraded) pack.cards[uncommonIndices[1]] = upgraded
   }
 
   // 8. Common upgrade (pick one random common and replace with HS common)
   if (commonIndices.length > 0 && probs.commonToHyperspace && shouldUpgrade(probs.commonToHyperspace)) {
     const randomCommonIndex = commonIndices[Math.floor(Math.random() * commonIndices.length)]
     const hsCommonBelt = getHyperspaceCommonBelt(setCode)
-    pack.cards[randomCommonIndex] = hsCommonBelt.next()
+    const upgraded = hsCommonBelt.next()
+    if (upgraded) pack.cards[randomCommonIndex] = upgraded
   }
 
   return pack
@@ -333,6 +342,37 @@ export function generateBoosterPack(cards, setCode) {
   // 1 Foil (from belt, already marked as foil)
   const foilCard = foilBelt.next()
   if (foilCard) packCards.push(foilCard)
+
+  // Check for duplicates in pack (for debugging)
+  // A duplicate is defined as same ID AND same foil status
+  const seen = new Map() // Map of card.id to array of {index, isFoil}
+  const duplicates = []
+
+  packCards.forEach((card, index) => {
+    const id = card.id
+
+    if (!seen.has(id)) {
+      seen.set(id, [])
+    }
+
+    // Check if we've seen this card with the same foil status
+    const matchingCards = seen.get(id).filter(c => c.isFoil === card.isFoil)
+
+    if (matchingCards.length > 0) {
+      // True duplicate found (same ID and same foil status)
+      const firstMatch = matchingCards[0]
+      duplicates.push({
+        id: id,
+        name: card.name,
+        positions: [firstMatch.index, index],
+        isFoil: card.isFoil
+      })
+    }
+
+    seen.get(id).push({ index: index, isFoil: card.isFoil })
+  })
+
+
 
   // Create pack and apply upgrade pass
   const pack = { cards: packCards }

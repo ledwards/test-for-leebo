@@ -66,15 +66,19 @@ export class ShowcaseLeaderBelt {
     this._fillIfNeeded()
 
     // Start at random position
-    const startPosition = Math.floor(Math.random() * this.hopper.length)
-    this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
+    // TEMPORARILY DISABLED: const startPosition = Math.floor(Math.random() * this.hopper.length)
+    // TEMPORARILY DISABLED: this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
   }
 
   /**
    * Fill the hopper if it needs more cards
    */
   _fillIfNeeded() {
-    while (this.hopper.length <= this.fillingPool.length) {
+    // Safety check: if no cards in filling pool, can't fill
+    if (this.fillingPool.length === 0) {
+      return
+    }
+    while (this.hopper.length < this.fillingPool.length) {
       this._fill()
     }
   }
@@ -156,6 +160,7 @@ export class ShowcaseLeaderBelt {
   next() {
     this._fillIfNeeded()
     const card = this.hopper.shift()
+    if (!card) return null
     return { ...card }
   }
 

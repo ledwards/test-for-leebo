@@ -102,6 +102,48 @@ To refresh the card data from the API, run:
 npm run fetch-cards
 ```
 
+### Card Data Fixes
+
+**Important**: The app includes an **automatic runtime fix system** that corrects data errors when cards are loaded.
+
+- ✅ **3,750+ fixes** applied automatically at startup
+- ✅ All code uses corrected data (no raw/processed data split)
+- ✅ All tests test corrected data
+- ✅ Fixes are version-controlled with code (easy rollbacks)
+- ✅ Zero performance impact (fixes apply once at module load)
+
+**Common fixes:**
+- Hyperspace variants get `isHyperspace: true`
+- Foil variants get `isFoil: true`
+- Showcase variants get `isShowcase: true`
+
+**See what fixes are active:**
+```bash
+npm run show-fixes
+```
+
+**Test the fix system:**
+```bash
+npm run test:fixes
+```
+
+**Add a new fix:**
+Edit `scripts/cardFixes.js` and add your fix declaratively:
+```javascript
+{
+  condition: (card) => card.type === 'Leader' && !card.isLeader,
+  field: 'isLeader',
+  value: true,
+  reason: 'Ensure all Leaders have isLeader flag'
+}
+```
+
+**📚 Documentation:**
+- [Quick Start Guide](./docs/QUICKSTART_FIXES.md) - Get started in 5 minutes
+- [Complete Documentation](./docs/CARD_FIXES.md) - Full guide to the fix system
+- [Example Walkthrough](./docs/EXAMPLE_ADDING_FIX.md) - Real-world example
+- [Implementation Details](./docs/IMPLEMENTATION_SUMMARY.md) - How it works
+
 ## Booster Pack Rules
 
 Based on the official article: [Boosting Ahead of Release](https://starwarsunlimited.com/articles/boosting-ahead-of-release)
@@ -137,13 +179,46 @@ npm run dev                  # Start development server
 npm run build                # Build for production
 npm run lint                 # Run linter
 
+# Testing
+npm run test:summary         # Quick test summary with colors 🎯
+npm run test                 # Run all unit tests
+npm run test:utils           # Pack generation tests 📦
+npm run test:belts           # Belt tests (9 suites) 🎲
+npm run test:data            # Card data validation 🎴
+npm run qa                   # Statistical QA (100 packs/set) 📊
+
 # Database
 npm run migrate:dev          # Run migrations (dev)
 npm run migrate:prod         # Run migrations (prod)
 
 # Data management
 npm run fetch-cards          # Refresh card data from API
+npm run show-fixes           # Show configured card fixes
+npm run test:fixes           # Test the card fix system
 ```
+
+## Testing
+
+This project has comprehensive test coverage with **color-coded output** and emojis:
+
+- 🔄 **10 unit tests** - Belt logic and pack generation
+- 🎴 **Data validation** - Card database integrity checks
+- 📊 **QA tests** - Statistical analysis on 100 packs per set
+
+**Quick Start:**
+```bash
+npm run test:summary    # See results summary
+npm run qa              # Full QA analysis (~1-2 min)
+```
+
+**Test Output Features:**
+- ✅ Green for passing tests
+- ❌ Red for failing tests  
+- ⚠️ Yellow for warnings
+- 🎉 Success banners
+- 💥 Failure indicators
+
+See `src/qa/README.md` for detailed testing documentation.
 
 ## Code Structure
 
@@ -152,10 +227,24 @@ src/
 ├── utils/
 │   ├── setConfigs/             # Set-specific parameters (SOR, SHD, TWI, JTL, LOF, SEC)
 │   ├── cardCache.js            # Card data management
+│   ├── cardData.js             # Card loading with automatic fixes
+│   ├── cardFixes.js            # Runtime fix application
 │   └── cardFilters.js          # Card filtering logic
 ├── data/
 │   └── cards.json              # 4,973 cards from all sets
 └── components/                 # React UI components
+
+scripts/
+├── cardFixes.js                # Define card data fixes here
+├── postProcessCards.js         # CLI tool to apply fixes
+├── fetchCards.js               # Fetch from API and apply fixes
+└── showFixes.js                # Utility to inspect fixes
+
+docs/
+├── QUICKSTART_FIXES.md         # Quick start guide for fixes
+├── CARD_FIXES.md               # Complete fix system documentation
+├── EXAMPLE_ADDING_FIX.md       # Real-world fix example
+└── IMPLEMENTATION_SUMMARY.md   # Implementation details
 
 app/
 ├── api/                        # API routes

@@ -11,7 +11,7 @@
   position: relative;
 }
 
-/* Set art header - exactly like sealed-pod */
+/* Set art header - using same class name as SealedPod for consistency */
 .draft-page-bg .set-art-header {
   position: absolute;
   top: 0;
@@ -32,6 +32,7 @@
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 1;
   background: linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%), linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%), linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8));
   background-size: 100% 100%, 100% 100%, 100% 100%;
   background-repeat: no-repeat, no-repeat, no-repeat;
@@ -42,16 +43,17 @@
 .draft-page-bg .set-art-header::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  bottom: -50px;
   left: 0;
   right: 0;
-  height: 250px;
+  height: 300px;
+  z-index: 2;
   background: linear-gradient(to bottom,
     transparent 0%,
-    rgba(9, 9, 9, 0.2) 20%,
-    rgba(9, 9, 9, 0.5) 40%,
-    rgba(9, 9, 9, 0.8) 60%,
-    rgba(9, 9, 9, 0.95) 80%,
+    rgba(9, 9, 9, 0.3) 20%,
+    rgba(9, 9, 9, 0.6) 40%,
+    rgba(9, 9, 9, 0.85) 60%,
+    rgb(9, 9, 9) 80%,
     rgb(9, 9, 9) 100%);
   pointer-events: none;
 }
@@ -177,8 +179,9 @@
 
 .draft-header-center {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 2px;
   flex: 1;
   justify-content: center;
 }
@@ -201,10 +204,24 @@
   box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
 }
 
+.draft-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .draft-header-center h1 {
-  font-size: 1.2rem;
+  font-size: 1.8rem;
+  font-weight: 700;
   margin: 0;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.draft-round-info {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #aaa;
+  margin: 0;
 }
 
 .draft-status {
@@ -507,8 +524,8 @@
 /* Draft History */
 .draft-history {
   margin-top: 40px;
-  max-width: 600px;
-  margin-left: auto;
+  max-width: 800px;
+  margin-left: 0;
   margin-right: auto;
 }
 
@@ -516,6 +533,7 @@
   font-size: 1.2rem;
   margin-bottom: 20px;
   color: #888;
+  text-align: left;
 }
 
 .history-loading,

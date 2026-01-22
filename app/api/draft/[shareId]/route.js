@@ -4,6 +4,7 @@ import { query, queryRow, queryRows } from '@/lib/db.js'
 import { getSession, requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
 import { getPackArtUrl } from '@/src/utils/packArt.js'
+import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout.js'
 
 export async function GET(request, { params }) {
   try {
@@ -11,7 +12,7 @@ export async function GET(request, { params }) {
     const session = getSession(request)
 
     // Get draft pod
-    const pod = await queryRow(
+    let pod = await queryRow(
       `SELECT
         dp.*,
         u.username as host_username,
@@ -24,6 +25,22 @@ export async function GET(request, { params }) {
 
     if (!pod) {
       return errorResponse('Draft not found', 404)
+    }
+
+    // Check and enforce timeouts (server-side timeout enforcement)
+    const timeoutEnforced = await checkAndEnforceTimeout(pod.id)
+    if (timeoutEnforced) {
+      // Re-fetch pod since state changed
+      pod = await queryRow(
+        `SELECT
+          dp.*,
+          u.username as host_username,
+          u.avatar_url as host_avatar
+         FROM draft_pods dp
+         LEFT JOIN users u ON dp.host_id = u.id
+         WHERE dp.share_id = $1`,
+        [shareId]
+      )
     }
 
     // Get all players
@@ -129,6 +146,9 @@ export async function GET(request, { params }) {
       completedAt: pod.completed_at,
       createdAt: pod.created_at,
       pickStartedAt: pod.pick_started_at,
+      paused: pod.paused === true,
+      pausedAt: pod.paused_at,
+      pausedDurationSeconds: pod.paused_duration_seconds || 0,
     })
   } catch (error) {
     return handleApiError(error)

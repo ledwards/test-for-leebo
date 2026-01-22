@@ -24,11 +24,13 @@ export async function checkAndEnforceTimeout(podId) {
 
   // Only enforce timeouts on active, timed, non-paused drafts
   if (pod.status !== 'active' || pod.timed === false || pod.paused === true) {
+    console.log('[TIMEOUT] Skipping - status:', pod.status, 'timed:', pod.timed, 'paused:', pod.paused)
     return false
   }
 
   // Check if timeout has passed
   if (!pod.pick_started_at) {
+    console.log('[TIMEOUT] Skipping - no pick_started_at')
     return false
   }
 
@@ -58,6 +60,15 @@ export async function checkAndEnforceTimeout(podId) {
   const pausedDurationMs = (pod.paused_duration_seconds || 0) * 1000
   const elapsed = now - pickStartedAt - pausedDurationMs
 
+  console.log('[TIMEOUT] Check:', {
+    isLastPlayer,
+    timeoutSeconds,
+    elapsed: Math.round(elapsed / 1000),
+    pickStartedAt: new Date(pickStartedAt).toISOString(),
+    pausedDurationSeconds: pod.paused_duration_seconds || 0,
+    playersStillPicking: players.length
+  })
+
   if (elapsed < timeoutMs) {
     // Timeout not reached yet
     return false
@@ -77,9 +88,9 @@ export async function checkAndEnforceTimeout(podId) {
     console.log('[TIMEOUT] Forcing pick for player:', player.user_id)
 
     if (phase === 'leader_draft') {
-      await forceLeaderPick(player)
+      await forceLeaderPick(player, draftState)
     } else if (phase === 'pack_draft') {
-      await forcePackPick(player)
+      await forcePackPick(player, draftState)
     }
   }
 
@@ -96,7 +107,7 @@ export async function checkAndEnforceTimeout(podId) {
 /**
  * Force a random leader pick for a player
  */
-async function forceLeaderPick(player) {
+async function forceLeaderPick(player, draftState) {
   const leaders = typeof player.leaders === 'string'
     ? JSON.parse(player.leaders)
     : player.leaders || []
@@ -119,6 +130,12 @@ async function forceLeaderPick(player) {
   const draftedLeaders = typeof player.drafted_leaders === 'string'
     ? JSON.parse(player.drafted_leaders)
     : player.drafted_leaders || []
+
+  // Add pick metadata
+  const leaderRound = draftState?.leaderRound || 1
+  pickedLeader.pickNumber = draftedLeaders.length + 1
+  pickedLeader.leaderRound = leaderRound
+
   draftedLeaders.push(pickedLeader)
 
   await query(
@@ -137,7 +154,7 @@ async function forceLeaderPick(player) {
 /**
  * Force a random card pick for a player
  */
-async function forcePackPick(player) {
+async function forcePackPick(player, draftState) {
   const currentPack = typeof player.current_pack === 'string'
     ? JSON.parse(player.current_pack)
     : player.current_pack || []
@@ -160,6 +177,14 @@ async function forcePackPick(player) {
   const draftedCards = typeof player.drafted_cards === 'string'
     ? JSON.parse(player.drafted_cards)
     : player.drafted_cards || []
+
+  // Add pick metadata
+  const packNumber = draftState?.packNumber || 1
+  const pickInPack = draftState?.pickInPack || 1
+  pickedCard.pickNumber = draftedCards.length + 1
+  pickedCard.packNumber = packNumber
+  pickedCard.pickInPack = pickInPack
+
   draftedCards.push(pickedCard)
 
   await query(

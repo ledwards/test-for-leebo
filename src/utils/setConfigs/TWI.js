@@ -9,9 +9,6 @@ export const TWI_CONFIG = {
   setNumber: 3,
   color: '#6B0000', // Reddish maroon
 
-  // Distribution period
-  distributionPeriod: 'pre-lawless-time',
-
   // Card counts (Normal variants only)
   cardCounts: {
     leaders: {

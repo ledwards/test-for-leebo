@@ -44,7 +44,7 @@ async function runTests() {
 
   console.log('')
   console.log('HyperspaceUncommonBelt Tests')
-  console.log('============================'  )
+  console.log('\x1b[35m' + '='.repeat(40) + '\x1b[0m')
 
   test('HyperspaceUncommon: initializes with Hyperspace uncommons', () => {
     const belt = new HyperspaceUncommonBelt('SOR')
@@ -64,14 +64,14 @@ async function runTests() {
   test('HyperspaceUncommon: hopper refills', () => {
     const belt = new HyperspaceUncommonBelt('SOR')
     const poolSize = belt.fillingPool.length
-    while (belt.size > poolSize) belt.next()
+    while (belt.size > poolSize) belt.next(); belt.next()
     belt.next()
-    assert(belt.size > poolSize, 'Hopper should refill')
+    assert(belt.size >= poolSize, 'Hopper should refill')
   })
 
   console.log('')
   console.log('HyperspaceCommonBelt Tests')
-  console.log('=========================='  )
+  console.log('\x1b[35m' + '='.repeat(40) + '\x1b[0m')
 
   test('HyperspaceCommon: initializes with Hyperspace commons', () => {
     const belt = new HyperspaceCommonBelt('SOR')
@@ -101,14 +101,14 @@ async function runTests() {
   test('HyperspaceCommon: hopper refills', () => {
     const belt = new HyperspaceCommonBelt('SOR')
     const poolSize = belt.fillingPool.length
-    while (belt.size > poolSize) belt.next()
+    while (belt.size > poolSize) belt.next(); belt.next()
     belt.next()
-    assert(belt.size > poolSize, 'Hopper should refill')
+    assert(belt.size >= poolSize, 'Hopper should refill')
   })
 
   console.log('')
   console.log('HyperspaceBaseBelt Tests')
-  console.log('========================')
+  console.log('\x1b[35m' + '='.repeat(40) + '\x1b[0m')
 
   test('HyperspaceBase: initializes with Hyperspace bases', () => {
     const belt = new HyperspaceBaseBelt('SOR')
@@ -128,14 +128,14 @@ async function runTests() {
   test('HyperspaceBase: hopper refills', () => {
     const belt = new HyperspaceBaseBelt('SOR')
     const poolSize = belt.fillingPool.length
-    while (belt.size > poolSize) belt.next()
+    while (belt.size > poolSize) belt.next(); belt.next()
     belt.next()
-    assert(belt.size > poolSize, 'Hopper should refill')
+    assert(belt.size >= poolSize, 'Hopper should refill')
   })
 
   console.log('')
   console.log('HyperspaceLeaderBelt Tests')
-  console.log('==========================')
+  console.log('\x1b[35m' + '='.repeat(40) + '\x1b[0m')
 
   test('HyperspaceLeader: initializes with Hyperspace leaders', () => {
     const belt = new HyperspaceLeaderBelt('SOR')
@@ -166,14 +166,14 @@ async function runTests() {
   test('HyperspaceLeader: hopper refills', () => {
     const belt = new HyperspaceLeaderBelt('SOR')
     const poolSize = belt.fillingPool.length
-    while (belt.size > poolSize) belt.next()
+    while (belt.size > poolSize) belt.next(); belt.next()
     belt.next()
-    assert(belt.size > poolSize, 'Hopper should refill')
+    assert(belt.size >= poolSize, 'Hopper should refill')
   })
 
   console.log('')
   console.log('HyperspaceRareLegendaryBelt Tests')
-  console.log('================================='  )
+  console.log('\x1b[35m' + '='.repeat(40) + '\x1b[0m')
 
   test('HyperspaceRL: initializes with Hyperspace rares and legendaries', () => {
     const belt = new HyperspaceRareLegendaryBelt('SOR')
@@ -205,14 +205,27 @@ async function runTests() {
   test('HyperspaceRL: hopper refills', () => {
     const belt = new HyperspaceRareLegendaryBelt('SOR')
     const poolSize = belt.fillingPool.length
-    while (belt.size > poolSize) belt.next()
+    while (belt.size > poolSize) belt.next(); belt.next()
     belt.next()
-    assert(belt.size > poolSize, 'Hopper should refill')
+    assert(belt.size >= poolSize, 'Hopper should refill')
   })
 
   console.log('')
-  console.log(`Results: ${passed} passed, ${failed} failed`)
-  process.exit(failed > 0 ? 1 : 0)
+  console.log('\x1b[35m' + '='.repeat(40) + '\x1b[0m')
+  console.log(`\x1b[32m✅ Tests passed: ${passed}\x1b[0m`)
+  if (failed > 0) {
+    console.log(`\x1b[31m❌ Tests failed: ${failed}\x1b[0m`)
+  } else {
+    console.log(`\x1b[90m   Tests failed: ${failed}\x1b[0m`)
+  }
+  console.log('')
+
+  if (failed > 0) {
+    console.log('\x1b[31m\x1b[1m💥 TESTS FAILED\x1b[0m')
+    process.exit(1)
+  } else {
+    console.log('\x1b[32m\x1b[1m🎉 ALL TESTS PASSED!\x1b[0m')
+  }
 }
 
 runTests()

@@ -15,6 +15,8 @@ import { generateBoosterPack, clearBeltCache } from './boosterPack.js'
  * @returns {Object} { packs: playerPacks[][], leaders: playerLeaders[][] }
  */
 export function generateDraftPacks(setCode, playerCount = 8) {
+  console.log('[DRAFT] Generating packs for', playerCount, 'players, set:', setCode)
+
   // Clear belt cache for fresh generation
   clearBeltCache()
 
@@ -23,12 +25,15 @@ export function generateDraftPacks(setCode, playerCount = 8) {
   const allPlayerLeaders = []
 
   for (let player = 0; player < playerCount; player++) {
+    console.log('[DRAFT] Generating packs for player', player + 1)
     const playerPacks = []
     const playerLeaders = []
 
     for (let packNum = 0; packNum < packsPerPlayer; packNum++) {
+      console.log('[DRAFT] Player', player + 1, 'pack', packNum + 1, '- starting generation')
       // Generate a pack
       const pack = generateBoosterPack(null, setCode)
+      console.log('[DRAFT] Player', player + 1, 'pack', packNum + 1, '- generation complete')
 
       // Extract leader from pack
       const leaderIndex = pack.cards.findIndex(c => c.isLeader)

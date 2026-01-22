@@ -3,10 +3,11 @@ import './DeckBuilder.css'
 import './AspectIcons.css'
 import { getCachedCards, isCacheInitialized, initializeCardCache } from '../utils/cardCache'
 import { fetchSetCards } from '../utils/api'
-import CardModal from './CardModal'
+import { useAuth } from '../contexts/AuthContext'
 import { getAspectColor } from '../utils/aspectColors'
 import CostIcon from './CostIcon'
-import { updatePool } from '../utils/poolApi'
+import { updatePool, savePool } from '../utils/poolApi'
+import { getPackArtUrl } from '../utils/packArt'
 
 // Get aspect symbol for list view using individual icon files
 const getAspectSymbol = (aspect, size = 'medium') => {
@@ -18,20 +19,20 @@ const getAspectSymbol = (aspect, size = 'medium') => {
     'Vigilance': 'vigilance',
     'Aggression': 'aggression'
   }
-  
+
   const aspectName = aspectMap[aspect]
   if (!aspectName) return null
-  
+
   const sizeMap = {
     'small': 16,
     'medium': 18,
     'large': 39  // Match cost icon size (39px)
   }
-  
+
   const iconSize = sizeMap[size] || 18
-  
+
   return (
-    <img 
+    <img
       src={`/icons/${aspectName}.png`}
       alt={aspect}
       style={{ width: `${iconSize}px`, height: `${iconSize}px`, display: 'block' }}
@@ -45,7 +46,9 @@ const SORT_OPTIONS = ['aspect', 'cost']
 
 // getAspectColor is now imported from utils/aspectColors
 
-function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareId = null, poolCreatedAt = null, poolType = 'sealed', poolName = null, poolOwnerUsername = null }) {
+function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareId = null, poolCreatedAt = null, poolType = 'sealed', poolName = null, poolOwnerUsername = null, poolOwnerId = null }) {
+  const { user, isAuthenticated, signIn } = useAuth()
+  const isOwner = user && poolOwnerId && user.id === poolOwnerId
   // Helper function to format card type for display
   const getFormattedType = useCallback((card) => {
     if (card.type === 'Unit') {
@@ -68,7 +71,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
     return card.type || 'Unknown'
   }, [])
-  
+
   const [cardPositions, setCardPositions] = useState({})
   const [draggedCard, setDraggedCard] = useState(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
@@ -110,7 +113,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [errorMessage, setErrorMessage] = useState(null)
   const [messageType, setMessageType] = useState(null) // 'error' or 'success'
   const [isInfoBarSticky, setIsInfoBarSticky] = useState(false)
-  
+
   // Function to get aspect color name
   const getAspectColorName = (aspect) => {
     const aspectColorMap = {
@@ -127,12 +130,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // Function to update pool name when leader or base changes
   const updatePoolName = useCallback(async (leaderCard, baseCard) => {
     if (!shareId || !setCode) return
-    
+
     try {
       const formatType = poolType === 'draft' ? 'Draft' : 'Sealed'
-      
+
       const leaderName = leaderCard?.name || ''
-      
+
       // For base: if common, use aspect color name; if rare, use base name
       let baseName = ''
       if (baseCard) {
@@ -149,41 +152,38 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           baseName = baseCard.name || ''
         }
       }
-      
-      // Format: {Set Abbrv} {Format} ({Leader Name} {Base Name})
-      const parts = [setCode, formatType]
-      
-      // Add leader/base in parentheses if they exist
+
+      // Format: {Leader Name} {Base Name} ({Set Abbrv} {Format})
       const leaderBaseParts = []
       if (leaderName) leaderBaseParts.push(leaderName)
       if (baseName) leaderBaseParts.push(baseName)
-      
+
+      let name
       if (leaderBaseParts.length > 0) {
-        parts.push('(' + leaderBaseParts.join(' ') + ')')
+        name = leaderBaseParts.join(' ') + ` (${setCode} ${formatType})`
+      } else {
+        name = `${setCode} ${formatType}`
       }
-      
-      const name = parts.join(' ')
-      
+
       await updatePool(shareId, { name })
     } catch (err) {
       console.error('Failed to update pool name:', err)
       // Don't show error to user - this is a background operation
     }
   }, [shareId, poolType, setCode])
-  
+
   // Update pool name when leader or base changes
   useEffect(() => {
     if (!shareId || !poolCreatedAt) return
-    
+
     const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
     const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
-    
+
     // Only update if at least one is selected
     if (leaderCard || baseCard) {
       updatePoolName(leaderCard, baseCard)
     }
   }, [activeLeader, activeBase, cardPositions, shareId, poolCreatedAt, updatePoolName])
-  const [selectedCard, setSelectedCard] = useState(null)
   const [deckImageModal, setDeckImageModal] = useState(null) // URL for deck image modal
   const [hoveredCardPreview, setHoveredCardPreview] = useState(null) // { card, x, y } for enlarged preview
   const [tooltip, setTooltip] = useState({ show: false, text: '', x: 0, y: 0 })
@@ -191,9 +191,39 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const longPressTimeoutRef = useRef(null)
   const modalHoverTimeoutRef = useRef(null)
   const previewTimeoutRef = useRef(null)
+  const previewHideTimeoutRef = useRef(null)
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
   const infoBarRef = useRef(null)
+
+  // Clear preview on visibility change (tab switch) or scroll
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setHoveredCardPreview(null)
+        if (previewTimeoutRef.current) {
+          clearTimeout(previewTimeoutRef.current)
+          previewTimeoutRef.current = null
+        }
+      }
+    }
+
+    const handleScroll = () => {
+      setHoveredCardPreview(null)
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current)
+        previewTimeoutRef.current = null
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('scroll', handleScroll, true)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('scroll', handleScroll, true)
+    }
+  }, [])
 
   // Tooltip handlers
   const showTooltip = (text, event) => {
@@ -259,21 +289,26 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // Enlarged preview hover handlers
   const handleCardMouseEnter = (card, event) => {
     if (!event) return
-    
-    // Clear any existing timeout
+
+    // Clear any existing show timeout
     if (previewTimeoutRef.current) {
       clearTimeout(previewTimeoutRef.current)
     }
-    
+    // Cancel any pending hide timeout
+    if (previewHideTimeoutRef.current) {
+      clearTimeout(previewHideTimeoutRef.current)
+      previewHideTimeoutRef.current = null
+    }
+
     // Capture the rect immediately (before timeout)
     const rect = event.currentTarget.getBoundingClientRect()
-    
-    // Set timeout to show preview after 1 second
+
+    // Set timeout to show preview after hovering
     previewTimeoutRef.current = setTimeout(() => {
       // Position the preview near the card (to the right, or left if too close to right edge)
       let previewX = rect.right + 20
       const previewY = rect.top
-      
+
       // Calculate preview dimensions based on card type
       // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
       // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
@@ -289,7 +324,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         previewWidth = isHorizontal ? 504 : 360
         previewHeight = isHorizontal ? 360 : 504
       }
-      
+
       // Ensure preview stays within viewport bounds
       // Check right edge
       if (previewX + previewWidth > window.innerWidth) {
@@ -300,51 +335,57 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           previewX = 10 // Small margin from left edge
         }
       }
-      
+
       // Check left edge
       if (previewX < 0) {
         previewX = 10 // Small margin from left edge
       }
-      
+
       // Adjust vertical position to keep preview within viewport
       // previewY is the center point (due to translateY(-50%))
       const previewTop = previewY - previewHeight / 2
       const previewBottom = previewY + previewHeight / 2
       let adjustedY = previewY
-      
+
       // Check top edge
       if (previewTop < 0) {
         adjustedY = previewHeight / 2 + 10 // Position so top is 10px from top
       }
-      
+
       // Check bottom edge
       if (previewBottom > window.innerHeight) {
         adjustedY = window.innerHeight - previewHeight / 2 - 10 // Position so bottom is 10px from bottom
       }
-      
+
       setHoveredCardPreview({ card, x: previewX, y: adjustedY })
-    }, 1000)
+    }, 400)
   }
 
   const handleCardMouseLeave = () => {
-    // Clear the timeout if it exists (preview hasn't shown yet)
+    // Clear the show timeout if it exists (preview hasn't shown yet)
     if (previewTimeoutRef.current) {
       clearTimeout(previewTimeoutRef.current)
       previewTimeoutRef.current = null
     }
-    
-    // Don't clear the preview if it's already showing
-    // This allows the mouse to move from the card to the preview without the preview disappearing
-    // The preview's own onMouseLeave will handle clearing it when you move away
-    // Only clear if the preview was never shown (timeout was still pending)
+
+    // Hide the preview immediately
+    setHoveredCardPreview(null)
   }
 
   const handlePreviewMouseEnter = () => {
-    // Keep preview visible when hovering over it
-    // Don't clear the timeout or preview
+    // Cancel the hide timeout when entering the preview
+    if (previewHideTimeoutRef.current) {
+      clearTimeout(previewHideTimeoutRef.current)
+      previewHideTimeoutRef.current = null
+    }
   }
 
   const handlePreviewMouseLeave = () => {
+    // Clear immediately when leaving the preview
+    if (previewHideTimeoutRef.current) {
+      clearTimeout(previewHideTimeoutRef.current)
+      previewHideTimeoutRef.current = null
+    }
     setHoveredCardPreview(null)
   }
 
@@ -363,6 +404,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       if (previewTimeoutRef.current) {
         clearTimeout(previewTimeoutRef.current)
       }
+      if (previewHideTimeoutRef.current) {
+        clearTimeout(previewHideTimeoutRef.current)
+      }
     }
   }, [])
 
@@ -374,15 +418,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         if (!isCacheInitialized()) {
           await initializeCardCache()
         }
-        
+
         // Get cards from cache (instant)
         let cardsData = getCachedCards(setCode)
-        
+
         // If cache doesn't have cards, try API as fallback
         if (cardsData.length === 0) {
           cardsData = await fetchSetCards(setCode)
         }
-        
+
         if (cardsData.length > 0) {
           setAllSetCards(cardsData)
         }
@@ -390,7 +434,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         console.error('Failed to load set cards:', error)
       }
     }
-    
+
     if (setCode) {
       loadSetCards()
     }
@@ -417,12 +461,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const getDefaultAspectSortKey = useCallback((card) => {
     const aspects = card.aspects || []
     if (aspects.length === 0) return 'E_99_Neutral'
-    
+
     const hasVillainy = aspects.includes('Villainy')
     const hasHeroism = aspects.includes('Heroism')
     const primaryAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning']
     const primaryAspect = aspects.find(a => primaryAspects.includes(a))
-    
+
     // Primary aspect order: Vigilance=1, Command=2, Aggression=3, Cunning=4
     const primaryOrder = {
       'Vigilance': '1',
@@ -430,7 +474,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       'Aggression': '3',
       'Cunning': '4'
     }
-    
+
     // Single aspect
     if (aspects.length === 1) {
       const aspect = aspects[0]
@@ -439,12 +483,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       // Single primary aspect - comes after all combinations for that primary
       return `${primaryOrder[aspect] || '9'}_04_${aspect}`
     }
-    
+
     // Two aspects
     if (aspects.length === 2) {
       if (primaryAspect) {
         const prefix = primaryOrder[primaryAspect] || '9'
-        
+
         // Check if it's double primary (e.g., Vigilance Vigilance)
         const primaryCount = aspects.filter(a => a === primaryAspect).length
         if (hasVillainy) {
@@ -462,7 +506,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         return 'E_01_Villainy_Heroism'
       }
     }
-    
+
     // More than 2 aspects - use first primary aspect
     if (primaryAspect) {
       const prefix = primaryOrder[primaryAspect] || '9'
@@ -480,7 +524,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       else if (hasHeroism) subOrder = '02'
       return `${prefix}_${subOrder}_${sortedAspects.join('_')}`
     }
-    
+
     // No primary aspect found - check for Villainy or Heroism
     if (hasVillainy) return 'E_01_Villainy_Multi'
     if (hasHeroism) return 'E_02_Heroism_Multi'
@@ -491,12 +535,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const getAspectCombinationKey = useCallback((card) => {
     const aspects = card.aspects || []
     if (aspects.length === 0) return 'neutral'
-    
+
     const hasVillainy = aspects.includes('Villainy')
     const hasHeroism = aspects.includes('Heroism')
     const primaryAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning']
     const primaryAspect = aspects.find(a => primaryAspects.includes(a))
-    
+
     // Single aspect
     if (aspects.length === 1) {
       const aspect = aspects[0]
@@ -508,7 +552,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       if (aspect === 'Heroism') return 'heroism'
       return 'neutral'
     }
-    
+
     // Two aspects
     if (aspects.length === 2) {
       if (primaryAspect) {
@@ -529,13 +573,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         return 'villainy_heroism'
       }
     }
-    
+
     // More than 2 aspects - use first primary aspect
     if (primaryAspect) {
       const sortedAspects = [...aspects].sort()
       return sortedAspects.join('_').toLowerCase()
     }
-    
+
     return 'neutral'
   }, [])
 
@@ -585,7 +629,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       'villainy': 'villainy',
       'heroism': 'heroism'
     }
-    
+
     if (parts.length === 1) {
       // Single aspect or neutral
       if (parts[0] === 'neutral') {
@@ -594,7 +638,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       const aspectName = aspectMap[parts[0]]
       if (!aspectName) return null
       return (
-        <img 
+        <img
           src={`/icons/${aspectName}.png`}
           alt={parts[0]}
           style={{ width: '1em', height: '1em', verticalAlign: 'middle' }}
@@ -608,7 +652,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             const aspectName = aspectMap[part]
             if (!aspectName) return null
             return (
-              <img 
+              <img
                 key={i}
                 src={`/icons/${aspectName}.png`}
                 alt={part}
@@ -625,7 +669,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const getAspectKey = useCallback((card) => {
     const aspects = card.aspects || []
     if (aspects.length === 0) return 'ZZZ_Neutral'
-    
+
     // Single aspects - sort by priority (alphabetical of colors: Blue, Green, Red, Yellow)
     if (aspects.length === 1) {
       const aspect = aspects[0]
@@ -639,7 +683,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       }
       return priority[aspect] || `G_${aspect}`
     }
-    
+
     // Two aspects - return sorted combination with prefix
     const sortedAspects = [...aspects].sort()
     return `H_${sortedAspects.join(' ')}`
@@ -649,9 +693,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // Note: No longer filtering - cards are moved between deck/sideboard via filter checkboxes
   const getFilteredAndSortedCards = useCallback(() => {
     const allCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+      .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
       .map(pos => pos.card)
-    
+
     if (sortOption === 'aspect') {
       // Sort by aspect key directly
       return allCards.sort((a, b) => {
@@ -670,17 +714,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // Returns an array of groups, where each group contains cards with the same base name
   const groupCardsByName = useCallback((cardEntries) => {
     const groups = new Map()
-    
+
     cardEntries.forEach(({ cardId, position }) => {
       const card = position.card
       const baseName = card.name || 'Unknown'
-      
+
       if (!groups.has(baseName)) {
         groups.set(baseName, [])
       }
       groups.get(baseName).push({ cardId, position })
     })
-    
+
     // Convert to array and sort groups by first card's order
     return Array.from(groups.entries()).map(([name, cards]) => ({
       name,
@@ -700,7 +744,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       try {
         // Handle both string and object savedState
         const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState
-        
+
         if (state.cardPositions && Object.keys(state.cardPositions).length > 0) {
           // Ensure all cards have enabled property (default to true)
           // Also remove any bases/leaders that might have been in 'main' section
@@ -728,7 +772,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             Aggression: true
           })
           setSortOption(state.sortOption || 'aspect')
-          
+
           // Restore active leader and base
           if (state.activeLeader) {
             setActiveLeader(state.activeLeader)
@@ -777,14 +821,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           clearTimeout(modalHoverTimeoutRef.current)
           modalHoverTimeoutRef.current = null
         }
-        setSelectedCard(null)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [selectedCard])
+  }, [])
 
 
   // Initialize card positions in sections
@@ -792,13 +835,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   useEffect(() => {
     // Don't initialize if we have saved state to restore (it will be restored in the other useEffect)
     if (savedState) return
-    
+
     // Initialize immediately with pool cards if we have them
     // We only need allSetCards for the common bases, which can be added later
     if (cards.length > 0 && Object.keys(cardPositions).length === 0) {
       const poolCards = cards.filter(card => !card.isBase && !card.isLeader)
       const poolLeaders = cards.filter(card => card.isLeader)
-      
+
       // Get common bases from all set cards if available, otherwise skip (will be added later)
       const commonBasesMap = new Map()
       if (allSetCards.length > 0) {
@@ -811,7 +854,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             }
           })
       }
-      
+
       // Sort bases by aspect: Vigilance, Command, Aggression, Cunning
       const aspectOrder = ['Vigilance', 'Command', 'Aggression', 'Cunning']
       const getAspectSortValue = (card) => {
@@ -825,7 +868,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
         return 999 // Other aspects go last
       }
-      
+
       const uniqueCommonBases = Array.from(commonBasesMap.values()).sort((a, b) => {
         const aValue = getAspectSortValue(a)
         const bValue = getAspectSortValue(b)
@@ -835,7 +878,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         // If same aspect, sort by name
         return (a.name || '').localeCompare(b.name || '')
       })
-      
+
       const initialPositions = {}
       const labels = []
       const bounds = {}
@@ -848,7 +891,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       const sectionSpacing = 20
       const labelHeight = 30
       let currentY = padding
-      
+
       // Get rare bases from pack cards
       const rareBasesFromPacks = cards.filter(card => card.isBase && card.rarity === 'Rare')
       const rareBasesMap = new Map()
@@ -866,13 +909,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
         return (a.name || '').localeCompare(b.name || '')
       })
-      
+
       // Combine rare bases (first) and common bases (second)
       const allBases = [...uniqueRareBases, ...uniqueCommonBases]
-      
+
       // Combine leaders and bases into one section
       const leadersAndBases = [...poolLeaders, ...allBases]
-      
+
       if (leadersAndBases.length > 0) {
         const sectionStartY = currentY + labelHeight + 10
         currentY = sectionStartY
@@ -882,7 +925,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           const row = Math.floor(index / itemsPerRow)
           const col = index % itemsPerRow
           // Use unique ID that always includes index to handle duplicates
-          const cardId = card.isLeader 
+          const cardId = card.isLeader
             ? `leader-${index}-${card.id || `${card.name}-${card.set}`}`
             : `base-${index}-${card.id || `${card.name}-${card.set}`}`
           initialPositions[cardId] = {
@@ -902,7 +945,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         // Start pool section right after leaders/bases with minimal gap (just for label)
         currentY = sectionEndY + 20 // Small gap for visual separation
       }
-      
+
       if (poolCards.length > 0) {
         // Deck section
         const deckStartY = currentY + labelHeight
@@ -928,14 +971,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         const deckEndY = currentY + mainRows * (cardHeight + spacing)
         bounds.deck = { minY: deckStartY, maxY: deckEndY, minX: padding, maxX: window.innerWidth - padding }
         currentY = deckEndY
-        
+
         // Sideboard section (empty initially, but with space reserved)
         const sideboardStartY = currentY + labelHeight + 10
         labels.push({ text: 'Sideboard', y: sideboardStartY - labelHeight })
         bounds.sideboard = { minY: sideboardStartY, maxY: sideboardStartY + 200, minX: padding, maxX: window.innerWidth - padding }
         currentY = sideboardStartY + 200
       }
-      
+
       const calculatedHeight = currentY + padding
       setCanvasHeight(calculatedHeight)
       setCardPositions(initialPositions)
@@ -952,7 +995,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       const hasCommonBases = Object.values(cardPositions).some(
         pos => pos.card.isBase && pos.card.rarity === 'Common'
       )
-      
+
       // If no common bases found, add them
       if (!hasCommonBases) {
         // Get common bases from all set cards
@@ -965,7 +1008,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               commonBasesMap.set(key, card)
             }
           })
-        
+
         // Sort bases by aspect
         const aspectOrder = ['Vigilance', 'Command', 'Aggression', 'Cunning']
         const getAspectSortValue = (card) => {
@@ -978,7 +1021,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           }
           return 999
         }
-        
+
         const uniqueCommonBases = Array.from(commonBasesMap.values()).sort((a, b) => {
           const aValue = getAspectSortValue(a)
           const bValue = getAspectSortValue(b)
@@ -987,7 +1030,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           }
           return (a.name || '').localeCompare(b.name || '')
         })
-        
+
         // Find the leaders-bases section bounds
         const leadersBasesBounds = sectionBounds['leaders-bases']
         if (leadersBasesBounds && uniqueCommonBases.length > 0) {
@@ -996,16 +1039,16 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           const leaderBaseHeight = 120
           const spacing = 20
           const padding = 50
-          
+
           // Find existing bases to determine starting position
           const existingBases = Object.values(cardPositions)
             .filter(pos => pos.section === 'leaders-bases' && pos.card.isBase)
-          
+
           // Calculate starting position: after existing bases or at section start
           let startY = leadersBasesBounds.minY
           let startX = padding
           const itemsPerRow = Math.floor((window.innerWidth - 100) / (leaderBaseWidth + spacing))
-          
+
           if (existingBases.length > 0) {
             // Find the bottom-right position of existing bases
             const maxY = Math.max(...existingBases.map(pos => pos.y + leaderBaseHeight))
@@ -1018,18 +1061,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               startX = maxX + spacing
             }
           }
-          
+
           // Add common bases
           uniqueCommonBases.forEach((card, index) => {
             const row = Math.floor(index / itemsPerRow)
             const col = index % itemsPerRow
             const cardId = `base-common-${index}-${card.id || `${card.name}-${card.set}`}`
-            
+
             // Check if this base already exists (avoid duplicates)
             const baseExists = Object.values(cardPositions).some(
               pos => pos.card.isBase && pos.card.name === card.name && pos.card.rarity === 'Common'
             )
-            
+
             if (!baseExists) {
               updatedPositions[cardId] = {
                 x: startX + col * (leaderBaseWidth + spacing),
@@ -1041,7 +1084,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               }
             }
           })
-          
+
           // Update bounds if needed
           const updatedBounds = { ...sectionBounds }
           if (uniqueCommonBases.length > 0) {
@@ -1051,7 +1094,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               updatedBounds['leaders-bases'].maxY = Math.max(updatedBounds['leaders-bases'].maxY, newMaxY)
             }
           }
-          
+
           setCardPositions(updatedPositions)
           setSectionBounds(updatedBounds)
         }
@@ -1068,11 +1111,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       const deckCardIds = Object.entries(cardPositions)
         .filter(([_, pos]) => pos.section === 'deck')
         .map(([cardId, _]) => cardId)
-      
+
       const sideboardCardIds = Object.entries(cardPositions)
         .filter(([_, pos]) => pos.section === 'sideboard')
         .map(([cardId, _]) => cardId)
-      
+
       const stateToSave = {
         cardPositions: Object.keys(cardPositions).length > 0 ? cardPositions : {},
         sectionLabels,
@@ -1099,7 +1142,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     setCardPositions(prev => {
       const updated = { ...prev }
       const toRemove = []
-      
+
       Object.keys(updated).forEach(cardId => {
         const pos = updated[cardId]
         // Remove bases and leaders from deck/sideboard sections
@@ -1107,12 +1150,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           toRemove.push(cardId)
           return
         }
-        
+
         // Move cards between deck and sideboard based on enabled state
         if (pos.section === 'deck' || pos.section === 'sideboard') {
           const isEnabled = pos.enabled !== false
           const shouldBeInDeck = isEnabled
-          
+
           if (shouldBeInDeck && pos.section === 'sideboard') {
             // Move from sideboard to deck (card is enabled)
           updated[cardId] = {
@@ -1133,12 +1176,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           }
         }
       })
-      
+
       // Remove invalid cards
       toRemove.forEach(cardId => {
         delete updated[cardId]
       })
-      
+
       return updated
     })
   }, [aspectFilters, cardMatchesFilters])
@@ -1147,56 +1190,56 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const findTouchingCards = useCallback((cardId, positions) => {
     const card = positions[cardId]
     if (!card) return new Set()
-    
+
     const touching = new Set([cardId])
     const cardWidth = card.card.isLeader || card.card.isBase ? 168 : 120
     const cardHeight = card.card.isLeader || card.card.isBase ? 120 : 168
     const threshold = 5 // Pixels of overlap/adjacency to consider "touching"
-    
+
     const cardLeft = card.x
     const cardRight = card.x + cardWidth
     const cardTop = card.y
     const cardBottom = card.y + cardHeight
-    
+
     // Check all other cards in the same section
     Object.entries(positions).forEach(([otherId, otherPos]) => {
       if (otherId === cardId || !otherPos.visible) return
       if (otherPos.section !== card.section) return
-      
+
       const otherWidth = otherPos.card.isLeader || otherPos.card.isBase ? 168 : 120
       const otherHeight = otherPos.card.isLeader || otherPos.card.isBase ? 120 : 168
-      
+
       const otherLeft = otherPos.x
       const otherRight = otherPos.x + otherWidth
       const otherTop = otherPos.y
       const otherBottom = otherPos.y + otherHeight
-      
+
       // Check if cards are touching (overlapping or adjacent within threshold)
       const horizontalOverlap = !(cardRight < otherLeft - threshold || cardLeft > otherRight + threshold)
       const verticalOverlap = !(cardBottom < otherTop - threshold || cardTop > otherBottom + threshold)
-      
+
       if (horizontalOverlap && verticalOverlap) {
         touching.add(otherId)
       }
     })
-    
+
     return touching
   }, [])
 
   // Apply sorting - separate deck and sideboard
   useEffect(() => {
     if (sortOption === 'aspect') return // Aspect sorting is handled in rendering, not here
-    
+
     setCardPositions(prev => {
       // Separate deck and sideboard cards
       const deckCards = Object.entries(prev)
-        .filter(([_, pos]) => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+        .filter(([_, pos]) => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
         .map(([id, pos]) => ({ id, ...pos }))
-      
+
       const sideboardCards = Object.entries(prev)
-        .filter(([_, pos]) => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+        .filter(([_, pos]) => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader)
         .map(([id, pos]) => ({ id, ...pos }))
-      
+
       // Get sorted deck cards (only deck section)
       // Note: No longer filtering - cards are moved between deck/sideboard via filter checkboxes
       const deckSorted = deckCards
@@ -1205,7 +1248,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         const entry = deckCards.find(({ card: c }) => c.id === card.id || c.name === card.name)
         return entry?.id
       }).filter(Boolean)
-      
+
       // Get sorted sideboard cards
       // Note: No longer filtering - cards are moved between deck/sideboard via filter checkboxes
       const sideboardSorted = sideboardCards
@@ -1214,7 +1257,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         const entry = sideboardCards.find(({ card: c }) => c.id === card.id || c.name === card.name)
         return entry?.id
       }).filter(Boolean)
-      
+
       const updated = { ...prev }
       const cardWidth = 120
       const cardHeight = 168
@@ -1222,15 +1265,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       const padding = 50
       const sectionSpacing = 80
       const cardsPerRow = Math.floor((window.innerWidth - 100) / (cardWidth + spacing))
-      
+
       // Get deck section bounds
       const deckBounds = sectionBounds.deck || { minY: padding, maxY: padding + 500, minX: padding, maxX: window.innerWidth - padding }
       let deckY = deckBounds.minY
-      
+
       // Get sideboard section bounds (after deck)
       const sideboardStartY = deckBounds.maxY + sectionSpacing + 30
       let sideboardY = sideboardStartY
-      
+
       // Helper function to sort cards
       const sortCards = (cards) => {
         if (sortOption === 'cost') {
@@ -1260,11 +1303,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
         return cards
       }
-      
+
       // Helper function to position cards in a section
       const positionCards = (cardIds, startY, sectionName) => {
         if (cardIds.length === 0) return startY
-        
+
         const cards = cardIds.map(id => updated[id]?.card).filter(Boolean)
         const sortedCards = sortCards(cards)
         const sortedCardIds = sortedCards.map(card => {
@@ -1273,7 +1316,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             return c && (c.id === card.id || c.name === card.name)
           })
         }).filter(Boolean)
-      
+
       if (sortOption === 'cost') {
         // Vertical columns by cost
         const costGroups = {}
@@ -1284,7 +1327,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           if (!costGroups[cost]) costGroups[cost] = []
             costGroups[cost].push(cardId)
         })
-        
+
         let col = 0
           let maxRow = 0
         Object.keys(costGroups).sort((a, b) => a - b).forEach(cost => {
@@ -1313,7 +1356,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           if (!aspectGroups[key]) aspectGroups[key] = []
             aspectGroups[key].push(cardId)
         })
-        
+
           let currentY = startY
         const sortedKeys = Object.keys(aspectGroups).sort()
         sortedKeys.forEach(key => {
@@ -1350,27 +1393,27 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           return startY + rows * (cardHeight + spacing)
         }
       }
-      
+
       // Position deck cards
       const deckEndY = positionCards(sortedDeckIds, deckY, 'deck')
-      
+
       // Position sideboard cards
       const sideboardEndY = positionCards(sortedSideboardIds, sideboardY, 'sideboard')
-      
+
       // Update section bounds and canvas height
       const newDeckBounds = { ...deckBounds, maxY: deckEndY }
       const newSideboardBounds = { minY: sideboardY, maxY: sideboardEndY, minX: padding, maxX: window.innerWidth - padding }
-      
+
       setSectionBounds(prev => ({
         ...prev,
         deck: newDeckBounds,
         sideboard: newSideboardBounds
       }))
-      
+
       // Update canvas height to include both sections
       const maxY = Math.max(deckEndY, sideboardEndY)
       setCanvasHeight(maxY + padding)
-      
+
       return updated
     })
   }, [sortOption, cardMatchesFilters, getAspectKey, sectionBounds])
@@ -1379,27 +1422,27 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     if (e.button !== 0) return // Only left click
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (!cardId) return
       const card = cardPositions[cardId]
       if (!card) return
-    
+
     // Reset drag flag at start of mouse down
     hasDraggedRef.current = false
-    
+
     // Handle leaders and bases - they can't be dragged, only selected
     if (card.section === 'leaders-bases' && card.card.isLeader) {
       // Toggle selection - clicking same card deselects
       setActiveLeader(cardId === activeLeader ? null : cardId)
       return
     }
-    
+
     if (card.section === 'leaders-bases' && card.card.isBase) {
       // Toggle selection - clicking same card deselects
       setActiveBase(cardId === activeBase ? null : cardId)
       return
     }
-    
+
     // For other cards, allow normal dragging and selection
     const isModifierPressed = e.metaKey || e.ctrlKey
     if (isModifierPressed) {
@@ -1413,7 +1456,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }))
         return newZ
       })
-      
+
       setSelectedCards(prev => {
         const newSet = new Set(prev)
         // If selecting a card from a different section, clear and start new selection
@@ -1423,7 +1466,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             newSet.clear()
           }
         }
-        
+
         if (newSet.has(cardId)) {
           newSet.delete(cardId)
         } else {
@@ -1433,7 +1476,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       })
       return
     }
-    
+
     // Bring to front
     setZIndexCounter(prev => {
       const newZ = prev + 1
@@ -1451,7 +1494,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     // Check if shift is pressed for group drag
     const isShiftPressed = e.shiftKey
     setIsShiftDrag(isShiftPressed)
-    
+
     // If shift is pressed, find all touching cards
     if (isShiftPressed) {
       const touching = findTouchingCards(cardId, cardPositions)
@@ -1485,17 +1528,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     if (isSelecting && selectionBox) {
       const rect = canvasRef.current?.getBoundingClientRect()
       if (!rect) return
-      
+
       const endX = (e.clientX - rect.left)
       const endY = (e.clientY - rect.top)
       setSelectionBox(prev => prev ? { ...prev, endX, endY } : null)
-      
+
       // Select cards in box
       const minX = Math.min(selectionBox.startX, endX)
       const maxX = Math.max(selectionBox.startX, endX)
       const minY = Math.min(selectionBox.startY, endY)
       const maxY = Math.max(selectionBox.startY, endY)
-      
+
       const newSelected = new Set()
       Object.entries(cardPositions).forEach(([cardId, pos]) => {
         if (!pos.visible) return
@@ -1503,7 +1546,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         const cardHeight = pos.card.isLeader || pos.card.isBase ? 120 : 168
         const cardRight = pos.x + cardWidth
         const cardBottom = pos.y + cardHeight
-        
+
         if (pos.x < maxX && cardRight > minX && pos.y < maxY && cardBottom > minY) {
           newSelected.add(cardId)
         }
@@ -1538,7 +1581,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         const newY = (e.clientY - rect.top) - dragOffset.y
         const cardWidth = currentCard.card.isLeader || currentCard.card.isBase ? 168 : 120
         const cardHeight = currentCard.card.isLeader || currentCard.card.isBase ? 120 : 168
-        
+
         // Get section bounds for this card
         const section = currentCard.section
         const bounds = sectionBounds[section]
@@ -1554,7 +1597,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         const constrainedY = Math.max(minY, Math.min(newY, maxY))
 
         const updates = { ...prev }
-        
+
         // Determine which cards to move
         let cardsToMove = new Set([draggedCard])
         if (isShiftDrag && touchingCards.size > 0) {
@@ -1564,12 +1607,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           // Normal multi-select: move all selected cards
           cardsToMove = selectedCards
         }
-        
+
         // Move all cards together (only if they're in the same section)
         if (cardsToMove.size > 1) {
           const deltaX = constrainedX - currentCard.x
           const deltaY = constrainedY - currentCard.y
-          
+
           cardsToMove.forEach(id => {
             if (updates[id] && updates[id].section === section) {
               const cardW = updates[id].card.isLeader || updates[id].card.isBase ? 168 : 120
@@ -1592,7 +1635,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           // Store final position for cleanup
           finalDragPositionRef.current = { x: constrainedX, y: constrainedY }
         }
-        
+
         return updates
       })
     }
@@ -1603,7 +1646,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       setIsSelecting(false)
       setSelectionBox(null)
     }
-    
+
     // Handle click-toggle for deck/sideboard cards if no drag occurred
     if (draggedCard && !hasDraggedRef.current) {
       const card = cardPositions[draggedCard]
@@ -1623,20 +1666,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         return
       }
     }
-    
+
     if (draggedCard) {
       const currentDraggedCard = draggedCard
       const finalPos = finalDragPositionRef.current
-      
+
       // Cleanup overlap
       setCardPositions(prev => {
         const draggedCardPos = prev[currentDraggedCard]
         if (!draggedCardPos) return prev
-        
+
         // Use final position from ref if available, otherwise use current position
         const dragX = finalPos ? finalPos.x : draggedCardPos.x
         const dragY = finalPos ? finalPos.y : draggedCardPos.y
-        
+
         const draggedWidth = draggedCardPos.card.isLeader || draggedCardPos.card.isBase ? 168 : 120
         const draggedHeight = draggedCardPos.card.isLeader || draggedCardPos.card.isBase ? 120 : 168
         const draggedLeft = dragX
@@ -1645,63 +1688,63 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         const draggedBottom = dragY + draggedHeight
         const draggedCenterX = dragX + draggedWidth / 2
         const draggedCenterY = dragY + draggedHeight / 2
-        
+
         // Find all cards that the dragged card overlaps with (in the same section)
         const overlappingCards = []
         Object.entries(prev).forEach(([cardId, pos]) => {
           if (cardId === currentDraggedCard || !pos.visible || pos.section !== draggedCardPos.section) return
-          
+
           const cardWidth = pos.card.isLeader || pos.card.isBase ? 168 : 120
           const cardHeight = pos.card.isLeader || pos.card.isBase ? 120 : 168
           const cardLeft = pos.x
           const cardRight = pos.x + cardWidth
           const cardTop = pos.y
           const cardBottom = pos.y + cardHeight
-          
+
           // Check if dragged card's center is inside this card (more reliable)
           const centerOverlap = draggedCenterX >= cardLeft && draggedCenterX <= cardRight &&
                                 draggedCenterY >= cardTop && draggedCenterY <= cardBottom
-          
+
           // Also check if cards have significant overlap (at least 20% area overlap)
           const overlapX = Math.max(0, Math.min(draggedRight, cardRight) - Math.max(draggedLeft, cardLeft))
           const overlapY = Math.max(0, Math.min(draggedBottom, cardBottom) - Math.max(draggedTop, cardTop))
           const overlapArea = overlapX * overlapY
           const draggedArea = draggedWidth * draggedHeight
           const significantOverlap = overlapArea > (draggedArea * 0.2)
-          
+
           if (centerOverlap || significantOverlap) {
             overlappingCards.push({ cardId, pos })
           }
         })
-        
+
         // If there are overlapping cards, cleanup
         if (overlappingCards.length > 0) {
           const updates = { ...prev }
-          
+
           // First, update the dragged card's position to its final position
           updates[currentDraggedCard] = {
             ...draggedCardPos,
             x: dragX,
             y: dragY
           }
-          
+
           // Create updated position object for sorting
           const updatedDraggedPos = {
             ...draggedCardPos,
             x: dragX,
             y: dragY
           }
-          
+
           // Include the dragged card and all overlapping cards
           const allCardsToCleanup = [{ cardId: currentDraggedCard, pos: updatedDraggedPos }, ...overlappingCards]
-          
+
           // Remove duplicates by cardId
           const uniqueCardsMap = new Map()
           allCardsToCleanup.forEach(({ cardId, pos }) => {
             uniqueCardsMap.set(cardId, { cardId, pos })
           })
           const uniqueCardsArray = Array.from(uniqueCardsMap.values())
-          
+
           // Sort by current Y position, then X position to maintain visual order
           uniqueCardsArray.sort((a, b) => {
             const yDiff = a.pos.y - b.pos.y
@@ -1710,13 +1753,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             }
             return yDiff
           })
-          
+
           // Find the leftmost X position of all cards
           const leftmostX = Math.min(...uniqueCardsArray.map(c => c.pos.x))
-          
+
           // Get the topmost Y position
           const topmostY = Math.min(...uniqueCardsArray.map(c => c.pos.y))
-          
+
           // Get section bounds
           const section = draggedCardPos.section
           const bounds = sectionBounds[section]
@@ -1724,30 +1767,30 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             // Left align and stack vertically with 15px spacing
             const stackSpacing = 15
             let currentY = topmostY
-            
+
             uniqueCardsArray.forEach(({ cardId, pos }) => {
               const cardHeight = pos.card.isLeader || pos.card.isBase ? 120 : 168
               const cardWidth = pos.card.isLeader || pos.card.isBase ? 168 : 120
               const constrainedX = Math.max(bounds.minX, Math.min(leftmostX, bounds.maxX - cardWidth))
               const constrainedY = Math.max(bounds.minY, Math.min(currentY, bounds.maxY - cardHeight))
-              
+
               // Preserve all properties from the current position
               updates[cardId] = {
                 ...updates[cardId] || pos,
                 x: constrainedX,
                 y: constrainedY
               }
-              
+
               currentY = constrainedY + cardHeight + stackSpacing
             })
-            
+
             return updates
           }
         }
-          
+
           return prev
         })
-      
+
       // Clear the final position ref
       finalDragPositionRef.current = null
       hasDraggedRef.current = false
@@ -1770,14 +1813,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // Mark the last block in each row to expand
   useEffect(() => {
     if (!deckExpanded || !deckBlocksRowRef.current) return
-    
+
     const markLastInRow = () => {
       const blocks = deckBlocksRowRef.current?.querySelectorAll('.card-block')
       if (!blocks || blocks.length === 0) return
-      
+
       // Remove previous markers
       blocks.forEach(block => block.classList.remove('last-in-row'))
-      
+
       // Group blocks by row (same top position)
       const rows = new Map()
       blocks.forEach((block) => {
@@ -1788,7 +1831,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
         rows.get(top).push(block)
       })
-      
+
       // Mark the last block in each row
       rows.forEach((rowBlocks) => {
         if (rowBlocks.length > 0) {
@@ -1796,13 +1839,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
       })
     }
-    
+
     // Run after a short delay to ensure layout is complete
     const timeoutId = setTimeout(markLastInRow, 100)
-    
+
     // Also run on resize
     window.addEventListener('resize', markLastInRow)
-    
+
     return () => {
       clearTimeout(timeoutId)
       window.removeEventListener('resize', markLastInRow)
@@ -1851,7 +1894,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     const aspectKeyB = getDefaultAspectSortKey(b)
     const aspectCompare = aspectKeyA.localeCompare(aspectKeyB)
     if (aspectCompare !== 0) return aspectCompare
-    
+
     // Second: sort by type (Unit, then Upgrade, then Event)
     // Handle both "Unit" and "Ground Unit"/"Space Unit" types
     const getTypeOrder = (type) => {
@@ -1864,12 +1907,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     const aOrder = getTypeOrder(a.type || '')
     const bOrder = getTypeOrder(b.type || '')
     if (aOrder !== bOrder) return aOrder - bOrder
-    
+
     // Third: sort by cost (low to high)
     const costA = a.cost !== null && a.cost !== undefined ? a.cost : 999
     const costB = b.cost !== null && b.cost !== undefined ? b.cost : 999
     if (costA !== costB) return costA - costB
-    
+
     // Fourth: sort alphabetically (a before b down to z)
     const nameA = (a.name || '').toLowerCase()
     const nameB = (b.name || '').toLowerCase()
@@ -1878,7 +1921,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
   const sortTableData = (a, b, field, direction) => {
     let aVal, bVal
-    
+
     switch (field) {
       case 'name':
         aVal = (a.name || '').toLowerCase()
@@ -1900,7 +1943,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       default:
         return 0
     }
-    
+
     if (aVal < bVal) return direction === 'asc' ? -1 : 1
     if (aVal > bVal) return direction === 'asc' ? 1 : -1
     return 0
@@ -1916,41 +1959,41 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const buildDeckData = () => {
     const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
     const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
-    
+
     // Cards in deck section go to deck, cards in sideboard section go to sideboard
     // Exclude bases and leaders from pool
     const enabledCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+      .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
       .map(pos => pos.card)
-    
+
     const disabledCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+      .filter(pos => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader)
       .map(pos => pos.card)
-    
+
     // Count enabled cards by ID for deck
     const deckCounts = new Map()
     enabledCards.forEach(card => {
       const id = convertIdFormat(card.id)
       deckCounts.set(id, (deckCounts.get(id) || 0) + 1)
     })
-    
+
     // Count disabled cards by ID for sideboard
     const sideboardCounts = new Map()
     disabledCards.forEach(card => {
       const id = convertIdFormat(card.id)
       sideboardCounts.set(id, (sideboardCounts.get(id) || 0) + 1)
     })
-    
+
     const deck = Array.from(deckCounts.entries()).map(([id, count]) => ({
       id,
       count
     }))
-    
+
     const sideboard = Array.from(sideboardCounts.entries()).map(([id, count]) => ({
       id,
       count
     }))
-    
+
     return {
       leader: leaderCard ? { id: convertIdFormat(leaderCard.id), count: 1 } : null,
       base: baseCard ? { id: convertIdFormat(baseCard.id), count: 1 } : null,
@@ -1974,11 +2017,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       }, 5000)
       return
     }
-    
+
     setErrorMessage(null)
     setMessageType(null)
     const deckData = buildDeckData()
-    
+
     const exportData = {
       metadata: {
         name: `Deck - ${setCode}`,
@@ -1989,7 +2032,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       deck: deckData.deck,
       sideboard: deckData.sideboard
     }
-    
+
     const jsonString = JSON.stringify(exportData, null, 2)
     const blob = new Blob([jsonString], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
@@ -2017,11 +2060,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       }, 5000)
       return
     }
-    
+
     setErrorMessage(null)
     setMessageType(null)
     const deckData = buildDeckData()
-    
+
     const exportData = {
       metadata: {
         name: `Deck - ${setCode}`,
@@ -2032,7 +2075,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       deck: deckData.deck,
       sideboard: deckData.sideboard
     }
-    
+
     const jsonString = JSON.stringify(exportData, null, 2)
     try {
       await navigator.clipboard.writeText(jsonString)
@@ -2059,29 +2102,29 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     try {
       setErrorMessage('Generating image...')
       setMessageType('success')
-      
+
       // Get selected leader and base
       const selectedLeader = activeLeader ? cardPositions[activeLeader]?.card : null
       const selectedBase = activeBase ? cardPositions[activeBase]?.card : null
-      
+
       // Get deck cards (in color) - sorted by default sort
       const deckCards = Object.values(cardPositions)
-        .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+        .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
         .map(pos => pos.card)
         .sort((a, b) => defaultSort(a, b))
-      
+
       // Get sideboard cards (will be grayscale) - sorted by default sort
       const sideboardCards = Object.values(cardPositions)
-        .filter(pos => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+        .filter(pos => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader)
         .map(pos => pos.card)
         .sort((a, b) => defaultSort(a, b))
-      
+
       // Get unused leaders and bases (will be grayscale) - sorted by default sort
       const unusedLeaders = Object.entries(cardPositions)
         .filter(([cardId, pos]) => pos.section === 'leaders-bases' && pos.visible && pos.card.isLeader && cardId !== activeLeader)
         .map(([_, pos]) => pos.card)
         .sort((a, b) => defaultSort(a, b))
-      
+
       const unusedBases = Object.entries(cardPositions)
         .filter(([cardId, pos]) => {
           const card = pos.card
@@ -2092,7 +2135,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         })
         .map(([_, pos]) => pos.card)
         .sort((a, b) => defaultSort(a, b))
-      
+
       // Card dimensions
       const cardWidth = 120
       const cardHeight = 168
@@ -2104,7 +2147,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       const labelHeight = 30
       const titleHeight = 50
       const cardsPerRow = 12
-      
+
       // Calculate dimensions based on total cards (including duplicates)
       const deckRows = Math.ceil(deckCards.length / cardsPerRow)
       const sideboardRows = Math.ceil(sideboardCards.length / cardsPerRow)
@@ -2112,42 +2155,42 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       const width = padding * 2 + cardsPerRow * (cardWidth + spacing) - spacing
       const leadersPerRow = Math.floor((width - 2 * padding + spacing) / (leaderBaseWidth + spacing))
       const unusedLeadersRows = unusedLeaders.length > 0 ? Math.ceil(unusedLeaders.length / leadersPerRow) : 0
-      
+
       let currentY = padding
-      
+
       // Title at top
       currentY += titleHeight + sectionSpacing
-      
+
       // Selected leader and base at top (1 row, centered)
       if (selectedLeader || selectedBase) {
         currentY += leaderBaseHeight + sectionSpacing
       }
-      
+
       // Deck section (label + cards)
       currentY += labelHeight + deckRows * (cardHeight + spacing) + sectionSpacing
-      
+
       // Sideboard section (label + cards)
       currentY += labelHeight + sideboardRows * (cardHeight + spacing) + sectionSpacing
-      
+
       // Unused leaders section (all on one row, wraps if needed)
       currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing
-      
+
       // Add space for Protect the Pod stamp
       const stampHeight = 40
       const totalHeight = currentY + stampHeight + padding
-      
+
       // Create canvas
       const canvas = document.createElement('canvas')
       canvas.width = width
       canvas.height = totalHeight
       const ctx = canvas.getContext('2d')
-      
+
       // Draw black background
       ctx.fillStyle = '#000000'
       ctx.fillRect(0, 0, width, totalHeight)
-      
+
       const cardRadius = 13 // Border radius matching app style
-      
+
       // Helper to draw rounded rectangle
       const drawRoundedRect = (x, y, width, height, radius) => {
         ctx.beginPath()
@@ -2166,7 +2209,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       // Helper to load and draw card image
       const drawCard = async (card, x, y, width, height, count = null, grayscale = false) => {
         return new Promise((resolve) => {
-          
+
           // Helper to draw placeholder
           const drawPlaceholder = () => {
             ctx.save()
@@ -2174,25 +2217,25 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             drawRoundedRect(x, y, width, height, cardRadius)
             ctx.fill()
             ctx.restore()
-            
+
             ctx.fillStyle = grayscale ? 'rgba(200, 200, 200, 0.5)' : 'white'
             ctx.font = '12px Arial'
             ctx.textAlign = 'center'
             ctx.fillText(card.name || 'Card', x + width / 2, y + height / 2)
             resolve()
           }
-          
+
           if (!card.imageUrl) {
             drawPlaceholder()
             return
           }
-          
+
           // Try to fetch image as blob first to avoid CORS issues
           const loadImageViaBlob = async () => {
             try {
               // Try using a CORS proxy if direct fetch fails
               let imageUrl = card.imageUrl
-              
+
               // First try direct fetch
               let response
               try {
@@ -2203,33 +2246,33 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 imageUrl = `https://corsproxy.io/?${encodeURIComponent(card.imageUrl)}`
                 response = await fetch(imageUrl, { mode: 'cors' })
               }
-              
+
               if (!response.ok) throw new Error('Failed to fetch')
               const blob = await response.blob()
               const objectUrl = URL.createObjectURL(blob)
-              
+
               const img = new Image()
               img.onload = () => {
                 URL.revokeObjectURL(objectUrl)
                 try {
                   // Save context state
                   ctx.save()
-                  
+
                   // Clip to rounded rectangle
                   drawRoundedRect(x, y, width, height, cardRadius)
                   ctx.clip()
-                  
+
                   if (grayscale) {
                     // Apply grayscale filter
                     ctx.filter = 'grayscale(100%)'
                   }
-                  
+
                   // Draw card image
                   ctx.drawImage(img, x, y, width, height)
-                  
+
                   // Restore context (removes filter and clip)
                   ctx.restore()
-                  
+
                   // Draw count badge if count > 1
                   if (count && count > 1) {
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
@@ -2242,7 +2285,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     ctx.textBaseline = 'middle'
                     ctx.fillText(count.toString(), x + width - 15, y + height - 15)
                   }
-                  
+
                   resolve()
                 } catch (error) {
                   console.error(`Error drawing card ${card.name}:`, error)
@@ -2260,7 +2303,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               loadImageDirect()
             }
           }
-          
+
           // Fallback: direct image load (may fail due to CORS)
           const loadImageDirect = () => {
             const img = new Image()
@@ -2268,28 +2311,28 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               console.warn(`Image load timeout for ${card.name}: ${card.imageUrl}`)
               drawPlaceholder()
             }, 10000)
-            
+
             img.onload = () => {
               clearTimeout(timeoutId)
               try {
                 // Save context state
                 ctx.save()
-                
+
                 // Clip to rounded rectangle
                 drawRoundedRect(x, y, width, height, cardRadius)
                 ctx.clip()
-                
+
                 if (grayscale) {
                   // Apply grayscale filter
                   ctx.filter = 'grayscale(100%)'
                 }
-                
+
                 // Draw card image
                 ctx.drawImage(img, x, y, width, height)
-                
+
                 // Restore context (removes filter and clip)
                 ctx.restore()
-                
+
                 // Draw count badge if count > 1
                 if (count && count > 1) {
                   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
@@ -2302,32 +2345,32 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   ctx.textBaseline = 'middle'
                   ctx.fillText(count.toString(), x + width - 15, y + height - 15)
                 }
-                
+
                 resolve()
               } catch (error) {
                 console.error(`Error drawing card ${card.name}:`, error)
                 drawPlaceholder()
               }
             }
-            
+
             img.onerror = () => {
               clearTimeout(timeoutId)
               console.warn(`Image load error for ${card.name}: ${card.imageUrl}`)
               drawPlaceholder()
             }
-            
+
             // Try with CORS first
             img.crossOrigin = 'anonymous'
             img.src = card.imageUrl
           }
-          
+
           // Try blob method first (better for CORS)
           loadImageViaBlob()
         })
       }
-      
+
       currentY = padding
-      
+
       // Draw title at top
       ctx.fillStyle = 'white'
       ctx.font = 'bold 32px Arial'
@@ -2335,7 +2378,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       ctx.textBaseline = 'top'
       ctx.fillText(`Sealed Pod (${setCode})`, width / 2, currentY)
       currentY += titleHeight + sectionSpacing
-      
+
       // Draw selected leader and base at top, centered in one row
       if (selectedLeader || selectedBase) {
         const totalWidth = (selectedLeader ? leaderBaseWidth : 0) + (selectedBase ? leaderBaseWidth : 0) + (selectedLeader && selectedBase ? spacing : 0)
@@ -2350,7 +2393,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
         currentY += leaderBaseHeight + sectionSpacing
       }
-      
+
       // Draw "Deck" section label
       ctx.fillStyle = 'white'
       ctx.font = 'bold 24px Arial'
@@ -2358,7 +2401,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       ctx.textBaseline = 'top'
       ctx.fillText('Deck', padding, currentY)
       currentY += labelHeight
-      
+
       // Draw deck cards (in color) - sorted by default sort, including duplicates
       let col = 0
       let row = 0
@@ -2373,7 +2416,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
       }
       currentY += deckRows * (cardHeight + spacing) + sectionSpacing
-      
+
       // Draw "Sideboard" section label
       ctx.fillStyle = 'white'
       ctx.font = 'bold 24px Arial'
@@ -2381,7 +2424,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       ctx.textBaseline = 'top'
       ctx.fillText('Sideboard', padding, currentY)
       currentY += labelHeight
-      
+
       // Draw sideboard cards (in grayscale) - sorted by default sort, including duplicates
       col = 0
       row = 0
@@ -2396,7 +2439,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
       }
       currentY += sideboardRows * (cardHeight + spacing) + sectionSpacing
-      
+
       // Draw unused leaders (in grayscale) - all on one row (wraps if needed)
       if (unusedLeaders.length > 0) {
         const leadersPerRow = Math.floor((width - 2 * padding + spacing) / (leaderBaseWidth + spacing))
@@ -2415,7 +2458,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         const unusedLeadersRows = Math.ceil(unusedLeaders.length / leadersPerRow)
         currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing
       }
-      
+
       // Draw pool name and timestamp at bottom
       const now = new Date()
       const month = String(now.getMonth() + 1).padStart(2, '0')
@@ -2426,28 +2469,28 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       hours = hours % 12
       hours = hours ? hours : 12
       const timeStr = `${month}/${day} ${hours}:${minutes} ${ampm}`
-      
+
       const displayName = poolName || `${setCode} ${poolType === 'draft' ? 'Draft' : 'Sealed'}`
-      
+
       // Draw pool name
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
       ctx.font = 'bold 24px Arial'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'bottom'
       ctx.fillText(displayName, width / 2, totalHeight - padding / 2 - 40)
-      
+
       // Draw "by {username}" if available
       if (poolOwnerUsername) {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
         ctx.font = '20px Arial'
         ctx.fillText(`by ${poolOwnerUsername}`, width / 2, totalHeight - padding / 2 - 15)
       }
-      
+
       // Draw timestamp below name (or below "by username" if present)
       ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
       ctx.font = '18px Arial'
       ctx.fillText(timeStr, width / 2, totalHeight - padding / 2)
-      
+
       // Show image in modal instead of downloading
       canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob)
@@ -2459,7 +2502,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           setMessageType(null)
         }, 3000)
       }, 'image/png')
-      
+
     } catch (error) {
       console.error('Error generating deck image:', error)
       setErrorMessage('Failed to generate image')
@@ -2471,16 +2514,73 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
   }
 
+  const packArtUrl = setCode ? getPackArtUrl(setCode) : null
+  const setArtStyle = packArtUrl ? {
+    backgroundImage: `url("${packArtUrl}")`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center center',
+  } : {}
 
   return (
     <div className="deck-builder" ref={containerRef}>
-      <div className="deck-builder-header">
+      {packArtUrl && (
+        <div className="set-art-header" style={setArtStyle}></div>
+      )}
+      <div className="deck-builder-content">
+        <div className="deck-builder-header">
         <button className="back-button" onClick={onBack}>
           ← Back to Sealed Pod
         </button>
         <h1>Deck Builder</h1>
-        
+
         <div className={`header-buttons ${isInfoBarSticky ? 'hidden' : ''}`}>
+          <button
+            className="export-button"
+            onClick={async () => {
+              if (!isAuthenticated) {
+                signIn()
+                return
+              }
+
+              try {
+                setErrorMessage('Cloning pool...')
+                setMessageType('info')
+
+                // Clone the pool with current user as owner
+                const clonedPool = await savePool({
+                  setCode: setCode,
+                  cards: cards,
+                  packs: null,
+                  deckBuilderState: savedState,
+                  poolType: poolType,
+                  name: poolName ? `${poolName} (Copy)` : null,
+                  isPublic: false
+                })
+
+                setErrorMessage('Pool cloned! Redirecting...')
+                setMessageType('success')
+
+                setTimeout(() => {
+                  window.location.href = `/pool/${clonedPool.shareId}/deck`
+                }, 1000)
+              } catch (err) {
+                console.error('Failed to clone pool:', err)
+                setErrorMessage('Failed to clone pool')
+                setMessageType('error')
+                setTimeout(() => {
+                  setErrorMessage(null)
+                  setMessageType(null)
+                }, 3000)
+              }
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <path d="M20 8v6M23 11h-6"></path>
+            </svg>
+            <span>{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
+          </button>
           <button className="export-button" onClick={copyJSON}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -2505,8 +2605,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             <span>Deck Image</span>
           </button>
           {shareId && (
-            <button 
-              className="export-button" 
+            <button
+              className="export-button"
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(`${window.location.origin}/pool/${shareId}`)
@@ -2535,13 +2635,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           )}
         </div>
         {errorMessage && (
-          <div className="error-message" style={{ 
+          <div className="error-message" style={{
             marginTop: '1rem',
             marginLeft: 'auto',
             marginRight: 'auto',
-            padding: '0.5rem 1rem', 
-            background: messageType === 'error' ? 'rgba(255, 0, 0, 0.2)' : errorMessage.includes('Generating') ? 'rgba(138, 43, 226, 0.2)' : 'rgba(0, 100, 255, 0.2)', 
-            border: messageType === 'error' ? '1px solid #ff0000' : errorMessage.includes('Generating') ? '1px solid #8a2be2' : '1px solid #0066ff', 
+            padding: '0.5rem 1rem',
+            background: messageType === 'error' ? 'rgba(255, 0, 0, 0.2)' : errorMessage.includes('Generating') ? 'rgba(138, 43, 226, 0.2)' : 'rgba(0, 100, 255, 0.2)',
+            border: messageType === 'error' ? '1px solid #ff0000' : errorMessage.includes('Generating') ? '1px solid #8a2be2' : '1px solid #0066ff',
             borderRadius: '4px',
             color: messageType === 'error' ? '#ffcccc' : errorMessage.includes('Generating') ? '#dda0dd' : '#cce5ff',
             width: 'fit-content',
@@ -2551,11 +2651,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           </div>
         )}
       </div>
-      
+
       {/* Selected Leader/Base and Deck/Sideboard Info - Sticky Bar */}
       <div className={`deck-info-bar ${isInfoBarSticky ? 'sticky' : ''}`} ref={infoBarRef}>
         <div className="selected-cards-info">
-          <div 
+          <div
             className={`selected-card-container ${!activeLeader ? 'select-card-placeholder' : ''} ${isInfoBarSticky ? 'sticky-layout' : 'inline-layout'}`}
             onClick={() => {
               // Expand leaders section if collapsed
@@ -2583,7 +2683,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           >
             {activeLeader && cardPositions[activeLeader] ? (
               <>
-                <span 
+                <span
                   className="selected-card-name"
                   style={{ color: getAspectColor(cardPositions[activeLeader].card) }}
                   onMouseEnter={(e) => {
@@ -2627,7 +2727,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             )}
           </div>
           <span className="separator"></span>
-          <div 
+          <div
             className={`selected-card-container ${!activeBase ? 'select-card-placeholder' : ''}`}
             onClick={() => {
               // Expand bases section if collapsed
@@ -2654,7 +2754,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             style={{ cursor: 'pointer' }}
           >
             {activeBase && cardPositions[activeBase] ? (
-              <span 
+              <span
                 className="selected-card-name"
                 style={{ color: getAspectColor(cardPositions[activeBase].card) }}
                 onMouseEnter={(e) => {
@@ -2695,7 +2795,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           </div>
         </div>
         <div className="deck-counts-info">
-            <span 
+            <span
               className="section-link"
               onClick={() => {
                 // Expand deck section if collapsed
@@ -2721,22 +2821,22 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               }}
               style={{ cursor: 'pointer' }}
             >
-              Deck (<span style={{ 
+              Deck (<span style={{
                 color: (() => {
                   const deckCount = Object.values(cardPositions)
-                    .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader).length
+                    .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length
                   if (deckCount < 30) return '#E74C3C' // Red
                   if (deckCount === 30) return '#27AE60' // Green
                   return '#F1C40F' // Yellow
                 })()
               }}>{(() => {
                 const deckCards = Object.values(cardPositions)
-                  .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+                  .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
                 return deckCards.length
               })()}</span>/30)
             </span>
             <span className="separator"></span>
-            <span 
+            <span
               className="section-link"
               onClick={() => {
                 // Expand sideboard section if collapsed
@@ -2764,7 +2864,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             >
               Sideboard ({(() => {
                 const sideboardCards = Object.values(cardPositions)
-                  .filter(pos => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+                  .filter(pos => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader)
                 return sideboardCards.length
               })()})
             </span>
@@ -2794,9 +2894,55 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               </svg>
               <span className="button-tooltip">Deck Image</span>
             </button>
+            <button
+              className="export-button-icon"
+              onClick={async () => {
+                if (!isAuthenticated) {
+                  signIn()
+                  return
+                }
+
+                try {
+                  setErrorMessage('Cloning pool...')
+                  setMessageType('info')
+
+                  const clonedPool = await savePool({
+                    setCode: setCode,
+                    cards: cards,
+                    packs: null,
+                    deckBuilderState: savedState,
+                    poolType: poolType,
+                    name: poolName ? `${poolName} (Copy)` : null,
+                    isPublic: false
+                  })
+
+                  setErrorMessage('Pool cloned! Redirecting...')
+                  setMessageType('success')
+
+                  setTimeout(() => {
+                    window.location.href = `/pool/${clonedPool.shareId}/deck`
+                  }, 1000)
+                } catch (err) {
+                  console.error('Failed to clone pool:', err)
+                  setErrorMessage('Failed to clone pool')
+                  setMessageType('error')
+                  setTimeout(() => {
+                    setErrorMessage(null)
+                    setMessageType(null)
+                  }, 3000)
+                }
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <path d="M20 8v6M23 11h-6"></path>
+              </svg>
+              <span className="button-tooltip">{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
+            </button>
             {shareId && (
-              <button 
-                className="export-button-icon" 
+              <button
+                className="export-button-icon"
                 onClick={async () => {
                   try {
                     await navigator.clipboard.writeText(`${window.location.origin}/pool/${shareId}`)
@@ -2826,9 +2972,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           </div>
         )}
       </div>
-      
+
       <div className="view-controls">
-        <button 
+        <button
           className="view-toggle-button"
           onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
           onMouseEnter={(e) => showNavTooltip(viewMode === 'grid' ? 'Table View' : 'Playmat View', e)}
@@ -2850,7 +2996,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             </svg>
           )}
         </button>
-        <button 
+        <button
           className="filter-button"
           onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}
           onMouseEnter={(e) => showNavTooltip('Filter by Aspect', e)}
@@ -2860,7 +3006,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             <path d="M3 5H17M5 10H15M7 15H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
           </svg>
         </button>
-        <button 
+        <button
           className="sort-button-icon"
           onClick={() => {
             setSortOption(sortOption === 'aspect' ? 'cost' : 'aspect')
@@ -2878,9 +3024,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         >
           {sortOption === 'aspect' ? (
             <div style={{ position: 'relative', display: 'inline-block', width: '32px', height: '32px' }}>
-              <img 
-                src="/icons/cost.png" 
-                alt="Cost" 
+              <img
+                src="/icons/cost.png"
+                alt="Cost"
                 style={{ width: '32px', height: '32px', display: 'block' }}
               />
               <span style={{
@@ -2897,18 +3043,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               </span>
             </div>
           ) : (
-            <img 
-              src="/icons/heroism.png" 
-              alt="Aspect" 
+            <img
+              src="/icons/heroism.png"
+              alt="Aspect"
               style={{ width: '32px', height: '32px', display: 'block' }}
             />
           )}
         </button>
       </div>
-      
+
       {filterDrawerOpen && (
         <>
-          <div 
+          <div
             className="filter-drawer-overlay"
             onClick={() => setFilterDrawerOpen(false)}
             style={{
@@ -2929,8 +3075,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           <div className="filter-section">
             <h3>Aspects</h3>
             {ASPECTS.map((aspect, index) => (
-              <label 
-                key={aspect} 
+              <label
+                key={aspect}
                 className="filter-checkbox"
                 style={aspect === 'Villainy' ? { marginTop: '1rem' } : {}}
               >
@@ -2940,7 +3086,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   onChange={(e) => {
                     const isChecked = e.target.checked
                     setAspectFilters(prev => ({ ...prev, [aspect]: isChecked }))
-                    
+
                     // Move cards between deck and sideboard based on filter
                     setCardPositions(prev => {
                       const updated = { ...prev }
@@ -2949,12 +3095,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         if (position.card.isLeader || position.card.isBase) return
                         // Only process cards in deck or sideboard sections
                         if (position.section !== 'deck' && position.section !== 'sideboard') return
-                        
+
                         const cardAspects = position.card.aspects || []
                         const matchesFilter = aspect === NO_ASPECT_LABEL
                           ? cardAspects.length === 0
                           : cardAspects.includes(aspect)
-                        
+
                         if (matchesFilter) {
                           if (isChecked) {
                             // Move from sideboard to deck (enable)
@@ -2998,7 +3144,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 onChange={(e) => {
                   const isChecked = e.target.checked
                   setAspectFilters(prev => ({ ...prev, [NO_ASPECT_LABEL]: isChecked }))
-                  
+
                   // Move cards between deck and sideboard based on filter
                   setCardPositions(prev => {
                     const updated = { ...prev }
@@ -3007,10 +3153,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       if (position.card.isLeader || position.card.isBase) return
                       // Only process cards in deck or sideboard sections
                       if (position.section !== 'deck' && position.section !== 'sideboard') return
-                      
+
                       const cardAspects = position.card.aspects || []
                       const matchesFilter = cardAspects.length === 0
-                      
+
                       if (matchesFilter) {
                         if (isChecked) {
                           // Move from sideboard to deck (enable)
@@ -3047,15 +3193,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         </div>
         </>
       )}
-      
-      
+
+
       {/* Grid View */}
       {viewMode === 'grid' && (
         <div className="blocks-container">
           {/* Leaders & Bases Header */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
             gap: '0.5rem',
             marginTop: '1.5rem',
             marginBottom: '0.75rem',
@@ -3078,7 +3224,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             <span>{(leadersExpanded && basesExpanded) ? '▼' : '▶'}</span>
             <span>Leaders & Bases</span>
           </div>
-          
+
           {/* Leaders Row */}
           {leadersExpanded && (
             <div className="blocks-leaders-row">
@@ -3088,7 +3234,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 .filter(([_, position]) => position.section === 'leaders-bases' && position.visible && position.card.isLeader)
                 .map(([cardId, position]) => ({ cardId, position }))
                 .sort((a, b) => defaultSort(a.position.card, b.position.card))
-              
+
               return leadersCards.length > 0 ? (
                 <div className="card-block">
                   <h3 className="card-block-header">
@@ -3102,7 +3248,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           const isSelected = selectedCards.has(cardId)
                           const isHovered = hoveredCard === cardId
                           const isActiveLeader = activeLeader === cardId
-                          
+
                           return (
                             <div
                               key={cardId}
@@ -3153,7 +3299,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             })()}
           </div>
           )}
-          
+
           {/* Bases Row */}
           {basesExpanded && (
             <div className="blocks-bases-row">
@@ -3167,16 +3313,16 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   const bRarity = b.position.card.rarity
                   const aIsRare = aRarity === 'Rare' || aRarity === 'Legendary' || aRarity === 'Special'
                   const bIsRare = bRarity === 'Rare' || bRarity === 'Legendary' || bRarity === 'Special'
-                  
+
                   if (aIsRare && !bIsRare) return -1
                   if (!aIsRare && bIsRare) return 1
-                  
+
                   // Then by aspect
                   const keyA = getAspectKey(a.position.card)
                   const keyB = getAspectKey(b.position.card)
                   return keyA.localeCompare(keyB)
                 })
-              
+
               return basesCards.length > 0 ? (
                 <div className="card-block">
                   <h3 className="card-block-header">
@@ -3190,7 +3336,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           const isSelected = selectedCards.has(cardId)
                           const isHovered = hoveredCard === cardId
                           const isActiveBase = activeBase === cardId
-                          
+
                           return (
                             <div
                               key={cardId}
@@ -3241,13 +3387,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             })()}
           </div>
           )}
-      
+
           {/* Deck Header */}
-          <div 
+          <div
             id="deck-header"
-            style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+            style={{
+            display: 'flex',
+            alignItems: 'center',
             gap: '0.5rem',
             marginTop: '1.5rem',
             marginBottom: '0.75rem',
@@ -3273,7 +3419,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader)
                 const activeDeckCards = deckCards.filter(([_, position]) => position.enabled !== false)
                 const shouldMoveToSideboard = activeDeckCards.length > 0
-                
+
                 if (shouldMoveToSideboard) {
                   // Remove all: move cards from deck to sideboard
                   setCardPositions(prev => {
@@ -3292,7 +3438,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 } else {
                   // Add all: move cards from sideboard to deck
                   const sideboardCards = Object.entries(cardPositions)
-                    .filter(([_, position]) => position.section === 'sideboard' && position.visible && !position.card.isBase && !position.card.isLeader)
+                    .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
                   setCardPositions(prev => {
                     const updated = { ...prev }
                     sideboardCards.forEach(([cardId]) => {
@@ -3308,8 +3454,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   })
                 }
               }}
-              style={{ 
-                color: 'rgba(255, 255, 255, 0.7)', 
+              style={{
+                color: 'rgba(255, 255, 255, 0.7)',
                 cursor: 'pointer',
                 fontSize: '0.9rem',
                 textDecoration: 'underline'
@@ -3325,27 +3471,26 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               })()}
             </span>
           </div>
-      
+
           {/* Deck Blocks Row */}
           {deckExpanded && (
             <div className="blocks-deck-row" ref={deckBlocksRowRef}>
               {(() => {
-          // Get all deck cards
+          // Get all deck cards (only enabled ones)
           const deckCards = Object.entries(cardPositions)
-            .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader)
+            .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader && position.enabled !== false)
             .map(([cardId, position]) => ({ cardId, position }))
-            // Note: No longer filtering - cards are moved between deck/sideboard via filter checkboxes
-          
+
           if (sortOption === 'cost') {
             // Group by cost segments: 0, 1, 2, 3, 4, 5, 6, 7, 8+
             const costSegments = [0, 1, 2, 3, 4, 5, 6, 7, '8+']
             const groupedByCost = {}
-            
+
             // Initialize all cost segments (even if empty)
             costSegments.forEach(segment => {
               groupedByCost[segment] = []
             })
-            
+
             // Group cards by cost segment
             deckCards.forEach(({ cardId, position }) => {
               const cost = position.card.cost
@@ -3364,34 +3509,34 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               }
               groupedByCost[segment].push({ cardId, position })
             })
-            
+
             // Render cost segments as blocks, with empty ones at the end
             const blocksWithContent = []
             const blocksEmpty = []
-            
+
             costSegments.forEach((costSegment) => {
               const cards = groupedByCost[costSegment] || []
               const activeCards = cards.filter(({ position }) => position.enabled !== false)
-              
+
               // For 0 and 8+ only, don't show if there are no cards
               if ((costSegment === 0 || costSegment === '8+') && cards.length === 0) {
                 return
               }
-              
+
               const sortedCards = [...activeCards].sort((a, b) => {
                 return defaultSort(a.position.card, b.position.card)
               })
-              
+
               const block = (
-                <div 
-                  key={`cost-${costSegment}`} 
+                <div
+                  key={`cost-${costSegment}`}
                   className="card-block cost-block-full-width"
                 >
                   <h3 className="card-block-header">
                     <div style={{ position: 'relative', display: 'inline-block', width: '32px', height: '32px' }}>
-                      <img 
-                        src="/icons/cost.png" 
-                        alt="cost" 
+                      <img
+                        src="/icons/cost.png"
+                        alt="cost"
                         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                       />
                       <span style={{
@@ -3419,12 +3564,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                             const isSelected = selectedCards.has(cardId)
                             const isHovered = hoveredCard === cardId
                             const isDisabled = !position.enabled
-                            
+
                             return (
                               <div
                                 key={cardId}
                                 className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''} ${isStacked ? 'stacked' : ''}`}
-                                style={isStacked && stackIndex > 0 ? { 
+                                style={isStacked && stackIndex > 0 ? {
                                   left: `${stackIndex * 24}px`,
                                   zIndex: stackIndex
                                 } : {}}
@@ -3485,14 +3630,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     </div>
                 </div>
               )
-              
+
               if (sortedCards.length > 0) {
                 blocksWithContent.push(block)
               } else {
                 blocksEmpty.push(block)
               }
             })
-            
+
             return (
               <>
                 {blocksWithContent}
@@ -3512,13 +3657,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               'cunning_villainy', 'cunning_heroism', 'cunning_cunning', 'cunning',
               'villainy', 'heroism', 'villainy_heroism', 'neutral'
             ]
-            
+
             // Initialize all aspect combinations (even if empty) - this ensures blocks remain visible
             const groupedByAspect = {}
             aspectOrder.forEach(key => {
               groupedByAspect[key] = []
             })
-            
+
             // Group cards by aspect combination
             deckCards.forEach(({ cardId, position }) => {
               const aspectKey = getAspectCombinationKey(position.card)
@@ -3527,23 +3672,23 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               }
               groupedByAspect[aspectKey].push({ cardId, position })
             })
-            
+
             // Use the predefined order (all segments, even empty ones)
             const sortedAspectKeys = aspectOrder
-            
+
             const blocksWithContent = []
             const blocksEmpty = []
-            
+
             sortedAspectKeys.forEach((aspectKey) => {
               const cards = groupedByAspect[aspectKey] || []
               const activeCards = cards.filter(({ position }) => position.enabled !== false)
-              
+
               // Always show aspect blocks, even if empty (so they remain visible after "Remove All")
-              
+
               const sortedCards = [...activeCards].sort((a, b) => {
                 return defaultSort(a.position.card, b.position.card)
               })
-              
+
               const getTypeOrder = (type) => {
                 if (type === 'Unit' || type === 'Ground Unit') return 1
                 if (type === 'Space Unit') return 2
@@ -3551,7 +3696,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 if (type === 'Event') return 4
                 return 99
               }
-              
+
               const groupedByType = {}
               sortedCards.forEach(({ cardId, position }) => {
                 const typeOrder = getTypeOrder(position.card.type || '')
@@ -3561,14 +3706,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 }
                 groupedByType[typeKey].push({ cardId, position })
               })
-              
+
               const unitsCards = groupedByType['Unit'] || []
               const upgradesCards = groupedByType['Upgrade'] || []
               const eventsCards = groupedByType['Event'] || []
-              
+
               const block = (
-                <div 
-                  key={aspectKey} 
+                <div
+                  key={aspectKey}
                   className="card-block"
                 >
                   <h3 className="card-block-header">
@@ -3590,8 +3735,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           return updated
                         })
                       }}
-                      style={{ 
-                        color: 'rgba(255, 255, 255, 0.7)', 
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.7)',
                         cursor: 'pointer',
                         fontSize: '0.9rem',
                         textDecoration: 'underline'
@@ -3606,7 +3751,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       {/* Units Section */}
                       {unitsCards.length > 0 && (
                         <div>
-                          <div style={{ 
+                          <div style={{
                             marginTop: '1rem',
                             marginBottom: '0.5rem',
                             display: 'flex',
@@ -3614,8 +3759,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                             alignItems: 'center'
                           }}>
                             <div style={{
-                              fontSize: '0.9rem', 
-                              color: 'rgba(255, 255, 255, 0.8)', 
+                              fontSize: '0.9rem',
+                              color: 'rgba(255, 255, 255, 0.8)',
                               textTransform: 'uppercase',
                               letterSpacing: '0.5px'
                             }}>
@@ -3630,7 +3775,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                 const card = position.card
                                 return card.arenas && card.arenas.includes('Space')
                               }).length
-                              
+
                               const subtitleParts = []
                               if (groundCount > 0) {
                                 subtitleParts.push(`GROUND (${groundCount})`)
@@ -3638,7 +3783,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                               if (spaceCount > 0) {
                                 subtitleParts.push(`SPACE (${spaceCount})`)
                               }
-                              
+
                               return subtitleParts.length > 0 ? (
                                 <div style={{
                                   fontSize: '0.75rem',
@@ -3660,12 +3805,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                 const isSelected = selectedCards.has(cardId)
                                 const isHovered = hoveredCard === cardId
                                 const isDisabled = !position.enabled
-                                
+
                                 return (
                                   <div
                                     key={cardId}
                                     className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''} ${isStacked ? 'stacked' : ''}`}
-                                    style={isStacked && stackIndex > 0 ? { 
+                                    style={isStacked && stackIndex > 0 ? {
                                       left: `${stackIndex * 24}px`,
                                       zIndex: stackIndex
                                     } : {}}
@@ -3724,20 +3869,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           </div>
                         </div>
                       )}
-                      
+
                       {/* Upgrades Section */}
                       {upgradesCards.length > 0 && (
                         <div>
                           {(unitsCards.length > 0) && (
                             <div style={{ margin: '1.5rem 0' }} />
                           )}
-                          <div style={{ 
+                          <div style={{
                             marginTop: unitsCards.length === 0 ? '1rem' : '0',
                             marginBottom: '0.5rem'
                           }}>
                             <div style={{
-                              fontSize: '0.9rem', 
-                              color: 'rgba(255, 255, 255, 0.8)', 
+                              fontSize: '0.9rem',
+                              color: 'rgba(255, 255, 255, 0.8)',
                               textTransform: 'uppercase',
                               letterSpacing: '0.5px'
                             }}>
@@ -3753,12 +3898,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                 const isSelected = selectedCards.has(cardId)
                                 const isHovered = hoveredCard === cardId
                                 const isDisabled = !position.enabled
-                                
+
                                 return (
                                   <div
                                     key={cardId}
                                     className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''} ${isStacked ? 'stacked' : ''}`}
-                                    style={isStacked && stackIndex > 0 ? { 
+                                    style={isStacked && stackIndex > 0 ? {
                                       left: `${stackIndex * 24}px`,
                                       zIndex: stackIndex
                                     } : {}}
@@ -3817,20 +3962,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           </div>
                         </div>
                       )}
-                      
+
                       {/* Events Section */}
                       {eventsCards.length > 0 && (
                         <div>
                           {(unitsCards.length > 0 || upgradesCards.length > 0) && (
                             <div style={{ margin: '1.5rem 0' }} />
                           )}
-                          <div style={{ 
+                          <div style={{
                             marginTop: (unitsCards.length === 0 && upgradesCards.length === 0) ? '1rem' : '0',
                             marginBottom: '0.5rem'
                           }}>
                             <div style={{
-                              fontSize: '0.9rem', 
-                              color: 'rgba(255, 255, 255, 0.8)', 
+                              fontSize: '0.9rem',
+                              color: 'rgba(255, 255, 255, 0.8)',
                               textTransform: 'uppercase',
                               letterSpacing: '0.5px'
                             }}>
@@ -3846,12 +3991,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                 const isSelected = selectedCards.has(cardId)
                                 const isHovered = hoveredCard === cardId
                                 const isDisabled = !position.enabled
-                                
+
                                 return (
                                   <div
                                     key={cardId}
                                     className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''} ${isStacked ? 'stacked' : ''}`}
-                                    style={isStacked && stackIndex > 0 ? { 
+                                    style={isStacked && stackIndex > 0 ? {
                                       left: `${stackIndex * 24}px`,
                                       zIndex: stackIndex
                                     } : {}}
@@ -3913,14 +4058,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     </div>
                 </div>
               )
-              
+
               if (sortedCards.length > 0) {
                 blocksWithContent.push(block)
               } else {
                 blocksEmpty.push(block)
               }
             })
-            
+
             return (
               <>
                 {blocksWithContent}
@@ -3937,11 +4082,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           )}
 
           {/* Sideboard Header */}
-          <div 
+          <div
             id="sideboard-header"
-            style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+            style={{
+            display: 'flex',
+            alignItems: 'center',
             gap: '0.5rem',
             marginTop: '1.5rem',
             marginBottom: '0.75rem',
@@ -3959,7 +4104,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           >
             <span>{sideboardExpanded ? '▼' : '▶'}</span>
             <span>Sideboard ({Object.entries(cardPositions)
-              .filter(([_, position]) => position.section === 'sideboard' && position.visible && !position.card.isBase && !position.card.isLeader)
+              .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
               .filter(([_, position]) => cardMatchesFilters(position.card))
               .length})</span>
           </div>
@@ -3967,13 +4112,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           {/* Sideboard Block - Full Width */}
           {(() => {
             const sideboardCards = Object.entries(cardPositions)
-              .filter(([_, position]) => position.section === 'sideboard' && position.visible && !position.card.isBase && !position.card.isLeader)
+              .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
               .filter(([_, position]) => cardMatchesFilters(position.card))
-            
+
             if (sideboardCards.length === 0) {
               return null
             }
-            
+
             return (
               <div className="blocks-sideboard-row">
                 {sideboardExpanded && (
@@ -3982,11 +4127,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       <div className="cards-grid">
           {(() => {
             const sideboardCards = Object.entries(cardPositions)
-              .filter(([_, position]) => position.section === 'sideboard' && position.visible && !position.card.isBase && !position.card.isLeader)
+              .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
               .map(([cardId, position]) => ({ cardId, position }))
               .filter(({ position }) => cardMatchesFilters(position.card))
               .sort((a, b) => defaultSort(a.position.card, b.position.card))
-            
+
             const groupedCards = groupCardsByName(sideboardCards)
             return groupedCards.map(group => renderCardStack(group, (cardEntry, stackIndex, isStacked) => {
               const { cardId, position } = cardEntry
@@ -3994,12 +4139,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               const isSelected = selectedCards.has(cardId)
               const isHovered = hoveredCard === cardId
               const isDisabled = !position.enabled
-              
+
               return (
                 <div
                   key={cardId}
                   className={`canvas-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDisabled ? 'disabled' : ''} ${isStacked ? 'stacked' : ''}`}
-                  style={isStacked && stackIndex > 0 ? { 
+                  style={isStacked && stackIndex > 0 ? {
                     left: `${stackIndex * 24}px`,
                     zIndex: stackIndex
                   } : {}}
@@ -4064,7 +4209,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           })()}
         </div>
       )}
-      
+
       {/* List View */}
       {viewMode === 'list' && (
         <div className="list-view" style={{ minHeight: '200px' }}>
@@ -4073,9 +4218,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             const leaderPositions = Object.entries(cardPositions)
               .filter(([_, pos]) => pos.section === 'leaders-bases' && pos.visible && pos.card.isLeader)
               .map(([cardId, pos]) => ({ cardId, card: pos.card, enabled: pos.enabled !== false }))
-            
+
             // Always render the section, even if empty
-            
+
             const sectionId = 'leaders'
             const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' }
             const sortedLeaders = [...leaderPositions].sort((a, b) => {
@@ -4084,10 +4229,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               }
               return sortTableData(a.card, b.card, sectionSort.field, sectionSort.direction)
             })
-            
+
             return (
               <div className="list-section">
-                <h2 
+                <h2
                   className="list-section-title"
                   onClick={() => setLeadersExpanded(!leadersExpanded)}
                   style={{ cursor: 'pointer', userSelect: 'none' }}
@@ -4118,7 +4263,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   </thead>
                   <tbody>
                     {sortedLeaders.map(({ cardId, card, enabled }, idx) => {
-                      const aspectSymbols = card.aspects && card.aspects.length > 0 
+                      const aspectSymbols = card.aspects && card.aspects.length > 0
                         ? card.aspects.map((aspect, i) => {
                             const symbol = getAspectSymbol(aspect, 'large')
                             return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
@@ -4126,7 +4271,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         : null
                       const isSelected = activeLeader === cardId
                       return (
-                        <tr 
+                        <tr
                           key={`leader-${cardId}-${idx}`}
                           onMouseEnter={(e) => {
                             setHoveredCard(cardId)
@@ -4153,14 +4298,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           </td>
                           <td>
                             <div className="card-name-cell">
-                              <div 
-                                className="card-name-main" 
+                              <div
+                                className="card-name-main"
                                 style={{ cursor: 'pointer' }}
-                                onClick={(e) => {
-                                  if (e.metaKey || e.ctrlKey) {
-                                    setSelectedCard(card)
-                                  }
-                                }}
                               >
                                 {card.name || 'Unknown'}
                               </div>
@@ -4172,9 +4312,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           <td>
                             {card.cost !== null && card.cost !== undefined ? (
                               <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
-                                <img 
-                                  src="/icons/cost.png" 
-                                  alt="cost" 
+                                <img
+                                  src="/icons/cost.png"
+                                  alt="cost"
                                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                 />
                                 <span style={{
@@ -4205,15 +4345,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               </div>
             )
           })()}
-          
+
           {/* Bases Section */}
           {(() => {
             const basePositions = Object.entries(cardPositions)
               .filter(([_, pos]) => pos.section === 'leaders-bases' && pos.visible && pos.card.isBase)
               .map(([cardId, pos]) => ({ cardId, card: pos.card, enabled: pos.enabled !== false }))
-            
+
             // Always render the section, even if empty
-            
+
             const sectionId = 'bases'
             const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' }
             const sortedBases = [...basePositions].sort((a, b) => {
@@ -4222,10 +4362,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               }
               return sortTableData(a.card, b.card, sectionSort.field, sectionSort.direction)
             })
-            
+
             return (
               <div className="list-section">
-                <h2 
+                <h2
                   className="list-section-title"
                   onClick={() => setBasesExpanded(!basesExpanded)}
                   style={{ cursor: 'pointer', userSelect: 'none' }}
@@ -4256,7 +4396,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   </thead>
                   <tbody>
                     {sortedBases.map(({ cardId, card, enabled }, idx) => {
-                      const aspectSymbols = card.aspects && card.aspects.length > 0 
+                      const aspectSymbols = card.aspects && card.aspects.length > 0
                         ? card.aspects.map((aspect, i) => {
                             const symbol = getAspectSymbol(aspect, 'large')
                             return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
@@ -4264,7 +4404,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         : null
                       const isSelected = activeBase === cardId
                       return (
-                        <tr 
+                        <tr
                           key={`base-${cardId}-${idx}`}
                           onMouseEnter={(e) => {
                             setHoveredCard(cardId)
@@ -4291,8 +4431,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           </td>
                           <td>
                             <div className="card-name-cell">
-                              <div 
-                                className="card-name-main" 
+                              <div
+                                className="card-name-main"
                                 style={{ cursor: 'pointer' }}
                               >
                                 {card.name || 'Unknown'}
@@ -4305,9 +4445,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           <td>
                             {card.cost !== null && card.cost !== undefined ? (
                               <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
-                                <img 
-                                  src="/icons/cost.png" 
-                                  alt="cost" 
+                                <img
+                                  src="/icons/cost.png"
+                                  alt="cost"
                                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                 />
                                 <span style={{
@@ -4338,22 +4478,22 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               </div>
             )
           })()}
-          
+
           {/* Pool Section - Deck and Sideboard */}
           {(() => {
             const deckCardPositions = Object.entries(cardPositions)
-              .filter(([_, pos]) => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+              .filter(([_, pos]) => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
               .map(([cardId, pos]) => ({ cardId, card: pos.card }))
-            
+
             const sideboardCardPositions = Object.entries(cardPositions)
-              .filter(([_, pos]) => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+              .filter(([_, pos]) => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader)
               .map(([cardId, pos]) => ({ cardId, card: pos.card }))
-            
+
             // Always render the pool section container, even if empty
             return (
               <div className="list-section">
                 <h2 className="list-section-title">Pool</h2>
-                
+
                 {/* Deck Section */}
                 <div className="pool-subsection">
                   <h3 className="pool-subsection-title" style={{ userSelect: 'none' }}>
@@ -4364,12 +4504,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         // Group by cost segments: 1, 2, 3, 4, 5, 6, 7, 8+
                         const costSegments = [1, 2, 3, 4, 5, 6, 7, '8+']
                         const groupedByCost = {}
-                        
+
                         // Initialize all cost segments (even if empty)
                         costSegments.forEach(segment => {
                           groupedByCost[segment] = []
                         })
-                        
+
                         // Group cards by cost segment
                         deckCardPositions.forEach(({ cardId, card }) => {
                           const cost = card.cost
@@ -4388,12 +4528,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           }
                           groupedByCost[segment].push({ cardId, card })
                         })
-                        
+
                         // Render cost segments
                         return costSegments.map((costSegment) => {
                           const cards = groupedByCost[costSegment] || []
                           const isExpanded = deckCostSectionsExpanded[costSegment] !== false // Default to expanded
-                          
+
                           // Sort cards within this cost segment by aspect
                           const sectionId = `deck-cost-${costSegment}`
                           const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' }
@@ -4407,25 +4547,25 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                             if (keyA !== keyB) return keyA.localeCompare(keyB)
                             return defaultSort(a.card, b.card)
                           })
-                          
+
                           // Check if all cards in this segment are enabled (in deck)
                           const allEnabled = sortedCards.length > 0 && sortedCards.every(({ cardId }) => {
                             const position = cardPositions[cardId]
                             return position && position.section === 'deck' && position.enabled !== false
                           })
-                          
+
                           return (
                             <div key={`cost-${costSegment}`} className="deck-aspect-subsection">
-                              <h4 
+                              <h4
                                 className="pool-subsection-title"
                                 onClick={() => setDeckCostSectionsExpanded(prev => ({ ...prev, [costSegment]: !isExpanded }))}
                                 style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                               >
                                 <span>{isExpanded ? '▼' : '▶'}</span>
                                 <div style={{ position: 'relative', display: 'inline-block', width: '32px', height: '32px' }}>
-                                  <img 
-                                    src="/icons/cost.png" 
-                                    alt="cost" 
+                                  <img
+                                    src="/icons/cost.png"
+                                    alt="cost"
                                     style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                   />
                                   <span style={{
@@ -4448,8 +4588,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                   <thead>
                                     <tr>
                                       <th className="checkbox-col">
-                                        <input 
-                                          type="checkbox" 
+                                        <input
+                                          type="checkbox"
                                           checked={allEnabled}
                                           onChange={(e) => {
                                             const shouldEnable = e.target.checked
@@ -4488,14 +4628,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                   </thead>
                                   <tbody>
                                     {sortedCards.map(({ cardId, card }, idx) => {
-                                      const aspectSymbols = card.aspects && card.aspects.length > 0 
+                                      const aspectSymbols = card.aspects && card.aspects.length > 0
                                         ? card.aspects.map((aspect, i) => {
                                             const symbol = getAspectSymbol(aspect, 'large')
                                             return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
                                           }).filter(Boolean)
                                         : null
                                       return (
-                                        <tr 
+                                        <tr
                                           key={`deck-cost-${costSegment}-${cardId}-${idx}`}
                                         >
                                           <td>
@@ -4512,8 +4652,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                           </td>
                                           <td>
                                             <div className="card-name-cell">
-                                              <div 
-                                                className="card-name-main" 
+                                              <div
+                                                className="card-name-main"
                                                 onMouseEnter={(e) => {
                                                   setHoveredCard(cardId)
                                                   handleCardMouseEnter(card, e)
@@ -4521,11 +4661,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                                 onMouseLeave={() => {
                                                   setHoveredCard(null)
                                                   handleCardMouseLeave()
-                                                }}
-                                                onClick={(e) => {
-                                                  if (e.metaKey || e.ctrlKey) {
-                                                    setSelectedCard(card)
-                                                  }
                                                 }}
                                               >
                                                 {card.name || 'Unknown'}
@@ -4541,9 +4676,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                           <td>
                                             {card.cost !== null && card.cost !== undefined ? (
                                               <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
-                                                <img 
-                                                  src="/icons/cost.png" 
-                                                  alt="cost" 
+                                                <img
+                                                  src="/icons/cost.png"
+                                                  alt="cost"
                                                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                                 />
                                                 <span style={{
@@ -4584,13 +4719,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           'cunning_villainy', 'cunning_heroism', 'cunning_cunning', 'cunning',
                           'villainy', 'heroism', 'villainy_heroism', 'neutral'
                         ]
-                        
+
                         // Initialize all aspect combinations (even if empty)
                         const groupedByAspect = {}
                         aspectOrder.forEach(key => {
                           groupedByAspect[key] = []
                         })
-                        
+
                         // Group cards by aspect combination
                         deckCardPositions.forEach(({ cardId, card }) => {
                           const aspectKey = getAspectCombinationKey(card)
@@ -4599,18 +4734,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           }
                           groupedByAspect[aspectKey].push({ cardId, card })
                         })
-                        
+
                         // Filter to only show segments that have cards
                         const sortedAspectKeys = aspectOrder.filter(aspectKey => {
                           const cards = groupedByAspect[aspectKey] || []
                           return cards.length > 0
                         })
-                        
+
                         return sortedAspectKeys.map((aspectKey) => {
                           const cards = groupedByAspect[aspectKey] || []
                           const isExpanded = deckAspectSectionsExpanded[aspectKey] !== false // Default to expanded
                           const displayName = getAspectCombinationDisplayName(aspectKey)
-                          
+
                           // Sort cards within this aspect combination
                           // Create a copy to avoid mutating the original array
                           const sectionId = `deck-aspect-${aspectKey}`
@@ -4621,16 +4756,16 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                             }
                             return defaultSort(a.card, b.card)
                           })
-                          
+
                           // Check if all cards in this segment are enabled (in deck)
                           const allEnabled = sortedCards.length > 0 && sortedCards.every(({ cardId }) => {
                             const position = cardPositions[cardId]
                             return position && position.section === 'deck' && position.enabled !== false
                           })
-                          
+
                           return (
                             <div key={aspectKey} className="deck-aspect-subsection">
-                              <h4 
+                              <h4
                                 className="pool-subsection-title"
                                 onClick={() => setDeckAspectSectionsExpanded(prev => ({ ...prev, [aspectKey]: !isExpanded }))}
                                 style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
@@ -4645,21 +4780,21 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                   <thead>
                                     <tr>
                                       <th className="checkbox-col">
-                                        <input 
-                                          type="checkbox" 
+                                        <input
+                                          type="checkbox"
                                           checked={allEnabled}
                                           onChange={(e) => {
                                             const shouldEnable = e.target.checked
                                             setCardPositions(prev => {
                                               const updated = { ...prev }
-                                              
+
                                               // If section is empty and we're enabling, restore all cards from sideboard
                                               if (sortedCards.length === 0 && shouldEnable) {
                                                 // Find all cards in sideboard that match this aspect combination
                                                 Object.entries(prev).forEach(([cardId, position]) => {
-                                                  if (position.section === 'sideboard' && 
-                                                      position.visible && 
-                                                      !position.card.isBase && 
+                                                  if (position.section === 'sideboard' &&
+                                                      position.visible &&
+                                                      !position.card.isBase &&
                                                       !position.card.isLeader &&
                                                       getAspectCombinationKey(position.card) === aspectKey) {
                                                     updated[cardId] = {
@@ -4683,7 +4818,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                                   }
                                                 })
                                               }
-                                              
+
                                               return updated
                                             })
                                           }}
@@ -4708,14 +4843,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                   </thead>
                                   <tbody>
                                     {sortedCards.map(({ cardId, card }, idx) => {
-                                      const aspectSymbols = card.aspects && card.aspects.length > 0 
+                                      const aspectSymbols = card.aspects && card.aspects.length > 0
                                         ? card.aspects.map((aspect, i) => {
                                             const symbol = getAspectSymbol(aspect, 'large')
                                             return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
                                           }).filter(Boolean)
                                         : null
                                       return (
-                                        <tr 
+                                        <tr
                                           key={`deck-${aspectKey}-${cardId}-${idx}`}
                                         >
                                           <td>
@@ -4732,8 +4867,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                           </td>
                                           <td>
                                             <div className="card-name-cell">
-                                              <div 
-                                                className="card-name-main" 
+                                              <div
+                                                className="card-name-main"
                                                 onMouseEnter={(e) => {
                                                   setHoveredCard(cardId)
                                                   handleCardMouseEnter(card, e)
@@ -4741,11 +4876,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                                 onMouseLeave={() => {
                                                   setHoveredCard(null)
                                                   handleCardMouseLeave()
-                                                }}
-                                                onClick={(e) => {
-                                                  if (e.metaKey || e.ctrlKey) {
-                                                    setSelectedCard(card)
-                                                  }
                                                 }}
                                               >
                                                 {card.name || 'Unknown'}
@@ -4761,9 +4891,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                           <td>
                                             {card.cost !== null && card.cost !== undefined ? (
                                               <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
-                                                <img 
-                                                  src="/icons/cost.png" 
-                                                  alt="cost" 
+                                                <img
+                                                  src="/icons/cost.png"
+                                                  alt="cost"
                                                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                                 />
                                                 <span style={{
@@ -4797,7 +4927,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       }
                     })()}
                 </div>
-                
+
                 {/* Sideboard Section */}
                 <div className="pool-subsection">
                   <h3 className="pool-subsection-title" style={{ userSelect: 'none' }}>
@@ -4812,14 +4942,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       }
                       return sortTableData(a.card, b.card, sectionSort.field, sectionSort.direction)
                     })
-                    
+
                     return sortedSideboard.length > 0 ? (
                       <table className="list-table">
                         <thead>
                           <tr>
                             <th className="checkbox-col">
-                              <input 
-                                type="checkbox" 
+                              <input
+                                type="checkbox"
                                 checked={false}
                                 onChange={(e) => {
                                   const shouldEnable = e.target.checked
@@ -4855,14 +4985,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         </thead>
                         <tbody>
                           {sortedSideboard.map(({ cardId, card }, idx) => {
-                          const aspectSymbols = card.aspects && card.aspects.length > 0 
+                          const aspectSymbols = card.aspects && card.aspects.length > 0
                             ? card.aspects.map((aspect, i) => {
                                 const symbol = getAspectSymbol(aspect, 'large')
                                 return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
                               }).filter(Boolean)
                             : null
                           return (
-                            <tr 
+                            <tr
                               key={`sideboard-${cardId}-${idx}`}
                               onMouseEnter={(e) => {
                                 setHoveredCard(cardId)
@@ -4887,14 +5017,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                               </td>
                               <td>
                                 <div className="card-name-cell">
-                                  <div 
-                                    className="card-name-main" 
+                                  <div
+                                    className="card-name-main"
                                     style={{ cursor: 'pointer' }}
-                                    onClick={(e) => {
-                                      if (e.metaKey || e.ctrlKey) {
-                                        setSelectedCard(card)
-                                      }
-                                    }}
                                   >
                                     {card.name || 'Unknown'}
                                   </div>
@@ -4906,9 +5031,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                               <td>
                                 {card.cost !== null && card.cost !== undefined ? (
                                   <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
-                                    <img 
-                                      src="/icons/cost.png" 
-                                      alt="cost" 
+                                    <img
+                                      src="/icons/cost.png"
+                                      alt="cost"
                                       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                     />
                                     <span style={{
@@ -4944,17 +5069,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         </div>
       )}
 
-      {selectedCard && (
-        <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
-      )}
-
       {/* Enlarged card preview (3x size) */}
       {hoveredCardPreview && (() => {
         const card = hoveredCardPreview.card
         const hasBackImage = card.backImageUrl && card.isLeader
         const isHorizontal = card.isLeader || card.isBase
-        const borderRadius = '23px' // Slightly smaller than 24px to reduce clipping
-        
+        const borderRadius = '12px'
+
         // Calculate dimensions
         let previewWidth, previewHeight
         if (hasBackImage) {
@@ -4967,7 +5088,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           previewWidth = isHorizontal ? 504 : 360
           previewHeight = isHorizontal ? 360 : 504
         }
-        
+
         return (
           <div
             className="card-preview-enlarged"
@@ -4976,7 +5097,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               left: `${hoveredCardPreview.x}px`,
               top: `${hoveredCardPreview.y}px`,
               zIndex: 10000,
-              pointerEvents: 'auto',
+              pointerEvents: 'none',
               transform: 'translateY(-50%)',
               width: `${previewWidth}px`,
               height: `${previewHeight}px`,
@@ -5128,14 +5249,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       })()}
 
       {tooltip.show && (
-        <div 
+        <div
           className="tooltip"
           style={{
             position: 'fixed',
             left: `${tooltip.x}px`,
             top: `${tooltip.y}px`,
-            transform: tooltip.alignLeft 
-              ? 'translateX(-100%) translateY(-50%)' 
+            transform: tooltip.alignLeft
+              ? 'translateX(-100%) translateY(-50%)'
               : 'translateX(-50%) translateY(-100%)',
             zIndex: 10000,
             pointerEvents: 'none',
@@ -5153,8 +5274,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           setDeckImageModal(null)
         }}>
           <div className="deck-image-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button 
-              className="deck-image-modal-close" 
+            <button
+              className="deck-image-modal-close"
               onClick={() => {
                 URL.revokeObjectURL(deckImageModal)
                 setDeckImageModal(null)
@@ -5162,9 +5283,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             >
               ×
             </button>
-            <img 
-              src={deckImageModal} 
-              alt="Deck Export" 
+            <img
+              src={deckImageModal}
+              alt="Deck Export"
               className="deck-image-modal-image"
             />
             <div className="deck-image-modal-actions">
@@ -5173,7 +5294,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 onClick={() => {
                   const a = document.createElement('a')
                   a.href = deckImageModal
-                  
+
                   // Generate filename with pool name and timestamp
                   const now = new Date()
                   const month = String(now.getMonth() + 1).padStart(2, '0')
@@ -5184,11 +5305,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   hours = hours % 12
                   hours = hours ? hours : 12
                   const timeStr = `${month}${day}_${hours}${minutes}${ampm}`
-                  
+
                   const displayName = poolName || `${setCode} ${poolType === 'draft' ? 'Draft' : 'Sealed'}`
                   // Sanitize filename - remove invalid characters
                   const sanitizedName = displayName.replace(/[^a-z0-9]/gi, '_').toLowerCase()
-                  
+
                   a.download = `${sanitizedName}_${timeStr}.png`
                   document.body.appendChild(a)
                   a.click()
@@ -5201,6 +5322,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

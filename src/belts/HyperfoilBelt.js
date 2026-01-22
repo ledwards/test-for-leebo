@@ -64,16 +64,20 @@ export class HyperfoilBelt {
     this._fillIfNeeded()
 
     // Start at random position
-    const startPosition = Math.floor(Math.random() * this.hopper.length)
-    this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
+    // TEMPORARILY DISABLED: const startPosition = Math.floor(Math.random() * this.hopper.length)
+    // TEMPORARILY DISABLED: this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
   }
 
   /**
    * Fill the hopper if it needs more cards
    */
   _fillIfNeeded() {
+    // Safety check: if no cards in filling pool, can't fill
+    if (this.fillingPool.length === 0) {
+      return
+    }
     const bootSize = this._calculateBootSize()
-    while (this.hopper.length <= bootSize) {
+    while (this.hopper.length < bootSize) {
       this._fill()
     }
   }
@@ -110,6 +114,7 @@ export class HyperfoilBelt {
   next() {
     this._fillIfNeeded()
     const card = this.hopper.shift()
+    if (!card) return null
     return { ...card, isFoil: true, isHyperspace: true }
   }
 

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import './DraftableCard.css'
 
 function DraftableCard({
@@ -14,6 +15,11 @@ function DraftableCard({
   const [imageError, setImageError] = useState(false)
   const [hoveredCardPreview, setHoveredCardPreview] = useState(null)
   const previewTimeoutRef = useRef(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const getRarityClass = (rarity) => {
     switch (rarity) {
@@ -43,52 +49,36 @@ function DraftableCard({
 
     const rect = e.currentTarget.getBoundingClientRect()
 
-    // Set timeout to show preview after 1 second
+    // Set timeout to show preview after hovering
     previewTimeoutRef.current = setTimeout(() => {
-      // Position the preview near the card (to the right, or left if too close to right edge)
-      let previewX = rect.right + 20
-      const previewY = rect.top
-
-      // Calculate preview dimensions based on card type
+      // Calculate preview dimensions
       const isHorizontal = card.isLeader || card.isBase
       const hasBackImage = card.backImageUrl && card.isLeader
       let previewWidth, previewHeight
       if (hasBackImage) {
-        // Leader with back: side by side (horizontal front + vertical back)
-        previewWidth = 504 + 360 + 20 // 504px front + 360px back + 20px gap
-        previewHeight = 504 // Max height (vertical back is 504px)
+        previewWidth = 504 + 360 + 20
+        previewHeight = 504
       } else {
         previewWidth = isHorizontal ? 504 : 360
         previewHeight = isHorizontal ? 360 : 504
       }
 
-      // Ensure preview stays within viewport bounds
-      if (previewX + previewWidth > window.innerWidth) {
-        previewX = rect.left - previewWidth - 20
-        if (previewX < 0) {
-          previewX = 10
-        }
-      }
+      // Start centered above the card
+      let previewX = rect.left + (rect.width / 2) - (previewWidth / 2)
+      let previewY = rect.top - previewHeight - 10
 
-      if (previewX < 0) {
-        previewX = 10
-      }
+      // Clamp to viewport - NEVER go outside
+      const margin = 10
+      const maxX = window.innerWidth - previewWidth - margin
+      const maxY = window.innerHeight - previewHeight - margin
 
-      // Adjust vertical position to keep preview within viewport
-      const previewTop = previewY - previewHeight / 2
-      const previewBottom = previewY + previewHeight / 2
-      let adjustedY = previewY
+      if (previewX < margin) previewX = margin
+      if (previewX > maxX) previewX = Math.max(margin, maxX)
+      if (previewY < margin) previewY = margin
+      if (previewY > maxY) previewY = Math.max(margin, maxY)
 
-      if (previewTop < 0) {
-        adjustedY = previewHeight / 2 + 10
-      }
-
-      if (previewBottom > window.innerHeight) {
-        adjustedY = window.innerHeight - previewHeight / 2 - 10
-      }
-
-      setHoveredCardPreview({ card, x: previewX, y: adjustedY })
-    }, 1000)
+      setHoveredCardPreview({ card, x: previewX, y: previewY })
+    }, 400)
   }
 
   const handleMouseLeave = () => {
@@ -101,14 +91,10 @@ function DraftableCard({
     setHoveredCardPreview(null)
   }
 
-  const handlePreviewMouseLeave = () => {
-    setHoveredCardPreview(null)
-  }
-
   return (
     <>
       <div
-        className={`draftable-card ${disabled ? 'disabled' : ''} ${selected ? 'selected' : ''} ${card.isFoil ? 'foil' : ''} ${card.treatment === 'hyperspace' ? 'hyperspace' : ''}`}
+        className={`draftable-card ${disabled ? 'disabled' : ''} ${selected ? 'selected' : ''} ${card.isFoil ? 'foil' : ''} ${card.treatment === 'hyperspace' ? 'hyperspace' : ''} ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''}`}
         onClick={handleClick}
         onContextMenu={handleRightClick}
         onMouseEnter={handleMouseEnter}
@@ -129,51 +115,93 @@ function DraftableCard({
         )}
       </div>
 
-      {hoveredCardPreview && (() => {
-        const previewCard = hoveredCardPreview.card
-        const hasBackImage = previewCard.backImageUrl && previewCard.isLeader
-        const isHorizontal = previewCard.isLeader || previewCard.isBase
-        const borderRadius = '23px'
+      {mounted && hoveredCardPreview && createPortal(
+        (() => {
+          const previewCard = hoveredCardPreview.card
+          const hasBackImage = previewCard.backImageUrl && previewCard.isLeader
+          const isHorizontal = previewCard.isLeader || previewCard.isBase
+          const borderRadius = '12px'
 
-        let previewWidth, previewHeight
-        if (hasBackImage) {
-          previewWidth = 504 + 360 + 20
-          previewHeight = 504
-        } else {
-          previewWidth = isHorizontal ? 504 : 360
-          previewHeight = isHorizontal ? 360 : 504
-        }
+          let previewWidth, previewHeight
+          if (hasBackImage) {
+            previewWidth = 504 + 360 + 20
+            previewHeight = 504
+          } else {
+            previewWidth = isHorizontal ? 504 : 360
+            previewHeight = isHorizontal ? 360 : 504
+          }
 
-        return (
-          <div
-            className="card-preview-enlarged"
-            style={{
-              position: 'fixed',
-              left: `${hoveredCardPreview.x}px`,
-              top: `${hoveredCardPreview.y}px`,
-              zIndex: 10000,
-              pointerEvents: 'auto',
-              transform: 'translateY(-50%)',
-              width: `${previewWidth}px`,
-              height: `${previewHeight}px`,
-              borderRadius: borderRadius,
-              overflow: 'visible',
-            }}
-            onMouseLeave={handlePreviewMouseLeave}
-          >
-            {hasBackImage ? (
-              <>
-                {/* Front - horizontal */}
+          return (
+            <div
+              className="card-preview-enlarged"
+              style={{
+                position: 'fixed',
+                left: `${hoveredCardPreview.x}px`,
+                top: `${hoveredCardPreview.y}px`,
+                zIndex: 10000,
+                pointerEvents: 'none',
+                width: `${previewWidth}px`,
+                height: `${previewHeight}px`,
+                borderRadius: borderRadius,
+                overflow: 'visible',
+              }}
+            >
+              {hasBackImage ? (
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                  {/* Front - horizontal */}
+                  <div className={previewCard.isFoil ? 'card-preview-foil' : ''} style={{
+                    width: '504px',
+                    height: '360px',
+                    overflow: 'hidden',
+                    borderRadius: borderRadius,
+                    boxShadow: previewCard.isFoil ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    position: 'relative',
+                    flexShrink: 0,
+                  }}>
+                    <img
+                      src={previewCard.imageUrl}
+                      alt={previewCard.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                  </div>
+                  {/* Back - vertical */}
+                  <div className={previewCard.isFoil ? 'card-preview-foil' : ''} style={{
+                    width: '360px',
+                    height: '504px',
+                    overflow: 'hidden',
+                    borderRadius: borderRadius,
+                    boxShadow: previewCard.isFoil ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    position: 'relative',
+                    flexShrink: 0,
+                  }}>
+                    <img
+                      src={previewCard.backImageUrl}
+                      alt={`${previewCard.name} (back)`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : (
                 <div className={previewCard.isFoil ? 'card-preview-foil' : ''} style={{
-                  width: '504px',
-                  height: '360px',
+                  width: `${previewWidth}px`,
+                  height: `${previewHeight}px`,
                   overflow: 'hidden',
                   borderRadius: borderRadius,
                   boxShadow: previewCard.isFoil ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
                   position: 'relative',
-                  display: 'inline-block',
-                  marginRight: '20px',
                 }}>
                   <img
                     src={previewCard.imageUrl}
@@ -186,55 +214,12 @@ function DraftableCard({
                     }}
                   />
                 </div>
-                {/* Back - vertical */}
-                <div className={previewCard.isFoil ? 'card-preview-foil' : ''} style={{
-                  width: '360px',
-                  height: '504px',
-                  overflow: 'hidden',
-                  borderRadius: borderRadius,
-                  boxShadow: previewCard.isFoil ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  position: 'relative',
-                  display: 'inline-block',
-                  verticalAlign: 'top',
-                }}>
-                  <img
-                    src={previewCard.backImageUrl}
-                    alt={`${previewCard.name} (back)`}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
-                    }}
-                  />
-                </div>
-              </>
-            ) : (
-              <div className={previewCard.isFoil ? 'card-preview-foil' : ''} style={{
-                width: `${previewWidth}px`,
-                height: `${previewHeight}px`,
-                overflow: 'hidden',
-                borderRadius: borderRadius,
-                boxShadow: previewCard.isFoil ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
-                border: '2px solid rgba(255, 255, 255, 0.3)',
-                position: 'relative',
-              }}>
-                <img
-                  src={previewCard.imageUrl}
-                  alt={previewCard.name}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    display: 'block',
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        )
-      })()}
+              )}
+            </div>
+          )
+        })(),
+        document.body
+      )}
     </>
   )
 }

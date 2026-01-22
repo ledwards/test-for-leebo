@@ -69,18 +69,22 @@ export class FoilBelt {
     this._fillIfNeeded()
 
     // Start at random position to simulate having printed some packs already
-    const startPosition = Math.floor(Math.random() * this.hopper.length)
-    this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
+    // TEMPORARILY DISABLED: const startPosition = Math.floor(Math.random() * this.hopper.length)
+    // TEMPORARILY DISABLED: this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
   }
 
   /**
    * Fill the hopper if it needs more cards
    */
   _fillIfNeeded() {
+    // Safety check: if no cards in filling pool, can't fill
+    if (this.fillingPool.length === 0) {
+      return
+    }
     // Calculate the size of one boot
     const bootSize = this._calculateBootSize()
 
-    while (this.hopper.length <= bootSize) {
+    while (this.hopper.length < bootSize) {
       this._fill()
     }
   }

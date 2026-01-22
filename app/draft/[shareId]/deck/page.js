@@ -52,7 +52,7 @@ export default function DraftDeckPage({ params }) {
 
   if (authLoading || !shareId || loading) {
     return (
-      <div className="app draft-page-bg">
+      <div className="draft-page-bg">
         <div className="loading-container">
           <div className="loading"></div>
           <p>Loading draft pool...</p>
@@ -63,7 +63,7 @@ export default function DraftDeckPage({ params }) {
 
   if (!isAuthenticated) {
     return (
-      <div className="app draft-page-bg">
+      <div className="draft-page-bg">
         <div className="login-required">
           <h2>Sign In Required</h2>
           <p>Please sign in to access your draft deck</p>
@@ -77,7 +77,7 @@ export default function DraftDeckPage({ params }) {
 
   if (error) {
     return (
-      <div className="app draft-page-bg">
+      <div className="draft-page-bg">
         <div className="error-container">
           <h2>Error</h2>
           <p>{error}</p>

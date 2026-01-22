@@ -9,9 +9,6 @@ export const LOF_CONFIG = {
   setNumber: 5,
   color: '#5DADE2', // Light blue
 
-  // Distribution period
-  distributionPeriod: 'pre-lawless-time',
-
   // Card counts (Normal variants only)
   cardCounts: {
     leaders: {

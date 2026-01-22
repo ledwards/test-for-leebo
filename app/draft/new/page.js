@@ -51,7 +51,7 @@ export default function NewDraftPage() {
 
   if (authLoading) {
     return (
-      <div className="app draft-page-bg">
+      <div className="draft-page-bg">
         <div className="loading"></div>
       </div>
     )
@@ -63,7 +63,7 @@ export default function NewDraftPage() {
 
   if (creating) {
     return (
-      <div className="app draft-page-bg">
+      <div className="draft-page-bg">
         <div className="loading-container">
           <div className="loading"></div>
           <p>Creating draft...</p>
@@ -74,7 +74,7 @@ export default function NewDraftPage() {
 
   if (error) {
     return (
-      <div className="app draft-page-bg">
+      <div className="draft-page-bg">
         <div className="error-container">
           <h2>Error</h2>
           <p>{error}</p>

@@ -3,10 +3,6 @@
   margin: 0 auto;
 }
 
-.phase-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
 
 .draft-info-header {
   background: #1e1e1e;
@@ -80,18 +76,11 @@
   box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
 }
 
-.phase-header h2 {
-  margin-bottom: 8px;
-}
-
-.phase-description {
-  color: #888;
-}
 
 .draft-layout {
   display: flex;
   gap: 30px;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .players-section {
@@ -105,7 +94,6 @@
 
 .cards-section {
   flex: 1;
-  min-width: 0;
   background: rgba(30, 30, 30, 0.8);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -134,8 +122,9 @@
 
 .pack-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, 120px);
   gap: 12px;
+  justify-content: start;
 }
 
 .no-cards {
@@ -178,9 +167,6 @@
     gap: 10px;
   }
 
-  .pack-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 
   .draft-progress {
     flex-direction: column;

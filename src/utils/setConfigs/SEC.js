@@ -9,9 +9,6 @@ export const SEC_CONFIG = {
   setNumber: 6,
   color: '#6A1B9A', // Darker purple
 
-  // Distribution period
-  distributionPeriod: 'pre-lawless-time',
-
   // Card counts (Normal variants only)
   cardCounts: {
     leaders: {

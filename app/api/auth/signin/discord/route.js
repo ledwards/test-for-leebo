@@ -15,15 +15,23 @@ export async function GET(request) {
       }, { status: 500 })
     }
 
+    // Get return_to parameter from query string
+    const { searchParams } = new URL(request.url)
+    const returnTo = searchParams.get('return_to') || '/'
+
     // Check if user already has a valid session
     const session = getSession(request)
     if (session) {
-      // Already logged in, redirect back to home
-      return NextResponse.redirect(`${APP_URL}/?auth=already_logged_in`)
+      // Already logged in, redirect back to return_to
+      return NextResponse.redirect(`${APP_URL}${returnTo}?auth=already_logged_in`)
     }
 
-    // Generate state for CSRF protection
-    const state = Math.random().toString(36).substring(2, 15)
+    // Generate state for CSRF protection and encode return_to in it
+    const stateData = {
+      random: Math.random().toString(36).substring(2, 15),
+      returnTo: returnTo
+    }
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64')
 
     // Build Discord OAuth URL
     const discordAuthUrl = new URL('https://discord.com/api/oauth2/authorize')

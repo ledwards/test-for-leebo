@@ -14,8 +14,19 @@ export async function GET(request) {
     const state = searchParams.get('state')
     const error = searchParams.get('error')
 
+    // Decode state to get return_to URL
+    let returnTo = '/'
+    if (state) {
+      try {
+        const stateData = JSON.parse(Buffer.from(state, 'base64').toString())
+        returnTo = stateData.returnTo || '/'
+      } catch (e) {
+        console.error('Failed to decode state:', e)
+      }
+    }
+
     if (error) {
-      return NextResponse.redirect(`${APP_URL}/?error=${encodeURIComponent(error)}`)
+      return NextResponse.redirect(`${APP_URL}${returnTo}?error=${encodeURIComponent(error)}`)
     }
 
     if (!code) {
@@ -86,7 +97,7 @@ export async function GET(request) {
     } else {
       // Update existing user
       const result = await query(
-        `UPDATE users 
+        `UPDATE users
          SET username = $1, email = $2, avatar_url = $3, updated_at = NOW()
          WHERE discord_id = $4
          RETURNING *`,
@@ -102,11 +113,23 @@ export async function GET(request) {
       user = result.rows[0] || user
     }
 
-    // Create session and redirect
-    const response = NextResponse.redirect(`${APP_URL}/?auth=success`)
+    // Create session and redirect to return_to
+    const response = NextResponse.redirect(`${APP_URL}${returnTo}?auth=success`)
     return setSession(response, user)
   } catch (error) {
     console.error('Discord OAuth error:', error)
-    return NextResponse.redirect(`${APP_URL}/?error=${encodeURIComponent(error.message)}`)
+    // Try to redirect to return_to from state, fallback to home
+    const { searchParams } = new URL(request.url)
+    const state = searchParams.get('state')
+    let returnTo = '/'
+    if (state) {
+      try {
+        const stateData = JSON.parse(Buffer.from(state, 'base64').toString())
+        returnTo = stateData.returnTo || '/'
+      } catch (e) {
+        // ignore decode errors
+      }
+    }
+    return NextResponse.redirect(`${APP_URL}${returnTo}?error=${encodeURIComponent(error.message)}`)
   }
 }

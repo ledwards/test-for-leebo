@@ -78,6 +78,11 @@ export async function POST(request, { params }) {
       const pickedLeader = leaders[leaderIndex]
       const remainingLeaders = leaders.filter((_, i) => i !== leaderIndex)
 
+      // Add pick metadata
+      const leaderRound = draftState.leaderRound || 1
+      pickedLeader.pickNumber = draftedLeaders.length + 1
+      pickedLeader.leaderRound = leaderRound
+
       // Add to drafted leaders
       draftedLeaders.push(pickedLeader)
 
@@ -109,6 +114,13 @@ export async function POST(request, { params }) {
       // Pick the card
       const pickedCard = currentPack[cardIndex]
       const remainingPack = currentPack.filter((_, i) => i !== cardIndex)
+
+      // Add pick metadata
+      const packNumber = draftState.packNumber || 1
+      const pickInPack = draftState.pickInPack || 1
+      pickedCard.pickNumber = draftedCards.length + 1
+      pickedCard.packNumber = packNumber
+      pickedCard.pickInPack = pickInPack
 
       // Add to drafted cards
       draftedCards.push(pickedCard)

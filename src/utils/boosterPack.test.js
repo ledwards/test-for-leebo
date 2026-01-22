@@ -13,11 +13,11 @@ let failed = 0
 function test(name, fn) {
   try {
     fn()
-    console.log(`✓ ${name}`)
+    console.log(`\x1b[32m✅ ${name}\x1b[0m`)
     passed++
   } catch (e) {
-    console.log(`✗ ${name}`)
-    console.log(`  ${e.message}`)
+    console.log(`\x1b[31m❌ ${name}\x1b[0m`)
+    console.log(`\x1b[33m   ${e.message}\x1b[0m`)
     failed++
   }
 }
@@ -33,12 +33,12 @@ function assertEqual(actual, expected, message) {
 }
 
 async function runTests() {
-  console.log('Initializing card cache...')
+  console.log('\x1b[36m🔄 Initializing card cache...\x1b[0m')
   await initializeCardCache()
   const cards = getCachedCards('SOR')
   console.log('')
-  console.log('Booster Pack Tests')
-  console.log('==================')
+  console.log('\x1b[1m\x1b[35m📦 Booster Pack Tests\x1b[0m')
+  console.log('\x1b[35m======================\x1b[0m')
 
   test('generateBoosterPack returns pack with cards array', () => {
     clearBeltCache()
@@ -250,6 +250,100 @@ async function runTests() {
   })
 
   console.log('')
+  console.log('Duplicate Detection Tests')
+  console.log('==========================')
+
+  test('single pack has no duplicate cards (same ID and foil status)', () => {
+    clearBeltCache()
+    const pack = generateBoosterPack(cards, 'SOR')
+
+    // Check for duplicates by comparing both ID and foil status
+    const seen = new Map() // Map of card.id to array of {index, isFoil}
+    const duplicates = []
+
+    for (let i = 0; i < pack.cards.length; i++) {
+      const card = pack.cards[i]
+      const key = card.id
+
+      if (!seen.has(key)) {
+        seen.set(key, [])
+      }
+
+      // Check if we've seen this card with the same foil status
+      const matchingCards = seen.get(key).filter(c => c.isFoil === card.isFoil)
+
+      if (matchingCards.length > 0) {
+        // True duplicate found (same ID and same foil status)
+        const firstMatch = matchingCards[0]
+        duplicates.push(`${card.name} (${card.id}) isFoil:${card.isFoil} at positions ${firstMatch.index} and ${i}`)
+      }
+
+      seen.get(key).push({ index: i, isFoil: card.isFoil })
+    }
+
+    assertEqual(duplicates.length, 0,
+      `Pack should have no duplicate cards (same ID + foil status), but found: ${duplicates.join('; ')}`)
+  })
+
+  test('100 packs have no duplicate cards (same ID and foil status) within any single pack', () => {
+    clearBeltCache()
+
+    let packsWithDuplicates = 0
+    const duplicateExamples = []
+
+    for (let packNum = 0; packNum < 100; packNum++) {
+      const pack = generateBoosterPack(cards, 'SOR')
+
+      // Check for duplicates by comparing both ID and foil status
+      const seen = new Map() // Map of card.id to array of {index, isFoil}
+      let hasDuplicate = false
+
+      for (let j = 0; j < pack.cards.length; j++) {
+        const card = pack.cards[j]
+        const key = card.id
+
+        if (!seen.has(key)) {
+          seen.set(key, [])
+        }
+
+        // Check if we've seen this card with the same foil status
+        const matchingCards = seen.get(key).filter(c => c.isFoil === card.isFoil)
+
+        if (matchingCards.length > 0) {
+          // True duplicate found (same ID and same foil status)
+          hasDuplicate = true
+          duplicateExamples.push(`Pack ${packNum + 1}: ${card.name} (${card.id}) isFoil:${card.isFoil}`)
+          if (duplicateExamples.length >= 5) break
+        }
+
+        seen.get(key).push({ index: j, isFoil: card.isFoil })
+      }
+
+      if (hasDuplicate) {
+        packsWithDuplicates++
+      }
+    }
+
+    assertEqual(packsWithDuplicates, 0,
+      `Found duplicates in ${packsWithDuplicates} out of 100 packs. Examples: ${duplicateExamples.join('; ')}`)
+  })
+
+  test('belt cache returns same belt instance for same key', () => {
+    clearBeltCache()
+
+    // Generate two packs without clearing cache
+    const pack1 = generateBoosterPack(cards, 'SOR')
+    const pack2 = generateBoosterPack(cards, 'SOR')
+
+    // Both packs should exist and have cards
+    assert(pack1.cards.length === 16, 'Pack 1 should have 16 cards')
+    assert(pack2.cards.length === 16, 'Pack 2 should have 16 cards')
+
+    // This test verifies belts are reused (cached) between packs
+    // The real test is that no duplicates appear in individual packs
+  })
+
+  console.log('')
   console.log('Upgrade Pass Tests')
   console.log('==================')
 
@@ -370,8 +464,21 @@ async function runTests() {
   })
 
   console.log('')
-  console.log(`Results: ${passed} passed, ${failed} failed`)
-  process.exit(failed > 0 ? 1 : 0)
+  console.log('\x1b[35m======================\x1b[0m')
+  console.log(`\x1b[32m✅ Tests passed: ${passed}\x1b[0m`)
+  if (failed > 0) {
+    console.log(`\x1b[31m❌ Tests failed: ${failed}\x1b[0m`)
+  } else {
+    console.log(`\x1b[90m   Tests failed: ${failed}\x1b[0m`)
+  }
+  console.log('')
+
+  if (failed > 0) {
+    console.log('\x1b[31m\x1b[1m💥 TESTS FAILED\x1b[0m')
+    process.exit(1)
+  } else {
+    console.log('\x1b[32m\x1b[1m🎉 ALL TESTS PASSED!\x1b[0m')
+  }
 }
 
 runTests()

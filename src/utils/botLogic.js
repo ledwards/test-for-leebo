@@ -43,16 +43,16 @@ export async function triggerBotPicks(podId) {
  */
 async function makeBotPick(bot, draftState) {
   if (draftState.phase === 'leader_draft') {
-    await makeBotLeaderPick(bot)
+    await makeBotLeaderPick(bot, draftState)
   } else if (draftState.phase === 'pack_draft') {
-    await makeBotCardPick(bot)
+    await makeBotCardPick(bot, draftState)
   }
 }
 
 /**
  * Bot picks a leader (random selection)
  */
-async function makeBotLeaderPick(bot) {
+async function makeBotLeaderPick(bot, draftState) {
   const leaders = typeof bot.leaders === 'string'
     ? JSON.parse(bot.leaders)
     : bot.leaders || []
@@ -67,6 +67,11 @@ async function makeBotLeaderPick(bot) {
   const draftedLeaders = typeof bot.drafted_leaders === 'string'
     ? JSON.parse(bot.drafted_leaders)
     : bot.drafted_leaders || []
+
+  // Add pick metadata
+  const leaderRound = draftState?.leaderRound || 1
+  pickedLeader.pickNumber = draftedLeaders.length + 1
+  pickedLeader.leaderRound = leaderRound
 
   draftedLeaders.push(pickedLeader)
 
@@ -88,7 +93,7 @@ async function makeBotLeaderPick(bot) {
 /**
  * Bot picks a card (prefers higher rarity)
  */
-async function makeBotCardPick(bot) {
+async function makeBotCardPick(bot, draftState) {
   const currentPack = typeof bot.current_pack === 'string'
     ? JSON.parse(bot.current_pack)
     : bot.current_pack || []
@@ -107,6 +112,13 @@ async function makeBotCardPick(bot) {
   const draftedCards = typeof bot.drafted_cards === 'string'
     ? JSON.parse(bot.drafted_cards)
     : bot.drafted_cards || []
+
+  // Add pick metadata
+  const packNumber = draftState?.packNumber || 1
+  const pickInPack = draftState?.pickInPack || 1
+  pickedCard.pickNumber = draftedCards.length + 1
+  pickedCard.packNumber = packNumber
+  pickedCard.pickInPack = pickInPack
 
   draftedCards.push(pickedCard)
 

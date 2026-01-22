@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../src/contexts/AuthContext'
 import { fetchUserPools } from '../../src/utils/poolApi'
 import { useRouter } from 'next/navigation'
+import { getSetConfig } from '../../src/utils/setConfigs'
 import '../../src/App.css'
 import './History.css'
 
@@ -25,7 +26,7 @@ export default function HistoryPage() {
     if (user) {
       setLoading(true)
 
-      // Fetch both sealed pools and draft pods in parallel
+      // Fetch user pools and drafts
       Promise.all([
         fetchUserPools(user.id),
         fetch('/api/draft/history', { credentials: 'include' }).then(r => r.json())
@@ -41,9 +42,11 @@ export default function HistoryPage() {
             setSealedPools([])
           }
 
-          // Handle draft pods
-          if (draftData && draftData.pods) {
-            setDraftPods(draftData.pods)
+          // Handle draft pods - show ALL drafts (unfiltered for history)
+          if (draftData && (draftData.data?.pods || draftData.pods)) {
+            const allDrafts = (draftData.data?.pods || draftData.pods)
+              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            setDraftPods(allDrafts)
           } else {
             setDraftPods([])
           }
@@ -60,9 +63,9 @@ export default function HistoryPage() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -77,6 +80,11 @@ export default function HistoryPage() {
       case 'complete': return 'Complete'
       default: return status
     }
+  }
+
+  const getSetName = (setCode) => {
+    const config = getSetConfig(setCode)
+    return config?.setName || setCode
   }
 
   if (authLoading || loading) {
@@ -145,31 +153,34 @@ export default function HistoryPage() {
                 <table className="history-table">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Name</th>
+                      <th>Title</th>
                       <th>Set</th>
-                      <th>ID</th>
+                      <th>Date</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sealedPools.map((pool) => (
                       <tr key={pool.id}>
-                        <td>{formatDate(pool.createdAt)}</td>
-                        <td>{pool.name || 'N/A'}</td>
-                        <td style={{ color: 'white', fontWeight: '600' }}>
-                          {pool.setCode}
-                        </td>
-                        <td className="share-id-cell">
-                          <code>{pool.shareId}</code>
-                        </td>
                         <td>
                           <a
                             href={`/pool/${pool.shareId}/deck`}
-                            className="history-edit-button"
+                            className="history-pool-name"
                           >
-                            Edit
+                            {pool.name || 'Untitled Pool'}
                           </a>
+                        </td>
+                        <td style={{ color: 'white', fontWeight: '600' }}>
+                          {getSetName(pool.setCode)}
+                        </td>
+                        <td>{formatDate(pool.createdAt)}</td>
+                        <td>
+                          <button
+                            className="history-show-button"
+                            onClick={() => window.location.href = `/pool/${pool.shareId}/deck`}
+                          >
+                            Show
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -184,60 +195,41 @@ export default function HistoryPage() {
           <>
             {draftPods.length === 0 ? (
               <div className="history-empty">
-                <p>No draft pods found. Join or create a draft to get started!</p>
+                <p>No drafts found. Join or create a draft to get started!</p>
               </div>
             ) : (
               <div className="history-table-container">
                 <table className="history-table">
                   <thead>
                     <tr>
-                      <th>Date</th>
+                      <th>Title</th>
                       <th>Set</th>
-                      <th>Players</th>
-                      <th>Status</th>
-                      <th>Role</th>
-                      <th>Draft Pool</th>
+                      <th>Date</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {draftPods.map((pod) => (
                       <tr key={pod.id}>
-                        <td>{formatDate(pod.createdAt)}</td>
-                        <td style={{ color: 'white', fontWeight: '600' }}>
-                          {pod.setCode}
-                        </td>
-                        <td>{pod.currentPlayers}/{pod.maxPlayers}</td>
-                        <td>{getStatusLabel(pod.status)}</td>
-                        <td>{pod.isHost ? '(Host)' : 'Player'}</td>
-                        <td>
-                          {pod.poolShareId ? (
-                            <a
-                              href={`/pool/${pod.poolShareId}/deck`}
-                              className="history-pool-link"
-                            >
-                              View Pool
-                            </a>
-                          ) : (
-                            pod.status === 'complete' ? (
-                              <a
-                                href={`/draft/${pod.shareId}/deck`}
-                                className="history-pool-link"
-                              >
-                                Create Pool
-                              </a>
-                            ) : (
-                              <span className="history-no-pool">—</span>
-                            )
-                          )}
-                        </td>
                         <td>
                           <a
                             href={`/draft/${pod.shareId}`}
-                            className="history-edit-button"
+                            className="history-pool-name"
                           >
-                            View
+                            {pod.draftName || 'Untitled Draft'}
                           </a>
+                        </td>
+                        <td style={{ color: 'white', fontWeight: '600' }}>
+                          {getSetName(pod.setCode)}
+                        </td>
+                        <td>{formatDate(pod.createdAt)}</td>
+                        <td>
+                          <button
+                            className="history-show-button"
+                            onClick={() => window.location.href = `/draft/${pod.shareId}`}
+                          >
+                            Show
+                          </button>
                         </td>
                       </tr>
                     ))}

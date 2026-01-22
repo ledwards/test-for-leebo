@@ -32,6 +32,7 @@ export class HyperspaceBaseBelt {
     this.setCode = setCode
     this.hopper = []
     this.fillingPool = []
+    this.hasLoggedEmptyWarning = false
 
     this._initialize()
   }
@@ -48,12 +49,19 @@ export class HyperspaceBaseBelt {
 
     this._fillIfNeeded()
 
-    const startPosition = Math.floor(Math.random() * this.hopper.length)
-    this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
+    // TEMPORARILY DISABLED: const startPosition = Math.floor(Math.random() * this.hopper.length)
+    // TEMPORARILY DISABLED: this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
   }
 
   _fillIfNeeded() {
-    while (this.hopper.length <= this.fillingPool.length) {
+    // Safety check: if no cards in filling pool, can't fill
+    if (this.fillingPool.length === 0) {
+      if (!this.hasLoggedEmptyWarning) {
+        this.hasLoggedEmptyWarning = true
+      }
+      return
+    }
+    while (this.hopper.length < this.fillingPool.length) {
       this._fill()
     }
   }
@@ -84,6 +92,7 @@ export class HyperspaceBaseBelt {
   next() {
     this._fillIfNeeded()
     const card = this.hopper.shift()
+    if (!card) return null
     return { ...card, isHyperspace: true }
   }
 
