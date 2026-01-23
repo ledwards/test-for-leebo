@@ -770,9 +770,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
   // Restore saved state on mount
   useEffect(() => {
-    if (savedState && Object.keys(cardPositions).length === 0) {
+    if (Object.keys(cardPositions).length === 0 && savedState) {
       try {
-        // Handle both string and object savedState
+        // Load deck state from database (savedState prop)
         const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState
 
         if (state.cardPositions && Object.keys(state.cardPositions).length > 0) {
@@ -810,13 +810,98 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           if (state.activeBase) {
             setActiveBase(state.activeBase)
           }
+
+          // Restore UI state
+          if (state.viewMode) {
+            setViewMode(state.viewMode)
+          }
+          if (state.filterDrawerOpen !== undefined) {
+            setFilterDrawerOpen(state.filterDrawerOpen)
+          }
+          if (state.leadersExpanded !== undefined) {
+            setLeadersExpanded(state.leadersExpanded)
+          }
+          if (state.basesExpanded !== undefined) {
+            setBasesExpanded(state.basesExpanded)
+          }
+          if (state.deckExpanded !== undefined) {
+            setDeckExpanded(state.deckExpanded)
+          }
+          if (state.sideboardExpanded !== undefined) {
+            setSideboardExpanded(state.sideboardExpanded)
+          }
+          if (state.deckAspectSectionsExpanded) {
+            setDeckAspectSectionsExpanded(state.deckAspectSectionsExpanded)
+          }
+          if (state.deckCostSectionsExpanded) {
+            setDeckCostSectionsExpanded(state.deckCostSectionsExpanded)
+          }
+          if (state.showAspectPenalties !== undefined) {
+            setShowAspectPenalties(state.showAspectPenalties)
+          }
         }
       } catch (e) {
         console.error('Failed to restore deck builder state:', e)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [savedState]) // Run when savedState changes
+  }, [savedState])
+
+  // Restore UI state from localStorage
+  useEffect(() => {
+    if (!shareId) return
+
+    try {
+      const uiState = localStorage.getItem(`deckBuilderUI_${shareId}`)
+      if (uiState) {
+        const state = JSON.parse(uiState)
+
+        if (state.viewMode) {
+          setViewMode(state.viewMode)
+        }
+        if (state.filterDrawerOpen !== undefined) {
+          setFilterDrawerOpen(state.filterDrawerOpen)
+        }
+        if (state.aspectFilters) {
+          setAspectFilters(state.aspectFilters)
+        }
+        if (state.sortOption) {
+          setSortOption(state.sortOption)
+        }
+        if (state.leadersExpanded !== undefined) {
+          setLeadersExpanded(state.leadersExpanded)
+        }
+        if (state.basesExpanded !== undefined) {
+          setBasesExpanded(state.basesExpanded)
+        }
+        if (state.deckExpanded !== undefined) {
+          setDeckExpanded(state.deckExpanded)
+        }
+        if (state.sideboardExpanded !== undefined) {
+          setSideboardExpanded(state.sideboardExpanded)
+        }
+        if (state.deckAspectSectionsExpanded) {
+          setDeckAspectSectionsExpanded(state.deckAspectSectionsExpanded)
+        }
+        if (state.sideboardAspectSectionsExpanded) {
+          setSideboardAspectSectionsExpanded(state.sideboardAspectSectionsExpanded)
+        }
+        if (state.deckCostSectionsExpanded) {
+          setDeckCostSectionsExpanded(state.deckCostSectionsExpanded)
+        }
+        if (state.sideboardCostSectionsExpanded) {
+          setSideboardCostSectionsExpanded(state.sideboardCostSectionsExpanded)
+        }
+        if (state.showAspectPenalties !== undefined) {
+          setShowAspectPenalties(state.showAspectPenalties)
+        }
+        if (state.tableSort) {
+          setTableSort(state.tableSort)
+        }
+      }
+    } catch (e) {
+      console.error('Failed to restore UI state:', e)
+    }
+  }, [shareId])
 
   // Detect when deck-info-bar becomes sticky
   useEffect(() => {
@@ -863,7 +948,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // Initialize card positions in sections
   // Can initialize with just pool cards, then enhance when all set cards load
   useEffect(() => {
-    // Don't initialize if we have saved state to restore (it will be restored in the other useEffect)
+    // Don't initialize if we have saved state to restore
     if (savedState) return
 
     // Initialize immediately with pool cards if we have them
@@ -1132,10 +1217,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
   }, [allSetCards, cardPositions, sectionBounds, setCode])
 
-  // Save deck builder state to sessionStorage and database whenever it changes
+  // Save deck builder state to localStorage whenever it changes
   useEffect(() => {
+    // Only save if we have a shareId to key the state by
+    if (!shareId) return
+
     // Save state if we have card positions OR if leader/base selection changes
-    // This ensures state is saved even when only leader/base changes
     if (Object.keys(cardPositions).length > 0 || activeLeader || activeBase) {
       // Determine which cards are in deck vs sideboard
       const deckCardIds = Object.entries(cardPositions)
@@ -1146,26 +1233,47 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         .filter(([_, pos]) => pos.section === 'sideboard')
         .map(([cardId, _]) => cardId)
 
-      const stateToSave = {
+      // Deck state for database
+      const deckStateToSave = {
         cardPositions: Object.keys(cardPositions).length > 0 ? cardPositions : {},
         sectionLabels,
         sectionBounds,
         canvasHeight,
-        aspectFilters,
-        sortOption,
         activeLeader,
         activeBase,
         deckCardIds,
         sideboardCardIds
       }
-      const stateJson = JSON.stringify(stateToSave)
-      sessionStorage.setItem('deckBuilderState', stateJson)
-      // Also save to pool if onStateChange callback is provided
+
+      // UI state for localStorage only
+      const uiStateToSave = {
+        viewMode,
+        filterDrawerOpen,
+        aspectFilters,
+        sortOption,
+        leadersExpanded,
+        basesExpanded,
+        deckExpanded,
+        sideboardExpanded,
+        deckAspectSectionsExpanded,
+        sideboardAspectSectionsExpanded,
+        deckCostSectionsExpanded,
+        sideboardCostSectionsExpanded,
+        showAspectPenalties,
+        tableSort
+      }
+
+      // Save UI state to localStorage keyed by pool shareId
+      if (shareId) {
+        localStorage.setItem(`deckBuilderUI_${shareId}`, JSON.stringify(uiStateToSave))
+      }
+
+      // Save deck state to database via callback
       if (onStateChange) {
-        onStateChange(stateToSave)
+        onStateChange(deckStateToSave)
       }
     }
-  }, [cardPositions, sectionLabels, sectionBounds, canvasHeight, aspectFilters, sortOption, activeLeader, activeBase, onStateChange])
+  }, [shareId, cardPositions, sectionLabels, sectionBounds, canvasHeight, activeLeader, activeBase, viewMode, filterDrawerOpen, aspectFilters, sortOption, leadersExpanded, basesExpanded, deckExpanded, sideboardExpanded, deckAspectSectionsExpanded, sideboardAspectSectionsExpanded, deckCostSectionsExpanded, sideboardCostSectionsExpanded, showAspectPenalties, tableSort, onStateChange])
 
   // Cleanup: Remove any bases/leaders from deck/sideboard sections and move cards based on enabled state
   useEffect(() => {

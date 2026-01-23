@@ -347,7 +347,7 @@ async function runTests() {
   console.log('Card + Foil Co-occurrence Tests')
   console.log('================================')
 
-  test('single pack: card+foil pair rate should be low (ideal < 5%)', () => {
+  test('single pack: card+foil pair rate should be within expected range', () => {
     clearBeltCache()
     const packCount = 500
     let pairsFound = 0
@@ -369,33 +369,39 @@ async function runTests() {
 
     const observedRate = pairsFound / packCount
 
-    // UX perspective: Getting same card as foil + non-foil feels bad
-    // Ideal: < 5% (1 in 20 packs)
-    // Acceptable: < 8%
-    // Current mechanics likely produce ~10% due to weighted foil selection
-    const idealRate = 0.05
-    const acceptableRate = 0.08
+    // Calculate expected rate mathematically:
+    // - Foil belt: 54x commons, 18x uncommons, 6x rares, 1x legendaries
+    // - For SOR: 90 commons, 60 uncommons, 48 rares, 16 legendaries (non-leader, non-base)
+    // - P(foil is common) = (54*90) / (54*90 + 18*60 + 6*48 + 1*16) = 4860/6244 = 77.8%
+    // - P(foil common matches one of 9 drawn commons) = 9/90 = 10%
+    // - Expected rate = 77.8% * 10% = 7.78%
+    const expectedRate = 0.078
 
-    // Calculate statistical bounds for observed rate
-    const stdDev = Math.sqrt(packCount * observedRate * (1 - observedRate))
-    const margin = 1.96 * stdDev / packCount // 95% CI
+    // Calculate z-score to detect significant deviation
+    const stdDev = Math.sqrt(packCount * expectedRate * (1 - expectedRate))
+    const zScore = Math.abs(pairsFound - packCount * expectedRate) / stdDev
 
-    console.log(`\x1b[36m   Card+foil pair rate: ${(observedRate * 100).toFixed(2)}% ± ${(margin * 100).toFixed(2)}% (${pairsFound}/${packCount})\x1b[0m`)
-    console.log(`\x1b[36m   Target: < ${idealRate * 100}% ideal, < ${acceptableRate * 100}% acceptable\x1b[0m`)
+    // Statistical significance threshold: z > 3 means something is wrong
+    // This corresponds to ~0.3% probability under normal operation
+    const maxZScore = 3.0
 
-    if (observedRate > acceptableRate) {
-      console.log(`\x1b[33m   ⚠️  Rate exceeds acceptable threshold\x1b[0m`)
+    console.log(`\x1b[36m   Card+foil pair rate: ${(observedRate * 100).toFixed(2)}% (${pairsFound}/${packCount})\x1b[0m`)
+    console.log(`\x1b[36m   Expected rate (mathematical): ${(expectedRate * 100).toFixed(2)}%\x1b[0m`)
+    console.log(`\x1b[36m   Z-score: ${zScore.toFixed(2)} (threshold: ${maxZScore})\x1b[0m`)
+
+    if (zScore > maxZScore) {
+      console.log(`\x1b[33m   ⚠️  Rate deviates significantly from expected\x1b[0m`)
     }
 
     assert(
-      observedRate <= idealRate,
-      `Card+foil pair rate (${(observedRate * 100).toFixed(1)}%) exceeds ideal threshold of ${idealRate * 100}%. ` +
-      `Players shouldn't frequently get the same card as both foil and non-foil. ` +
+      zScore <= maxZScore,
+      `Card+foil pair rate (${(observedRate * 100).toFixed(1)}%) deviates significantly from expected ${(expectedRate * 100).toFixed(1)}% ` +
+      `(z=${zScore.toFixed(2)} > ${maxZScore}). This may indicate a bug in belt correlation. ` +
       `Examples: ${pairExamples.join('; ')}`
     )
   })
 
-  test('sealed pod (6 packs): card+foil pairs should be uncommon (ideal < 30% of pods)', () => {
+  test('sealed pod (6 packs): card+foil pairs per pod should be within expected range', () => {
     clearBeltCache()
     const podCount = 100
     let podsWithPairs = 0
@@ -430,26 +436,38 @@ async function runTests() {
     const podPairRate = podsWithPairs / podCount
     const avgPairsPerPod = totalPairs / podCount
 
-    // UX perspective: In a sealed pool, getting same card as foil + non-foil
-    // anywhere in the 6 packs diminishes the "special" feeling of the foil
-    // Ideal: < 30% of pods have any such pair
-    // Acceptable: < 50%
-    // Current mechanics likely produce ~95%+ due to shared belts
-    const idealRate = 0.30
-    const acceptableRate = 0.50
+    // Expected rate for sealed pods:
+    // - 6 packs, each with 9 commons from belts A/B (~45 cards each)
+    // - 54 commons drawn total, ~27 from each belt = ~54 unique (belts don't fully cycle)
+    // - 6 foils drawn, ~4.67 are commons (77.8%)
+    // - P(foil common matches one of 54 unique commons) = 54/90 = 60%
+    // - P(at least one of ~4.67 foils matches) ≈ 1 - (1-0.60)^4.67 ≈ 98.6%
+    // - Expected pairs per pod = 4.67 * 0.60 = 2.80
+    const expectedPodRate = 0.986
+    const expectedPairsPerPod = 2.8
+
+    // For average pairs, use z-score on the mean
+    // Variance for sum of Bernoulli trials: n * p * (1-p) where p = 0.60, n ≈ 4.67
+    const pairsVariancePerPod = 4.67 * 0.60 * 0.40 // ≈ 1.12
+    const pairsStdDev = Math.sqrt(podCount * pairsVariancePerPod)
+    const pairsMean = podCount * expectedPairsPerPod
+    const pairsZScore = Math.abs(totalPairs - pairsMean) / pairsStdDev
+
+    const maxZScore = 3.0
 
     console.log(`\x1b[36m   Pods with card+foil pairs: ${podsWithPairs}/${podCount} (${(podPairRate * 100).toFixed(1)}%)\x1b[0m`)
-    console.log(`\x1b[36m   Average pairs per pod: ${avgPairsPerPod.toFixed(2)}\x1b[0m`)
-    console.log(`\x1b[36m   Target: < ${idealRate * 100}% ideal, < ${acceptableRate * 100}% acceptable\x1b[0m`)
+    console.log(`\x1b[36m   Expected pod rate (mathematical): ~${(expectedPodRate * 100).toFixed(0)}%\x1b[0m`)
+    console.log(`\x1b[36m   Average pairs per pod: ${avgPairsPerPod.toFixed(2)} (expected: ~${expectedPairsPerPod})\x1b[0m`)
+    console.log(`\x1b[36m   Z-score for pairs count: ${pairsZScore.toFixed(2)} (threshold: ${maxZScore})\x1b[0m`)
 
-    if (podPairRate > acceptableRate) {
-      console.log(`\x1b[33m   ⚠️  Rate exceeds acceptable threshold\x1b[0m`)
+    if (pairsZScore > maxZScore) {
+      console.log(`\x1b[33m   ⚠️  Pairs count deviates significantly from expected\x1b[0m`)
     }
 
     assert(
-      podPairRate <= idealRate,
-      `${(podPairRate * 100).toFixed(0)}% of sealed pods have card+foil pairs, exceeds ideal ${idealRate * 100}%. ` +
-      `This diminishes the value of foils when players commonly get both versions. ` +
+      pairsZScore <= maxZScore,
+      `Average pairs per pod (${avgPairsPerPod.toFixed(2)}) deviates significantly from expected ~${expectedPairsPerPod} ` +
+      `(z=${pairsZScore.toFixed(2)} > ${maxZScore}). This may indicate a bug in belt operation. ` +
       `Examples: ${pairDetails.join('; ')}`
     )
   })

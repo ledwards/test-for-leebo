@@ -51,9 +51,6 @@ export class HyperspaceLeaderBelt {
     this.rareLeaders = this.fillingPool.filter(c => c.rarity === 'Rare')
 
     this._fillIfNeeded()
-
-    // TEMPORARILY DISABLED: const startPosition = Math.floor(Math.random() * this.hopper.length)
-    // TEMPORARILY DISABLED: this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
   }
 
   _fillIfNeeded() {

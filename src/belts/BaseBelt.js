@@ -53,10 +53,6 @@ export class BaseBelt {
 
     // Initial fill
     this._fillIfNeeded()
-
-    // Start at random position to simulate having printed some packs already
-    // TEMPORARILY DISABLED: const startPosition = Math.floor(Math.random() * this.hopper.length)
-    // TEMPORARILY DISABLED: this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
   }
 
   /**

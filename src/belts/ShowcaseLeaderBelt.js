@@ -64,10 +64,6 @@ export class ShowcaseLeaderBelt {
 
     // Initial fill
     this._fillIfNeeded()
-
-    // Start at random position
-    // TEMPORARILY DISABLED: const startPosition = Math.floor(Math.random() * this.hopper.length)
-    // TEMPORARILY DISABLED: this.hopper = [...this.hopper.slice(startPosition), ...this.hopper.slice(0, startPosition)]
   }
 
   /**
