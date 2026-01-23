@@ -2675,59 +2675,61 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         <h1>Deck Builder</h1>
 
         <div className={`header-buttons ${isInfoBarSticky ? 'hidden' : ''}`}>
-          <button
-            className="export-button"
-            onClick={async () => {
-              if (!isAuthenticated) {
-                signIn()
-                return
-              }
+          {!isOwner && (
+            <button
+              className="export-button"
+              onClick={async () => {
+                if (!isAuthenticated) {
+                  signIn()
+                  return
+                }
 
-              try {
-                setErrorMessage('Cloning pool...')
-                setMessageType('info')
+                try {
+                  setErrorMessage('Cloning pool...')
+                  setMessageType('info')
 
-                // Clone the pool with current user as owner
-                const clonedPool = await savePool({
-                  setCode: setCode,
-                  cards: cards,
-                  packs: null,
-                  deckBuilderState: savedState,
-                  poolType: poolType,
-                  name: poolName ? `${poolName} (Copy)` : null,
-                  isPublic: false
-                })
+                  // Clone the pool with current user as owner
+                  const clonedPool = await savePool({
+                    setCode: setCode,
+                    cards: cards,
+                    packs: null,
+                    deckBuilderState: savedState,
+                    poolType: poolType,
+                    name: poolName ? `${poolName} (Copy)` : null,
+                    isPublic: false
+                  })
 
-                setErrorMessage('Pool cloned! Redirecting...')
-                setMessageType('success')
+                  setErrorMessage('Pool cloned! Redirecting...')
+                  setMessageType('success')
 
-                setTimeout(() => {
-                  window.location.href = `/pool/${clonedPool.shareId}/deck`
-                }, 1000)
-              } catch (err) {
-                console.error('Failed to clone pool:', err)
-                setErrorMessage('Failed to clone pool')
-                setMessageType('error')
-                setTimeout(() => {
-                  setErrorMessage(null)
-                  setMessageType(null)
-                }, 3000)
-              }
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="8.5" cy="7" r="4"></circle>
-              <path d="M20 8v6M23 11h-6"></path>
-            </svg>
-            <span>{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
-          </button>
+                  setTimeout(() => {
+                    window.location.href = `/pool/${clonedPool.shareId}/deck`
+                  }, 1000)
+                } catch (err) {
+                  console.error('Failed to clone pool:', err)
+                  setErrorMessage('Failed to clone pool')
+                  setMessageType('error')
+                  setTimeout(() => {
+                    setErrorMessage(null)
+                    setMessageType(null)
+                  }, 3000)
+                }
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <path d="M20 8v6M23 11h-6"></path>
+              </svg>
+              <span>{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
+            </button>
+          )}
           <button className="export-button" onClick={copyJSON}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
-            <span>Copy JSON</span>
+            <span>Copy to Clipboard</span>
           </button>
           <button className="export-button" onClick={exportJSON}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -3017,7 +3019,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
-              <span className="button-tooltip">Copy JSON</span>
+              <span className="button-tooltip">Copy to Clipboard</span>
             </button>
             <button className="export-button-icon" onClick={exportJSON}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -3035,52 +3037,54 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               </svg>
               <span className="button-tooltip">Deck Image</span>
             </button>
-            <button
-              className="export-button-icon"
-              onClick={async () => {
-                if (!isAuthenticated) {
-                  signIn()
-                  return
-                }
+            {!isOwner && (
+              <button
+                className="export-button-icon"
+                onClick={async () => {
+                  if (!isAuthenticated) {
+                    signIn()
+                    return
+                  }
 
-                try {
-                  setErrorMessage('Cloning pool...')
-                  setMessageType('info')
+                  try {
+                    setErrorMessage('Cloning pool...')
+                    setMessageType('info')
 
-                  const clonedPool = await savePool({
-                    setCode: setCode,
-                    cards: cards,
-                    packs: null,
-                    deckBuilderState: savedState,
-                    poolType: poolType,
-                    name: poolName ? `${poolName} (Copy)` : null,
-                    isPublic: false
-                  })
+                    const clonedPool = await savePool({
+                      setCode: setCode,
+                      cards: cards,
+                      packs: null,
+                      deckBuilderState: savedState,
+                      poolType: poolType,
+                      name: poolName ? `${poolName} (Copy)` : null,
+                      isPublic: false
+                    })
 
-                  setErrorMessage('Pool cloned! Redirecting...')
-                  setMessageType('success')
+                    setErrorMessage('Pool cloned! Redirecting...')
+                    setMessageType('success')
 
-                  setTimeout(() => {
-                    window.location.href = `/pool/${clonedPool.shareId}/deck`
-                  }, 1000)
-                } catch (err) {
-                  console.error('Failed to clone pool:', err)
-                  setErrorMessage('Failed to clone pool')
-                  setMessageType('error')
-                  setTimeout(() => {
-                    setErrorMessage(null)
-                    setMessageType(null)
-                  }, 3000)
-                }
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="8.5" cy="7" r="4"></circle>
-                <path d="M20 8v6M23 11h-6"></path>
-              </svg>
-              <span className="button-tooltip">{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
-            </button>
+                    setTimeout(() => {
+                      window.location.href = `/pool/${clonedPool.shareId}/deck`
+                    }, 1000)
+                  } catch (err) {
+                    console.error('Failed to clone pool:', err)
+                    setErrorMessage('Failed to clone pool')
+                    setMessageType('error')
+                    setTimeout(() => {
+                      setErrorMessage(null)
+                      setMessageType(null)
+                    }, 3000)
+                  }
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="8.5" cy="7" r="4"></circle>
+                  <path d="M20 8v6M23 11h-6"></path>
+                </svg>
+                <span className="button-tooltip">{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
+              </button>
+            )}
             {shareId && (
               <button
                 className="export-button-icon"

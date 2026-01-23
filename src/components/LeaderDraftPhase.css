@@ -7,18 +7,24 @@
 .draft-info-header {
   background: #1e1e1e;
   border-radius: 8px;
-  padding: 12px 15px;
-  margin-bottom: 20px;
+  padding: 15px;
+  margin-bottom: 15px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
 }
 
 .my-leaders-info {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
   align-items: center;
+}
+
+.leaders-label-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .draft-progress-info {
@@ -68,6 +74,34 @@
 
 .leader-name-hoverable:hover {
   text-decoration: underline;
+}
+
+.leader-thumbnails {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.leader-thumbnail {
+  width: 84px;
+  height: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.leader-thumbnail:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.leader-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .review-button:hover {

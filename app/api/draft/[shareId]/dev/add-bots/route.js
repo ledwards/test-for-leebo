@@ -22,11 +22,6 @@ const BOT_AVATARS = [
 ]
 
 export async function POST(request, { params }) {
-  // Only allow in development
-  if (process.env.NODE_ENV === 'production') {
-    return errorResponse('Not available in production', 403)
-  }
-
   try {
     const { shareId } = await params
     const url = new URL(request.url)

@@ -63,10 +63,10 @@ function PackDraftPhase({
   // Pack draft: pack 1 & 3 pass left, pack 2 passes right
   const passDirection = packNumber % 2 === 1 ? 'left' : 'right'
 
-  // Sort cards by rarity
+  // Sort cards by rarity (common first, then uncommon, rare, legendary/foil)
   const sortCards = (cards) => {
     const sorted = [...cards]
-    const rarityOrder = { 'Legendary': 0, 'Rare': 1, 'Uncommon': 2, 'Common': 3 }
+    const rarityOrder = { 'Common': 0, 'Uncommon': 1, 'Rare': 2, 'Legendary': 3 }
     return sorted.sort(
       (a, b) => (rarityOrder[a.rarity] ?? 4) - (rarityOrder[b.rarity] ?? 4)
     )
@@ -76,7 +76,8 @@ function PackDraftPhase({
 
   const handleCardClick = (card) => {
     if (!canPick || loading) return
-    onPick(card.id)
+    // Use instanceId if available (prevents race condition bugs with duplicate card IDs)
+    onPick(card.instanceId || card.id)
   }
 
   const handleCardRightClick = (e) => {
@@ -106,35 +107,34 @@ function PackDraftPhase({
             <div className="my-leaders-info">
               <span className="info-label">Your Leaders:</span>
               {draftedLeaders.length > 0 ? (
-                <span className="info-value">
+                <div className="leader-thumbnails">
                   {draftedLeaders.map((l, idx) => (
-                    <span
+                    <div
                       key={idx}
-                      className="leader-name-hoverable"
+                      className="leader-thumbnail"
                       onMouseEnter={(e) => handleLeaderNameMouseEnter(e, l)}
                       onMouseLeave={handleLeaderNameMouseLeave}
                     >
-                      {l.name}
-                      {idx < draftedLeaders.length - 1 ? ', ' : ''}
-                    </span>
+                      <img
+                        src={l.imageUrl}
+                        alt={l.name}
+                        className="leader-thumbnail-img"
+                      />
+                    </div>
                   ))}
-                </span>
+                </div>
               ) : (
                 <span className="info-value">None</span>
               )}
             </div>
             <div className="draft-progress-info">
               <span className="progress-item">
-                <span className="info-label">Leaders:</span>
-                <span className="info-value">{draftedLeaders.length}/3</span>
-              </span>
-              <span className="progress-item">
                 <span className="info-label">Cards:</span>
-                <span className="info-value">{draftedCards.length}/{(draft?.packSize || 14) * 3 - 6}</span>
+                <span className="info-value">{draftedCards.length}/{(draft?.packSize || 14) * 3}</span>
               </span>
               <button className="review-button" onClick={() => setShowReviewModal(true)}>
                 <ReviewIcon />
-                <span>Review</span>
+                <span>Your Cards</span>
               </button>
             </div>
           </div>
@@ -144,7 +144,7 @@ function PackDraftPhase({
               <div className="pack-grid">
                 {sortedPack.map((card) => (
                   <DraftableCard
-                    key={card.id}
+                    key={card.instanceId || card.id}
                     card={card}
                     onClick={() => handleCardClick(card)}
                     onRightClick={(e) => handleCardRightClick(e, card)}

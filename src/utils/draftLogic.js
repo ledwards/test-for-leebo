@@ -24,6 +24,9 @@ export function generateDraftPacks(setCode, playerCount = 8) {
   const allPlayerPacks = []
   const allPlayerLeaders = []
 
+  // Global counter for unique instance IDs across the entire draft
+  let instanceCounter = 0
+
   for (let player = 0; player < playerCount; player++) {
     console.log('[DRAFT] Generating packs for player', player + 1)
     const playerPacks = []
@@ -34,6 +37,12 @@ export function generateDraftPacks(setCode, playerCount = 8) {
       // Generate a pack
       const pack = generateBoosterPack(null, setCode)
       console.log('[DRAFT] Player', player + 1, 'pack', packNum + 1, '- generation complete')
+
+      // Add unique instance IDs to all cards in the pack
+      // This prevents race conditions where the same base card ID exists in multiple packs
+      pack.cards.forEach(card => {
+        card.instanceId = `${card.id}_${instanceCounter++}`
+      })
 
       // Extract leader from pack
       const leaderIndex = pack.cards.findIndex(c => c.isLeader)

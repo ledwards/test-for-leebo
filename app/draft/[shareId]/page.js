@@ -273,6 +273,7 @@ export default function DraftRoomPage({ params }) {
           onLeave={handleLeave}
           loading={actionLoading}
           error={error}
+          shareId={shareId}
         />
       )
     }
@@ -396,7 +397,7 @@ export default function DraftRoomPage({ params }) {
           )}
 
           <button className="primary-button" onClick={handleBuildDeck}>
-            Review Pool
+            Build Draft Deck
           </button>
         </div>
       )

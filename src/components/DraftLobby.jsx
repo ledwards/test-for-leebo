@@ -15,7 +15,8 @@ function DraftLobby({
   onTimedChange,
   onLeave,
   loading,
-  error
+  error,
+  shareId,
 }) {
   const maxPlayers = draft?.maxPlayers || 8
   const isFull = players.length >= maxPlayers
@@ -46,6 +47,7 @@ function DraftLobby({
               onTimedChange={onTimedChange}
               loading={loading}
               isFull={isFull}
+              shareId={shareId}
             />
           )}
 

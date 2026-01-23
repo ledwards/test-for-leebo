@@ -1,6 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import './HostControls.css'
+
+const CopyIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+  </svg>
+)
 
 const DiceIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -33,10 +41,23 @@ function HostControls({
   onTimedChange,
   loading,
   isFull,
+  shareId,
 }) {
+  const [copied, setCopied] = useState(false)
   const canStart = playerCount >= 2
   const canAddBot = playerCount < (draft?.maxPlayers || 8)
   const isTimed = draft?.timed !== false
+
+  const handleCopyShareUrl = async () => {
+    try {
+      const url = `${window.location.origin}/draft/${shareId}`
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
 
   // Timer settings for display
   const pickTimeoutSeconds = draft?.pickTimeoutSeconds || 120
@@ -83,6 +104,16 @@ function HostControls({
             <span className="setting-value">{draft?.maxPlayers || 8}</span>
           </div>
         </div>
+
+        {shareId && (
+          <div className="share-url-row">
+            <span className="setting-label">Share URL:</span>
+            <button className="copy-url-button" onClick={handleCopyShareUrl}>
+              <CopyIcon />
+              <span>{copied ? 'Copied!' : 'Copy Link'}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="controls-section">

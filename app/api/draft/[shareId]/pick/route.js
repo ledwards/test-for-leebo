@@ -69,8 +69,12 @@ export async function POST(request, { params }) {
     // Handle based on phase
     if (draftState.phase === 'leader_draft') {
       // Find the leader in available leaders
-      const leaderIndex = leaders.findIndex(l => l.id === cardId)
+      // Use instanceId if available (new drafts), fall back to id for backwards compatibility
+      const leaderIndex = leaders.findIndex(l =>
+        (l.instanceId && l.instanceId === cardId) || (!l.instanceId && l.id === cardId)
+      )
       if (leaderIndex === -1) {
+        console.error('[PICK] Leader not found. cardId:', cardId, 'available leaders:', leaders.map(l => ({ id: l.id, instanceId: l.instanceId, name: l.name })))
         return errorResponse('Leader not available', 400)
       }
 
@@ -106,8 +110,12 @@ export async function POST(request, { params }) {
 
     } else if (draftState.phase === 'pack_draft') {
       // Find the card in current pack
-      const cardIndex = currentPack.findIndex(c => c.id === cardId)
+      // Use instanceId if available (new drafts), fall back to id for backwards compatibility
+      const cardIndex = currentPack.findIndex(c =>
+        (c.instanceId && c.instanceId === cardId) || (!c.instanceId && c.id === cardId)
+      )
       if (cardIndex === -1) {
+        console.error('[PICK] Card not found. cardId:', cardId, 'available cards:', currentPack.map(c => ({ id: c.id, instanceId: c.instanceId, name: c.name })))
         return errorResponse('Card not available', 400)
       }
 

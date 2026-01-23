@@ -107,7 +107,12 @@ async function makeBotCardPick(bot, draftState) {
   )
 
   const pickedCard = sorted[0]
-  const remainingPack = currentPack.filter(c => c.id !== pickedCard.id)
+  // Use instanceId if available to ensure correct card is removed (handles duplicate base IDs)
+  const remainingPack = currentPack.filter(c =>
+    pickedCard.instanceId
+      ? c.instanceId !== pickedCard.instanceId
+      : c.id !== pickedCard.id
+  )
 
   const draftedCards = typeof bot.drafted_cards === 'string'
     ? JSON.parse(bot.drafted_cards)

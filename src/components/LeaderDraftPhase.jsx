@@ -59,7 +59,8 @@ function LeaderDraftPhase({
 
   const handleCardClick = (card) => {
     if (!canPick || loading) return
-    onPick(card.id)
+    // Use instanceId if available (prevents race condition bugs with duplicate card IDs)
+    onPick(card.instanceId || card.id)
   }
 
   const handleCardRightClick = (e) => {
@@ -92,31 +93,30 @@ function LeaderDraftPhase({
             <div className="my-leaders-info">
               <span className="info-label">Your Leaders:</span>
               {draftedLeaders.length > 0 ? (
-                <span className="info-value">
+                <div className="leader-thumbnails">
                   {draftedLeaders.map((l, idx) => (
-                    <span
+                    <div
                       key={idx}
-                      className="leader-name-hoverable"
+                      className="leader-thumbnail"
                       onMouseEnter={(e) => handleLeaderNameMouseEnter(e, l)}
                       onMouseLeave={handleLeaderNameMouseLeave}
                     >
-                      {l.name}
-                      {idx < draftedLeaders.length - 1 ? ', ' : ''}
-                    </span>
+                      <img
+                        src={l.imageUrl}
+                        alt={l.name}
+                        className="leader-thumbnail-img"
+                      />
+                    </div>
                   ))}
-                </span>
+                </div>
               ) : (
                 <span className="info-value">None</span>
               )}
             </div>
             <div className="draft-progress-info">
-              <span className="progress-item">
-                <span className="info-label">Leaders:</span>
-                <span className="info-value">{draftedLeaders.length}/3</span>
-              </span>
               <button className="review-button" onClick={() => setShowReviewModal(true)}>
                 <ReviewIcon />
-                <span>Review</span>
+                <span>Your Cards</span>
               </button>
             </div>
           </div>
@@ -152,7 +152,7 @@ function LeaderDraftPhase({
               <div className="leaders-grid">
                 {leaders.map((leader) => (
                   <DraftableCard
-                    key={leader.id}
+                    key={leader.instanceId || leader.id}
                     card={leader}
                     onClick={() => handleCardClick(leader)}
                     onRightClick={(e) => handleCardRightClick(e, leader)}

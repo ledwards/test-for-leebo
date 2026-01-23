@@ -37,7 +37,9 @@ function CountdownTimer({
       const now = Date.now()
       // Subtract paused duration from elapsed time
       const elapsed = Math.floor((now - startTime) / 1000) - pausedDurationSeconds
-      const remaining = Math.max(0, totalSeconds - elapsed)
+      // Cap remaining time to never exceed totalSeconds (handles edge cases where
+      // pausedDurationSeconds exceeds elapsed time after pick resets)
+      const remaining = Math.min(totalSeconds, Math.max(0, totalSeconds - elapsed))
       setRemainingSeconds(remaining)
     }
 
