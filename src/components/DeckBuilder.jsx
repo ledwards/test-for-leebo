@@ -100,6 +100,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [basesExpanded, setBasesExpanded] = useState(true)
   const [deckExpanded, setDeckExpanded] = useState(true)
   const [sideboardExpanded, setSideboardExpanded] = useState(true)
+  const [poolFirstOrder, setPoolFirstOrder] = useState(null) // null = not determined yet, true = pool first, false = deck first
   const [deckAspectSectionsExpanded, setDeckAspectSectionsExpanded] = useState({}) // Track expanded aspect combination sections
   const [sideboardAspectSectionsExpanded, setSideboardAspectSectionsExpanded] = useState({}) // Track expanded aspect combination sections for sideboard
   const [deckCostSectionsExpanded, setDeckCostSectionsExpanded] = useState({}) // Track expanded cost sections (default all expanded)
@@ -862,14 +863,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           setSectionLabels(state.sectionLabels || [])
           setSectionBounds(state.sectionBounds || {})
           setCanvasHeight(state.canvasHeight)
-          setAspectFilters(state.aspectFilters || {
+          // Merge with defaults to ensure all keys exist (prevents uncontrolled->controlled warning)
+          const defaultAspectFilters = {
             Vigilance: true,
             Villainy: true,
             Heroism: true,
             Command: true,
             Cunning: true,
-            Aggression: true
-          })
+            Aggression: true,
+            [NO_ASPECT_LABEL]: true
+          }
+          setAspectFilters({ ...defaultAspectFilters, ...(state.aspectFilters || {}) })
           setSortOption(state.sortOption || 'aspect')
 
           // Restore active leader and base
@@ -931,7 +935,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           setFilterDrawerOpen(state.filterDrawerOpen)
         }
         if (state.aspectFilters) {
-          setAspectFilters(state.aspectFilters)
+          // Merge with defaults to ensure all keys exist (prevents uncontrolled->controlled warning)
+          setAspectFilters(prev => ({ ...prev, ...state.aspectFilters }))
         }
         if (state.inAspectFilter !== undefined) {
           setInAspectFilter(state.inAspectFilter)
@@ -1493,6 +1498,39 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       }
     }
   }, [cardPositions, activeLeader, activeBase]) // Only depend on these to avoid infinite loops
+
+  // Determine pool/deck order once on initial load (draft mode only)
+  // If pool has more cards, show it first; otherwise show deck first
+  useEffect(() => {
+    if (poolFirstOrder !== null) return // Already determined
+
+    // Wait until cards prop has loaded (indicates pool data is available)
+    if (!cards || cards.length === 0) return
+
+    if (!isDraftMode) {
+      setPoolFirstOrder(false) // Sealed mode: deck always first
+      return
+    }
+
+    // Get all non-leader/base cards from cardPositions
+    const allPoolDeckCards = Object.values(cardPositions).filter(
+      pos => !pos.card.isLeader && !pos.card.isBase &&
+             pos.card.type !== 'Leader' && pos.card.type !== 'Base' &&
+             (pos.section === 'deck' || pos.section === 'sideboard')
+    )
+
+    // Wait until we have cards in cardPositions (after initialization/restoration)
+    if (allPoolDeckCards.length < 10) return
+
+    const poolCards = allPoolDeckCards.filter(
+      pos => pos.section === 'sideboard' || pos.enabled === false
+    )
+    const deckCards = allPoolDeckCards.filter(
+      pos => pos.section === 'deck' && pos.enabled !== false
+    )
+
+    setPoolFirstOrder(poolCards.length > deckCards.length)
+  }, [cards, cardPositions, isDraftMode, poolFirstOrder, poolType])
 
   // Find cards that are touching a given card
   const findTouchingCards = useCallback((cardId, positions) => {
@@ -3544,7 +3582,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               >
                 <input
                   type="checkbox"
-                  checked={aspectFilters[aspect]}
+                  checked={aspectFilters[aspect] || false}
                   onChange={(e) => {
                     const isChecked = e.target.checked
                     setAspectFilters(prev => ({ ...prev, [aspect]: isChecked }))
@@ -3602,7 +3640,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             <label key={NO_ASPECT_LABEL} className="filter-checkbox">
               <input
                 type="checkbox"
-                checked={aspectFilters[NO_ASPECT_LABEL]}
+                checked={aspectFilters[NO_ASPECT_LABEL] || false}
                 onChange={(e) => {
                   const isChecked = e.target.checked
                   setAspectFilters(prev => ({ ...prev, [NO_ASPECT_LABEL]: isChecked }))
@@ -3850,6 +3888,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           </div>
           )}
 
+          {/* Deck and Pool sections wrapper - allows reordering via CSS */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+
+          {/* Deck Section */}
+          <div style={{ order: poolFirstOrder ? 1 : 0 }}>
           {/* Deck Header */}
           <div
             id="deck-header"
@@ -4841,7 +4884,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               })()}
             </div>
           )}
+          </div>{/* End Deck Section */}
 
+          {/* Sideboard/Pool Section */}
+          <div style={{ order: poolFirstOrder ? 0 : 1 }}>
           {/* Sideboard Header */}
           <div
             id="sideboard-header"
@@ -5021,6 +5067,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               </div>
             )
           })()}
+        </div>
+        </div>
         </div>
       )}
 
