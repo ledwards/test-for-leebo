@@ -2338,69 +2338,70 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     return 0
   }
 
-  // Build a map of card name+set -> base card ID (lowest numbered non-variant)
-  // This is used to convert variant cards (Hyperspace, Foil, etc.) to their base card IDs for export
+  // Extract the card number from an ID like "SEC-246" or "SEC_1002"
+  const getCardNumber = useCallback((id) => {
+    const match = id?.match(/(\d+)/)
+    return match ? parseInt(match[1], 10) : Infinity
+  }, [])
+
+  // Check if a card ID number is a variant (Hyperspace 1000+, Showcase 253+, etc.)
+  const isVariantNumber = useCallback((num) => {
+    return num >= 253
+  }, [])
+
+  // Build a map of card name -> base card (the non-variant version)
   const buildBaseCardMap = useCallback(() => {
-    if (!setCode) return new Map()
-    const allCards = getCachedCards(setCode)
-    const nameToBaseId = new Map()
+    const cards = getCachedCards(setCode)
+    if (!cards) return new Map()
 
-    allCards.forEach(card => {
-      const key = `${card.name}|${card.set}`
-      const existing = nameToBaseId.get(key)
+    const nameToBaseCard = new Map()
 
-      // Keep the lowest-numbered card as the base (non-variants have lower numbers)
-      // Also prefer cards without variantType
+    cards.forEach(card => {
+      const key = card.name
+      const existing = nameToBaseCard.get(key)
+      const cardNum = getCardNumber(card.id)
+      const existingNum = existing ? getCardNumber(existing.id) : Infinity
+
+      // Prefer non-variant cards (number < 253) over variant cards
+      // If both same type, prefer lower number
+      const cardIsVariant = isVariantNumber(cardNum)
+      const existingIsVariant = isVariantNumber(existingNum)
+
       if (!existing ||
-          (!card.variantType && existing.variantType) ||
-          (card.variantType === existing.variantType && parseInt(card.number) < parseInt(existing.number))) {
-        nameToBaseId.set(key, card)
+          (!cardIsVariant && existingIsVariant) ||
+          (cardIsVariant === existingIsVariant && cardNum < existingNum)) {
+        nameToBaseCard.set(key, card)
       }
     })
 
-    return nameToBaseId
-  }, [setCode])
+    return nameToBaseCard
+  }, [setCode, getCardNumber, isVariantNumber])
 
-  // Convert card ID to base format for Karabast (handles Hyperspace 1000+ numbering)
-  const convertToBaseId = useCallback((id) => {
+  // Convert card ID to standard format (dash to underscore, strip suffixes)
+  const normalizeId = useCallback((id) => {
     if (!id) return id
-
     let baseId = id.replace(/-/g, '_')
     baseId = baseId.replace(/_Foil$/, '')
     baseId = baseId.replace(/_Hyperspace$/, '')
     baseId = baseId.replace(/_HyperFoil$/, '')
     baseId = baseId.replace(/_Showcase$/, '')
-
-    // Handle Hyperspace variants that use 1000+ numbering (e.g., SEC_1002 -> SEC_002)
-    const match = baseId.match(/^([A-Z]+)_(\d+)$/)
-    if (match) {
-      const setCode = match[1]
-      const cardNum = parseInt(match[2], 10)
-      if (cardNum >= 1000) {
-        const baseNum = cardNum - 1000
-        baseId = `${setCode}_${baseNum.toString().padStart(3, '0')}`
-      }
-    }
-
     return baseId
   }, [])
 
-  // Convert variant card to base card ID for export (Karabast needs base card IDs)
+  // Convert card to base card ID for export
+  // Looks up the base (non-variant) card by name and returns its normalized ID
   const getBaseCardId = useCallback((card) => {
     if (!card) return null
 
     const baseCardMap = buildBaseCardMap()
-    const key = `${card.name}|${card.set}`
-    const baseCard = baseCardMap?.get(key)
-
+    const baseCard = baseCardMap?.get(card.name)
     if (baseCard) {
-      // Always apply conversion to handle 1000+ Hyperspace numbering
-      return convertToBaseId(baseCard.id)
+      return normalizeId(baseCard.id)
     }
 
-    // Fallback: convert the card's own ID
-    return convertToBaseId(card.id)
-  }, [buildBaseCardMap, convertToBaseId])
+    // Fallback: just normalize the card's own ID
+    return normalizeId(card.id)
+  }, [buildBaseCardMap, normalizeId])
 
   // Convert card ID from hyphen format (SOR-015) to underscore format (SOR_015)
   // Note: This simple conversion is only used internally - for export, use getBaseCardId
@@ -2415,10 +2416,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
 
     // Build set of leader/base IDs to filter from final output
+    // Use getBaseCardId to ensure variant treatments map to their base ID
     const leaderBaseIds = new Set()
     allSetCards.forEach(card => {
       if (card.type === 'Leader' || card.type === 'Base') {
-        leaderBaseIds.add(convertToBaseId(card.id))
+        leaderBaseIds.add(getBaseCardId(card))
       }
     })
 

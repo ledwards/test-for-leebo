@@ -11,65 +11,69 @@ import { getCachedCards, initializeCardCache } from '../../../../../src/utils/ca
 import '../../../../../src/App.css'
 import './play.css'
 
-// Build a map of card name+set -> base card ID (lowest numbered non-variant)
+// Extract the card number from an ID like "SEC-246" or "SEC_1002"
+function getCardNumber(id) {
+  const match = id?.match(/(\d+)/)
+  return match ? parseInt(match[1], 10) : Infinity
+}
+
+// Check if a card ID is a variant (Hyperspace 1000+, Showcase 253+, etc.)
+function isVariantNumber(num) {
+  return num >= 253
+}
+
+// Build a map of card name -> base card (the non-variant version)
 function buildBaseCardMap(setCode) {
   const cards = getCachedCards(setCode)
-  const nameToBaseId = new Map()
+  if (!cards) return new Map()
+
+  const nameToBaseCard = new Map()
 
   cards.forEach(card => {
-    const key = `${card.name}|${card.set}`
-    const existing = nameToBaseId.get(key)
+    const key = card.name
+    const existing = nameToBaseCard.get(key)
+    const cardNum = getCardNumber(card.id)
+    const existingNum = existing ? getCardNumber(existing.id) : Infinity
 
-    // Keep the lowest-numbered card as the base (non-variants have lower numbers)
-    // Also prefer cards without variantType
+    // Prefer non-variant cards (number < 253) over variant cards
+    // If both same type, prefer lower number
+    const cardIsVariant = isVariantNumber(cardNum)
+    const existingIsVariant = isVariantNumber(existingNum)
+
     if (!existing ||
-        (!card.variantType && existing.variantType) ||
-        (card.variantType === existing.variantType && parseInt(card.number) < parseInt(existing.number))) {
-      nameToBaseId.set(key, card)
+        (!cardIsVariant && existingIsVariant) ||
+        (cardIsVariant === existingIsVariant && cardNum < existingNum)) {
+      nameToBaseCard.set(key, card)
     }
   })
 
-  return nameToBaseId
+  return nameToBaseCard
 }
 
-// Convert card ID to base format for Karabast (handles Hyperspace 1000+ numbering)
-function convertToBaseId(id) {
+// Convert card ID to standard format (dash to underscore, strip suffixes)
+function normalizeId(id) {
   if (!id) return id
-
   let baseId = id.replace(/-/g, '_')
   baseId = baseId.replace(/_Foil$/, '')
   baseId = baseId.replace(/_Hyperspace$/, '')
   baseId = baseId.replace(/_HyperFoil$/, '')
   baseId = baseId.replace(/_Showcase$/, '')
-
-  // Handle Hyperspace variants that use 1000+ numbering (e.g., SEC_1002 -> SEC_002)
-  const match = baseId.match(/^([A-Z]+)_(\d+)$/)
-  if (match) {
-    const setCode = match[1]
-    const cardNum = parseInt(match[2], 10)
-    if (cardNum >= 1000) {
-      const baseNum = cardNum - 1000
-      baseId = `${setCode}_${baseNum.toString().padStart(3, '0')}`
-    }
-  }
-
   return baseId
 }
 
-// Convert variant card to base card ID for export
+// Convert card to base card ID for export
+// Looks up the base (non-variant) card by name and returns its normalized ID
 function getBaseCardId(card, baseCardMap) {
   if (!card) return null
 
-  const key = `${card.name}|${card.set}`
-  const baseCard = baseCardMap?.get(key)
-
+  // Look up base card by name
+  const baseCard = baseCardMap?.get(card.name)
   if (baseCard) {
-    // Always apply conversion to handle 1000+ Hyperspace numbering
-    return convertToBaseId(baseCard.id)
+    return normalizeId(baseCard.id)
   }
 
-  // Fallback: convert the card's own ID
-  return convertToBaseId(card.id)
+  // Fallback: just normalize the card's own ID
+  return normalizeId(card.id)
 }
 
 // Get default aspect sort key for a card
@@ -229,12 +233,12 @@ export default function PlayPage({ params }) {
   useEffect(() => {
     if (!pool?.setCode) return
 
-    async function initCache() {
+    async function init() {
       await initializeCardCache()
       const map = buildBaseCardMap(pool.setCode)
       setBaseCardMap(map)
     }
-    initCache()
+    init()
   }, [pool?.setCode])
 
   const fetchOpponent = async (draftShareId) => {
@@ -294,11 +298,12 @@ export default function PlayPage({ params }) {
     if (!leaderCard || !baseCard) return null
 
     // Build set of leader/base IDs from card cache to filter final output
+    // Use getBaseCardId to ensure variant treatments map to their base ID
     const allCards = getCachedCards(pool.setCode) || []
     const leaderBaseIds = new Set()
     allCards.forEach(card => {
       if (card.type === 'Leader' || card.type === 'Base') {
-        leaderBaseIds.add(convertToBaseId(card.id))
+        leaderBaseIds.add(getBaseCardId(card, baseCardMap))
       }
     })
 
@@ -310,6 +315,7 @@ export default function PlayPage({ params }) {
     const sideboardCards = Object.values(cardPositions)
       .filter(pos => pos.section === 'sideboard')
       .map(pos => pos.card)
+
 
     // Count cards by base ID, excluding leaders and bases
     const deckCounts = new Map()
