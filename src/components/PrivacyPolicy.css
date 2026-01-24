@@ -69,12 +69,14 @@
 @media (max-width: 768px) {
   .legal-page {
     padding: 1rem;
+    /* Make pattern 2x bigger on mobile (300% instead of 150%) */
+    background-size: 100% 100%, 100% 100%, 100% 100%, 300% auto;
   }
-  
+
   .legal-content {
     padding: 1.5rem;
   }
-  
+
   .legal-content h1 {
     font-size: 2rem;
   }

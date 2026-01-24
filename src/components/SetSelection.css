@@ -170,15 +170,20 @@
 }
 
 @media (max-width: 768px) {
+  .set-selection {
+    /* Make pattern 2x bigger on mobile (300% instead of 150%) */
+    background-size: 100% 100%, 100% 100%, 100% 100%, 300% auto;
+  }
+
   .sets-grid {
     grid-template-columns: 1fr;
     gap: 1.25rem;
   }
-  
+
   .set-info {
     padding: 0.875rem 1.25rem;
   }
-  
+
   .set-info h3 {
     font-size: 1.25rem;
   }

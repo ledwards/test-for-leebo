@@ -500,6 +500,8 @@
   .play-page {
     padding: 1rem;
     padding-top: 3rem;
+    /* Make pattern 2x bigger on mobile (300% instead of 150%) */
+    background-size: 100% auto, 100% 100%, 100% 100%, 300% auto;
   }
 
   .play-content {

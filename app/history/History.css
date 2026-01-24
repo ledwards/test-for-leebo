@@ -13,6 +13,8 @@
   .history-page {
     padding: 0.5rem;
     padding-top: 3.5rem;
+    /* Make pattern 2x bigger on mobile (300% instead of 150%) */
+    background-size: 100% 100%, 100% 100%, 100% 100%, 300% auto;
   }
 
   .history-header {

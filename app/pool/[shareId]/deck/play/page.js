@@ -72,6 +72,100 @@ function getBaseCardId(card, baseCardMap) {
   return convertToBaseId(card.id)
 }
 
+// Get default aspect sort key for a card
+function getDefaultAspectSortKey(card) {
+  const aspects = card.aspects || []
+  if (aspects.length === 0) return 'E_99_Neutral'
+
+  const hasVillainy = aspects.includes('Villainy')
+  const hasHeroism = aspects.includes('Heroism')
+  const primaryAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning']
+  const primaryAspect = aspects.find(a => primaryAspects.includes(a))
+
+  // Primary aspect order: Vigilance=1, Command=2, Aggression=3, Cunning=4
+  const primaryOrder = {
+    'Vigilance': '1',
+    'Command': '2',
+    'Aggression': '3',
+    'Cunning': '4'
+  }
+
+  // Single aspect
+  if (aspects.length === 1) {
+    const aspect = aspects[0]
+    if (aspect === 'Villainy') return 'E_01_Villainy'
+    if (aspect === 'Heroism') return 'E_02_Heroism'
+    return `${primaryOrder[aspect] || '9'}_04_${aspect}`
+  }
+
+  // Two aspects
+  if (aspects.length === 2) {
+    if (primaryAspect) {
+      const prefix = primaryOrder[primaryAspect] || '9'
+      const primaryCount = aspects.filter(a => a === primaryAspect).length
+      if (hasVillainy) {
+        return `${prefix}_01_${primaryAspect}_Villainy`
+      } else if (hasHeroism) {
+        return `${prefix}_02_${primaryAspect}_Heroism`
+      } else if (primaryCount === 2) {
+        return `${prefix}_03_${primaryAspect}_${primaryAspect}`
+      }
+    } else {
+      return 'E_01_Villainy_Heroism'
+    }
+  }
+
+  // More than 2 aspects
+  if (primaryAspect) {
+    const prefix = primaryOrder[primaryAspect] || '9'
+    const sortedAspects = [...aspects].sort((a, b) => {
+      if (a === 'Villainy') return -1
+      if (b === 'Villainy') return 1
+      if (a === 'Heroism') return -1
+      if (b === 'Heroism') return 1
+      return a.localeCompare(b)
+    })
+    let subOrder = '05'
+    if (hasVillainy) subOrder = '01'
+    else if (hasHeroism) subOrder = '02'
+    return `${prefix}_${subOrder}_${sortedAspects.join('_')}`
+  }
+
+  if (hasVillainy) return 'E_01_Villainy_Multi'
+  if (hasHeroism) return 'E_02_Heroism_Multi'
+  return 'E_99_Neutral'
+}
+
+// Default sort: aspect combo -> type -> cost -> name
+function defaultSort(a, b) {
+  const aspectKeyA = getDefaultAspectSortKey(a)
+  const aspectKeyB = getDefaultAspectSortKey(b)
+  const aspectCompare = aspectKeyA.localeCompare(aspectKeyB)
+  if (aspectCompare !== 0) return aspectCompare
+
+  // Type order: Ground Unit, Space Unit, Upgrade, Event
+  const getTypeOrder = (type) => {
+    if (type === 'Unit' || type === 'Ground Unit') return 1
+    if (type === 'Space Unit') return 2
+    if (type === 'Upgrade') return 3
+    if (type === 'Event') return 4
+    return 99
+  }
+  const aOrder = getTypeOrder(a.type || '')
+  const bOrder = getTypeOrder(b.type || '')
+  if (aOrder !== bOrder) return aOrder - bOrder
+
+  // Cost (low to high)
+  const costA = a.cost !== null && a.cost !== undefined ? a.cost : 999
+  const costB = b.cost !== null && b.cost !== undefined ? b.cost : 999
+  if (costA !== costB) return costA - costB
+
+  // Alphabetically
+  const nameA = (a.name || '').toLowerCase()
+  const nameB = (b.name || '').toLowerCase()
+  return nameA.localeCompare(nameB)
+}
+
 export default function PlayPage({ params }) {
   const router = useRouter()
   const { user } = useAuth()
@@ -331,31 +425,43 @@ export default function PlayPage({ params }) {
       const leaderCard = cardPositions[activeLeader]?.card
       const baseCard = cardPositions[activeBase]?.card
 
-      // Get deck cards only (no sideboard)
+      // Get deck cards only (no sideboard), sorted by default sort (aspect combo -> type -> cost -> name)
       const deckCards = Object.values(cardPositions)
         .filter(pos => pos.section === 'deck' && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
         .map(pos => pos.card)
-        .sort((a, b) => (a.cost || 0) - (b.cost || 0))
+        .sort(defaultSort)
 
-      // Canvas settings
-      const padding = 40
-      const cardWidth = 120
-      const cardHeight = 168
-      const leaderBaseWidth = 150
-      const leaderBaseHeight = 210
-      const spacing = 10
-      const titleHeight = 50
-      const labelHeight = 35
-      const sectionSpacing = 20
+      // Load Barlow font
+      const barlowFont = new FontFace('Barlow', 'url(https://fonts.gstatic.com/s/barlow/v12/7cHpv4kjgoGqM7E_DMs5.woff2)')
+      const barlowBold = new FontFace('Barlow', 'url(https://fonts.gstatic.com/s/barlow/v12/7cHqv4kjgoGqM7E30-8s51os.woff2)', { weight: '700' })
+      await Promise.all([barlowFont.load(), barlowBold.load()])
+      document.fonts.add(barlowFont)
+      document.fonts.add(barlowBold)
+
+      // Canvas settings - high resolution (2767px wide)
+      const width = 2767
+      const padding = 100
+      const cardWidth = 300
+      const cardHeight = 420
+      const cardBorderRadius = 15
+      // Leader/base are landscape (wider than tall)
+      const leaderBaseWidth = 525
+      const leaderBaseHeight = 375
+      const spacing = 25
+      const titleHeight = 100
+      const byLineHeight = 60
+      const subtitleHeight = 65
+      const labelHeight = 90
+      const sectionSpacing = 50
+      const footerHeight = 200
       const cardsPerRow = 8
-      const width = padding * 2 + cardsPerRow * cardWidth + (cardsPerRow - 1) * spacing
 
       // Calculate heights
       const deckRows = Math.ceil(deckCards.length / cardsPerRow)
-      const totalHeight = padding + titleHeight + sectionSpacing +
+      const totalHeight = padding + titleHeight + byLineHeight + subtitleHeight + sectionSpacing +
         leaderBaseHeight + sectionSpacing +
         labelHeight + deckRows * (cardHeight + spacing) + sectionSpacing +
-        80 + padding
+        footerHeight + padding
 
       // Create canvas
       const canvas = document.createElement('canvas')
@@ -363,34 +469,111 @@ export default function PlayPage({ params }) {
       canvas.height = totalHeight
       const ctx = canvas.getContext('2d')
 
-      // Fill background
-      ctx.fillStyle = '#1a1a2e'
+      // Fill base background
+      ctx.fillStyle = 'rgb(9, 9, 9)'
       ctx.fillRect(0, 0, width, totalHeight)
 
-      // Helper to draw card with CORS proxy fallback
-      const drawCard = async (card, x, y, w, h) => {
+      // Load and tile background pattern
+      try {
+        const response = await fetch('/background-images/bg-texture-crop.png')
+        const blob = await response.blob()
+        const dataUrl = await new Promise((resolve) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result)
+          reader.readAsDataURL(blob)
+        })
+
+        const bgImg = await new Promise((resolve) => {
+          const img = new Image()
+          img.onload = () => resolve(img)
+          img.onerror = () => resolve(null)
+          img.src = dataUrl
+        })
+
+        if (bgImg && bgImg.width > 0) {
+          // Tile the pattern across the canvas
+          for (let y = 0; y < totalHeight; y += bgImg.height) {
+            for (let x = 0; x < width; x += bgImg.width) {
+              ctx.drawImage(bgImg, x, y)
+            }
+          }
+          // Dark overlay to match website style
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+          ctx.fillRect(0, 0, width, totalHeight)
+        }
+      } catch (err) {
+        console.error('Failed to load background pattern:', err)
+      }
+
+      // Draw fade gradients on all four sides
+      const fadeSize = 200
+
+      // Top fade
+      const topGrad = ctx.createLinearGradient(0, 0, 0, fadeSize)
+      topGrad.addColorStop(0, 'rgb(9, 9, 9)')
+      topGrad.addColorStop(1, 'rgba(9, 9, 9, 0)')
+      ctx.fillStyle = topGrad
+      ctx.fillRect(0, 0, width, fadeSize)
+
+      // Bottom fade
+      const bottomGrad = ctx.createLinearGradient(0, totalHeight - fadeSize, 0, totalHeight)
+      bottomGrad.addColorStop(0, 'rgba(9, 9, 9, 0)')
+      bottomGrad.addColorStop(1, 'rgb(9, 9, 9)')
+      ctx.fillStyle = bottomGrad
+      ctx.fillRect(0, totalHeight - fadeSize, width, fadeSize)
+
+      // Left fade
+      const leftGrad = ctx.createLinearGradient(0, 0, fadeSize, 0)
+      leftGrad.addColorStop(0, 'rgb(9, 9, 9)')
+      leftGrad.addColorStop(1, 'rgba(9, 9, 9, 0)')
+      ctx.fillStyle = leftGrad
+      ctx.fillRect(0, 0, fadeSize, totalHeight)
+
+      // Right fade
+      const rightGrad = ctx.createLinearGradient(width - fadeSize, 0, width, 0)
+      rightGrad.addColorStop(0, 'rgba(9, 9, 9, 0)')
+      rightGrad.addColorStop(1, 'rgb(9, 9, 9)')
+      ctx.fillStyle = rightGrad
+      ctx.fillRect(width - fadeSize, 0, fadeSize, totalHeight)
+
+      // Helper to draw rounded rect clip
+      const roundedClip = (x, y, w, h, r) => {
+        ctx.beginPath()
+        ctx.moveTo(x + r, y)
+        ctx.lineTo(x + w - r, y)
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+        ctx.lineTo(x + w, y + h - r)
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+        ctx.lineTo(x + r, y + h)
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+        ctx.lineTo(x, y + r)
+        ctx.quadraticCurveTo(x, y, x + r, y)
+        ctx.closePath()
+      }
+
+      // Helper to draw card with CORS proxy fallback and border radius
+      const drawCard = async (card, x, y, w, h, borderRadius = cardBorderRadius) => {
         if (!card?.imageUrl) {
+          ctx.save()
+          roundedClip(x, y, w, h, borderRadius)
+          ctx.clip()
           ctx.fillStyle = '#333'
           ctx.fillRect(x, y, w, h)
+          ctx.restore()
           ctx.fillStyle = '#888'
-          ctx.font = '12px Arial'
+          ctx.font = '30px Barlow'
           ctx.textAlign = 'center'
           ctx.fillText(card?.name || 'Unknown', x + w / 2, y + h / 2)
           return
         }
 
-        // Try to load image via blob to avoid CORS issues
-        const loadViaBlob = async (url) => {
-          const response = await fetch(url, { mode: 'cors' })
-          if (!response.ok) throw new Error('Failed to fetch')
-          const blob = await response.blob()
-          return URL.createObjectURL(blob)
-        }
+        // Use high-res image URL if available
+        const imageUrl = card.imageUrl.replace('/small/', '/large/').replace('/medium/', '/large/')
 
-        // Try loading the image
         const tryLoadImage = (url) => {
           return new Promise((resolve, reject) => {
             const img = new Image()
+            img.crossOrigin = 'anonymous'
             img.onload = () => resolve(img)
             img.onerror = reject
             img.src = url
@@ -398,24 +581,29 @@ export default function PlayPage({ params }) {
         }
 
         try {
-          // Try direct blob fetch first
-          let objectUrl
+          let img
           try {
-            objectUrl = await loadViaBlob(card.imageUrl)
+            img = await tryLoadImage(imageUrl)
           } catch {
-            // Try CORS proxy
-            objectUrl = await loadViaBlob(`https://corsproxy.io/?${encodeURIComponent(card.imageUrl)}`)
+            // Try CORS proxy as fallback
+            img = await tryLoadImage(`https://corsproxy.io/?${encodeURIComponent(imageUrl)}`)
           }
 
-          const img = await tryLoadImage(objectUrl)
+          // Draw with rounded corners
+          ctx.save()
+          roundedClip(x, y, w, h, borderRadius)
+          ctx.clip()
           ctx.drawImage(img, x, y, w, h)
-          URL.revokeObjectURL(objectUrl)
+          ctx.restore()
         } catch {
-          // Final fallback: draw placeholder
+          ctx.save()
+          roundedClip(x, y, w, h, borderRadius)
+          ctx.clip()
           ctx.fillStyle = '#333'
           ctx.fillRect(x, y, w, h)
+          ctx.restore()
           ctx.fillStyle = '#888'
-          ctx.font = '12px Arial'
+          ctx.font = '30px Barlow'
           ctx.textAlign = 'center'
           ctx.fillText(card?.name || 'Unknown', x + w / 2, y + h / 2)
         }
@@ -423,29 +611,43 @@ export default function PlayPage({ params }) {
 
       let currentY = padding
 
-      // Draw title
+      // Draw title (H1)
       ctx.fillStyle = 'white'
-      ctx.font = 'bold 28px Arial'
+      ctx.font = 'bold 70px Barlow'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'top'
       const displayName = state.poolName || pool.name || `${pool.setCode} ${pool.poolType === 'draft' ? 'Draft' : 'Sealed'}`
       ctx.fillText(displayName, width / 2, currentY)
-      currentY += titleHeight + sectionSpacing
+      currentY += titleHeight
 
-      // Draw leader and base centered
+      // Draw subtitle (H2) - Sealed Deck or Draft Deck, smaller and grey, tight to title
+      const poolTypeLabel = pool.poolType === 'draft' ? 'Draft Deck' : 'Sealed Deck'
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+      ctx.font = '600 45px Barlow'
+      ctx.fillText(poolTypeLabel, width / 2, currentY - 20)
+      currentY += subtitleHeight
+
+      // Draw "by [discord handle]" line
+      const ownerName = pool.owner?.username || pool.owner?.name || 'Unknown'
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+      ctx.font = '40px Barlow'
+      ctx.fillText(`by ${ownerName}`, width / 2, currentY - 20)
+      currentY += byLineHeight + sectionSpacing
+
+      // Draw leader and base centered (landscape orientation)
       const totalLeaderBaseWidth = leaderBaseWidth * 2 + spacing
       const startX = (width - totalLeaderBaseWidth) / 2
       if (leaderCard) {
-        await drawCard(leaderCard, startX, currentY, leaderBaseWidth, leaderBaseHeight)
+        await drawCard(leaderCard, startX, currentY, leaderBaseWidth, leaderBaseHeight, 20)
       }
       if (baseCard) {
-        await drawCard(baseCard, startX + leaderBaseWidth + spacing, currentY, leaderBaseWidth, leaderBaseHeight)
+        await drawCard(baseCard, startX + leaderBaseWidth + spacing, currentY, leaderBaseWidth, leaderBaseHeight, 20)
       }
       currentY += leaderBaseHeight + sectionSpacing
 
       // Draw "Deck" label
       ctx.fillStyle = 'white'
-      ctx.font = 'bold 20px Arial'
+      ctx.font = 'bold 50px Barlow'
       ctx.textAlign = 'left'
       ctx.textBaseline = 'top'
       ctx.fillText(`Deck (${deckCards.length} cards)`, padding, currentY)
@@ -464,15 +666,24 @@ export default function PlayPage({ params }) {
           row++
         }
       }
-      currentY += deckRows * (cardHeight + spacing) + sectionSpacing
 
-      // Draw timestamp
+      // Draw footer
+      const footerY = totalHeight - footerHeight - padding + 20
+
+      // Created by text with date/time - bold and white
       const now = new Date()
-      const timeStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
-      ctx.font = '16px Arial'
+      const dateStr = now.toLocaleDateString()
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      ctx.fillStyle = 'white'
+      ctx.font = 'bold 50px Barlow'
       ctx.textAlign = 'center'
-      ctx.fillText(timeStr, width / 2, totalHeight - padding)
+      ctx.fillText(`Created by Protect the Pod on ${dateStr} at ${timeStr}`, width / 2, footerY)
+
+      // URL to deckbuilder
+      const deckUrl = `https://www.protectthepod.com/pool/${shareId}/deck`
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+      ctx.font = '48px Barlow'
+      ctx.fillText(deckUrl, width / 2, footerY + 80)
 
       // Show image in modal
       canvas.toBlob((blob) => {
