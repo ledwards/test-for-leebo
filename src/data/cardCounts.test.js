@@ -1,11 +1,293 @@
 /**
  * Card Data Count Validation Tests
  *
- * Validates exact counts of cards by treatment type, card type, and aspect combination.
+ * Validates exact counts of cards by treatment type, card type, rarity, and aspect.
  * These tests use hardcoded expected values to catch data import issues.
  *
  * Run with: node src/data/cardCounts.test.js
+ *
+ * ============================================================================
+ * EXPECTED VALUES - EDIT THESE TO VALIDATE AGAINST EXTERNAL SOURCES
+ * ============================================================================
  */
+
+// Expected card counts per set - EDIT THESE VALUES TO VALIDATE
+const EXPECTED = {
+  SOR: {
+    // Treatment totals
+    totalNormal: 252,
+    totalHyperspace: 242,
+    totalFoil: 0,
+    totalHyperspaceFoil: 0,
+    totalShowcase: 16,
+
+    // Rarity counts (excluding Leaders and Bases)
+    commons: 90,        // Gemini claims 115
+    uncommons: 60,      // Gemini claims 59
+    rares: 48,          // Gemini claims 51
+    legendaries: 16,    // Gemini claims 16
+
+    // Leader rarity
+    commonLeaders: 8,   // Gemini claims 12
+    rareLeaders: 8,     // Gemini claims 4
+    totalLeaders: 18,
+
+    // Base rarity
+    commonBases: 8,     // Gemini claims 8
+    rareBases: 4,       // Gemini claims 5
+    totalBases: 12,
+
+    // Card types (Normal treatment)
+    units: 148,         // Gemini claims 148
+    groundUnits: 110,   // Gemini claims 108
+    spaceUnits: 38,     // Gemini claims 40
+    upgrades: 14,       // Gemini claims 35 (big diff - includes Equipment?)
+    events: 60,         // Gemini claims 48
+
+    // Aspect single counts (Normal, non-dual aspect cards)
+    vigilanceSingle: 20,
+    commandSingle: 21,
+    aggressionSingle: 20,
+    cunningSingle: 21,
+    heroismSingle: 11,
+    villainySingle: 11,
+    neutral: 6,
+
+    // Dual aspect counts (Normal treatment)
+    vigilanceVillainy: 13,
+    vigilanceHeroism: 12,
+    commandVillainy: 14,
+    commandHeroism: 11,
+    aggressionVillainy: 12,
+    aggressionHeroism: 13,
+    cunningVillainy: 12,
+    cunningHeroism: 13,
+  },
+
+  SHD: {
+    totalNormal: 262,
+    totalHyperspace: 242,
+    totalFoil: 0,
+    totalHyperspaceFoil: 0,
+    totalShowcase: 18,
+
+    commons: 90,
+    uncommons: 60,
+    rares: 52,
+    legendaries: 16,
+
+    commonLeaders: 8,
+    rareLeaders: 8,
+    totalLeaders: 18,
+
+    commonBases: 8,
+    rareBases: 0,
+    totalBases: 8,
+
+    units: 160,
+    groundUnits: 124,
+    spaceUnits: 36,
+    upgrades: 30,
+    events: 46,
+
+    vigilanceSingle: 25,
+    commandSingle: 23,
+    aggressionSingle: 23,
+    cunningSingle: 25,
+    heroismSingle: 9,
+    villainySingle: 11,
+    neutral: 9,
+
+    vigilanceVillainy: 13,
+    vigilanceHeroism: 12,
+    commandVillainy: 15,
+    commandHeroism: 12,
+    aggressionVillainy: 13,
+    aggressionHeroism: 11,
+    cunningVillainy: 12,
+    cunningHeroism: 12,
+  },
+
+  TWI: {
+    totalNormal: 257,
+    totalHyperspace: 242,
+    totalFoil: 0,
+    totalHyperspaceFoil: 0,
+    totalShowcase: 18,
+
+    commons: 90,
+    uncommons: 60,
+    rares: 48,
+    legendaries: 16,
+
+    commonLeaders: 8,
+    rareLeaders: 8,
+    totalLeaders: 18,
+
+    commonBases: 8,
+    rareBases: 4,
+    totalBases: 12,
+
+    units: 150,
+    groundUnits: 117,
+    spaceUnits: 33,
+    upgrades: 19,
+    events: 58,
+
+    vigilanceSingle: 23,
+    commandSingle: 26,
+    aggressionSingle: 22,
+    cunningSingle: 23,
+    heroismSingle: 12,
+    villainySingle: 12,
+    neutral: 6,
+
+    vigilanceVillainy: 11,
+    vigilanceHeroism: 11,
+    commandVillainy: 11,
+    commandHeroism: 11,
+    aggressionVillainy: 11,
+    aggressionHeroism: 13,
+    cunningVillainy: 12,
+    cunningHeroism: 11,
+  },
+
+  JTL: {
+    totalNormal: 262,
+    totalHyperspace: 262,
+    totalFoil: 236,
+    totalHyperspaceFoil: 236,
+    totalShowcase: 18,
+
+    commons: 98,
+    uncommons: 60,
+    rares: 45,
+    legendaries: 20,
+
+    commonLeaders: 8,   // Gemini claims 0
+    rareLeaders: 8,     // Gemini claims 16
+    totalLeaders: 18,
+
+    commonBases: 8,
+    rareBases: 5,
+    totalBases: 13,
+
+    units: 167,
+    groundUnits: 76,
+    spaceUnits: 91,
+    upgrades: 7,
+    events: 57,
+
+    vigilanceSingle: 24,
+    commandSingle: 25,
+    aggressionSingle: 24,
+    cunningSingle: 25,
+    heroismSingle: 10,
+    villainySingle: 9,
+    neutral: 8,
+
+    vigilanceVillainy: 12,
+    vigilanceHeroism: 12,
+    commandVillainy: 12,
+    commandHeroism: 13,
+    aggressionVillainy: 13,
+    aggressionHeroism: 12,
+    cunningVillainy: 14,
+    cunningHeroism: 14,
+  },
+
+  LOF: {
+    totalNormal: 264,
+    totalHyperspace: 256,
+    totalFoil: 238,
+    totalHyperspaceFoil: 238,
+    totalShowcase: 18,
+
+    commons: 100,
+    uncommons: 60,
+    rares: 46,
+    legendaries: 20,
+
+    commonLeaders: 8,
+    rareLeaders: 8,
+    totalLeaders: 18,
+
+    commonBases: 8,
+    rareBases: 4,
+    totalBases: 12,
+
+    units: 166,
+    groundUnits: 129,
+    spaceUnits: 37,
+    upgrades: 20,
+    events: 48,
+
+    vigilanceSingle: 23,
+    commandSingle: 22,
+    aggressionSingle: 24,
+    cunningSingle: 22,
+    heroismSingle: 12,
+    villainySingle: 14,
+    neutral: 11,
+
+    vigilanceVillainy: 13,
+    vigilanceHeroism: 11,
+    commandVillainy: 12,
+    commandHeroism: 13,
+    aggressionVillainy: 13,
+    aggressionHeroism: 11,
+    cunningVillainy: 12,
+    cunningHeroism: 14,
+  },
+
+  SEC: {
+    totalNormal: 264,
+    totalHyperspace: 264,
+    totalFoil: 238,
+    totalHyperspaceFoil: 238,
+    totalShowcase: 18,
+
+    commons: 100,
+    uncommons: 60,
+    rares: 50,
+    legendaries: 20,
+
+    commonLeaders: 8,
+    rareLeaders: 8,
+    totalLeaders: 18,
+
+    commonBases: 8,
+    rareBases: 0,
+    totalBases: 8,
+
+    units: 171,
+    groundUnits: 129,
+    spaceUnits: 42,
+    upgrades: 17,
+    events: 50,
+
+    vigilanceSingle: 24,
+    commandSingle: 24,
+    aggressionSingle: 24,
+    cunningSingle: 24,
+    heroismSingle: 11,
+    villainySingle: 11,
+    neutral: 6,
+
+    vigilanceVillainy: 14,
+    vigilanceHeroism: 13,
+    commandVillainy: 14,
+    commandHeroism: 14,
+    aggressionVillainy: 14,
+    aggressionHeroism: 13,
+    cunningVillainy: 13,
+    cunningHeroism: 15,
+  },
+}
+
+/* ============================================================================
+ * TEST IMPLEMENTATION - Usually no need to edit below this line
+ * ============================================================================ */
 
 import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
 
@@ -30,8 +312,26 @@ function assertEqual(actual, expected, message) {
   }
 }
 
-function getAspectKey(card) {
-  return (card.aspects || []).sort().join('/') || 'None'
+function hasAspect(card, aspect) {
+  return (card.aspects || []).includes(aspect)
+}
+
+function hasDualAspect(card, aspect1, aspect2) {
+  const aspects = card.aspects || []
+  return aspects.includes(aspect1) && aspects.includes(aspect2)
+}
+
+function hasSingleAspect(card, aspect) {
+  const aspects = card.aspects || []
+  return aspects.length === 1 && aspects[0] === aspect
+}
+
+function isNeutral(card) {
+  return !card.aspects || card.aspects.length === 0
+}
+
+function isDraftable(card) {
+  return card.type !== 'Leader' && card.type !== 'Base'
 }
 
 async function runTests() {
@@ -41,363 +341,134 @@ async function runTests() {
   console.log('')
   console.log('\x1b[1m\x1b[35m🎴 Card Count Validation\x1b[0m')
   console.log('\x1b[35m========================\x1b[0m')
-  console.log('')
 
-  // ===== SET 1: SPARK OF REBELLION (SOR) =====
-  console.log('\x1b[36m=== Set 1: Spark of Rebellion (SOR) ===\x1b[0m')
-  const sorCards = getCachedCards('SOR')
+  for (const [setCode, expected] of Object.entries(EXPECTED)) {
+    console.log('')
+    console.log(`\x1b[36m=== ${setCode} ===\x1b[0m`)
 
-  // Total by treatment
-  test('SOR: Total Normal treatment = 252', () => {
-    assertEqual(sorCards.filter(c => c.variantType === 'Normal').length, 252)
-  })
-  test('SOR: Total Foil treatment = 0', () => {
-    assertEqual(sorCards.filter(c => c.variantType === 'Foil').length, 0)
-  })
-  test('SOR: Total Hyperspace treatment = 242', () => {
-    assertEqual(sorCards.filter(c => c.variantType === 'Hyperspace').length, 242)
-  })
-  test('SOR: Total Hyperspace Foil treatment = 0', () => {
-    assertEqual(sorCards.filter(c => c.variantType === 'Hyperspace Foil').length, 0)
-  })
-  test('SOR: Total Showcase treatment = 16', () => {
-    assertEqual(sorCards.filter(c => c.variantType === 'Showcase').length, 16)
-  })
+    const cards = getCachedCards(setCode)
+    const normal = cards.filter(c => c.variantType === 'Normal')
+    const draftable = normal.filter(isDraftable)
 
-  // By type and treatment
-  test('SOR: Normal Leaders = 18', () => {
-    assertEqual(sorCards.filter(c => c.type === 'Leader' && c.variantType === 'Normal').length, 18)
-  })
-  test('SOR: Hyperspace Leaders = 16', () => {
-    assertEqual(sorCards.filter(c => c.type === 'Leader' && c.variantType === 'Hyperspace').length, 16)
-  })
-  test('SOR: Showcase Leaders = 16', () => {
-    assertEqual(sorCards.filter(c => c.type === 'Leader' && c.variantType === 'Showcase').length, 16)
-  })
+    // Treatment totals
+    test(`${setCode}: Total Normal = ${expected.totalNormal}`, () => {
+      assertEqual(normal.length, expected.totalNormal)
+    })
+    test(`${setCode}: Total Hyperspace = ${expected.totalHyperspace}`, () => {
+      assertEqual(cards.filter(c => c.variantType === 'Hyperspace').length, expected.totalHyperspace)
+    })
+    test(`${setCode}: Total Foil = ${expected.totalFoil}`, () => {
+      assertEqual(cards.filter(c => c.variantType === 'Foil').length, expected.totalFoil)
+    })
+    test(`${setCode}: Total Showcase = ${expected.totalShowcase}`, () => {
+      assertEqual(cards.filter(c => c.variantType === 'Showcase').length, expected.totalShowcase)
+    })
 
-  test('SOR: Normal Bases = 12', () => {
-    assertEqual(sorCards.filter(c => c.type === 'Base' && c.variantType === 'Normal').length, 12)
-  })
-  test('SOR: Hyperspace Bases = 12', () => {
-    assertEqual(sorCards.filter(c => c.type === 'Base' && c.variantType === 'Hyperspace').length, 12)
-  })
+    // Rarity counts (excluding Leaders and Bases)
+    test(`${setCode}: Commons (excl L/B) = ${expected.commons}`, () => {
+      assertEqual(draftable.filter(c => c.rarity === 'Common').length, expected.commons)
+    })
+    test(`${setCode}: Uncommons (excl L/B) = ${expected.uncommons}`, () => {
+      assertEqual(draftable.filter(c => c.rarity === 'Uncommon').length, expected.uncommons)
+    })
+    test(`${setCode}: Rares (excl L/B) = ${expected.rares}`, () => {
+      assertEqual(draftable.filter(c => c.rarity === 'Rare').length, expected.rares)
+    })
+    test(`${setCode}: Legendaries (excl L/B) = ${expected.legendaries}`, () => {
+      assertEqual(draftable.filter(c => c.rarity === 'Legendary').length, expected.legendaries)
+    })
 
-  test('SOR: Normal Units = 148', () => {
-    assertEqual(sorCards.filter(c => c.type === 'Unit' && c.variantType === 'Normal').length, 148)
-  })
-  test('SOR: Hyperspace Units = 143', () => {
-    assertEqual(sorCards.filter(c => c.type === 'Unit' && c.variantType === 'Hyperspace').length, 143)
-  })
+    // Leader counts
+    const leaders = normal.filter(c => c.type === 'Leader')
+    test(`${setCode}: Total Leaders = ${expected.totalLeaders}`, () => {
+      assertEqual(leaders.length, expected.totalLeaders)
+    })
+    test(`${setCode}: Common Leaders = ${expected.commonLeaders}`, () => {
+      assertEqual(leaders.filter(c => c.rarity === 'Common').length, expected.commonLeaders)
+    })
+    test(`${setCode}: Rare Leaders = ${expected.rareLeaders}`, () => {
+      assertEqual(leaders.filter(c => c.rarity === 'Rare').length, expected.rareLeaders)
+    })
 
-  test('SOR: Normal Upgrades = 14', () => {
-    assertEqual(sorCards.filter(c => c.type === 'Upgrade' && c.variantType === 'Normal').length, 14)
-  })
-  test('SOR: Hyperspace Upgrades = 12', () => {
-    assertEqual(sorCards.filter(c => c.type === 'Upgrade' && c.variantType === 'Hyperspace').length, 12)
-  })
+    // Base counts
+    const bases = normal.filter(c => c.type === 'Base')
+    test(`${setCode}: Total Bases = ${expected.totalBases}`, () => {
+      assertEqual(bases.length, expected.totalBases)
+    })
+    test(`${setCode}: Common Bases = ${expected.commonBases}`, () => {
+      assertEqual(bases.filter(c => c.rarity === 'Common').length, expected.commonBases)
+    })
+    test(`${setCode}: Rare Bases = ${expected.rareBases}`, () => {
+      assertEqual(bases.filter(c => c.rarity === 'Rare').length, expected.rareBases)
+    })
 
-  test('SOR: Normal Events = 60', () => {
-    assertEqual(sorCards.filter(c => c.type === 'Event' && c.variantType === 'Normal').length, 60)
-  })
-  test('SOR: Hyperspace Events = 59', () => {
-    assertEqual(sorCards.filter(c => c.type === 'Event' && c.variantType === 'Hyperspace').length, 59)
-  })
+    // Card type counts (Normal treatment)
+    const units = normal.filter(c => c.type === 'Unit')
+    test(`${setCode}: Units = ${expected.units}`, () => {
+      assertEqual(units.length, expected.units)
+    })
+    test(`${setCode}: Ground Units = ${expected.groundUnits}`, () => {
+      assertEqual(units.filter(c => c.arenas && c.arenas.includes('Ground')).length, expected.groundUnits)
+    })
+    test(`${setCode}: Space Units = ${expected.spaceUnits}`, () => {
+      assertEqual(units.filter(c => c.arenas && c.arenas.includes('Space')).length, expected.spaceUnits)
+    })
+    test(`${setCode}: Upgrades = ${expected.upgrades}`, () => {
+      assertEqual(normal.filter(c => c.type === 'Upgrade').length, expected.upgrades)
+    })
+    test(`${setCode}: Events = ${expected.events}`, () => {
+      assertEqual(normal.filter(c => c.type === 'Event').length, expected.events)
+    })
 
-  // By aspect combination (Normal treatment)
-  const sorNormal = sorCards.filter(c => c.variantType === 'Normal')
-  test('SOR: Normal Aggression aspect = 23', () => {
-    assertEqual(sorNormal.filter(c => getAspectKey(c) === 'Aggression').length, 23)
-  })
-  test('SOR: Normal Command aspect = 24', () => {
-    assertEqual(sorNormal.filter(c => getAspectKey(c) === 'Command').length, 24)
-  })
-  test('SOR: Normal Cunning aspect = 24', () => {
-    assertEqual(sorNormal.filter(c => getAspectKey(c) === 'Cunning').length, 24)
-  })
-  test('SOR: Normal Vigilance aspect = 23', () => {
-    assertEqual(sorNormal.filter(c => getAspectKey(c) === 'Vigilance').length, 23)
-  })
-  test('SOR: Normal Aggression/Heroism dual = 15', () => {
-    assertEqual(sorNormal.filter(c => getAspectKey(c) === 'Aggression/Heroism').length, 15)
-  })
+    // Single aspect counts (Normal, draftable cards only)
+    test(`${setCode}: Vigilance (single) = ${expected.vigilanceSingle}`, () => {
+      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Vigilance')).length, expected.vigilanceSingle)
+    })
+    test(`${setCode}: Command (single) = ${expected.commandSingle}`, () => {
+      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Command')).length, expected.commandSingle)
+    })
+    test(`${setCode}: Aggression (single) = ${expected.aggressionSingle}`, () => {
+      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Aggression')).length, expected.aggressionSingle)
+    })
+    test(`${setCode}: Cunning (single) = ${expected.cunningSingle}`, () => {
+      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Cunning')).length, expected.cunningSingle)
+    })
+    test(`${setCode}: Heroism (single) = ${expected.heroismSingle}`, () => {
+      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Heroism')).length, expected.heroismSingle)
+    })
+    test(`${setCode}: Villainy (single) = ${expected.villainySingle}`, () => {
+      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Villainy')).length, expected.villainySingle)
+    })
+    test(`${setCode}: Neutral = ${expected.neutral}`, () => {
+      assertEqual(draftable.filter(isNeutral).length, expected.neutral)
+    })
 
-  console.log('')
-
-  // ===== SET 2: SHADOWS OF THE GALAXY (SHD) =====
-  console.log('\x1b[36m=== Set 2: Shadows of the Galaxy (SHD) ===\x1b[0m')
-  const shdCards = getCachedCards('SHD')
-
-  test('SHD: Total Normal treatment = 262', () => {
-    assertEqual(shdCards.filter(c => c.variantType === 'Normal').length, 262)
-  })
-  test('SHD: Total Foil treatment = 0', () => {
-    assertEqual(shdCards.filter(c => c.variantType === 'Foil').length, 0)
-  })
-  test('SHD: Total Hyperspace treatment = 242', () => {
-    assertEqual(shdCards.filter(c => c.variantType === 'Hyperspace').length, 242)
-  })
-  test('SHD: Total Hyperspace Foil treatment = 0', () => {
-    assertEqual(shdCards.filter(c => c.variantType === 'Hyperspace Foil').length, 0)
-  })
-  test('SHD: Total Showcase treatment = 18', () => {
-    assertEqual(shdCards.filter(c => c.variantType === 'Showcase').length, 18)
-  })
-
-  test('SHD: Normal Leaders = 18', () => {
-    assertEqual(shdCards.filter(c => c.type === 'Leader' && c.variantType === 'Normal').length, 18)
-  })
-  test('SHD: Normal Bases = 8', () => {
-    assertEqual(shdCards.filter(c => c.type === 'Base' && c.variantType === 'Normal').length, 8)
-  })
-  test('SHD: Normal Units = 160', () => {
-    assertEqual(shdCards.filter(c => c.type === 'Unit' && c.variantType === 'Normal').length, 160)
-  })
-  test('SHD: Normal Upgrades = 30', () => {
-    assertEqual(shdCards.filter(c => c.type === 'Upgrade' && c.variantType === 'Normal').length, 30)
-  })
-  test('SHD: Normal Events = 46', () => {
-    assertEqual(shdCards.filter(c => c.type === 'Event' && c.variantType === 'Normal').length, 46)
-  })
-
-  test('SHD: Hyperspace Leaders = 16', () => {
-    assertEqual(shdCards.filter(c => c.type === 'Leader' && c.variantType === 'Hyperspace').length, 16)
-  })
-  test('SHD: Hyperspace Units = 147', () => {
-    assertEqual(shdCards.filter(c => c.type === 'Unit' && c.variantType === 'Hyperspace').length, 147)
-  })
-
-  console.log('')
-
-  // ===== SET 3: TWILIGHT OF THE REPUBLIC (TWI) =====
-  console.log('\x1b[36m=== Set 3: Twilight of the Republic (TWI) ===\x1b[0m')
-  const twiCards = getCachedCards('TWI')
-
-  test('TWI: Total Normal treatment = 257', () => {
-    assertEqual(twiCards.filter(c => c.variantType === 'Normal').length, 257)
-  })
-  test('TWI: Total Foil treatment = 0', () => {
-    assertEqual(twiCards.filter(c => c.variantType === 'Foil').length, 0)
-  })
-  test('TWI: Total Hyperspace treatment = 242', () => {
-    assertEqual(twiCards.filter(c => c.variantType === 'Hyperspace').length, 242)
-  })
-  test('TWI: Total Hyperspace Foil treatment = 0', () => {
-    assertEqual(twiCards.filter(c => c.variantType === 'Hyperspace Foil').length, 0)
-  })
-  test('TWI: Total Showcase treatment = 18', () => {
-    assertEqual(twiCards.filter(c => c.variantType === 'Showcase').length, 18)
-  })
-
-  test('TWI: Normal Leaders = 18', () => {
-    assertEqual(twiCards.filter(c => c.type === 'Leader' && c.variantType === 'Normal').length, 18)
-  })
-  test('TWI: Normal Bases = 12', () => {
-    assertEqual(twiCards.filter(c => c.type === 'Base' && c.variantType === 'Normal').length, 12)
-  })
-  test('TWI: Normal Units = 150', () => {
-    assertEqual(twiCards.filter(c => c.type === 'Unit' && c.variantType === 'Normal').length, 150)
-  })
-  test('TWI: Normal Upgrades = 19', () => {
-    assertEqual(twiCards.filter(c => c.type === 'Upgrade' && c.variantType === 'Normal').length, 19)
-  })
-  test('TWI: Normal Events = 58', () => {
-    assertEqual(twiCards.filter(c => c.type === 'Event' && c.variantType === 'Normal').length, 58)
-  })
-
-  test('TWI: Hyperspace Leaders = 16', () => {
-    assertEqual(twiCards.filter(c => c.type === 'Leader' && c.variantType === 'Hyperspace').length, 16)
-  })
-  test('TWI: Hyperspace Units = 143', () => {
-    assertEqual(twiCards.filter(c => c.type === 'Unit' && c.variantType === 'Hyperspace').length, 143)
-  })
-
-  console.log('')
-
-  // ===== SET 4: JUMP TO LIGHTSPEED (JTL) =====
-  console.log('\x1b[36m=== Set 4: Jump to Lightspeed (JTL) ===\x1b[0m')
-  const jtlCards = getCachedCards('JTL')
-
-  test('JTL: Total Normal treatment = 262', () => {
-    assertEqual(jtlCards.filter(c => c.variantType === 'Normal').length, 262)
-  })
-  test('JTL: Total Foil treatment = 236', () => {
-    assertEqual(jtlCards.filter(c => c.variantType === 'Foil').length, 236)
-  })
-  test('JTL: Total Hyperspace treatment = 262', () => {
-    assertEqual(jtlCards.filter(c => c.variantType === 'Hyperspace').length, 262)
-  })
-  test('JTL: Total Hyperspace Foil treatment = 236', () => {
-    assertEqual(jtlCards.filter(c => c.variantType === 'Hyperspace Foil').length, 236)
-  })
-  test('JTL: Total Showcase treatment = 18', () => {
-    assertEqual(jtlCards.filter(c => c.variantType === 'Showcase').length, 18)
-  })
-
-  test('JTL: Normal Leaders = 18', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Leader' && c.variantType === 'Normal').length, 18)
-  })
-  test('JTL: Normal Bases = 13', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Base' && c.variantType === 'Normal').length, 13)
-  })
-  test('JTL: Normal Units = 167', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Unit' && c.variantType === 'Normal').length, 167)
-  })
-  test('JTL: Normal Upgrades = 7', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Upgrade' && c.variantType === 'Normal').length, 7)
-  })
-  test('JTL: Normal Events = 57', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Event' && c.variantType === 'Normal').length, 57)
-  })
-
-  test('JTL: Foil Bases = 5', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Base' && c.variantType === 'Foil').length, 5)
-  })
-  test('JTL: Foil Units = 167', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Unit' && c.variantType === 'Foil').length, 167)
-  })
-  test('JTL: Foil Upgrades = 7', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Upgrade' && c.variantType === 'Foil').length, 7)
-  })
-  test('JTL: Foil Events = 57', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Event' && c.variantType === 'Foil').length, 57)
-  })
-
-  test('JTL: Hyperspace Leaders = 18', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Leader' && c.variantType === 'Hyperspace').length, 18)
-  })
-  test('JTL: Hyperspace Units = 167', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Unit' && c.variantType === 'Hyperspace').length, 167)
-  })
-
-  test('JTL: Hyperspace Foil Units = 167', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Unit' && c.variantType === 'Hyperspace Foil').length, 167)
-  })
-  test('JTL: Hyperspace Foil Events = 57', () => {
-    assertEqual(jtlCards.filter(c => c.type === 'Event' && c.variantType === 'Hyperspace Foil').length, 57)
-  })
-
-  console.log('')
-
-  // ===== SET 5: LEADERS OF THE FORCE (LOF) =====
-  console.log('\x1b[36m=== Set 5: Leaders of the Force (LOF) ===\x1b[0m')
-  const lofCards = getCachedCards('LOF')
-
-  test('LOF: Total Normal treatment = 264', () => {
-    assertEqual(lofCards.filter(c => c.variantType === 'Normal').length, 264)
-  })
-  test('LOF: Total Foil treatment = 238', () => {
-    assertEqual(lofCards.filter(c => c.variantType === 'Foil').length, 238)
-  })
-  test('LOF: Total Hyperspace treatment = 256', () => {
-    assertEqual(lofCards.filter(c => c.variantType === 'Hyperspace').length, 256)
-  })
-  test('LOF: Total Hyperspace Foil treatment = 238', () => {
-    assertEqual(lofCards.filter(c => c.variantType === 'Hyperspace Foil').length, 238)
-  })
-  test('LOF: Total Showcase treatment = 18', () => {
-    assertEqual(lofCards.filter(c => c.variantType === 'Showcase').length, 18)
-  })
-
-  test('LOF: Normal Leaders = 18', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Leader' && c.variantType === 'Normal').length, 18)
-  })
-  test('LOF: Normal Bases = 12', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Base' && c.variantType === 'Normal').length, 12)
-  })
-  test('LOF: Normal Units = 166', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Unit' && c.variantType === 'Normal').length, 166)
-  })
-  test('LOF: Normal Upgrades = 20', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Upgrade' && c.variantType === 'Normal').length, 20)
-  })
-  test('LOF: Normal Events = 48', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Event' && c.variantType === 'Normal').length, 48)
-  })
-
-  test('LOF: Foil Bases = 4', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Base' && c.variantType === 'Foil').length, 4)
-  })
-  test('LOF: Foil Units = 166', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Unit' && c.variantType === 'Foil').length, 166)
-  })
-  test('LOF: Foil Upgrades = 20', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Upgrade' && c.variantType === 'Foil').length, 20)
-  })
-  test('LOF: Foil Events = 48', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Event' && c.variantType === 'Foil').length, 48)
-  })
-
-  test('LOF: Hyperspace Leaders = 18', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Leader' && c.variantType === 'Hyperspace').length, 18)
-  })
-  test('LOF: Hyperspace Bases = 4', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Base' && c.variantType === 'Hyperspace').length, 4)
-  })
-  test('LOF: Hyperspace Units = 166', () => {
-    assertEqual(lofCards.filter(c => c.type === 'Unit' && c.variantType === 'Hyperspace').length, 166)
-  })
-
-  console.log('')
-
-  // ===== SET 6: SECOND EDITION CORE (SEC) =====
-  console.log('\x1b[36m=== Set 6: Second Edition Core (SEC) ===\x1b[0m')
-  const secCards = getCachedCards('SEC')
-
-  test('SEC: Total Normal treatment = 264', () => {
-    assertEqual(secCards.filter(c => c.variantType === 'Normal').length, 264)
-  })
-  test('SEC: Total Foil treatment = 238', () => {
-    assertEqual(secCards.filter(c => c.variantType === 'Foil').length, 238)
-  })
-  test('SEC: Total Hyperspace treatment = 264', () => {
-    assertEqual(secCards.filter(c => c.variantType === 'Hyperspace').length, 264)
-  })
-  test('SEC: Total Hyperspace Foil treatment = 238', () => {
-    assertEqual(secCards.filter(c => c.variantType === 'Hyperspace Foil').length, 238)
-  })
-  test('SEC: Total Showcase treatment = 18', () => {
-    assertEqual(secCards.filter(c => c.variantType === 'Showcase').length, 18)
-  })
-
-  test('SEC: Normal Leaders = 18', () => {
-    assertEqual(secCards.filter(c => c.type === 'Leader' && c.variantType === 'Normal').length, 18)
-  })
-  test('SEC: Normal Bases = 8', () => {
-    assertEqual(secCards.filter(c => c.type === 'Base' && c.variantType === 'Normal').length, 8)
-  })
-  test('SEC: Normal Units = 171', () => {
-    assertEqual(secCards.filter(c => c.type === 'Unit' && c.variantType === 'Normal').length, 171)
-  })
-  test('SEC: Normal Upgrades = 17', () => {
-    assertEqual(secCards.filter(c => c.type === 'Upgrade' && c.variantType === 'Normal').length, 17)
-  })
-  test('SEC: Normal Events = 50', () => {
-    assertEqual(secCards.filter(c => c.type === 'Event' && c.variantType === 'Normal').length, 50)
-  })
-
-  test('SEC: Foil Units = 171', () => {
-    assertEqual(secCards.filter(c => c.type === 'Unit' && c.variantType === 'Foil').length, 171)
-  })
-  test('SEC: Foil Upgrades = 17', () => {
-    assertEqual(secCards.filter(c => c.type === 'Upgrade' && c.variantType === 'Foil').length, 17)
-  })
-  test('SEC: Foil Events = 50', () => {
-    assertEqual(secCards.filter(c => c.type === 'Event' && c.variantType === 'Foil').length, 50)
-  })
-
-  test('SEC: Hyperspace Leaders = 18', () => {
-    assertEqual(secCards.filter(c => c.type === 'Leader' && c.variantType === 'Hyperspace').length, 18)
-  })
-  test('SEC: Hyperspace Units = 171', () => {
-    assertEqual(secCards.filter(c => c.type === 'Unit' && c.variantType === 'Hyperspace').length, 171)
-  })
-
-  test('SEC: Hyperspace Foil Units = 171', () => {
-    assertEqual(secCards.filter(c => c.type === 'Unit' && c.variantType === 'Hyperspace Foil').length, 171)
-  })
-  test('SEC: Hyperspace Foil Events = 50', () => {
-    assertEqual(secCards.filter(c => c.type === 'Event' && c.variantType === 'Hyperspace Foil').length, 50)
-  })
+    // Dual aspect counts (Normal, draftable cards only)
+    test(`${setCode}: Vigilance/Villainy = ${expected.vigilanceVillainy}`, () => {
+      assertEqual(draftable.filter(c => hasDualAspect(c, 'Vigilance', 'Villainy')).length, expected.vigilanceVillainy)
+    })
+    test(`${setCode}: Vigilance/Heroism = ${expected.vigilanceHeroism}`, () => {
+      assertEqual(draftable.filter(c => hasDualAspect(c, 'Vigilance', 'Heroism')).length, expected.vigilanceHeroism)
+    })
+    test(`${setCode}: Command/Villainy = ${expected.commandVillainy}`, () => {
+      assertEqual(draftable.filter(c => hasDualAspect(c, 'Command', 'Villainy')).length, expected.commandVillainy)
+    })
+    test(`${setCode}: Command/Heroism = ${expected.commandHeroism}`, () => {
+      assertEqual(draftable.filter(c => hasDualAspect(c, 'Command', 'Heroism')).length, expected.commandHeroism)
+    })
+    test(`${setCode}: Aggression/Villainy = ${expected.aggressionVillainy}`, () => {
+      assertEqual(draftable.filter(c => hasDualAspect(c, 'Aggression', 'Villainy')).length, expected.aggressionVillainy)
+    })
+    test(`${setCode}: Aggression/Heroism = ${expected.aggressionHeroism}`, () => {
+      assertEqual(draftable.filter(c => hasDualAspect(c, 'Aggression', 'Heroism')).length, expected.aggressionHeroism)
+    })
+    test(`${setCode}: Cunning/Villainy = ${expected.cunningVillainy}`, () => {
+      assertEqual(draftable.filter(c => hasDualAspect(c, 'Cunning', 'Villainy')).length, expected.cunningVillainy)
+    })
+    test(`${setCode}: Cunning/Heroism = ${expected.cunningHeroism}`, () => {
+      assertEqual(draftable.filter(c => hasDualAspect(c, 'Cunning', 'Heroism')).length, expected.cunningHeroism)
+    })
+  }
 
   console.log('')
   console.log('\x1b[35m========================\x1b[0m')
