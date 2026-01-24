@@ -67,9 +67,6 @@ export default function DraftDeckPage({ params }) {
         <div className="login-required">
           <h2>Sign In Required</h2>
           <p>Please sign in to access your draft deck</p>
-          <button className="back-button" onClick={() => router.push('/draft')}>
-            ← Back
-          </button>
         </div>
       </div>
     )
@@ -81,9 +78,6 @@ export default function DraftDeckPage({ params }) {
         <div className="error-container">
           <h2>Error</h2>
           <p>{error}</p>
-          <button className="primary-button" onClick={() => router.push(`/draft/${shareId}`)}>
-            Back to Draft
-          </button>
         </div>
       </div>
     )

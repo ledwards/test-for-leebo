@@ -6,8 +6,9 @@ import { fetchSetCards } from '../utils/api'
 import { useAuth } from '../contexts/AuthContext'
 import { getAspectColor } from '../utils/aspectColors'
 import CostIcon from './CostIcon'
-import { updatePool, savePool } from '../utils/poolApi'
+import { updatePool, savePool, deletePool } from '../utils/poolApi'
 import { getPackArtUrl } from '../utils/packArt'
+import EditableTitle from './EditableTitle'
 
 // Get aspect symbol for list view using individual icon files
 const getAspectSymbol = (aspect, size = 'medium') => {
@@ -46,10 +47,43 @@ const SORT_OPTIONS = ['aspect', 'cost']
 
 // getAspectColor is now imported from utils/aspectColors
 
-function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareId = null, poolCreatedAt = null, poolType = 'sealed', poolName = null, poolOwnerUsername = null, poolOwnerId = null }) {
+function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareId = null, poolCreatedAt = null, poolType = 'sealed', poolName: initialPoolName = null, poolOwnerUsername = null, poolOwnerId = null }) {
   const { user, isAuthenticated, signIn } = useAuth()
   const isOwner = user && poolOwnerId && user.id === poolOwnerId
   const isDraftMode = poolType === 'draft'
+
+  // Get pool name from saved state if available, otherwise use initial prop
+  const getInitialPoolName = () => {
+    if (savedState) {
+      try {
+        const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState
+        if (state.poolName) return state.poolName
+      } catch (e) {}
+    }
+    return initialPoolName
+  }
+  const [currentPoolName, setCurrentPoolName] = useState(getInitialPoolName)
+
+  // Sync pool name from savedState when it changes (e.g., after pool data reloads)
+  // This ensures we pick up changes made elsewhere (like the play page)
+  useEffect(() => {
+    if (savedState) {
+      try {
+        const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState
+        if (state.poolName && state.poolName !== currentPoolName) {
+          setCurrentPoolName(state.poolName)
+        }
+      } catch (e) {}
+    } else if (!currentPoolName && initialPoolName) {
+      setCurrentPoolName(initialPoolName)
+    }
+  }, [savedState, initialPoolName])
+
+  const handleRenamePool = (newName) => {
+    if (!shareId) return
+    setCurrentPoolName(newName)
+    // Save is triggered automatically via useEffect when currentPoolName changes
+  }
   // Helper function to format card type for display
   const getFormattedType = useCallback((card) => {
     if (card.type === 'Unit') {
@@ -118,6 +152,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [messageType, setMessageType] = useState(null) // 'error' or 'success'
   const [isInfoBarSticky, setIsInfoBarSticky] = useState(false)
   const [showAspectPenalties, setShowAspectPenalties] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Function to get aspect color name
   // Calculate aspect penalty for a card
@@ -998,8 +1034,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     const checkSticky = () => {
       if (!infoBar) return
       const rect = infoBar.getBoundingClientRect()
-      // Check if element is stuck at top: 20px
-      const isSticky = Math.abs(rect.top - 20) < 5
+      // Trigger sticky mode 120px before it actually sticks (at top: 20px)
+      const isSticky = rect.top <= 140
       setIsInfoBarSticky(isSticky)
     }
 
@@ -1329,7 +1365,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         activeLeader,
         activeBase,
         deckCardIds,
-        sideboardCardIds
+        sideboardCardIds,
+        poolName: currentPoolName
       }
 
       // UI state for localStorage only
@@ -1365,7 +1402,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         onStateChange(deckStateToSave)
       }
     }
-  }, [shareId, cardPositions, sectionLabels, sectionBounds, canvasHeight, activeLeader, activeBase, viewMode, filterDrawerOpen, aspectFilters, inAspectFilter, outAspectFilter, sortOption, leadersExpanded, basesExpanded, deckExpanded, sideboardExpanded, deckAspectSectionsExpanded, sideboardAspectSectionsExpanded, deckCostSectionsExpanded, sideboardCostSectionsExpanded, showAspectPenalties, tableSort, onStateChange])
+  }, [shareId, cardPositions, sectionLabels, sectionBounds, canvasHeight, activeLeader, activeBase, viewMode, filterDrawerOpen, aspectFilters, inAspectFilter, outAspectFilter, sortOption, leadersExpanded, basesExpanded, deckExpanded, sideboardExpanded, deckAspectSectionsExpanded, sideboardAspectSectionsExpanded, deckCostSectionsExpanded, sideboardCostSectionsExpanded, showAspectPenalties, tableSort, onStateChange, currentPoolName])
 
   // Cleanup: Remove any bases/leaders from deck/sideboard sections and move cards based on enabled state
   useEffect(() => {
@@ -1416,7 +1453,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       // Only return new object if something changed, otherwise keep same reference
       return hasChanges ? updated : prev
     })
-  }, [aspectFilters, cardMatchesFilters])
+  }, [aspectFilters])
 
   // Sync aspect filter checkboxes with actual deck state
   // If all cards of an aspect are in sideboard, checkbox should be OFF
@@ -2817,7 +2854,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       hours = hours ? hours : 12
       const timeStr = `${month}/${day} ${hours}:${minutes} ${ampm}`
 
-      const displayName = poolName || `${setCode} ${poolType === 'draft' ? 'Draft' : 'Sealed'}`
+      const displayName = currentPoolName || `${setCode} ${poolType === 'draft' ? 'Draft' : 'Sealed'}`
 
       // Draw pool name
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
@@ -2875,10 +2912,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       )}
       <div className="deck-builder-content">
         <div className="deck-builder-header">
-        <button className="back-button" onClick={onBack}>
-          ← Back to Sealed Pod
-        </button>
-        <h1>Deck Builder</h1>
+        <div className="deck-builder-header-title-container">
+          <h1>
+            <EditableTitle
+              value={currentPoolName}
+              onSave={handleRenamePool}
+              isEditable={isOwner}
+              placeholder="Deck Builder"
+            />
+          </h1>
+          <p className="deck-builder-pool-type">{isDraftMode ? 'Draft Pool' : 'Sealed Pool'}</p>
+        </div>
 
         <div className={`header-buttons ${isInfoBarSticky ? 'hidden' : ''}`}>
           {!isOwner && (
@@ -2901,7 +2945,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     packs: null,
                     deckBuilderState: savedState,
                     poolType: poolType,
-                    name: poolName ? `${poolName} (Copy)` : null,
+                    name: currentPoolName ? `${currentPoolName} (Copy)` : null,
                     isPublic: false
                   })
 
@@ -2930,29 +2974,27 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               <span>{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
             </button>
           )}
-          <button className="export-button" onClick={copyJSON}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            <span>Copy to Clipboard</span>
-          </button>
-          <button className="export-button" onClick={exportJSON}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            <span>Download</span>
-          </button>
-          <button className="export-button" onClick={exportDeckImage}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <circle cx="8.5" cy="8.5" r="1.5"></circle>
-              <polyline points="21 15 16 10 5 21"></polyline>
-            </svg>
-            <span>Deck Image</span>
-          </button>
+          {shareId && (() => {
+            const deckCardCount = Object.values(cardPositions)
+              .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length
+            const isDeckLegal = activeLeader && activeBase && deckCardCount >= 30
+            return (
+              <button
+                className={`export-button ready-to-play-button ${!isDeckLegal ? 'disabled' : ''}`}
+                onClick={() => {
+                  if (isDeckLegal) {
+                    window.location.href = `/pool/${shareId}/deck/play`
+                  }
+                }}
+                disabled={!isDeckLegal}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span>{isDeckLegal ? 'Ready to Play' : 'Finalize Deck to Continue'}</span>
+              </button>
+            )
+          })()}
           {shareId && (
             <button
               className="export-button"
@@ -2979,7 +3021,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
               </svg>
-              <span>Share URL</span>
+              <span>Copy Share URL</span>
             </button>
           )}
         </div>
@@ -2989,10 +3031,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             marginLeft: 'auto',
             marginRight: 'auto',
             padding: '0.5rem 1rem',
-            background: messageType === 'error' ? 'rgba(255, 0, 0, 0.2)' : errorMessage.includes('Generating') ? 'rgba(138, 43, 226, 0.2)' : 'rgba(0, 100, 255, 0.2)',
-            border: messageType === 'error' ? '1px solid #ff0000' : errorMessage.includes('Generating') ? '1px solid #8a2be2' : '1px solid #0066ff',
+            background: messageType === 'error' ? 'rgba(255, 0, 0, 0.2)' : 'rgba(0, 100, 255, 0.2)',
+            border: messageType === 'error' ? '1px solid #ff0000' : '1px solid #0066ff',
             borderRadius: '4px',
-            color: messageType === 'error' ? '#ffcccc' : errorMessage.includes('Generating') ? '#dda0dd' : '#cce5ff',
+            color: messageType === 'error' ? '#ffcccc' : '#cce5ff',
             width: 'fit-content',
             fontSize: '0.875rem'
           }}>
@@ -3220,29 +3262,27 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         </div>
         {isInfoBarSticky && (
           <div className="header-buttons-in-nav">
-            <button className="export-button-icon" onClick={copyJSON}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <span className="button-tooltip">Copy to Clipboard</span>
-            </button>
-            <button className="export-button-icon" onClick={exportJSON}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              <span className="button-tooltip">Download</span>
-            </button>
-            <button className="export-button-icon" onClick={exportDeckImage}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                <polyline points="21 15 16 10 5 21"></polyline>
-              </svg>
-              <span className="button-tooltip">Deck Image</span>
-            </button>
+            {shareId && (() => {
+              const deckCardCount = Object.values(cardPositions)
+                .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length
+              const isDeckLegal = activeLeader && activeBase && deckCardCount >= 30
+              return (
+                <button
+                  className={`export-button-icon ready-to-play-icon ${!isDeckLegal ? 'disabled' : ''}`}
+                  onClick={() => {
+                    if (isDeckLegal) {
+                      window.location.href = `/pool/${shareId}/deck/play`
+                    }
+                  }}
+                  disabled={!isDeckLegal}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  <span className="button-tooltip tooltip-below">{isDeckLegal ? 'Ready to Play' : 'Create Deck to Continue'}</span>
+                </button>
+              )
+            })()}
             {!isOwner && (
               <button
                 className="export-button-icon"
@@ -3262,7 +3302,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       packs: null,
                       deckBuilderState: savedState,
                       poolType: poolType,
-                      name: poolName ? `${poolName} (Copy)` : null,
+                      name: currentPoolName ? `${currentPoolName} (Copy)` : null,
                       isPublic: false
                     })
 
@@ -3317,7 +3357,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                   <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                 </svg>
-                <span className="button-tooltip">Share URL</span>
+                <span className="button-tooltip tooltip-below">Copy Share URL</span>
               </button>
             )}
           </div>
@@ -3348,7 +3388,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           )}
         </button>
         <button
-          className="filter-button"
+          className={`filter-button ${filterDrawerOpen ? 'active' : ''}`}
           onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}
           onMouseEnter={(e) => showNavTooltip('Filter by Aspect', e)}
           onMouseLeave={hideTooltip}
@@ -3363,12 +3403,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             onClick={() => setSortOption('aspect')}
             onMouseEnter={(e) => showNavTooltip('Sort by Aspect', e)}
             onMouseLeave={hideTooltip}
-            style={{
-              opacity: sortOption === 'aspect' ? 1 : 0.5,
-              border: sortOption === 'aspect' ? '2px solid #fff' : '2px solid transparent',
-              borderRadius: '4px',
-              padding: '2px'
-            }}
+            style={{ opacity: sortOption === 'aspect' ? 1 : 0.5 }}
           >
             <img
               src="/icons/heroism.png"
@@ -3381,12 +3416,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             onClick={() => setSortOption('cost')}
             onMouseEnter={(e) => showNavTooltip('Sort by Cost', e)}
             onMouseLeave={hideTooltip}
-            style={{
-              opacity: sortOption === 'cost' ? 1 : 0.5,
-              border: sortOption === 'cost' ? '2px solid #fff' : '2px solid transparent',
-              borderRadius: '4px',
-              padding: '2px'
-            }}
+            style={{ opacity: sortOption === 'cost' ? 1 : 0.5 }}
           >
             <div style={{ position: 'relative', display: 'inline-block', width: '24px', height: '24px' }}>
               <img
@@ -3413,12 +3443,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             onClick={() => setSortOption('type')}
             onMouseEnter={(e) => showNavTooltip('Sort by Type', e)}
             onMouseLeave={hideTooltip}
-            style={{
-              opacity: sortOption === 'type' ? 1 : 0.5,
-              border: sortOption === 'type' ? '2px solid #fff' : '2px solid transparent',
-              borderRadius: '4px',
-              padding: '2px'
-            }}
+            style={{ opacity: sortOption === 'type' ? 1 : 0.5 }}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -3511,7 +3536,25 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       }
                     }}
                   />
-                  <span>In Aspect</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    In Aspect
+                    {(() => {
+                      const leaderCard = cardPositions[activeLeader]?.card
+                      const baseCard = cardPositions[activeBase]?.card
+                      const myAspects = [
+                        ...(leaderCard?.aspects || []),
+                        ...(baseCard?.aspects || [])
+                      ]
+                      // Get unique aspects while preserving duplicates for display
+                      return myAspects.length > 0 ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '4px' }}>
+                          {myAspects.map((aspect, i) => (
+                            <span key={`${aspect}-${i}`}>{getAspectSymbol(aspect, 'small')}</span>
+                          ))}
+                        </span>
+                      ) : null
+                    })()}
+                  </span>
                 </label>
                 <label className="filter-checkbox">
                   <input
@@ -5961,7 +6004,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               position: 'fixed',
               left: `${hoveredCardPreview.x}px`,
               top: `${hoveredCardPreview.y}px`,
-              zIndex: 10000,
+              zIndex: 9999,
               pointerEvents: 'none',
               transform: 'translateY(-50%)',
               width: `${previewWidth}px`,
@@ -6171,7 +6214,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   hours = hours ? hours : 12
                   const timeStr = `${month}${day}_${hours}${minutes}${ampm}`
 
-                  const displayName = poolName || `${setCode} ${poolType === 'draft' ? 'Draft' : 'Sealed'}`
+                  const displayName = currentPoolName || `${setCode} ${poolType === 'draft' ? 'Draft' : 'Sealed'}`
                   // Sanitize filename - remove invalid characters
                   const sanitizedName = displayName.replace(/[^a-z0-9]/gi, '_').toLowerCase()
 
@@ -6182,6 +6225,63 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 }}
               >
                 Download Image
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Deck Button - only show for owner */}
+      {shareId && isOwner && (
+        <div className="delete-deck-section">
+          <hr className="delete-deck-divider" />
+          <button
+            className="delete-deck-button"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+            Delete Deck
+          </button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="delete-confirm-overlay" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Delete Deck?</h2>
+            <p>Are you sure you want to delete this deck? This action cannot be undone.</p>
+            <div className="delete-confirm-buttons">
+              <button
+                className="delete-confirm-cancel"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                className="delete-confirm-delete"
+                onClick={async () => {
+                  setIsDeleting(true)
+                  try {
+                    await deletePool(shareId)
+                    window.location.href = '/history'
+                  } catch (err) {
+                    console.error('Failed to delete:', err)
+                    setErrorMessage('Failed to delete deck')
+                    setMessageType('error')
+                    setShowDeleteConfirm(false)
+                    setIsDeleting(false)
+                  }
+                }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

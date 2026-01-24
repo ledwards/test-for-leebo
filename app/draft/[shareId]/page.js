@@ -28,6 +28,8 @@ export default function DraftRoomPage({ params }) {
   const [error, setError] = useState(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [showOpponentTooltip, setShowOpponentTooltip] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
 
   // Get shareId from params
   useEffect(() => {
@@ -162,6 +164,28 @@ export default function DraftRoomPage({ params }) {
     router.push('/draft')
   }
 
+  const handleCancelDraft = async () => {
+    if (!shareId) return
+    setIsCancelling(true)
+    try {
+      const response = await fetch(`/api/draft/${shareId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (response.ok) {
+        router.push('/draft')
+      } else {
+        console.error('Failed to cancel draft')
+        setIsCancelling(false)
+        setShowCancelConfirm(false)
+      }
+    } catch (err) {
+      console.error('Failed to cancel draft:', err)
+      setIsCancelling(false)
+      setShowCancelConfirm(false)
+    }
+  }
+
   const handleTogglePause = async () => {
     if (actionLoading) return
     setActionLoading(true)
@@ -219,9 +243,6 @@ export default function DraftRoomPage({ params }) {
         <div className="login-required">
           <h2>Sign In Required</h2>
           <p>Please sign in to join this draft</p>
-          <button className="back-button" onClick={handleBack}>
-            ← Back
-          </button>
         </div>
       </div>
     )
@@ -234,9 +255,6 @@ export default function DraftRoomPage({ params }) {
         <div className="error-container">
           <h2>Error</h2>
           <p>{syncError}</p>
-          <button className="primary-button" onClick={handleBack}>
-            Back to Draft
-          </button>
         </div>
       </div>
     )
@@ -249,9 +267,6 @@ export default function DraftRoomPage({ params }) {
         <div className="error-container">
           <h2>Draft Not Found</h2>
           <p>This draft may have been deleted or the code is incorrect.</p>
-          <button className="primary-button" onClick={handleBack}>
-            Back to Draft
-          </button>
         </div>
       </div>
     )
@@ -315,92 +330,9 @@ export default function DraftRoomPage({ params }) {
     }
 
     if (status === 'complete') {
-      // Calculate first opponent
-      let firstOpponent = null
-      let hasBye = false
-
-      if (myPlayer && players.length > 0) {
-        const isOddNumber = players.length % 2 === 1
-        const organizer = players.find(p => p.isHost)
-
-        if (isOddNumber && organizer?.id === myPlayer.id) {
-          // I am the organizer and there's an odd number - I get the bye
-          hasBye = true
-        } else {
-          // Find my position in the player list
-          const myIndex = players.findIndex(p => p.id === myPlayer.id)
-
-          if (myIndex !== -1) {
-            // Create array for distance calculation
-            let playersForPairing = [...players]
-
-            // Remove organizer from pairing if odd number
-            if (isOddNumber && organizer) {
-              playersForPairing = playersForPairing.filter(p => p.id !== organizer.id)
-            }
-
-            // Find my new index after potential organizer removal
-            const myNewIndex = playersForPairing.findIndex(p => p.id === myPlayer.id)
-
-            if (myNewIndex !== -1) {
-              // Calculate opposite player (furthest distance in array)
-              const halfLength = playersForPairing.length / 2
-              const opponentIndex = (myNewIndex + Math.floor(halfLength)) % playersForPairing.length
-              firstOpponent = playersForPairing[opponentIndex]
-            }
-          }
-        }
-      }
-
-      return (
-        <div className="draft-complete">
-          <h2>Draft Complete!</h2>
-          <p>The draft has finished. Build your deck from your drafted cards.</p>
-
-
-
-          {hasBye && (
-            <div className="first-opponent-info">
-              <h3>First Round</h3>
-              <p className="bye-message">You have a bye this round (organizer privilege for odd-numbered pods).</p>
-            </div>
-          )}
-
-          {!hasBye && firstOpponent && (
-            <div className="first-opponent-info">
-              <h3>What's Next?</h3>
-              <div className="opponent-display">
-                <div className="opponent-avatar-container">
-                  {firstOpponent.avatarUrl ? (
-                    <img
-                      src={firstOpponent.avatarUrl}
-                      alt={firstOpponent.username}
-                      className="opponent-avatar"
-                    />
-                  ) : (
-                    <div className="opponent-avatar-placeholder">
-                      {firstOpponent.username?.[0]?.toUpperCase() || '?'}
-                    </div>
-                  )}
-                  <span className="opponent-name">{firstOpponent.username || 'Unknown Player'}</span>
-                </div>
-                <div className="opponent-instructions">
-                  <ol className="instructions-steps">
-                    <li>Reach out to <strong>{firstOpponent.username || 'your opponent'}</strong> on Discord</li>
-                    <li>Review your pool and build your deck.</li>
-                    <li>Copy the JSON or export the deck to SWUDB.com</li>
-                    <li>You or {firstOpponent.username || 'your opponent'} starts a game on Karabast.net. You each use your draft decks (no cheating)</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <button className="primary-button" onClick={handleBuildDeck}>
-            Build Draft Deck
-          </button>
-        </div>
-      )
+      // Automatically redirect to draft pool page
+      handleBuildDeck()
+      return <div className="loading"></div>
     }
 
     return <div className="loading"></div>
@@ -422,10 +354,7 @@ export default function DraftRoomPage({ params }) {
       <div className="sealed-pod-content">
         <div className="draft-room">
           <div className="draft-header">
-            <button className="back-button" onClick={handleBack}>
-              ← Back
-            </button>
-            <div className="draft-header-center">
+              <div className="draft-header-center">
               <div className="draft-title-row">
                 <h1>{draft.setName || draft.setCode} Draft</h1>
               </div>
@@ -444,8 +373,51 @@ export default function DraftRoomPage({ params }) {
               {renderContent()}
             </div>
           </div>
+
+          {/* Cancel Draft Button - bottom center during active phases */}
+          {isHost && status === 'active' && (
+            <div className="draft-cancel-section">
+              <button
+                className="draft-cancel-button"
+                onClick={() => setShowCancelConfirm(true)}
+                disabled={isCancelling}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                Cancel Draft
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelConfirm && (
+        <div className="draft-cancel-overlay" onClick={() => setShowCancelConfirm(false)}>
+          <div className="draft-cancel-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Cancel Draft?</h2>
+            <p>Are you sure you want to cancel this draft? All players will lose their progress and this action cannot be undone.</p>
+            <div className="draft-cancel-buttons">
+              <button
+                className="draft-cancel-back"
+                onClick={() => setShowCancelConfirm(false)}
+                disabled={isCancelling}
+              >
+                Go Back
+              </button>
+              <button
+                className="draft-cancel-confirm"
+                onClick={handleCancelDraft}
+                disabled={isCancelling}
+              >
+                {isCancelling ? 'Cancelling...' : 'Cancel Draft'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

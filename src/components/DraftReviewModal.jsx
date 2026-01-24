@@ -379,7 +379,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
                 left: `${hoveredCardPreview.x}px`,
                 top: `${hoveredCardPreview.y}px`,
                 transform: 'translateY(-50%)',
-                zIndex: 10000,
+                zIndex: 9999,
                 pointerEvents: 'none',
                 width: `${previewWidth}px`,
                 height: `${previewHeight}px`,

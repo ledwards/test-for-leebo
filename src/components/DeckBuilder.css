@@ -84,8 +84,33 @@
 
 .deck-builder-header h1 {
   font-size: 2.5rem;
-  margin: 1rem 0 2.5rem 0;
+  margin: 1rem 0 0.25rem 0;
   color: white;
+}
+
+.deck-builder-pool-type {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 2rem 0;
+  letter-spacing: 0.05em;
+}
+
+/* Container to center pool type relative to title text only */
+.deck-builder-header-title-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Make edit button not affect centering */
+.deck-builder-header-title-container .editable-title {
+  position: relative;
+}
+
+.deck-builder-header-title-container .editable-title-edit-button {
+  position: absolute;
+  left: 100%;
+  margin-left: 0.5rem;
 }
 
 .deck-builder-header .instruction {
@@ -117,6 +142,7 @@
   margin-left: calc(2rem - 20px - 5px);
   margin-right: calc(2rem - 20px - 5px + 120px);
   width: calc(100% - (2rem - 20px - 5px) - (2rem - 20px - 5px + 120px));
+  overflow: visible;
 }
 
 .deck-info-bar:not(.sticky) {
@@ -125,11 +151,12 @@
 
 /* When sticky, buttons on left of deck-counts-info, deck-counts-info on far right */
 .deck-info-bar.sticky {
-  margin-left: 1.25rem; /* Match card blocks: container padding (1rem) + section margin (0.25rem) */
+  margin-left: 175px; /* Clear left side logo header */
   margin-right: 80px; /* Space for Discord icon (40px width + 20px right + 20px spacing) */
-  width: calc(100% - 1.25rem - 80px);
+  width: calc(100% - 175px - 80px);
   justify-content: flex-start;
   gap: 0;
+  overflow: visible;
 }
 
 .deck-info-bar.sticky .deck-counts-info {
@@ -272,8 +299,45 @@
 }
 
 .export-button:hover {
-  color: rgba(138, 43, 226, 1);
+  color: rgba(33, 150, 243, 1);
   transform: translateY(-1px);
+  text-shadow: 0 0 8px rgba(33, 150, 243, 0.8), 0 0 16px rgba(33, 150, 243, 0.4);
+}
+
+.export-button.ready-to-play-button {
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+}
+
+/* Green styling when deck is ready (not disabled) */
+.export-button.ready-to-play-button:not(.disabled) {
+  background: rgba(0, 100, 0, 0.3);
+  border-color: rgba(0, 255, 0, 0.6);
+}
+
+.export-button.ready-to-play-button:hover:not(.disabled) {
+  background: rgba(0, 100, 0, 0.5);
+  border-color: rgba(0, 255, 0, 0.8);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+  text-shadow: none;
+}
+
+.export-button.ready-to-play-button.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  border-color: rgba(255, 0, 0, 0.6);
+  background: rgba(100, 0, 0, 0.3);
+  color: rgba(255, 200, 200, 1);
+}
+
+/* Red glow on mouseover when not ready (disabled) */
+.export-button.ready-to-play-button.disabled:hover {
+  transform: none;
+  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
 }
 
 .header-buttons-in-nav {
@@ -305,8 +369,41 @@
 }
 
 .export-button-icon:hover {
-  color: rgba(138, 43, 226, 1);
+  color: rgba(33, 150, 243, 1);
   transform: translateY(-1px);
+  filter: drop-shadow(0 0 6px rgba(33, 150, 243, 0.8));
+}
+
+/* Green color when ready (not disabled) */
+.export-button-icon.ready-to-play-icon:not(.disabled) {
+  color: rgba(0, 255, 0, 0.8);
+}
+
+.export-button-icon.ready-to-play-icon:hover:not(.disabled) {
+  color: rgba(0, 255, 0, 1);
+  filter: drop-shadow(0 0 6px rgba(0, 255, 0, 0.8));
+}
+
+.export-button-icon.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.export-button-icon.disabled:hover {
+  color: white;
+  transform: none;
+  filter: none;
+}
+
+/* Red at rest for play button when not ready (disabled) */
+.export-button-icon.ready-to-play-icon.disabled {
+  color: rgba(255, 100, 100, 0.8);
+}
+
+/* Red glow on hover when not ready (disabled) */
+.export-button-icon.ready-to-play-icon.disabled:hover {
+  color: rgba(255, 100, 100, 1);
+  filter: drop-shadow(0 0 6px rgba(255, 0, 0, 0.8));
 }
 
 .export-button-icon .button-tooltip {
@@ -325,12 +422,20 @@
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease, visibility 0.2s ease;
-  z-index: 1001;
+  z-index: 10001;
 }
 
 .export-button-icon:hover .button-tooltip {
   opacity: 1;
   visibility: visible;
+}
+
+/* Tooltip positioned below the button instead of above */
+.export-button-icon .button-tooltip.tooltip-below {
+  bottom: auto;
+  top: 100%;
+  margin-bottom: 0;
+  margin-top: 8px;
 }
 
 /* Sticky nav buttons (icon-only) */
@@ -363,8 +468,9 @@
 }
 
 .sticky-nav-button:hover {
-  color: rgba(138, 43, 226, 1);
+  color: rgba(33, 150, 243, 1);
   transform: translateY(-1px);
+  filter: drop-shadow(0 0 6px rgba(33, 150, 243, 0.8));
 }
 
 .sticky-nav-button .button-tooltip {
@@ -382,7 +488,7 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.2s ease;
-  z-index: 1001;
+  z-index: 10001;
 }
 
 .sticky-nav-button:hover .button-tooltip {
@@ -1070,6 +1176,69 @@
   box-shadow: 0 6px 16px rgba(33, 150, 243, 0.6);
 }
 
+/* Rainbow border for filter buttons - thin outline only */
+.filter-button,
+.sort-button-icon {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+}
+
+.filter-button::before,
+.sort-button-icon::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 8px;
+  background: linear-gradient(
+    45deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #0000ff,
+    #4b0082,
+    #9400d3,
+    #ff0000
+  );
+  background-size: 400% 400%;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: rainbow-border 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Inner mask to create thin border effect */
+.filter-button::after,
+.sort-button-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.filter-button.active::before,
+.sort-button-icon.active::before {
+  opacity: 1;
+}
+
+.filter-button.active::after,
+.sort-button-icon.active::after {
+  opacity: 1;
+}
+
+.filter-button.active,
+.sort-button-icon.active {
+  border-color: transparent;
+  box-shadow: none;
+}
+
 .remove-all-button {
   background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1285,7 +1454,7 @@
 
 .list-section {
   margin-bottom: 4rem;
-  max-width: 800px;
+  max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
@@ -1679,4 +1848,129 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
   margin-bottom: 8px;
+  z-index: 10001;
+}
+
+/* Delete Deck Section */
+.delete-deck-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0 3rem 0;
+  margin-top: 2rem;
+}
+
+.delete-deck-divider {
+  width: 100%;
+  max-width: 400px;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin: 0 0 2rem 0;
+}
+
+.delete-deck-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 2px solid rgba(255, 0, 0, 0.5);
+  color: rgba(255, 100, 100, 1);
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-deck-button:hover {
+  background: rgba(255, 0, 0, 0.1);
+  border-color: rgba(255, 0, 0, 0.8);
+  color: rgba(255, 150, 150, 1);
+  box-shadow: 0 0 16px rgba(255, 0, 0, 0.4);
+}
+
+/* Delete Confirmation Modal */
+.delete-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.delete-confirm-modal {
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.delete-confirm-modal h2 {
+  margin: 0 0 1rem 0;
+  color: rgba(255, 100, 100, 1);
+  font-size: 1.5rem;
+}
+
+.delete-confirm-modal p {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+}
+
+.delete-confirm-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.delete-confirm-cancel {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-confirm-cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.delete-confirm-delete {
+  padding: 0.75rem 1.5rem;
+  background: rgba(200, 0, 0, 0.8);
+  border: 2px solid rgba(255, 0, 0, 0.8);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-confirm-delete:hover:not(:disabled) {
+  background: rgba(255, 0, 0, 0.9);
+  box-shadow: 0 0 16px rgba(255, 0, 0, 0.6);
+}
+
+.delete-confirm-cancel:disabled,
+.delete-confirm-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

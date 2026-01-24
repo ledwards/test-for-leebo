@@ -25,7 +25,8 @@
 
 .landing-content h2.subtitle {
   font-size: 1.5rem;
-  margin-bottom: 2rem;
+  margin-top: -1.5rem;
+  margin-bottom: 4rem;
   color: white;
   font-weight: 400; /* Barlow regular */
   line-height: 1.4;
@@ -165,26 +166,45 @@
   line-height: 1.4;
 }
 
+.landing-logo {
+  width: 400px;
+  height: auto;
+  margin-bottom: 0;
+}
+
+/* Visually hidden but accessible for SEO */
+.landing-content h1.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 @media (max-width: 768px) {
   .landing-content h1 {
     font-size: 2.5rem;
   }
-  
+
   .mode-selection {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .mode-button {
     width: 100%;
     max-width: 300px;
   }
-  
+
   .landing-disclaimer {
     bottom: 10px;
     padding: 0 15px;
   }
-  
+
   .landing-disclaimer p {
     font-size: 0.65rem;
   }

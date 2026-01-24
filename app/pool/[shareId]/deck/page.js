@@ -39,6 +39,15 @@ export default function DeckBuilderPage({ params }) {
     }
 
     fetchPool()
+
+    // Refresh pool data when window regains focus (in case name was changed elsewhere)
+    const handleFocus = () => {
+      if (shareId) {
+        loadPool(shareId).then(setPool).catch(console.error)
+      }
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
   }, [shareId])
 
   useEffect(() => {
@@ -102,6 +111,18 @@ export default function DeckBuilderPage({ params }) {
         : JSON.stringify(pool.deckBuilderState))
     : null
 
+  // Extract pool name from deckBuilderState (source of truth) or fall back to pool.name
+  const getPoolNameFromState = () => {
+    if (pool?.deckBuilderState) {
+      const state = typeof pool.deckBuilderState === 'string'
+        ? JSON.parse(pool.deckBuilderState)
+        : pool.deckBuilderState
+      if (state.poolName) return state.poolName
+    }
+    return pool?.name || null
+  }
+  const poolName = getPoolNameFromState()
+
   // Only redirect on error after loading completes
   useEffect(() => {
     if (error || (!loading && !pool)) {
@@ -120,7 +141,7 @@ export default function DeckBuilderPage({ params }) {
         shareId={shareId}
         poolCreatedAt={pool?.createdAt}
         poolType={pool?.poolType}
-        poolName={pool?.name}
+        poolName={poolName}
         poolOwnerUsername={pool?.owner?.username}
         poolOwnerId={pool?.owner?.id || pool?.userId}
       />

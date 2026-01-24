@@ -20,7 +20,9 @@ export async function GET(request) {
         dp.created_at,
         dp.started_at,
         dp.completed_at,
-        cp.share_id as pool_share_id
+        cp.name as pool_name,
+        cp.share_id as pool_share_id,
+        cp.deck_builder_state
        FROM draft_pods dp
        JOIN draft_pod_players dpp ON dp.id = dpp.draft_pod_id
        LEFT JOIN card_pools cp ON cp.draft_pod_id = dp.id AND cp.user_id = $1
@@ -30,20 +32,49 @@ export async function GET(request) {
       [session.id]
     )
 
-    const formattedPods = pods.map(pod => ({
-      id: pod.id,
-      shareId: pod.share_id,
-      setCode: pod.set_code,
-      setName: pod.set_name,
-      status: pod.status,
-      currentPlayers: pod.current_players,
-      maxPlayers: pod.max_players,
-      isHost: pod.host_id === session.id,
-      createdAt: pod.created_at,
-      startedAt: pod.started_at,
-      completedAt: pod.completed_at,
-      poolShareId: pod.pool_share_id,
-    }))
+    const formattedPods = pods.map(pod => {
+      // Extract data from deck_builder_state
+      let poolNameFromState = null
+      let leaderName = null
+      let baseName = null
+      if (pod.deck_builder_state) {
+        try {
+          const state = typeof pod.deck_builder_state === 'string'
+            ? JSON.parse(pod.deck_builder_state)
+            : pod.deck_builder_state
+          // Pool name from state is the source of truth
+          if (state.poolName) {
+            poolNameFromState = state.poolName
+          }
+          if (state.activeLeader) {
+            leaderName = state.activeLeader.name || state.activeLeader.title
+          }
+          if (state.activeBase) {
+            baseName = state.activeBase.name || state.activeBase.title
+          }
+        } catch (e) {
+          console.error('Failed to parse deck_builder_state:', e)
+        }
+      }
+
+      return {
+        id: pod.id,
+        shareId: pod.share_id,
+        setCode: pod.set_code,
+        setName: pod.set_name,
+        status: pod.status,
+        currentPlayers: pod.current_players,
+        maxPlayers: pod.max_players,
+        isHost: pod.host_id === session.id,
+        createdAt: pod.created_at,
+        startedAt: pod.started_at,
+        completedAt: pod.completed_at,
+        draftName: poolNameFromState || pod.pool_name,
+        poolShareId: pod.pool_share_id,
+        leaderName,
+        baseName,
+      }
+    })
 
     return jsonResponse({ pods: formattedPods })
   } catch (error) {

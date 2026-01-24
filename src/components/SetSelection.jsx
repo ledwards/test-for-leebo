@@ -128,11 +128,6 @@ function SetSelection({ onSetSelect, onBack }) {
 
   return (
     <div className="set-selection">
-      <div className="back-button-container">
-        <button className="back-button" onClick={onBack}>
-          ← Back
-        </button>
-      </div>
       <h1>Select a Set</h1>
       <div className="sets-grid">
         {sets.map((set) => (

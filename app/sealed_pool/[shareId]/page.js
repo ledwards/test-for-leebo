@@ -115,13 +115,24 @@ export default function SealedPoolPage({ params }) {
     return null
   }
 
+  // Extract pool name from deckBuilderState (source of truth) or fall back to pool.name
+  const getPoolName = () => {
+    if (pool?.deckBuilderState) {
+      const state = typeof pool.deckBuilderState === 'string'
+        ? JSON.parse(pool.deckBuilderState)
+        : pool.deckBuilderState
+      if (state.poolName) return state.poolName
+    }
+    return pool?.name || null
+  }
+
   return (
     <div className="app">
       <SealedPod
         setCode={pool?.setCode}
         setName={pool?.setName}
         poolType="sealed"
-        poolName={pool?.name}
+        poolName={getPoolName()}
         createdAt={pool?.createdAt}
         onBack={handleBack}
         onBuildDeck={(cards, setCode) => {
@@ -130,6 +141,7 @@ export default function SealedPoolPage({ params }) {
         initialPacks={getInitialPacks()}
         shareId={pool?.shareId}
         isLoading={loading}
+        poolOwnerId={pool?.owner?.id || pool?.userId}
       />
     </div>
   )

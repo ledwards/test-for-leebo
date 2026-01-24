@@ -1,6 +1,6 @@
 .history-page {
   min-height: 100vh;
-  padding: 2rem;
+  padding: 2rem 150px;
   background-color: rgb(76, 77, 81);
   background-image: linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%), linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%), linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url("/background-images/bg-texture-crop.png");
   background-size: 100% 100%, 100% 100%, 100% 100%, 150% auto;
@@ -26,22 +26,29 @@
   flex: 1;
 }
 
-.history-header .back-button {
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+.history-header .logo-header {
+  font-size: 1.25rem;
 }
 
-.history-header .back-button:hover {
-  background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(255, 0, 0, 0.8);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
+/* Editable title in history table */
+.history-editable-title {
+  color: white;
+  font-weight: 500;
+}
+
+.history-editable-title .editable-title-text {
+  cursor: default;
+}
+
+.history-editable-title .editable-title-text.clickable {
+  cursor: pointer;
+}
+
+.history-editable-title .editable-title-input {
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  min-width: 150px;
 }
 
 .history-table-container {
@@ -87,7 +94,7 @@
   border-radius: 4px;
 }
 
-.history-show-button {
+.history-view-button {
   display: inline-block;
   background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -100,7 +107,7 @@
   cursor: pointer;
 }
 
-.history-show-button:hover {
+.history-view-button:hover {
   background: rgba(0, 0, 0, 0.85);
   border-color: rgba(0, 255, 0, 0.8);
   color: white;
@@ -183,4 +190,117 @@
 .history-pool-name:hover {
   color: #4da6ff;
   text-decoration: underline;
+}
+
+/* Actions cell with delete button */
+.history-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.history-delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  color: rgba(255, 100, 100, 0.8);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.history-delete-button:hover {
+  background: rgba(255, 0, 0, 0.1);
+  border-color: rgba(255, 0, 0, 0.8);
+  color: rgba(255, 150, 150, 1);
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4);
+}
+
+/* Delete Confirmation Modal */
+.delete-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.delete-confirm-modal {
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.delete-confirm-modal h2 {
+  margin: 0 0 1rem 0;
+  color: rgba(255, 100, 100, 1);
+  font-size: 1.5rem;
+}
+
+.delete-confirm-modal p {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+}
+
+.delete-confirm-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.delete-confirm-cancel {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-confirm-cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.delete-confirm-delete {
+  padding: 0.75rem 1.5rem;
+  background: rgba(200, 0, 0, 0.8);
+  border: 2px solid rgba(255, 0, 0, 0.8);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-confirm-delete:hover:not(:disabled) {
+  background: rgba(255, 0, 0, 0.9);
+  box-shadow: 0 0 16px rgba(255, 0, 0, 0.6);
+}
+
+.delete-confirm-cancel:disabled,
+.delete-confirm-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

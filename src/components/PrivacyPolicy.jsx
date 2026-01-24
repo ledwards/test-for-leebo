@@ -4,9 +4,6 @@ function PrivacyPolicy({ onBack }) {
   return (
     <div className="legal-page">
       <div className="legal-content">
-        <button className="back-button" onClick={onBack}>
-          ← Back
-        </button>
         <h1>Privacy Policy</h1>
         <p className="last-updated">Last Updated: {new Date().toLocaleDateString()}</p>
         

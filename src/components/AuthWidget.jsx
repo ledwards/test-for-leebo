@@ -9,8 +9,9 @@ import './AuthWidget.css'
 export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
   const { user, loading, signIn, signOut } = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [recentPools, setRecentPools] = useState([])
-  const [loadingPools, setLoadingPools] = useState(false)
+  const [mostRecentSealed, setMostRecentSealed] = useState(null)
+  const [currentDraft, setCurrentDraft] = useState(null)
+  const [loadingData, setLoadingData] = useState(false)
   const drawerRef = useRef(null)
   const router = useRouter()
   const pathname = usePathname()
@@ -41,22 +42,47 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
     return () => document.removeEventListener('keydown', handleEscape)
   }, [drawerOpen])
 
-  // Fetch recent pools when user is logged in and drawer opens
+  // Fetch recent pools and drafts when user is logged in and drawer opens
   useEffect(() => {
-    if (user && drawerOpen && !loadingPools) {
-      setLoadingPools(true)
-      fetchUserPools(user.id)
-        .then(pools => {
-          // Get last 5 pools, sorted by created_at descending
-          const sorted = pools.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          setRecentPools(sorted.slice(0, 5))
+    if (user && drawerOpen && !loadingData) {
+      setLoadingData(true)
+
+      Promise.all([
+        fetchUserPools(user.id),
+        fetch('/api/draft/history', { credentials: 'include' }).then(r => r.json())
+      ])
+        .then(([poolsData, draftData]) => {
+          // Find most recent sealed pool (not draft type)
+          const sealedPools = (poolsData || [])
+            .filter(p => p.poolType !== 'draft')
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+          setMostRecentSealed(sealedPools[0] || null)
+
+          // Find current or most recent draft
+          const allDrafts = draftData?.data?.pods || draftData?.pods || []
+          const sortedDrafts = allDrafts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+          // Find active draft first (waiting, leader_draft, pack_draft)
+          const activeDraft = sortedDrafts.find(d =>
+            d.status === 'waiting' || d.status === 'active'
+          )
+
+          if (activeDraft) {
+            setCurrentDraft({ ...activeDraft, isActive: true })
+          } else if (sortedDrafts[0]) {
+            setCurrentDraft({ ...sortedDrafts[0], isActive: false })
+          } else {
+            setCurrentDraft(null)
+          }
         })
         .catch(err => {
-          console.error('Failed to fetch user pools:', err)
-          setRecentPools([])
+          console.error('Failed to fetch user data:', err)
+          setMostRecentSealed(null)
+          setCurrentDraft(null)
         })
         .finally(() => {
-          setLoadingPools(false)
+          setLoadingData(false)
         })
     }
   }, [user, drawerOpen])
@@ -64,6 +90,10 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
   const handleSignOut = async () => {
     await signOut()
     setDrawerOpen(false)
+  }
+
+  const truncateName = (name, maxLength = 30) => {
+    return name && name.length > maxLength ? name.substring(0, maxLength) + '...' : name
   }
 
   if (loading) {
@@ -154,78 +184,107 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
             </div>
 
             <div className="auth-widget-drawer-menu">
-              {(loadingPools || recentPools.length > 0) && (
-                <>
-                  <a
-                    href="/history"
-                    className="auth-widget-drawer-menu-header"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      router.push('/history')
-                      setDrawerOpen(false)
-                    }}
-                  >
+              <a
+                href="/sets"
+                className="auth-widget-drawer-menu-item"
+                onClick={(e) => {
+                  e.preventDefault()
+                  router.push('/sets')
+                  setDrawerOpen(false)
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="12" y1="8" x2="12" y2="16"></line>
+                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                New Sealed Pool
+              </a>
+
+              <a
+                href="/draft"
+                className="auth-widget-drawer-menu-item"
+                onClick={(e) => {
+                  e.preventDefault()
+                  router.push('/draft')
+                  setDrawerOpen(false)
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <line x1="19" y1="8" x2="19" y2="14"></line>
+                  <line x1="22" y1="11" x2="16" y2="11"></line>
+                </svg>
+                New Draft Pod
+              </a>
+
+              {(loadingData || mostRecentSealed || currentDraft) && (
+                <div className="auth-widget-drawer-divider"></div>
+              )}
+
+              {loadingData && (
+                <div className="auth-widget-drawer-menu-item auth-widget-loading-pools">
+                  Loading...
+                </div>
+              )}
+
+              {!loadingData && mostRecentSealed && (
+                <a
+                  href={`/pool/${mostRecentSealed.shareId}/deck`}
+                  className="auth-widget-drawer-menu-item auth-widget-drawer-pool-item"
+                  onClick={() => setDrawerOpen(false)}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  <span>{truncateName(mostRecentSealed.name) || 'Most Recent Sealed Pool'}</span>
+                </a>
+              )}
+
+              {!loadingData && currentDraft && (
+                <a
+                  href={`/draft/${currentDraft.shareId}`}
+                  className="auth-widget-drawer-menu-item auth-widget-drawer-pool-item"
+                  onClick={() => setDrawerOpen(false)}
+                >
+                  {currentDraft.isActive ? (
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12 6 12 12 16 14"></polyline>
+                      <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"></polygon>
                     </svg>
-                    <span>History</span>
-                  </a>
-                  {loadingPools && (
-                    <div className="auth-widget-drawer-menu-item auth-widget-loading-pools">
-                      Loading...
-                    </div>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
                   )}
-                  {!loadingPools && recentPools.map((pool) => {
-                    const isOnDeckPage = pathname?.includes('/deck')
-                    const poolUrl = isOnDeckPage
-                      ? `/pool/${pool.shareId}/deck`
-                      : `/pool/${pool.shareId}`
-
-                    // Truncate name to 35 characters for display
-                    const fullName = pool.name || `${pool.setCode} ${pool.poolType === 'draft' ? 'Draft' : 'Sealed'}`
-                    const displayName = fullName.length > 35 ? fullName.substring(0, 35) + '...' : fullName
-
-                    // Format creation time
-                    const createdAt = new Date(pool.createdAt)
-                    const month = String(createdAt.getMonth() + 1).padStart(2, '0')
-                    const day = String(createdAt.getDate()).padStart(2, '0')
-                    let hours = createdAt.getHours()
-                    const minutes = String(createdAt.getMinutes()).padStart(2, '0')
-                    const ampm = hours >= 12 ? 'PM' : 'AM'
-                    hours = hours % 12
-                    hours = hours ? hours : 12
-                    const timeStr = `${month}/${day} ${hours}:${minutes} ${ampm}`
-
-                    return (
-                      <a
-                        key={pool.id}
-                        href={poolUrl}
-                        className="auth-widget-drawer-menu-item auth-widget-drawer-pool-item"
-                        onClick={() => setDrawerOpen(false)}
-                      >
-                        <div className="auth-widget-pool-item-content">
-                          <span className="auth-widget-pool-name">{displayName}</span>
-                          <span className="auth-widget-pool-time">{timeStr}</span>
-                        </div>
-                      </a>
-                    )
-                  })}
-                  {!loadingPools && recentPools.length > 0 && (
-                    <a
-                      href="/history"
-                      className="auth-widget-drawer-menu-item more-link"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        router.push('/history')
-                        setDrawerOpen(false)
-                      }}
-                    >
-                      More...
-                    </a>
-                  )}
-                </>
+                  <span>
+                    {currentDraft.isActive
+                      ? (truncateName(currentDraft.draftName) || 'Current Draft Pod')
+                      : (truncateName(currentDraft.draftName) || 'Most Recent Draft')
+                    }
+                  </span>
+                </a>
               )}
+
+              <div className="auth-widget-drawer-divider"></div>
+
+              <a
+                href="/history"
+                className="auth-widget-drawer-menu-item"
+                onClick={(e) => {
+                  e.preventDefault()
+                  router.push('/history')
+                  setDrawerOpen(false)
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                History
+              </a>
+
               <button
                 className="auth-widget-drawer-menu-item"
                 onClick={handleSignOut}

@@ -4,9 +4,6 @@ function TermsOfService({ onBack }) {
   return (
     <div className="legal-page">
       <div className="legal-content">
-        <button className="back-button" onClick={onBack}>
-          ← Back
-        </button>
         <h1>Terms of Service</h1>
         <p className="last-updated">Last Updated: {new Date().toLocaleDateString()}</p>
         

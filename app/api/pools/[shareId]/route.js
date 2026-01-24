@@ -117,8 +117,8 @@ export async function GET(request, { params }) {
       console.error('Error parsing pool JSON fields:', parseError)
     }
 
-    // Generate default name if it doesn't exist
-    let name = pool.name
+    // Generate name: prefer deckBuilderState.poolName, then pool.name column, then generate default
+    let name = deckBuilderState?.poolName || pool.name
     if (!name) {
       const formatType = (pool.pool_type || 'sealed') === 'draft' ? 'Draft' : 'Sealed'
       const setCode = pool.set_code || ''
@@ -184,10 +184,23 @@ export async function PUT(request, { params }) {
       updates.push(`packs = $${paramIndex++}`)
       values.push(body.packs ? JSON.stringify(body.packs) : null)
     }
-    if (body.deckBuilderState !== undefined) {
-      updates.push(`deck_builder_state = $${paramIndex++}`)
-      values.push(body.deckBuilderState ? JSON.stringify(body.deckBuilderState) : null)
+
+    // Handle deckBuilderState - if poolName is provided separately, merge it in
+    let deckBuilderStateToSave = body.deckBuilderState
+    if (body.poolName !== undefined) {
+      // Merge poolName into existing or provided deckBuilderState
+      const existingState = pool.deck_builder_state
+        ? (typeof pool.deck_builder_state === 'string' ? JSON.parse(pool.deck_builder_state) : pool.deck_builder_state)
+        : {}
+      const newState = deckBuilderStateToSave || existingState
+      deckBuilderStateToSave = { ...newState, poolName: body.poolName }
     }
+
+    if (deckBuilderStateToSave !== undefined) {
+      updates.push(`deck_builder_state = $${paramIndex++}`)
+      values.push(deckBuilderStateToSave ? JSON.stringify(deckBuilderStateToSave) : null)
+    }
+
     if (body.isPublic !== undefined) {
       updates.push(`is_public = $${paramIndex++}`)
       values.push(body.isPublic)

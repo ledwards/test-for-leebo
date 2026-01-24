@@ -3,10 +3,11 @@ import './SealedPod.css'
 import { getCachedCards, isCacheInitialized } from '../utils/cardCache'
 import { fetchSetCards } from '../utils/api'
 import { generateSealedPod } from '../utils/boosterPack'
-import { savePool } from '../utils/poolApi'
+import { savePool, updatePool } from '../utils/poolApi'
 import { useAuth } from '../contexts/AuthContext'
 import { getSetConfig } from '../utils/setConfigs'
 import { getPackArtUrl } from '../utils/packArt'
+import EditableTitle from './EditableTitle'
 
 
 // Helper function to get set name from set code
@@ -21,12 +22,13 @@ function getSetColor(setCode) {
   return config?.color || '#ffffff'
 }
 
-function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPacks = null, shareId = null, poolType = 'sealed', setName = null, poolName = null, createdAt = null, isLoading = false }) {
+function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPacks = null, shareId = null, poolType = 'sealed', setName = null, poolName: initialPoolName = null, createdAt = null, isLoading = false, poolOwnerId = null }) {
   const { user } = useAuth()
   const [cards, setCards] = useState([])
   const [packs, setPacks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [poolName, setPoolName] = useState(initialPoolName)
 
   const [hoveredCardPreview, setHoveredCardPreview] = useState(null) // { card, x, y } for enlarged preview
   const [savedShareId, setSavedShareId] = useState(shareId)
@@ -34,6 +36,19 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
   const previewTimeoutRef = useRef(null)
   const [tooltip, setTooltip] = useState({ show: false, text: '', x: 0, y: 0 })
   const tooltipTimeoutRef = useRef(null)
+
+  // Determine if current user is the owner
+  const isOwner = user && poolOwnerId && user.id === poolOwnerId
+
+  const handleRenamePool = async (newName) => {
+    if (!savedShareId) return
+    try {
+      await updatePool(savedShareId, { name: newName })
+      setPoolName(newName)
+    } catch (err) {
+      console.error('Failed to rename pool:', err)
+    }
+  }
 
   useEffect(() => {
     // Skip loading cards if we have initialPacks (pool data from URL)
@@ -246,9 +261,6 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
           <div className="set-art-header" style={setArtStyle}></div>
         )}
         <div className="sealed-pod-content">
-          <button className="back-button" onClick={onBack}>
-            ← {poolType === 'draft' ? 'Back to Pod' : 'Back to Sets'}
-          </button>
           <div className="error">
             <h2>No Card Data Available</h2>
             <p>{error || `No cards found for set ${setCode}.`}</p>
@@ -288,24 +300,14 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
         <div className="set-art-header" style={setArtStyle}></div>
       )}
       <div className="sealed-pod-content">
-        <div className="top-buttons">
-          <button className="back-button" onClick={onBack}>
-            ← {poolType === 'draft' ? 'Back to Pod' : 'Back to Sets'}
-          </button>
-          {poolType !== 'draft' && (
-            <button
-              className="refresh-button"
-              onClick={handleRefresh}
-              title="Refresh Pool"
-              aria-label="Refresh Pool"
-            >
-              ↻
-            </button>
-          )}
-        </div>
         <div className="sealed-pod-header">
         <h1>
-          {poolName || (poolType === 'draft' ? 'Draft Pool' : 'Sealed Pool')}
+          <EditableTitle
+            value={poolName}
+            onSave={handleRenamePool}
+            isEditable={isOwner}
+            placeholder={poolType === 'draft' ? 'Draft Pool' : 'Sealed Pool'}
+          />
         </h1>
         {createdAt && (
           <p className="pool-date">
@@ -480,7 +482,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
               position: 'fixed',
               left: `${hoveredCardPreview.x}px`,
               top: `${hoveredCardPreview.y}px`,
-              zIndex: 10000,
+              zIndex: 9999,
               pointerEvents: 'auto',
               transform: 'translateY(-50%)',
               width: `${previewWidth}px`,

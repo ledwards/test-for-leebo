@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import './HostControls.css'
 
 const CopyIcon = () => (
@@ -32,6 +33,13 @@ const RobotIcon = () => (
   </svg>
 )
 
+const XIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+)
+
 function HostControls({
   draft,
   playerCount,
@@ -42,11 +50,37 @@ function HostControls({
   loading,
   isFull,
   shareId,
+  showCancelButton = true,
 }) {
+  const router = useRouter()
   const [copied, setCopied] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
   const canStart = playerCount >= 2
   const canAddBot = playerCount < (draft?.maxPlayers || 8)
   const isTimed = draft?.timed !== false
+
+  const handleCancelDraft = async () => {
+    if (!shareId) return
+    setIsCancelling(true)
+    try {
+      const response = await fetch(`/api/draft/${shareId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (response.ok) {
+        router.push('/draft')
+      } else {
+        console.error('Failed to cancel draft')
+        setIsCancelling(false)
+        setShowCancelConfirm(false)
+      }
+    } catch (err) {
+      console.error('Failed to cancel draft:', err)
+      setIsCancelling(false)
+      setShowCancelConfirm(false)
+    }
+  }
 
   const handleCopyShareUrl = async () => {
     try {
@@ -156,7 +190,46 @@ function HostControls({
         {isFull && (
           <p className="ready-to-start">Ready to Start</p>
         )}
+
+        {showCancelButton && (
+          <div className="controls-row cancel-controls">
+            <button
+              className="control-button cancel"
+              onClick={() => setShowCancelConfirm(true)}
+              disabled={loading || isCancelling}
+            >
+              <XIcon />
+              <span>Cancel Draft</span>
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelConfirm && (
+        <div className="cancel-confirm-overlay" onClick={() => setShowCancelConfirm(false)}>
+          <div className="cancel-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Cancel Draft?</h2>
+            <p>Are you sure you want to cancel this draft? All players will be redirected and this action cannot be undone.</p>
+            <div className="cancel-confirm-buttons">
+              <button
+                className="cancel-confirm-back"
+                onClick={() => setShowCancelConfirm(false)}
+                disabled={isCancelling}
+              >
+                Go Back
+              </button>
+              <button
+                className="cancel-confirm-delete"
+                onClick={handleCancelDraft}
+                disabled={isCancelling}
+              >
+                {isCancelling ? 'Cancelling...' : 'Cancel Draft'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

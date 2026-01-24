@@ -290,6 +290,12 @@
   opacity: 1;
 }
 
+.auth-widget-drawer-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 8px 16px;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .auth-widget {

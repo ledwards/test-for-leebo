@@ -32,6 +32,7 @@ export async function GET(request, { params }) {
           created_at,
           updated_at,
           is_public,
+          deck_builder_state,
           jsonb_array_length(cards) as card_count
          FROM card_pools
          WHERE user_id = $1
@@ -113,8 +114,32 @@ export async function GET(request, { params }) {
 
     return jsonResponse({
       pools: pools.map((pool) => {
-        // Generate default name if it doesn't exist
-        let name = pool.name
+        // Extract data from deck_builder_state
+        let poolNameFromState = null
+        let leaderName = null
+        let baseName = null
+        if (pool.deck_builder_state) {
+          try {
+            const state = typeof pool.deck_builder_state === 'string'
+              ? JSON.parse(pool.deck_builder_state)
+              : pool.deck_builder_state
+            // Pool name from state is the source of truth
+            if (state.poolName) {
+              poolNameFromState = state.poolName
+            }
+            if (state.activeLeader) {
+              leaderName = state.activeLeader.name || state.activeLeader.title
+            }
+            if (state.activeBase) {
+              baseName = state.activeBase.name || state.activeBase.title
+            }
+          } catch (e) {
+            console.error('Failed to parse deck_builder_state:', e)
+          }
+        }
+
+        // Generate name: prefer deckBuilderState.poolName, then pool.name column, then generate default
+        let name = poolNameFromState || pool.name
         if (!name) {
           const formatType = (pool.pool_type || 'sealed') === 'draft' ? 'Draft' : 'Sealed'
           const setCode = pool.set_code || ''
@@ -132,6 +157,8 @@ export async function GET(request, { params }) {
           updatedAt: pool.updated_at,
           isPublic: pool.is_public,
           cardCount: parseInt(pool.card_count, 10),
+          leaderName,
+          baseName,
         }
       }),
       total,

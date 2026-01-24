@@ -131,7 +131,6 @@ export default function NewPoolPage() {
         <div className="error">
           <h2>Error</h2>
           <p>{error}</p>
-          <button onClick={() => router.push('/sets')}>Go Back to Sets</button>
         </div>
       </div>
     )

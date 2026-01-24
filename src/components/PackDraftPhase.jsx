@@ -201,7 +201,7 @@ function PackDraftPhase({
               top: '0',
               width: '50vw',
               height: '100vh',
-              zIndex: 10000,
+              zIndex: 9999,
               pointerEvents: 'none',
               display: 'flex',
               alignItems: 'center',

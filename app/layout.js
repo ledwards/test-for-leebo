@@ -2,6 +2,7 @@
 
 import { AuthProvider } from '../src/contexts/AuthContext'
 import AuthWidget from '../src/components/AuthWidget'
+import LogoHeader from '../src/components/LogoHeader'
 import '../src/index.css'
 
 export default function RootLayout({ children }) {
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AuthProvider>
+          <LogoHeader />
           <AuthWidget showOnlyWhenLoggedIn={true} />
           {children}
         </AuthProvider>

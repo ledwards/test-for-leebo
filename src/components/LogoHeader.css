@@ -1,0 +1,32 @@
+.logo-header {
+  position: fixed;
+  top: 0.5rem;
+  left: 1rem;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-header-link {
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.logo-header-link:hover {
+  opacity: 0.85;
+}
+
+.logo-header-image {
+  width: 150px;
+  height: auto;
+  display: block;
+}
+
+.logo-header-subtitle {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+  white-space: nowrap;
+}

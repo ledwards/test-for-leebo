@@ -94,7 +94,7 @@
 }
 
 .control-button.secondary:hover:not(:disabled) {
-  color: rgba(138, 43, 226, 1);
+  color: rgba(33, 150, 243, 1);
   transform: translateY(-1px);
 }
 
@@ -179,4 +179,123 @@
 .copy-url-button:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Cancel button */
+.cancel-controls {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #333;
+}
+
+.control-button.cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 2px solid rgba(255, 0, 0, 0.5);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 100, 100, 1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-button.cancel:hover:not(:disabled) {
+  background: rgba(255, 0, 0, 0.1);
+  border-color: rgba(255, 0, 0, 0.8);
+  color: rgba(255, 150, 150, 1);
+  box-shadow: 0 0 16px rgba(255, 0, 0, 0.4);
+}
+
+.control-button.cancel:disabled {
+  color: #555;
+  border-color: rgba(255, 255, 255, 0.1);
+  cursor: not-allowed;
+}
+
+/* Cancel Confirmation Modal */
+.cancel-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.cancel-confirm-modal {
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.cancel-confirm-modal h2 {
+  margin: 0 0 1rem 0;
+  color: rgba(255, 100, 100, 1);
+  font-size: 1.5rem;
+}
+
+.cancel-confirm-modal p {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+}
+
+.cancel-confirm-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.cancel-confirm-back {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-confirm-back:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.cancel-confirm-delete {
+  padding: 0.75rem 1.5rem;
+  background: rgba(200, 0, 0, 0.8);
+  border: 2px solid rgba(255, 0, 0, 0.8);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-confirm-delete:hover:not(:disabled) {
+  background: rgba(255, 0, 0, 0.9);
+  box-shadow: 0 0 16px rgba(255, 0, 0, 0.6);
+}
+
+.cancel-confirm-back:disabled,
+.cancel-confirm-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
