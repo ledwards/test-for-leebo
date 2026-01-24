@@ -151,9 +151,9 @@
 
 /* When sticky, buttons on left of deck-counts-info, deck-counts-info on far right */
 .deck-info-bar.sticky {
-  margin-left: 175px; /* Clear left side logo header */
+  margin-left: 20px;
   margin-right: 80px; /* Space for Discord icon (40px width + 20px right + 20px spacing) */
-  width: calc(100% - 175px - 80px);
+  width: calc(100% - 20px - 80px);
   justify-content: flex-start;
   gap: 0;
   overflow: visible;
@@ -1736,15 +1736,222 @@
 
 @media (max-width: 768px) {
   .deck-builder {
-    padding: 1rem;
+    padding: 0.5rem;
+    padding-top: 3rem;
   }
 
-  .deck-canvas {
-    min-height: calc(100vh - 250px);
+  .deck-builder-header {
+    margin-bottom: 0.75rem;
+  }
+
+  .deck-builder-header h1 {
+    font-size: 1.6rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .deck-builder-pool-type {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Fixed nav bar on mobile - stays at top when scrolling */
+  .deck-info-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    z-index: 1000;
+    background: rgba(26, 26, 26, 0.98);
+    backdrop-filter: blur(10px);
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+  }
+
+  .deck-info-bar.sticky {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    margin: 0;
+  }
+
+  /* Add padding to content to account for fixed header */
+  .deck-builder-content {
+    padding-top: 100px;
+  }
+
+  .deck-info-bar .header-buttons-in-nav {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Hide separators (|) on mobile */
+  .separator {
+    display: none;
+  }
+
+  .deck-info-bar.sticky .deck-counts-info {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* 2 cards per row on mobile */
+  .cards-grid {
+    grid-template-columns: repeat(2, 48%);
+    gap: 0.4rem;
+    justify-content: center;
+  }
+
+  .cards-grid .canvas-card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 9px;
+  }
+
+  /* Leaders/bases - landscape orientation */
+  .cards-grid .canvas-card.leader,
+  .cards-grid .canvas-card.base {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 3.5 / 2.5;
   }
 
   .canvas-card {
-    width: 100px;
+    width: 100%;
+    border-radius: 9px;
+  }
+
+  .canvas-card img {
+    border-radius: 9px;
+  }
+
+  /* Leaders/bases container - show both cards side by side, landscape */
+  .leaders-bases-container {
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .leaders-bases-container .canvas-card.leader,
+  .leaders-bases-container .canvas-card.base {
+    width: calc(50% - 0.2rem);
+    max-width: calc(50% - 0.2rem);
+    aspect-ratio: 3.5 / 2.5;
+  }
+
+  .leaders-bases-container .canvas-card.leader img,
+  .leaders-bases-container .canvas-card.base img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* View controls - fixed position on right */
+  .view-controls {
+    top: auto;
+    bottom: 20px;
+    right: 10px;
+    gap: 0.5rem;
+  }
+
+  .view-toggle-button,
+  .filter-button,
+  .sort-button-icon {
+    width: 40px;
+    height: 40px;
+    padding: 0.5rem;
+  }
+
+  /* Hide table view button on mobile */
+  .view-toggle-button {
+    display: none;
+  }
+
+  /* Filter drawer - 25% larger text and checkboxes */
+  .filter-drawer {
+    width: 280px;
+    padding: 1.25rem;
+  }
+
+  .filter-drawer-header h2 {
+    font-size: 1.75rem;
+  }
+
+  .filter-section h3 {
+    font-size: 1.4rem;
+  }
+
+  .filter-checkbox {
+    padding: 0.625rem;
+    font-size: 1.125rem;
+  }
+
+  .filter-checkbox input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+  }
+
+  .sort-button {
+    font-size: 1.125rem;
+    padding: 0.875rem 1.25rem;
+  }
+
+  /* COMPLETELY disable hover effects on mobile - no enlarged preview */
+  .canvas-card:hover {
+    transform: none !important;
+    z-index: auto !important;
+  }
+
+  .canvas-card:hover::before {
+    display: none !important;
+  }
+
+  /* Header buttons */
+  .header-buttons {
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .export-button {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .export-button.ready-to-play-button {
+    padding: 0.6rem 1rem;
+  }
+
+  /* Block layout adjustments - less padding */
+  .blocks-deck-row .card-block {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .card-block {
+    padding: 0.25rem;
+  }
+
+  .card-block-header {
+    font-size: 0.9rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  /* List view adjustments */
+  .list-view {
+    padding: 0.5rem;
+  }
+
+  .list-table th,
+  .list-table td {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
   }
 }
 

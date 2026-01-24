@@ -76,3 +76,26 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Global mobile styles - prevent horizontal scrolling */
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ensure all main containers don't overflow */
+  * {
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Universal mobile content start - header is smaller so less top padding needed */
+  :root {
+    --mobile-content-top: 3rem;
+  }
+}

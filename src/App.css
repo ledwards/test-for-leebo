@@ -144,3 +144,34 @@
   text-align: left;
   margin-bottom: 20px;
 }
+
+/* Mobile app styles */
+@media (max-width: 768px) {
+  .app {
+    overflow-x: hidden;
+  }
+
+  .back-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .warning-modal {
+    padding: 1.5rem;
+    max-width: 90%;
+  }
+
+  .warning-modal h2 {
+    font-size: 1.4rem;
+  }
+
+  .warning-modal-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .warning-button {
+    width: 100%;
+    text-align: center;
+  }
+}

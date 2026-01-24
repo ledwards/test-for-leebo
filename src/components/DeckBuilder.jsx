@@ -359,6 +359,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const handleCardMouseEnter = (card, event) => {
     if (!event) return
 
+    // DISABLE enlarged preview on mobile/touch devices
+    if (window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      return
+    }
+
     // Clear any existing show timeout
     if (previewTimeoutRef.current) {
       clearTimeout(previewTimeoutRef.current)
@@ -2333,56 +2338,121 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     return 0
   }
 
+  // Build a map of card name+set -> base card ID (lowest numbered non-variant)
+  // This is used to convert variant cards (Hyperspace, Foil, etc.) to their base card IDs for export
+  const buildBaseCardMap = useCallback(() => {
+    if (!setCode) return new Map()
+    const allCards = getCachedCards(setCode)
+    const nameToBaseId = new Map()
+
+    allCards.forEach(card => {
+      const key = `${card.name}|${card.set}`
+      const existing = nameToBaseId.get(key)
+
+      // Keep the lowest-numbered card as the base (non-variants have lower numbers)
+      // Also prefer cards without variantType
+      if (!existing ||
+          (!card.variantType && existing.variantType) ||
+          (card.variantType === existing.variantType && parseInt(card.number) < parseInt(existing.number))) {
+        nameToBaseId.set(key, card)
+      }
+    })
+
+    return nameToBaseId
+  }, [setCode])
+
+  // Convert card ID to base format for Karabast (handles Hyperspace 1000+ numbering)
+  const convertToBaseId = useCallback((id) => {
+    if (!id) return id
+
+    let baseId = id.replace(/-/g, '_')
+    baseId = baseId.replace(/_Foil$/, '')
+    baseId = baseId.replace(/_Hyperspace$/, '')
+    baseId = baseId.replace(/_HyperFoil$/, '')
+    baseId = baseId.replace(/_Showcase$/, '')
+
+    // Handle Hyperspace variants that use 1000+ numbering (e.g., SEC_1002 -> SEC_002)
+    const match = baseId.match(/^([A-Z]+)_(\d+)$/)
+    if (match) {
+      const setCode = match[1]
+      const cardNum = parseInt(match[2], 10)
+      if (cardNum >= 1000) {
+        const baseNum = cardNum - 1000
+        baseId = `${setCode}_${baseNum.toString().padStart(3, '0')}`
+      }
+    }
+
+    return baseId
+  }, [])
+
+  // Convert variant card to base card ID for export (Karabast needs base card IDs)
+  const getBaseCardId = useCallback((card) => {
+    if (!card) return null
+
+    const baseCardMap = buildBaseCardMap()
+    const key = `${card.name}|${card.set}`
+    const baseCard = baseCardMap?.get(key)
+
+    if (baseCard) {
+      // Always apply conversion to handle 1000+ Hyperspace numbering
+      return convertToBaseId(baseCard.id)
+    }
+
+    // Fallback: convert the card's own ID
+    return convertToBaseId(card.id)
+  }, [buildBaseCardMap, convertToBaseId])
+
   // Convert card ID from hyphen format (SOR-015) to underscore format (SOR_015)
+  // Note: This simple conversion is only used internally - for export, use getBaseCardId
   const convertIdFormat = (id) => {
     if (!id) return id
     return id.replace(/-/g, '_')
   }
 
-  // Build deck data structure
+  // Build deck data structure for export (uses base card IDs for Karabast compatibility)
   const buildDeckData = () => {
     const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
     const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
 
-    // Cards in deck section go to deck, cards in sideboard section go to sideboard
-    // Exclude bases and leaders from pool
-    const enabledCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
+    // Build set of leader/base IDs to filter from final output
+    const leaderBaseIds = new Set()
+    allSetCards.forEach(card => {
+      if (card.type === 'Leader' || card.type === 'Base') {
+        leaderBaseIds.add(convertToBaseId(card.id))
+      }
+    })
+
+    // Get cards from deck and sideboard sections
+    const deckCards = Object.values(cardPositions)
+      .filter(pos => pos.section === 'deck' && pos.visible && pos.enabled !== false)
       .map(pos => pos.card)
 
-    const disabledCards = Object.values(cardPositions)
-      .filter(pos => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+    const sideboardCards = Object.values(cardPositions)
+      .filter(pos => pos.section === 'sideboard' && pos.visible)
       .map(pos => pos.card)
 
-    // Count enabled cards by ID for deck
+    // Count cards by base ID, excluding leaders and bases
     const deckCounts = new Map()
-    enabledCards.forEach(card => {
-      const id = convertIdFormat(card.id)
-      deckCounts.set(id, (deckCounts.get(id) || 0) + 1)
+    deckCards.forEach(card => {
+      const id = getBaseCardId(card)
+      if (!leaderBaseIds.has(id)) {
+        deckCounts.set(id, (deckCounts.get(id) || 0) + 1)
+      }
     })
 
-    // Count disabled cards by ID for sideboard
     const sideboardCounts = new Map()
-    disabledCards.forEach(card => {
-      const id = convertIdFormat(card.id)
-      sideboardCounts.set(id, (sideboardCounts.get(id) || 0) + 1)
+    sideboardCards.forEach(card => {
+      const id = getBaseCardId(card)
+      if (!leaderBaseIds.has(id)) {
+        sideboardCounts.set(id, (sideboardCounts.get(id) || 0) + 1)
+      }
     })
-
-    const deck = Array.from(deckCounts.entries()).map(([id, count]) => ({
-      id,
-      count
-    }))
-
-    const sideboard = Array.from(sideboardCounts.entries()).map(([id, count]) => ({
-      id,
-      count
-    }))
 
     return {
-      leader: leaderCard ? { id: convertIdFormat(leaderCard.id), count: 1 } : null,
-      base: baseCard ? { id: convertIdFormat(baseCard.id), count: 1 } : null,
-      deck,
-      sideboard
+      leader: leaderCard ? { id: getBaseCardId(leaderCard), count: 1 } : null,
+      base: baseCard ? { id: getBaseCardId(baseCard), count: 1 } : null,
+      deck: Array.from(deckCounts.entries()).map(([id, count]) => ({ id, count })),
+      sideboard: Array.from(sideboardCounts.entries()).map(([id, count]) => ({ id, count }))
     }
   }
 
@@ -2406,9 +2476,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     setMessageType(null)
     const deckData = buildDeckData()
 
+    const poolDisplayName = currentPoolName || `${setCode} ${isDraftMode ? 'Draft' : 'Sealed'}`
     const exportData = {
       metadata: {
-        name: `Deck - ${setCode}`,
+        name: `[PTP] ${poolDisplayName}`,
         author: "Protect the Pod"
       },
       leader: deckData.leader,
@@ -2422,7 +2493,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${setCode} Sealed Deck by Protect the Pod.json`
+    a.download = `[PTP] ${poolDisplayName} Deck.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -2449,9 +2520,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     setMessageType(null)
     const deckData = buildDeckData()
 
+    const poolDisplayName = currentPoolName || `${setCode} ${isDraftMode ? 'Draft' : 'Sealed'}`
     const exportData = {
       metadata: {
-        name: `Deck - ${setCode}`,
+        name: `[PTP] ${poolDisplayName}`,
         author: "Protect the Pod"
       },
       leader: deckData.leader,

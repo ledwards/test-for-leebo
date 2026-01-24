@@ -355,6 +355,11 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                   className={`card-item ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''} ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`}
 
                   onMouseEnter={(e) => {
+                    // DISABLE enlarged preview on mobile/touch devices
+                    if (window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                      return
+                    }
+
                     // Clear any existing timeout
                     if (previewTimeoutRef.current) {
                       clearTimeout(previewTimeoutRef.current)

@@ -32,6 +32,30 @@ function buildBaseCardMap(setCode) {
   return nameToBaseId
 }
 
+// Convert card ID to base format for Karabast (handles Hyperspace 1000+ numbering)
+function convertToBaseId(id) {
+  if (!id) return id
+
+  let baseId = id.replace(/-/g, '_')
+  baseId = baseId.replace(/_Foil$/, '')
+  baseId = baseId.replace(/_Hyperspace$/, '')
+  baseId = baseId.replace(/_HyperFoil$/, '')
+  baseId = baseId.replace(/_Showcase$/, '')
+
+  // Handle Hyperspace variants that use 1000+ numbering (e.g., SEC_1002 -> SEC_002)
+  const match = baseId.match(/^([A-Z]+)_(\d+)$/)
+  if (match) {
+    const setCode = match[1]
+    const cardNum = parseInt(match[2], 10)
+    if (cardNum >= 1000) {
+      const baseNum = cardNum - 1000
+      baseId = `${setCode}_${baseNum.toString().padStart(3, '0')}`
+    }
+  }
+
+  return baseId
+}
+
 // Convert variant card to base card ID for export
 function getBaseCardId(card, baseCardMap) {
   if (!card) return null
@@ -40,17 +64,12 @@ function getBaseCardId(card, baseCardMap) {
   const baseCard = baseCardMap?.get(key)
 
   if (baseCard) {
-    // Return the base card ID with underscores
-    return baseCard.id.replace(/-/g, '_')
+    // Always apply conversion to handle 1000+ Hyperspace numbering
+    return convertToBaseId(baseCard.id)
   }
 
-  // Fallback: just convert dashes to underscores and remove variant suffixes
-  let baseId = card.id.replace(/-/g, '_')
-  baseId = baseId.replace(/_Foil$/, '')
-  baseId = baseId.replace(/_Hyperspace$/, '')
-  baseId = baseId.replace(/_HyperFoil$/, '')
-  baseId = baseId.replace(/_Showcase$/, '')
-  return baseId
+  // Fallback: convert the card's own ID
+  return convertToBaseId(card.id)
 }
 
 export default function PlayPage({ params }) {
@@ -178,38 +197,49 @@ export default function PlayPage({ params }) {
     const leaderCard = cardPositions[activeLeader]?.card
     const baseCard = cardPositions[activeBase]?.card
 
-    // Ensure leader and base cards exist
     if (!leaderCard || !baseCard) return null
 
-    // Get deck cards
+    // Build set of leader/base IDs from card cache to filter final output
+    const allCards = getCachedCards(pool.setCode) || []
+    const leaderBaseIds = new Set()
+    allCards.forEach(card => {
+      if (card.type === 'Leader' || card.type === 'Base') {
+        leaderBaseIds.add(convertToBaseId(card.id))
+      }
+    })
+
+    // Get all cards from deck and sideboard sections
     const deckCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'deck' && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
+      .filter(pos => pos.section === 'deck' && pos.enabled !== false)
       .map(pos => pos.card)
 
-    // Get sideboard cards
     const sideboardCards = Object.values(cardPositions)
-      .filter(pos => (pos.section === 'sideboard' || pos.enabled === false) && !pos.card.isBase && !pos.card.isLeader)
+      .filter(pos => pos.section === 'sideboard')
       .map(pos => pos.card)
 
-    // Count cards by base ID (using base card lookup to handle Hyperspace variants)
+    // Count cards by base ID, excluding leaders and bases
     const deckCounts = new Map()
     deckCards.forEach(card => {
       const id = getBaseCardId(card, baseCardMap)
-      deckCounts.set(id, (deckCounts.get(id) || 0) + 1)
+      if (!leaderBaseIds.has(id)) {
+        deckCounts.set(id, (deckCounts.get(id) || 0) + 1)
+      }
     })
 
     const sideboardCounts = new Map()
     sideboardCards.forEach(card => {
       const id = getBaseCardId(card, baseCardMap)
-      sideboardCounts.set(id, (sideboardCounts.get(id) || 0) + 1)
+      if (!leaderBaseIds.has(id)) {
+        sideboardCounts.set(id, (sideboardCounts.get(id) || 0) + 1)
+      }
     })
 
-    // Get pool name from deckBuilderState first, then fall back to pool.name
     const poolName = state.poolName || pool.name || `${pool.setCode} ${pool.poolType === 'draft' ? 'Draft' : 'Sealed'}`
 
     return {
       metadata: {
-        name: poolName
+        name: `[PTP] ${poolName}`,
+        author: "Protect the Pod"
       },
       leader: { id: getBaseCardId(leaderCard, baseCardMap), count: 1 },
       base: { id: getBaseCardId(baseCard, baseCardMap), count: 1 },
@@ -337,44 +367,58 @@ export default function PlayPage({ params }) {
       ctx.fillStyle = '#1a1a2e'
       ctx.fillRect(0, 0, width, totalHeight)
 
-      // Helper to draw card
-      const drawCard = (card, x, y, w, h) => {
-        return new Promise((resolve) => {
-          if (!card?.imageUrl) {
-            ctx.fillStyle = '#333'
-            ctx.fillRect(x, y, w, h)
-            ctx.fillStyle = '#888'
-            ctx.font = '12px Arial'
-            ctx.textAlign = 'center'
-            ctx.fillText(card?.name || 'Unknown', x + w / 2, y + h / 2)
-            resolve()
-            return
+      // Helper to draw card with CORS proxy fallback
+      const drawCard = async (card, x, y, w, h) => {
+        if (!card?.imageUrl) {
+          ctx.fillStyle = '#333'
+          ctx.fillRect(x, y, w, h)
+          ctx.fillStyle = '#888'
+          ctx.font = '12px Arial'
+          ctx.textAlign = 'center'
+          ctx.fillText(card?.name || 'Unknown', x + w / 2, y + h / 2)
+          return
+        }
+
+        // Try to load image via blob to avoid CORS issues
+        const loadViaBlob = async (url) => {
+          const response = await fetch(url, { mode: 'cors' })
+          if (!response.ok) throw new Error('Failed to fetch')
+          const blob = await response.blob()
+          return URL.createObjectURL(blob)
+        }
+
+        // Try loading the image
+        const tryLoadImage = (url) => {
+          return new Promise((resolve, reject) => {
+            const img = new Image()
+            img.onload = () => resolve(img)
+            img.onerror = reject
+            img.src = url
+          })
+        }
+
+        try {
+          // Try direct blob fetch first
+          let objectUrl
+          try {
+            objectUrl = await loadViaBlob(card.imageUrl)
+          } catch {
+            // Try CORS proxy
+            objectUrl = await loadViaBlob(`https://corsproxy.io/?${encodeURIComponent(card.imageUrl)}`)
           }
 
-          const img = new Image()
-          img.crossOrigin = 'anonymous'
-
-          const timeoutId = setTimeout(() => {
-            ctx.fillStyle = '#333'
-            ctx.fillRect(x, y, w, h)
-            resolve()
-          }, 5000)
-
-          img.onload = () => {
-            clearTimeout(timeoutId)
-            ctx.drawImage(img, x, y, w, h)
-            resolve()
-          }
-
-          img.onerror = () => {
-            clearTimeout(timeoutId)
-            ctx.fillStyle = '#333'
-            ctx.fillRect(x, y, w, h)
-            resolve()
-          }
-
-          img.src = card.imageUrl
-        })
+          const img = await tryLoadImage(objectUrl)
+          ctx.drawImage(img, x, y, w, h)
+          URL.revokeObjectURL(objectUrl)
+        } catch {
+          // Final fallback: draw placeholder
+          ctx.fillStyle = '#333'
+          ctx.fillRect(x, y, w, h)
+          ctx.fillStyle = '#888'
+          ctx.font = '12px Arial'
+          ctx.textAlign = 'center'
+          ctx.fillText(card?.name || 'Unknown', x + w / 2, y + h / 2)
+        }
       }
 
       let currentY = padding
@@ -460,7 +504,48 @@ export default function PlayPage({ params }) {
   if (loading) {
     return (
       <div className="play-page">
-        <div className="play-loading">Loading...</div>
+        <div className="play-content">
+          <div className="play-header">
+            <div className="play-title-skeleton"></div>
+            <div className="play-pool-type-skeleton"></div>
+          </div>
+
+          <div className="play-instructions">
+            <div className="play-skeleton-heading"></div>
+            <div className="play-skeleton-text"></div>
+
+            <div className="play-steps">
+              <div className="play-step">
+                <div className="step-number-skeleton"></div>
+                <div className="step-content">
+                  <div className="play-skeleton-step-title"></div>
+                  <div className="play-skeleton-step-text"></div>
+                </div>
+              </div>
+              <div className="play-step">
+                <div className="step-number-skeleton"></div>
+                <div className="step-content">
+                  <div className="play-skeleton-step-title"></div>
+                  <div className="play-skeleton-step-text"></div>
+                </div>
+              </div>
+              <div className="play-step">
+                <div className="step-number-skeleton"></div>
+                <div className="step-content">
+                  <div className="play-skeleton-step-title"></div>
+                  <div className="play-skeleton-step-text"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="play-actions">
+            <div className="play-button-skeleton"></div>
+            <div className="play-button-skeleton"></div>
+            <div className="play-button-skeleton"></div>
+            <div className="play-button-skeleton"></div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -579,7 +664,7 @@ export default function PlayPage({ params }) {
               <span className="step-number">3</span>
               <div className="step-content">
                 <h3>Play on Karabast</h3>
-                <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and load your deck (by pasting JSON into Karabast directly, or via <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">swudb.com</a> if you prefer). Create a game with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
+                <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and load your deck (by pasting JSON into Karabast directly, or via <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">swudb.com</a> if you prefer). Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
               </div>
             </div>
           </div>

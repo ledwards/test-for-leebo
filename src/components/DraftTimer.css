@@ -86,3 +86,28 @@
     transform: translateX(3px);
   }
 }
+
+/* Mobile - smaller timer */
+@media (max-width: 768px) {
+  .draft-timer {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .timer-circle {
+    width: 65px;
+    height: 65px;
+  }
+
+  .timer-value {
+    font-size: 1.6rem;
+  }
+
+  .timer-label {
+    font-size: 0.65rem;
+  }
+
+  .timer-message {
+    font-size: 0.75rem;
+  }
+}

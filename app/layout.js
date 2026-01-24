@@ -2,7 +2,6 @@
 
 import { AuthProvider } from '../src/contexts/AuthContext'
 import AuthWidget from '../src/components/AuthWidget'
-import LogoHeader from '../src/components/LogoHeader'
 import '../src/index.css'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://protectthepod.com'
@@ -19,7 +18,7 @@ export default function RootLayout({ children }) {
         <meta name="author" content="Protect the Pod" />
         <meta name="robots" content="index, follow" />
         <meta name="language" content="English" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
         <meta charSet="utf-8" />
 
         {/* Canonical URL */}
@@ -67,7 +66,6 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AuthProvider>
-          <LogoHeader />
           <AuthWidget showOnlyWhenLoggedIn={true} />
           {children}
         </AuthProvider>

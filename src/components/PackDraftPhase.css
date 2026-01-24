@@ -181,29 +181,108 @@
 }
 
 @media (max-width: 768px) {
+  .pack-draft-phase {
+    padding: 0.5rem;
+  }
+
   .draft-layout {
     flex-direction: column;
     align-items: center;
+    gap: 1rem;
+    padding: 0;
   }
 
   .players-section {
     width: 100%;
   }
 
+  /* Cards section - equal margins left and right, wider */
   .cards-section {
+    width: calc(100% - 1rem);
+    max-width: calc(100% - 1rem);
+    margin: 0 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .draft-info-header {
+    padding: 0.625rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .my-leaders-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
     width: 100%;
+  }
+
+  /* Leader thumbnails take full width with equal sizing */
+  .leader-thumbnails {
+    gap: 0.4rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .leader-thumbnail {
+    width: calc(33.33% - 0.3rem);
+    max-width: calc(33.33% - 0.3rem);
+    height: auto;
+    aspect-ratio: 3.5 / 2.5;
+  }
+
+  .draft-progress-info {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .info-label,
+  .info-value {
+    font-size: 0.8rem;
+  }
+
+  .review-button {
+    width: 100%;
+    justify-content: center;
+    padding: 0.625rem;
+    font-size: 0.85rem;
+  }
+
+  /* Pack grid - 2 cards per row, cards closer together with equal margins */
+  .pack-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    justify-content: center;
+    padding: 0 0.25rem;
+  }
+
+  .pack-controls {
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .cards-in-pack {
+    font-size: 0.85rem;
+  }
+
+  .current-pack {
+    margin-bottom: 0.75rem;
   }
 }
 
 @media (max-width: 500px) {
   .pack-controls {
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
 
+  .pack-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+  }
 
   .draft-progress {
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
 }

@@ -147,3 +147,34 @@
   z-index: 2;
   animation: foil-shimmer 3s ease-in-out infinite;
 }
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .draftable-card {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    border-radius: 9px;
+  }
+
+  .draftable-card.leader,
+  .draftable-card.base {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .draftable-card .card-image {
+    border-radius: 9px;
+  }
+
+  .draftable-card .card-placeholder {
+    border-radius: 9px;
+  }
+
+  /* Disable hover zoom on mobile */
+  .draftable-card:hover:not(.disabled) {
+    transform: none;
+    box-shadow: none;
+  }
+}

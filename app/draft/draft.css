@@ -882,11 +882,15 @@
   .draft-options {
     flex-direction: column;
     align-items: center;
+    gap: 1rem;
+    padding: 0 0.5rem;
   }
 
   .draft-option {
     width: 100%;
     max-width: none;
+    margin: 0;
+    padding: 1.25rem;
   }
 
   .join-form {
@@ -896,14 +900,106 @@
   .draft-header {
     flex-direction: column;
     gap: 10px;
+    padding: 0.5rem;
+  }
+
+  .draft-header-center h1 {
+    font-size: 1.4rem;
+  }
+
+  .draft-round-info {
+    font-size: 0.85rem;
   }
 
   .draft-status {
     flex-wrap: wrap;
     justify-content: center;
+    margin-right: 0;
   }
 
+  /* Draft history - full width, reclaimed margins */
   .draft-history {
-    padding: 0 10px;
+    padding: 0;
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
+  }
+
+  .draft-history h2 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  /* History item wrapper - item takes full width, delete button inside */
+  .history-item-wrapper {
+    position: relative;
+    gap: 0;
+  }
+
+  .history-item-wrapper .history-item {
+    width: 100%;
+    padding-right: 40px;
+  }
+
+  .history-item {
+    padding: 10px 12px;
+  }
+
+  /* X button positioned inside top-right of history item on mobile */
+  .draft-history-delete-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    font-size: 1.2rem;
+    border-radius: 4px;
+    z-index: 2;
+  }
+
+  /* Hide the trash SVG on mobile - will show X via CSS content */
+  .draft-history-delete-button svg {
+    display: none;
+  }
+
+  .draft-history-delete-button::after {
+    content: '×';
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .draft-content {
+    padding: 0.5rem;
+  }
+
+  /* Lobby container - center content */
+  .lobby-container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .lobby-container h2 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .draft-page {
+    padding: 0.5rem;
+    padding-top: 3rem;
+  }
+
+  .draft-page-bg {
+    padding: 0.5rem;
+    padding-top: 3rem;
+  }
+
+  .draft-content {
+    padding: 0.5rem;
+  }
+
+  .draft-landing {
+    padding: 0.5rem;
   }
 }

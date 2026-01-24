@@ -209,17 +209,108 @@
 }
 
 @media (max-width: 768px) {
+  .leader-draft-phase {
+    padding: 0.5rem;
+  }
+
   .draft-layout {
     flex-direction: column;
     align-items: center;
+    gap: 1rem;
+    padding: 0;
   }
 
   .players-section {
     width: 100%;
   }
 
+  /* Cards section - equal margins left and right, wider */
   .cards-section {
+    width: calc(100% - 1rem);
+    max-width: calc(100% - 1rem);
+    margin: 0 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .draft-info-header {
+    padding: 0.625rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .my-leaders-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
     width: 100%;
+  }
+
+  /* Leader thumbnails take full width with equal sizing */
+  .leader-thumbnails {
+    gap: 0.4rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .leader-thumbnail {
+    width: calc(33.33% - 0.3rem);
+    max-width: calc(33.33% - 0.3rem);
+    height: auto;
+    aspect-ratio: 3.5 / 2.5;
+  }
+
+  .draft-progress-info {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .info-label,
+  .info-value {
+    font-size: 0.8rem;
+  }
+
+  .review-button {
+    width: 100%;
+    justify-content: center;
+    padding: 0.625rem;
+    font-size: 0.85rem;
+  }
+
+  /* Leaders grid - 2 cards per row, cards closer together with equal margins */
+  .leaders-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    justify-content: center;
+    padding: 0 0.25rem;
+  }
+
+  /* Drafted leaders - wider to show both sides */
+  .drafted-leaders {
+    margin-bottom: 1rem;
+  }
+
+  .drafted-leaders h3 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .drafted-leaders-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .drafted-leader {
+    width: calc(50% - 0.25rem);
+    max-width: calc(50% - 0.25rem);
+    height: auto;
+    aspect-ratio: 3.5 / 2.5;
+  }
+
+  .available-leaders h3 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
   }
 }
 
@@ -230,8 +321,14 @@
   }
 
   .drafted-leader {
-    width: 140px;
-    height: 100px;
+    width: calc(50% - 0.25rem);
+    max-width: calc(50% - 0.25rem);
+    height: auto;
   }
 
+  /* Leaders grid stays 2 per row */
+  .leaders-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+  }
 }

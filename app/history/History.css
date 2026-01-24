@@ -9,6 +9,42 @@
   color: white;
 }
 
+@media (max-width: 768px) {
+  .history-page {
+    padding: 0.5rem;
+    padding-top: 3.5rem;
+  }
+
+  .history-header {
+    margin-bottom: 1rem;
+  }
+
+  .history-header h1 {
+    font-size: 1.5rem;
+    margin-top: 0;
+  }
+
+  .history-table-container {
+    padding: 0.5rem;
+    width: 100%;
+  }
+
+  .history-table th,
+  .history-table td {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .history-tabs {
+    flex-wrap: wrap;
+  }
+
+  .history-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
 .history-header {
   display: flex;
   justify-content: flex-start;
