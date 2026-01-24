@@ -115,42 +115,25 @@ function HostControls({
               checked={isTimed}
               onChange={handleTimedChange}
             />
-            <span>Timed</span>
+            <span>Enable Round Timers</span>
           </label>
-
-          {isTimed && (
-            <>
-              <div className="setting-item">
-                <span className="setting-label">Pick Timeout:</span>
-                <span className="setting-value">{pickTimeoutSeconds}s</span>
-              </div>
-              <div className="setting-item">
-                <span className="setting-label">Last Player Timer:</span>
-                <span className="setting-value">{lastPlayerTimerSeconds}s</span>
-              </div>
-            </>
-          )}
         </div>
 
         <div className="settings-row">
-          <div className="setting-item">
-            <span className="setting-label">Max Players:</span>
-            <span className="setting-value">{draft?.maxPlayers || 8}</span>
-          </div>
+          {isTimed && (
+            <>
+              <span className="setting-item">
+                <span className="setting-label">Pick:</span> <span className="setting-value">{pickTimeoutSeconds}s</span>
+              </span>
+              <span className="setting-item">
+                <span className="setting-label">Last Player:</span> <span className="setting-value">{lastPlayerTimerSeconds}s</span>
+              </span>
+            </>
+          )}
+          <span className="setting-item">
+            <span className="setting-label">Max Players:</span> <span className="setting-value">{draft?.maxPlayers || 8}</span>
+          </span>
         </div>
-
-        {shareId && (
-          <div className="share-url-row">
-            <span className="setting-label">Share URL:</span>
-            <button className="copy-url-button" onClick={handleCopyShareUrl}>
-              <CopyIcon />
-              <span>{copied ? 'Copied!' : 'Copy Link'}</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div className="controls-section">
         <div className="controls-row secondary-controls">
           <button
             className="control-button secondary"
@@ -170,6 +153,9 @@ function HostControls({
             <span>Add Bot</span>
           </button>
         </div>
+      </div>
+
+      <div className="controls-section">
 
         <div className="controls-row primary-controls">
           <button

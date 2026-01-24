@@ -305,7 +305,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
           <EditableTitle
             value={poolName}
             onSave={handleRenamePool}
-            isEditable={isOwner}
+            isEditable={isOwner && poolType !== 'draft'}
             placeholder={poolType === 'draft' ? 'Draft Pool' : 'Sealed Pool'}
           />
         </h1>

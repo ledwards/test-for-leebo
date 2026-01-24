@@ -43,7 +43,7 @@ export default function LogoHeader({ className = '' }) {
         className="logo-header-subtitle"
         style={{ opacity: subtitleOpacity }}
       >
-        The Fan-Made Open Source<br />
+        The Fan-Made Vibe Coded<br />
         Star Wars Unlimited Limited Simulator
       </span>
     </div>

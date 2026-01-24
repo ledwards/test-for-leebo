@@ -49,7 +49,7 @@ function LandingPage({ onSealedClick, onDraftClick }) {
         <img className="landing-logo" src="/ptp_logo400.png" alt="Protect the Pod Logo" />
         <h1 className="visually-hidden">Protect the Pod</h1>
         <h2 className="subtitle">
-          The Fan-Made Open Source<br />
+          The Fan-Made Vibe Coded<br />
           Star Wars Unlimited Limited Simulator
         </h2>
         {activeDraft && (

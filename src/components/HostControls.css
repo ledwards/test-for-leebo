@@ -12,15 +12,14 @@
   text-align: center;
 }
 
-/* Settings section - below header with bottom border */
+/* Settings section - below header */
 .draft-settings {
   display: flex;
   flex-direction: column;
   gap: 10px;
   align-items: center;
-  padding-bottom: 20px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .settings-row {
@@ -36,14 +35,6 @@
   font-size: 0.9rem;
 }
 
-.setting-label {
-  color: #888;
-}
-
-.setting-value {
-  color: white;
-}
-
 .setting-checkbox {
   display: flex;
   align-items: center;
@@ -57,6 +48,29 @@
   width: 16px;
   height: 16px;
   cursor: pointer;
+}
+
+.timeout-settings-row {
+  display: flex;
+  gap: 32px;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+.timeout-setting {
+  color: #888;
+}
+
+.setting-label {
+  font-weight: 600;
+  color: white;
+}
+
+.setting-value {
+  color: #888;
+  font-weight: 400;
 }
 
 /* Controls section */
@@ -160,6 +174,7 @@
   gap: 12px;
   justify-content: center;
   margin-top: 5px;
+  font-size: 0.9rem;
 }
 
 .copy-url-button {
@@ -193,8 +208,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: transparent;
-  border: 2px solid rgba(255, 0, 0, 0.5);
+  background: #000;
+  border: 2px solid rgba(255, 80, 80, 0.8);
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
@@ -204,15 +219,17 @@
 }
 
 .control-button.cancel:hover:not(:disabled) {
-  background: rgba(255, 0, 0, 0.1);
+  background: #000;
   border-color: rgba(255, 0, 0, 0.8);
   color: rgba(255, 150, 150, 1);
-  box-shadow: 0 0 16px rgba(255, 0, 0, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
 }
 
 .control-button.cancel:disabled {
+  background: rgba(0, 0, 0, 0.4);
   color: #555;
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
   cursor: not-allowed;
 }
 

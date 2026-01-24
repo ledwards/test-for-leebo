@@ -92,6 +92,40 @@
   text-align: center;
 }
 
+/* Share URL section */
+.share-url-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 15px;
+  font-size: 0.9rem;
+}
+
+.share-label {
+  font-weight: 600;
+  color: white;
+}
+
+.copy-url-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: #888;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-url-button:hover {
+  background: #111;
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
 @media (max-width: 768px) {
   .lobby-layout {
     flex-direction: column;
