@@ -2,10 +2,15 @@
  * Bot Logic for Draft Testing
  *
  * Handles automatic picks for bot players during draft.
+ * Uses pluggable behavior system for pick decisions.
  */
 
 import { query, queryRow, queryRows } from '@/lib/db.js'
 import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft, processAllStagedPicks } from './draftAdvance.js'
+import { getBehavior } from '@/src/bots/behaviors/index.js'
+
+// Cache behavior instances per bot to maintain state across picks
+const botBehaviors = new Map()
 
 /**
  * Check if any bots need to pick and make picks for them
@@ -68,7 +73,26 @@ async function makeBotPick(botId, draftState) {
 }
 
 /**
- * Bot selects a leader (random selection)
+ * Get or create a behavior instance for a bot
+ * @param {string} botId - Bot player ID
+ * @returns {Object} Behavior instance
+ */
+function getBotBehavior(botId) {
+  if (!botBehaviors.has(botId)) {
+    botBehaviors.set(botId, getBehavior())
+  }
+  return botBehaviors.get(botId)
+}
+
+/**
+ * Clear behavior cache (useful when draft ends)
+ */
+export function clearBotBehaviors() {
+  botBehaviors.clear()
+}
+
+/**
+ * Bot selects a leader using behavior system
  * Uses the staged pick system - selection is finalized when all players have selected
  * @returns {boolean} - Whether a selection was made
  */
@@ -82,9 +106,25 @@ async function makeBotLeaderPick(bot, draftState) {
     return false
   }
 
-  // Pick randomly
-  const pickIndex = Math.floor(Math.random() * leaders.length)
-  const pickedLeader = leaders[pickIndex]
+  // Get bot's drafted leaders for context
+  const draftedLeaders = typeof bot.drafted_leaders === 'string'
+    ? JSON.parse(bot.drafted_leaders)
+    : bot.drafted_leaders || []
+
+  // Use behavior to select leader
+  const behavior = getBotBehavior(bot.id)
+  const context = {
+    draftedLeaders,
+    setCode: draftState.setCode || leaders[0]?.set,
+    leaderRound: draftState.leaderRound || 1
+  }
+
+  const pickedLeader = behavior.selectLeader(leaders, context)
+  if (!pickedLeader) {
+    console.error('[BOT] Bot', bot.id, 'behavior returned no leader!')
+    return false
+  }
+
   const cardId = pickedLeader.instanceId || pickedLeader.id
 
   // Use staged selection system
@@ -107,7 +147,7 @@ async function makeBotLeaderPick(bot, draftState) {
 }
 
 /**
- * Bot selects a card (prefers higher rarity)
+ * Bot selects a card using behavior system
  * Uses the staged pick system - selection is finalized when all players have selected
  * @returns {boolean} - Whether a selection was made
  */
@@ -121,13 +161,31 @@ async function makeBotCardPick(bot, draftState) {
     return false
   }
 
-  // Sort by rarity and pick the best
-  const rarityOrder = { 'Legendary': 0, 'Rare': 1, 'Uncommon': 2, 'Common': 3 }
-  const sorted = [...currentPack].sort(
-    (a, b) => (rarityOrder[a.rarity] ?? 4) - (rarityOrder[b.rarity] ?? 4)
-  )
+  // Get bot's drafted cards and leaders for context
+  const draftedCards = typeof bot.drafted_cards === 'string'
+    ? JSON.parse(bot.drafted_cards)
+    : bot.drafted_cards || []
 
-  const pickedCard = sorted[0]
+  const draftedLeaders = typeof bot.drafted_leaders === 'string'
+    ? JSON.parse(bot.drafted_leaders)
+    : bot.drafted_leaders || []
+
+  // Use behavior to select card
+  const behavior = getBotBehavior(bot.id)
+  const context = {
+    draftedCards,
+    draftedLeaders,
+    setCode: draftState.setCode || currentPack[0]?.set,
+    packNumber: draftState.packNumber || 1,
+    pickInPack: draftState.pickInPack || 1
+  }
+
+  const pickedCard = behavior.selectCard(currentPack, context)
+  if (!pickedCard) {
+    console.error('[BOT] Bot', bot.id, 'behavior returned no card!')
+    return false
+  }
+
   const cardId = pickedCard.instanceId || pickedCard.id
 
   // Use staged selection system
