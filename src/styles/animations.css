@@ -1,0 +1,29 @@
+/**
+ * Shared CSS Animations
+ *
+ * These animations are used across multiple components.
+ * Import this file where needed instead of duplicating keyframes.
+ */
+
+/* Rainbow border animation for card selection */
+@keyframes rainbow-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Foil shimmer effect for foil cards */
+@keyframes foil-shimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}

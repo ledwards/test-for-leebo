@@ -6,6 +6,7 @@ import SealedPod from './components/SealedPod'
 import DeckBuilder from './components/DeckBuilder'
 import TermsOfService from './components/TermsOfService'
 import PrivacyPolicy from './components/PrivacyPolicy'
+import Modal from './components/Modal'
 import { initializeCardCache } from './utils/cardCache'
 
 function App() {
@@ -134,22 +135,24 @@ function App() {
 
   return (
     <div className="app">
-      {showWarning && (
-        <div className="warning-modal-overlay" onClick={handleCancelBack}>
-          <div className="warning-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Warning</h2>
-            <p>Going back will lose your current sealed pod and regenerate a new one. Are you sure you want to continue?</p>
-            <div className="warning-modal-buttons">
-              <button className="warning-button confirm" onClick={handleConfirmBack}>
-                Yes, Go Back
-              </button>
-              <button className="warning-button cancel" onClick={handleCancelBack}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={showWarning}
+        onClose={handleCancelBack}
+        title="Warning"
+        variant="danger"
+      >
+        <Modal.Body>
+          <p>Going back will lose your current sealed pod and regenerate a new one. Are you sure you want to continue?</p>
+        </Modal.Body>
+        <Modal.Actions>
+          <button className="modal-btn-danger" onClick={handleConfirmBack}>
+            Yes, Go Back
+          </button>
+          <button className="modal-btn-cancel" onClick={handleCancelBack}>
+            Cancel
+          </button>
+        </Modal.Actions>
+      </Modal>
       {view === 'landing' && (
         <LandingPage onSealedClick={handleSealedClick} />
       )}

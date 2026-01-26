@@ -5,6 +5,7 @@ import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
 import { generateDraftPacks } from '@/src/utils/draftLogic.js'
 import { processBotTurns } from '@/src/utils/botLogic.js'
 import { initializeCardCache } from '@/src/utils/cardCache.js'
+import { trackBulkGenerations } from '@/src/utils/trackGeneration.js'
 
 export async function POST(request, { params }) {
   // console.log('[START] Starting draft...')
@@ -52,6 +53,40 @@ export async function POST(request, { params }) {
     // console.log('[START] Generating packs for', players.length, 'players, set:', pod.set_code)
     const { packs, leaders } = generateDraftPacks(pod.set_code, players.length)
     // console.log('[START] Packs generated, leaders per player:', leaders[0]?.length)
+
+    // Track all generated cards for statistics (async, non-blocking)
+    const trackingRecords = []
+    for (let i = 0; i < packs.length; i++) {
+      for (let packNum = 0; packNum < packs[i].length; packNum++) {
+        const pack = packs[i][packNum]
+        pack.forEach(card => {
+          trackingRecords.push({
+            card,
+            options: {
+              packType: 'booster',
+              sourceType: 'draft',
+              sourceId: pod.id,
+              sourceShareId: shareId
+            }
+          })
+        })
+      }
+      // Track leaders separately
+      leaders[i].forEach(leader => {
+        trackingRecords.push({
+          card: leader,
+          options: {
+            packType: 'booster',
+            sourceType: 'draft',
+            sourceId: pod.id,
+            sourceShareId: shareId
+          }
+        })
+      })
+    }
+    trackBulkGenerations(trackingRecords).catch(err => {
+      console.error('Failed to track draft generations:', err)
+    })
 
     // Assign leaders and first pack to each player
     for (let i = 0; i < players.length; i++) {

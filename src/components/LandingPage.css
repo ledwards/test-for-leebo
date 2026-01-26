@@ -64,7 +64,7 @@
 
 .rejoin-button:hover {
   background: #5ba0e9;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .mode-selection {
@@ -137,7 +137,7 @@
 
 .landing-login-button:hover {
   background: #4752C4;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 

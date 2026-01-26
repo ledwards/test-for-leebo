@@ -2,15 +2,15 @@
 import { query, queryRow, queryRows } from '@/lib/db.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
 
-const BOT_NAMES = [
-  'DraftBot Alpha',
-  'DraftBot Beta',
-  'DraftBot Gamma',
-  'DraftBot Delta',
-  'DraftBot Epsilon',
-  'DraftBot Zeta',
-  'DraftBot Eta',
-  'DraftBot Theta',
+const BOT_CONFIGS = [
+  { name: 'DraftBot Alpha', discordId: 'bot_alpha' },
+  { name: 'DraftBot Beta', discordId: 'bot_beta' },
+  { name: 'DraftBot Gamma', discordId: 'bot_gamma' },
+  { name: 'DraftBot Delta', discordId: 'bot_delta' },
+  { name: 'DraftBot Epsilon', discordId: 'bot_epsilon' },
+  { name: 'DraftBot Zeta', discordId: 'bot_zeta' },
+  { name: 'DraftBot Eta', discordId: 'bot_eta' },
+  { name: 'DraftBot Theta', discordId: 'bot_theta' },
 ]
 
 const BOT_AVATARS = [
@@ -62,17 +62,17 @@ export async function POST(request, { params }) {
 
     for (let i = 0; i < botsToAdd; i++) {
       const seatNumber = availableSeats[i]
-      const botIndex = (players.length + i) % BOT_NAMES.length
-      const botName = BOT_NAMES[botIndex]
+      const botIndex = (players.length + i) % BOT_CONFIGS.length
+      const botConfig = BOT_CONFIGS[botIndex]
       const botAvatar = BOT_AVATARS[botIndex % BOT_AVATARS.length]
 
-      // Create a fake user for the bot
+      // Find or create bot user with stable discord_id
       const userResult = await query(
         `INSERT INTO users (username, avatar_url, discord_id)
          VALUES ($1, $2, $3)
          ON CONFLICT (discord_id) DO UPDATE SET username = $1, avatar_url = $2
          RETURNING id`,
-        [botName, botAvatar, `bot_${botIndex}_${Date.now()}_${i}`]
+        [botConfig.name, botAvatar, botConfig.discordId]
       )
       const botUserId = userResult.rows[0].id
 
@@ -100,7 +100,7 @@ export async function POST(request, { params }) {
         ]
       )
 
-      addedBots.push({ name: botName, seatNumber })
+      addedBots.push({ name: botConfig.name, seatNumber })
     }
 
     // Update player count

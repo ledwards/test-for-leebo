@@ -42,7 +42,7 @@
 
 .auth-widget-login-button:hover {
   background: #4752C4;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
@@ -199,7 +199,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.6);
   font-family: 'Barlow', sans-serif;
   font-size: 12px;
   font-weight: 600;

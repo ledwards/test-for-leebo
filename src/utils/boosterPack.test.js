@@ -769,6 +769,98 @@ async function runTests() {
     // Just ensure the test completes without error
   })
 
+  test('sealed pod HS+Normal same-leader rate should be within expected range', () => {
+    // Statistical test: The LeaderBelt's weighted pool (commons 5x) means the same
+    // leader name can appear multiple times across 6 packs (non-adjacent).
+    // When one copy upgrades to HS and another stays Normal, we get both variants.
+    //
+    // This test calculates the expected rate based on:
+    // 1. P(duplicate leader names in 6-pack pod) - depends on belt weights
+    // 2. P(one upgrades, other doesn't | duplicates) = 1 - (5/6)^k - (1/6)^k for k copies
+    //
+    // Expected rate estimate:
+    // - With ~12 unique leader names and weighted draws, P(at least one duplicate) ≈ 60-70%
+    // - For 2 copies of same leader, P(HS+Normal) = 1 - (5/6)^2 - (1/6)^2 ≈ 28%
+    // - Combined estimate: ~20-25% of pods will have at least one HS+Normal pair
+    clearBeltCache()
+
+    const podCount = 100
+    let podsWithViolation = 0
+    const violationExamples = []
+
+    for (let i = 0; i < podCount; i++) {
+      const pod = generateSealedPod(cards, 'SOR', 6)
+
+      // Collect all leaders in the pod
+      const leaders = []
+      pod.forEach(pack => {
+        const leader = pack.cards.find(c => c.isLeader)
+        if (leader) leaders.push(leader)
+      })
+
+      // Check for same leader appearing as both HS and Normal
+      const leadersByName = {}
+      for (const leader of leaders) {
+        if (!leadersByName[leader.name]) {
+          leadersByName[leader.name] = []
+        }
+        leadersByName[leader.name].push(leader)
+      }
+
+      let podHasViolation = false
+      for (const [name, instances] of Object.entries(leadersByName)) {
+        const hasHS = instances.some(l => l.isHyperspace || l.variantType === 'Hyperspace')
+        const hasNormal = instances.some(l => !l.isHyperspace && l.variantType === 'Normal')
+
+        if (hasHS && hasNormal) {
+          podHasViolation = true
+          if (violationExamples.length < 3) {
+            violationExamples.push(`Pod ${i}: ${name} appears as both HS and Normal`)
+          }
+        }
+      }
+
+      if (podHasViolation) {
+        podsWithViolation++
+      }
+    }
+
+    const observedRate = podsWithViolation / podCount
+
+    // Expected rate: ~2% based on new belt mechanics
+    // - LeaderBelt now cycles through all unique commons before repeating
+    // - In a 6-pack pod, we rarely see the same leader name twice
+    // - Only edge case: if cycle reshuffles mid-pod
+    const expectedRate = 0.02
+
+    // Calculate z-score
+    const stdDev = Math.sqrt(podCount * expectedRate * (1 - expectedRate))
+    const zScore = (podsWithViolation - podCount * expectedRate) / stdDev
+
+    // Warn at z > 2.5, fail at z > 4 (detecting if rate is MUCH higher than expected)
+    const warningZScore = 2.5
+    const failZScore = 4.0
+
+    console.log(`\x1b[36m   HS+Normal same-leader pod rate: ${(observedRate * 100).toFixed(1)}% (${podsWithViolation}/${podCount})\x1b[0m`)
+    console.log(`\x1b[36m   Expected rate: ~${(expectedRate * 100).toFixed(0)}%\x1b[0m`)
+    console.log(`\x1b[36m   Z-score: ${zScore.toFixed(2)} (warn: ${warningZScore}, fail: ${failZScore})\x1b[0m`)
+
+    if (violationExamples.length > 0) {
+      console.log(`\x1b[36m   Examples: ${violationExamples.join('; ')}\x1b[0m`)
+    }
+
+    if (zScore > warningZScore && zScore <= failZScore) {
+      console.log(`\x1b[33m   ⚠️  WARNING: Rate higher than expected (may indicate a bug)\x1b[0m`)
+    }
+
+    assert(
+      zScore <= failZScore,
+      `HS+Normal same-leader rate (${(observedRate * 100).toFixed(1)}%) is extremely high vs expected ~${(expectedRate * 100).toFixed(0)}% ` +
+      `(z=${zScore.toFixed(2)} > ${failZScore}). This may indicate upgrade logic is pulling random HS leaders instead of upgrading the specific leader. ` +
+      `Examples: ${violationExamples.join('; ')}`
+    )
+  })
+
   console.log('')
   console.log('Hyperspace Co-occurrence Tests')
   console.log('==============================')

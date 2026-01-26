@@ -2,8 +2,11 @@
  * LeaderBelt
  *
  * A belt that provides leader cards for booster packs.
- * The hopper is filled with a mix of common and rare leaders,
- * with seam deduplication to prevent adjacent duplicates.
+ *
+ * Design: Cycles through all unique common leaders before repeating any,
+ * with rare leaders sprinkled in probabilistically (not at fixed intervals).
+ *
+ * Target ratio: 1/6 packs get a Rare leader (~16.67%)
  */
 
 import { getCachedCards } from '../utils/cardCache.js'
@@ -19,176 +22,139 @@ function shuffle(arr) {
   return arr
 }
 
-/**
- * Check if two cards are the same (by id or name)
- */
-function isSameCard(a, b) {
-  if (!a || !b) return false
-  return a.id === b.id || a.name === b.name
-}
-
 export class LeaderBelt {
   constructor(setCode) {
     this.setCode = setCode
-    this.hopper = []
-    this.fillingPool = []
     this.commonLeaders = []
     this.rareLeaders = []
+    this.commonCycle = []  // Shuffled cycle of common leaders
+    this.commonIndex = 0   // Current position in common cycle
+    this.lastLeaderName = null  // Track last served leader to avoid adjacent duplicates
 
     this._initialize()
   }
 
   /**
-   * Initialize the belt by loading cards and setting up the filling pool
+   * Initialize the belt by loading cards
    */
   _initialize() {
     const cards = getCachedCards(this.setCode)
 
     // Filter to only normal variant leaders with Common or Rare rarity
-    // (Special and Legendary leaders don't appear in booster packs)
-    this.fillingPool = cards.filter(c =>
+    const allLeaders = cards.filter(c =>
       c.isLeader &&
       c.variantType === 'Normal' &&
       (c.rarity === 'Common' || c.rarity === 'Rare')
     )
 
-    // Separate into common and rare leaders
-    // Only Common and Rare rarity leaders appear in booster packs
-    this.commonLeaders = this.fillingPool.filter(c => c.rarity === 'Common')
-    this.rareLeaders = this.fillingPool.filter(c => c.rarity === 'Rare')
+    this.commonLeaders = allLeaders.filter(c => c.rarity === 'Common')
+    this.rareLeaders = allLeaders.filter(c => c.rarity === 'Rare')
 
-    // Initial fill
-    this._fillIfNeeded()
+    // Initialize first common cycle
+    this._reshuffleCommonCycle()
   }
 
   /**
-   * Fill the hopper if it needs more cards
+   * Reshuffle the common leader cycle
+   * Called when we've gone through all commons once
    */
-  _fillIfNeeded() {
-    // Safety check: if no cards in filling pool, can't fill
-    if (this.fillingPool.length === 0) {
-      return
-    }
-    while (this.hopper.length < this.fillingPool.length) {
-      this._fill()
-    }
+  _reshuffleCommonCycle() {
+    this.commonCycle = shuffle([...this.commonLeaders])
+    this.commonIndex = 0
   }
 
   /**
-   * Fill the hopper with a new batch of leaders
+   * Get the next common leader from the cycle
+   * Reshuffles when cycle is exhausted
+   */
+  _nextCommon() {
+    if (this.commonIndex >= this.commonCycle.length) {
+      this._reshuffleCommonCycle()
+    }
+    return this.commonCycle[this.commonIndex++]
+  }
+
+  /**
+   * Get a random rare leader
+   */
+  _randomRare() {
+    if (this.rareLeaders.length === 0) return null
+    const index = Math.floor(Math.random() * this.rareLeaders.length)
+    return this.rareLeaders[index]
+  }
+
+  /**
+   * Get the next leader from the belt
    *
-   * Target ratio: 1/6 packs get a Rare leader (5:1 Common:Rare)
-   * Achieved by adding each common 5 times and each rare 1 time per cycle
-   */
-  _fill() {
-    const wasEmpty = this.hopper.length === 0
-
-    // Create weighted pool: each common appears 5 times, each rare appears 1 time
-    // This gives a 5:1 ratio = 1/6 chance of rare = ~16.67% rare
-    const weightedPool = []
-
-    // Add each common leader 5 times
-    for (const common of this.commonLeaders) {
-      for (let i = 0; i < 5; i++) {
-        weightedPool.push(common)
-      }
-    }
-
-    // Add each rare leader 1 time
-    for (const rare of this.rareLeaders) {
-      weightedPool.push(rare)
-    }
-
-    // Shuffle the weighted pool
-    const segment = shuffle(weightedPool)
-
-    // Add segment to hopper
-    const segmentStart = this.hopper.length
-    this.hopper.push(...segment)
-
-    // Run seam dedup - include some cards before the seam to fix boundary
-    const dedupStart = wasEmpty ? segmentStart : Math.max(0, segmentStart - 1)
-    const dedupLength = this.hopper.length - dedupStart
-    this._seamDedup(dedupStart, dedupLength)
-  }
-
-  /**
-   * Seam deduplication
-   * Prevents the same leader from appearing in immediately adjacent slots.
-   * With weighted pools (commons appear 5x), we can only guarantee no immediate adjacency.
-   */
-  _seamDedup(segmentStart, segmentLength, depth = 0) {
-    // Prevent infinite recursion
-    if (depth > 50) return
-
-    for (let i = segmentStart + 1; i < segmentStart + segmentLength; i++) {
-      const card = this.hopper[i]
-      const prevCard = this.hopper[i - 1]
-
-      // Check if same leader as previous slot
-      if (isSameCard(card, prevCard)) {
-        // Try to swap with a non-adjacent card further in the segment
-        const swapRangeStart = i + 2
-        const swapRangeEnd = segmentStart + segmentLength
-
-        if (swapRangeStart < swapRangeEnd) {
-          // Find a card to swap that won't create new adjacency issues
-          const candidates = []
-          for (let k = swapRangeStart; k < swapRangeEnd; k++) {
-            candidates.push(k)
-          }
-          // Shuffle candidates for randomness
-          for (let k = candidates.length - 1; k > 0; k--) {
-            const j = Math.floor(Math.random() * (k + 1))
-            ;[candidates[k], candidates[j]] = [candidates[j], candidates[k]]
-          }
-
-          for (const swapIndex of candidates) {
-            const swapCard = this.hopper[swapIndex]
-            // Check if swapping would create adjacency conflict at position i or swapIndex
-            const wouldConflictAtI = isSameCard(swapCard, prevCard)
-            const nextCard = i + 1 < segmentStart + segmentLength ? this.hopper[i + 1] : null
-            const wouldConflictAtINext = nextCard && isSameCard(swapCard, nextCard)
-
-            const prevSwap = swapIndex > 0 ? this.hopper[swapIndex - 1] : null
-            const nextSwap = swapIndex + 1 < this.hopper.length ? this.hopper[swapIndex + 1] : null
-            const wouldConflictAtSwap = (prevSwap && isSameCard(card, prevSwap)) ||
-                                        (nextSwap && isSameCard(card, nextSwap))
-
-            if (!wouldConflictAtI && !wouldConflictAtINext && !wouldConflictAtSwap) {
-              ;[this.hopper[i], this.hopper[swapIndex]] = [this.hopper[swapIndex], this.hopper[i]]
-              // Run dedup again
-              this._seamDedup(segmentStart, segmentLength, depth + 1)
-              return
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Get the next leader from the hopper
+   * Logic:
+   * - 1/6 chance (~16.67%) to serve a rare leader
+   * - 5/6 chance to serve the next common from the cycle
+   * - If rare would duplicate the last leader, fall back to common
+   * - If common would duplicate the last leader, try next in cycle
    */
   next() {
-    this._fillIfNeeded()
+    const RARE_PROBABILITY = 1 / 6
 
-    const card = this.hopper.shift()
-    return { ...card } // Return a copy
+    let leader = null
+
+    // Decide: rare or common?
+    if (this.rareLeaders.length > 0 && Math.random() < RARE_PROBABILITY) {
+      // Try to serve a rare
+      const rare = this._randomRare()
+      if (rare && rare.name !== this.lastLeaderName) {
+        leader = rare
+      }
+      // If rare would duplicate last leader, fall through to common
+    }
+
+    // If no rare selected, serve from common cycle
+    if (!leader) {
+      // Get next common, but avoid duplicating last leader
+      let attempts = 0
+      const maxAttempts = this.commonLeaders.length
+
+      while (attempts < maxAttempts) {
+        const common = this._nextCommon()
+        if (common.name !== this.lastLeaderName) {
+          leader = common
+          break
+        }
+        attempts++
+      }
+
+      // Fallback: if somehow all commons match last leader (shouldn't happen with 8+ commons)
+      if (!leader && this.commonLeaders.length > 0) {
+        leader = this._nextCommon()
+      }
+    }
+
+    if (leader) {
+      this.lastLeaderName = leader.name
+      return { ...leader }
+    }
+
+    return null
   }
 
   /**
-   * Peek at upcoming cards without removing them
+   * Peek at upcoming cards (approximate - doesn't account for rare probability)
    */
   peek(count = 1) {
-    this._fillIfNeeded()
-    return this.hopper.slice(0, count).map(c => ({ ...c }))
+    const result = []
+    const tempIndex = this.commonIndex
+
+    for (let i = 0; i < count && i < this.commonCycle.length; i++) {
+      const idx = (tempIndex + i) % this.commonCycle.length
+      result.push({ ...this.commonCycle[idx] })
+    }
+
+    return result
   }
 
   /**
-   * Get current hopper size
+   * Get approximate hopper size (commons remaining in current cycle)
    */
   get size() {
-    return this.hopper.length
+    return this.commonCycle.length - this.commonIndex
   }
 }

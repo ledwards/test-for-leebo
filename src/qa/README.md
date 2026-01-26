@@ -144,6 +144,8 @@ npm run test:booster
 
 Statistical analysis of pack generation to detect real-world issues.
 
+Results are automatically written to `results.json` and displayed on the `/stats` page (QA tab).
+
 ### What It Validates
 
 **Pack Structure**
@@ -177,16 +179,20 @@ Statistical analysis of pack generation to detect real-world issues.
 ```bash
 # Full QA run (verbose, ~1-2 minutes)
 npm run qa
-
-# For quick summary, run the test:summary instead
-npm run test:summary
 ```
+
+This will:
+1. Generate and test 100 packs per set
+2. Run all statistical validations
+3. Output results to console (color-coded)
+4. Save results to `src/qa/results.json`
+5. Results automatically appear on `/stats` page (QA tab)
 
 **Sample Size:** 100 packs per set  
 **Tolerance:** 15% for distribution tests  
 **Sets Tested:** SOR, SHD, TWI, JTL, LOF, SEC
 
-**Output:** Color-coded with emojis:
+**Console Output:** Color-coded with emojis:
 - 📊 QA header
 - 🎴 Set sections
 - 🎲 Pack generation status
@@ -194,6 +200,17 @@ npm run test:summary
 - ✅/❌ Test results
 - ⚠️ Warnings (non-fatal, only shown if > 0)
 - Gray text for zero counts (improved readability)
+
+**Results File:** `src/qa/results.json`
+- JSON format with test results and summary
+- Read by `/stats` page for web display
+- Can be committed to git for historical tracking
+
+**Web UI:** Visit `/stats` → QA tab to see:
+- Latest test run timestamp
+- Total/Passed/Failed summary cards
+- Detailed test results with execution times
+- Error messages for failed tests
 
 **Statistical Metrics Shown:**
 - Mean duplicates/triplicates per sealed pod

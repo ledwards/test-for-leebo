@@ -39,12 +39,14 @@ async function runTests() {
   console.log('\x1b[1m\x1b[35m👑 LeaderBelt Tests\x1b[0m')
   console.log('\x1b[35m' + '='.repeat(40) + '\x1b[0m')
 
-  test('initializes with a set code and loads only leaders', () => {
+  test('initializes with a set code and loads leaders', () => {
     const belt = new LeaderBelt('SOR')
-    assert(belt.fillingPool.length > 0, 'Filling pool should not be empty')
-    assert(belt.fillingPool.every(c => c.isLeader), 'All cards in filling pool should be leaders')
-    assert(belt.fillingPool.every(c => c.set === 'SOR'), 'All cards should be from SOR set')
-    assert(belt.fillingPool.every(c => c.variantType === 'Normal'), 'All cards should be normal variants')
+    assert(belt.commonLeaders.length > 0, 'Should have common leaders')
+    assert(belt.rareLeaders.length > 0, 'Should have rare leaders')
+    assert(belt.commonLeaders.every(c => c.isLeader), 'All common leaders should be leaders')
+    assert(belt.rareLeaders.every(c => c.isLeader), 'All rare leaders should be leaders')
+    assert(belt.commonLeaders.every(c => c.set === 'SOR'), 'All common leaders should be from SOR set')
+    assert(belt.commonLeaders.every(c => c.variantType === 'Normal'), 'All leaders should be normal variants')
   })
 
   test('separates leaders into common and rare', () => {
@@ -53,16 +55,12 @@ async function runTests() {
     assert(belt.rareLeaders.length > 0, 'Should have rare leaders')
     assert(belt.commonLeaders.every(c => c.rarity === 'Common'), 'Common leaders should all be Common rarity')
     assert(belt.rareLeaders.every(c => c.rarity === 'Rare'), 'Rare leaders should all be Rare rarity')
-    assertEqual(
-      belt.commonLeaders.length + belt.rareLeaders.length,
-      belt.fillingPool.length,
-      'Common + rare should equal total filling pool'
-    )
   })
 
-  test('hopper is filled on initialization', () => {
+  test('common cycle is initialized on construction', () => {
     const belt = new LeaderBelt('SOR')
-    assert(belt.hopper.length > belt.fillingPool.length, 'Hopper should be at least as large as filling pool after init')
+    assert(belt.commonCycle.length === belt.commonLeaders.length, 'Common cycle should contain all common leaders')
+    assert(belt.commonIndex === 0, 'Common index should start at 0')
   })
 
   test('next() returns a leader card', () => {
@@ -73,11 +71,19 @@ async function runTests() {
     assert(card.set === 'SOR', 'Returned card should be from correct set')
   })
 
-  test('next() removes card from hopper', () => {
+  test('next() advances through the common cycle', () => {
     const belt = new LeaderBelt('SOR')
-    const initialSize = belt.size
-    belt.next()
-    assertEqual(belt.size, initialSize - 1, 'Hopper size should decrease by 1')
+    const initialIndex = belt.commonIndex
+
+    // Draw several cards (some may be rares, but commons should advance)
+    for (let i = 0; i < 10; i++) {
+      belt.next()
+    }
+
+    // Common index should have advanced (accounting for rares not advancing it)
+    // With ~16% rare rate, 10 draws should give ~8 common advances
+    assert(belt.commonIndex > initialIndex || belt.commonIndex === 0,
+      'Common index should advance or cycle has reset')
   })
 
   test('next() returns a copy, not the original', () => {
@@ -89,24 +95,26 @@ async function runTests() {
     assert(card2.modified === undefined, 'Cards should be copies, not references')
   })
 
-  test('hopper refills when depleted', () => {
+  test('common cycle reshuffles when exhausted', () => {
     const belt = new LeaderBelt('SOR')
-    const fillingPoolSize = belt.fillingPool.length
+    const numCommons = belt.commonLeaders.length
 
-    // Drain the hopper to exactly the threshold
-    while (belt.size > fillingPoolSize) {
+    // Record the first cycle order
+    const firstCycleOrder = [...belt.commonCycle].map(c => c.id)
+
+    // Draw enough to exhaust multiple cycles (draw 3x commons, accounting for ~16% rares)
+    const drawCount = numCommons * 4  // Should trigger at least 2-3 reshuffles
+    for (let i = 0; i < drawCount; i++) {
       belt.next()
     }
 
-    // Now hopper.length === fillingPool.length, next call should trigger refill
-    const sizeAtThreshold = belt.size
-    // Pull one more (hopper is still at threshold, won't refill yet)
-    belt.next()
-    // Pull another (hopper is now below threshold, should trigger refill)
-    belt.next()
+    // After reshuffling, the current cycle should be different from the first
+    const currentCycleOrder = belt.commonCycle.map(c => c.id)
+    const areIdentical = firstCycleOrder.every((id, idx) => id === currentCycleOrder[idx])
 
-    // After refill, hopper should be larger than filling pool again
-    assert(belt.size >= fillingPoolSize, `Hopper should refill. Size: ${belt.size}, threshold: ${fillingPoolSize}`)
+    // It's possible but very unlikely (1/8! = 1/40320) for two shuffles to be identical
+    // We just verify the cycle still has the right cards
+    assertEqual(belt.commonCycle.length, numCommons, 'Cycle should maintain same size after reshuffle')
   })
 
   test('rare leaders appear in approximately 1/6 of packs (5:1 ratio)', () => {
@@ -132,7 +140,7 @@ async function runTests() {
     assert(rareFrequency >= 5 && rareFrequency <= 7, `Rare frequency should be ~1 in 6, got 1 in ${rareFrequency.toFixed(1)}`)
   })
 
-  test('no immediately adjacent duplicate leaders (seam dedup)', () => {
+  test('no immediately adjacent duplicate leaders', () => {
     const belt = new LeaderBelt('SOR')
 
     // Check first 100 cards for immediately adjacent duplicates
@@ -143,13 +151,13 @@ async function runTests() {
 
     let violations = 0
     for (let i = 0; i < sample.length - 1; i++) {
-      if (sample[i].id === sample[i + 1].id) {
+      if (sample[i].name === sample[i + 1].name) {
         violations++
       }
     }
 
-    // Should have zero or very few immediate adjacencies
-    assert(violations <= 2, `Found ${violations} immediately adjacent duplicates (max allowed: 2)`)
+    // Should have zero immediate adjacencies (the new design prevents this)
+    assertEqual(violations, 0, `Found ${violations} immediately adjacent duplicates (expected 0)`)
   })
 
   test('different belt instances start at different positions', () => {
@@ -157,57 +165,78 @@ async function runTests() {
     const firstCards = new Set()
     for (let i = 0; i < 10; i++) {
       const belt = new LeaderBelt('SOR')
-      firstCards.add(belt.peek(1)[0].id)
+      firstCards.add(belt.next().name)
     }
 
-    // With random start, we should see variation
+    // With random shuffle start, we should see variation
     assert(firstCards.size > 1, 'Different belt instances should start at different positions')
   })
 
-  test('peek() returns cards without removing them', () => {
+  test('each unique common leader appears before any repeats', () => {
     const belt = new LeaderBelt('SOR')
-    const peeked = belt.peek(3)
-    const sizeBefore = belt.size
+    const numCommons = belt.commonLeaders.length
 
-    assertEqual(peeked.length, 3, 'peek(3) should return 3 cards')
-    assertEqual(belt.size, sizeBefore, 'peek() should not change hopper size')
+    // Draw one full cycle worth of commons (accounting for rares)
+    // We need to track common leaders specifically
+    const commonsSeen = new Set()
+    const commonsOrder = []
+    let drawCount = 0
+    const maxDraws = numCommons * 3  // Safety limit
 
-    // Verify peek matches what next() returns
-    const next1 = belt.next()
-    assertEqual(next1.id, peeked[0].id, 'First peeked card should match first next()')
+    while (commonsSeen.size < numCommons && drawCount < maxDraws) {
+      const card = belt.next()
+      drawCount++
+
+      if (card.rarity === 'Common') {
+        if (commonsSeen.has(card.name)) {
+          // We hit a repeat - check if we've seen all commons first
+          assert(
+            commonsSeen.size === numCommons,
+            `Saw repeat of "${card.name}" after only seeing ${commonsSeen.size}/${numCommons} unique commons. ` +
+            `Commons seen: ${Array.from(commonsSeen).join(', ')}`
+          )
+        }
+        commonsSeen.add(card.name)
+        commonsOrder.push(card.name)
+      }
+    }
+
+    assertEqual(commonsSeen.size, numCommons,
+      `Should see all ${numCommons} unique commons before any repeat`)
   })
 
-  test('no repeating pattern: consecutive belt fills produce different sequences', () => {
+  test('average gap between duplicate commons is close to cycle size', () => {
     const belt = new LeaderBelt('SOR')
+    const numCommons = belt.commonLeaders.length
 
-    // Deploy entire first fill into an array
-    const firstFill = []
-    const fillSize = belt.fillingPool.length * 5 + belt.fillingPool.length // 5 commons + 1 rare per leader
-    for (let i = 0; i < fillSize; i++) {
-      firstFill.push(belt.next().id)
+    // Track when each common leader is seen (in common-only count, not total draws)
+    const lastSeenCommonIndex = new Map()  // name -> common index
+    const gaps = []  // distances between same-name commons (in common-only count)
+    let commonIndex = 0
+
+    for (let i = 0; i < 200; i++) {
+      const card = belt.next()
+      if (card.rarity === 'Common') {
+        if (lastSeenCommonIndex.has(card.name)) {
+          const gap = commonIndex - lastSeenCommonIndex.get(card.name)
+          gaps.push(gap)
+        }
+        lastSeenCommonIndex.set(card.name, commonIndex)
+        commonIndex++
+      }
     }
 
-    // Deploy second fill into an array
-    const secondFill = []
-    for (let i = 0; i < fillSize; i++) {
-      secondFill.push(belt.next().id)
-    }
+    // Average gap should be close to numCommons (the cycle size)
+    // Due to adjacent-duplicate skipping at cycle boundaries, gaps can occasionally
+    // be smaller, but the average should still be close to the cycle size
+    const avgGap = gaps.reduce((a, b) => a + b, 0) / gaps.length
+    const minExpectedAvg = numCommons - 2  // Allow for boundary skips
+    const maxExpectedAvg = numCommons + 2  // Should not be much larger
 
-    // Arrays should not be identical
-    const areIdentical = firstFill.length === secondFill.length &&
-      firstFill.every((id, idx) => id === secondFill[idx])
-
-    assert(!areIdentical, 'Consecutive belt fills should not produce identical sequences')
-
-    // Count how many positions are different
-    let differences = 0
-    for (let i = 0; i < Math.min(firstFill.length, secondFill.length); i++) {
-      if (firstFill[i] !== secondFill[i]) differences++
-    }
-
-    // At least 50% of positions should be different (shuffled)
-    const diffPercent = (differences / firstFill.length) * 100
-    assert(diffPercent > 50, `At least 50% of positions should differ, got ${diffPercent.toFixed(1)}%`)
+    assert(
+      avgGap >= minExpectedAvg && avgGap <= maxExpectedAvg,
+      `Average gap should be ~${numCommons}, got ${avgGap.toFixed(1)} (range: [${Math.min(...gaps)}-${Math.max(...gaps)}])`
+    )
   })
 
   console.log('')

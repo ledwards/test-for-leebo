@@ -6,6 +6,7 @@ import { fetchSetCards } from '../utils/api'
 import { useAuth } from '../contexts/AuthContext'
 import { getAspectColor } from '../utils/aspectColors'
 import CostIcon from './CostIcon'
+import Modal from './Modal'
 import { updatePool, savePool, deletePool } from '../utils/poolApi'
 import { getPackArtUrl } from '../utils/packArt'
 import EditableTitle from './EditableTitle'
@@ -6363,42 +6364,44 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="delete-confirm-overlay" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Delete Deck?</h2>
-            <p>Are you sure you want to delete this deck? This action cannot be undone.</p>
-            <div className="delete-confirm-buttons">
-              <button
-                className="delete-confirm-cancel"
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                className="delete-confirm-delete"
-                onClick={async () => {
-                  setIsDeleting(true)
-                  try {
-                    await deletePool(shareId)
-                    window.location.href = '/history'
-                  } catch (err) {
-                    console.error('Failed to delete:', err)
-                    setErrorMessage('Failed to delete deck')
-                    setMessageType('error')
-                    setShowDeleteConfirm(false)
-                    setIsDeleting(false)
-                  }
-                }}
-                disabled={isDeleting}
-              >
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={showDeleteConfirm}
+        onClose={() => !isDeleting && setShowDeleteConfirm(false)}
+        title="Delete Deck?"
+        variant="danger"
+      >
+        <Modal.Body>
+          <p>Are you sure you want to delete this deck? This action cannot be undone.</p>
+        </Modal.Body>
+        <Modal.Actions>
+          <button
+            className="modal-btn-cancel"
+            onClick={() => setShowDeleteConfirm(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </button>
+          <button
+            className="modal-btn-danger"
+            onClick={async () => {
+              setIsDeleting(true)
+              try {
+                await deletePool(shareId)
+                window.location.href = '/history'
+              } catch (err) {
+                console.error('Failed to delete:', err)
+                setErrorMessage('Failed to delete deck')
+                setMessageType('error')
+                setShowDeleteConfirm(false)
+                setIsDeleting(false)
+              }
+            }}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+        </Modal.Actions>
+      </Modal>
       </div>
     </div>
   )

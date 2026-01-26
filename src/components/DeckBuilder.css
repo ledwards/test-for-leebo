@@ -1,3 +1,5 @@
+@import '../styles/animations.css';
+
 .deck-builder {
   min-height: 100vh;
   padding: 2rem;
@@ -907,19 +909,6 @@
   filter: grayscale(100%);
 }
 
-
-@keyframes rainbow-border {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
 /* Leaders and bases are not rotated in deck builder */
 
 .canvas-card.foil {
@@ -950,15 +939,6 @@
   pointer-events: none;
   z-index: 2;
   animation: foil-shimmer 3s ease-in-out infinite;
-}
-
-@keyframes foil-shimmer {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
 }
 
 .canvas-card.hyperspace {
@@ -1815,7 +1795,7 @@
   .cards-grid .canvas-card {
     width: 100%;
     max-width: 100%;
-    border-radius: 9px;
+    border-radius: 8px;
   }
 
   /* Leaders/bases - landscape orientation */
@@ -1828,11 +1808,11 @@
 
   .canvas-card {
     width: 100%;
-    border-radius: 9px;
+    border-radius: 8px;
   }
 
   .canvas-card img {
-    border-radius: 9px;
+    border-radius: 8px;
   }
 
   /* Leaders/bases container - show both cards side by side, landscape */
@@ -1964,7 +1944,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -2119,8 +2099,8 @@
 }
 
 .delete-confirm-modal {
-  background: rgba(20, 20, 25, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   padding: 2rem;
   max-width: 400px;

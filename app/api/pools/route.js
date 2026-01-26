@@ -4,6 +4,7 @@ import { getSession, requireAuth } from '@/lib/auth.js'
 import { generateShareId } from '@/lib/utils.js'
 import { jsonResponse, errorResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils.js'
 import { getSetConfig } from '@/src/utils/setConfigs/index.js'
+import { trackBulkGenerations } from '@/src/utils/trackGeneration.js'
 
 export async function POST(request) {
   try {
@@ -162,6 +163,22 @@ export async function POST(request) {
     const pool = result.rows[0]
     const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const shareUrl = `${APP_URL}/pool/${shareId}`
+
+    // Track all generated cards for statistics (async, non-blocking)
+    if (cards && Array.isArray(cards)) {
+      const trackingRecords = cards.map(card => ({
+        card,
+        options: {
+          packType: packs ? 'booster' : 'booster', // Could differentiate sealed vs other types
+          sourceType: 'sealed',
+          sourceId: pool.id,
+          sourceShareId: shareId
+        }
+      }))
+      trackBulkGenerations(trackingRecords).catch(err => {
+        console.error('Failed to track sealed pool generations:', err)
+      })
+    }
 
     return jsonResponse({
       id: pool.id,

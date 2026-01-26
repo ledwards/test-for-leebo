@@ -30,6 +30,48 @@ import { HyperspaceRareLegendaryBelt } from '../belts/HyperspaceRareLegendaryBel
 import { getSetConfig } from './setConfigs/index.js'
 import { getCachedCards } from './cardCache.js'
 
+/**
+ * Find the Hyperspace variant of a specific card
+ * Returns the HS version if found, null otherwise
+ */
+function findHyperspaceVariant(card, setCode) {
+  if (!card || !card.name) return null
+
+  const allCards = getCachedCards(setCode)
+
+  // Find a card with the same name but Hyperspace variantType
+  const hsVariant = allCards.find(c =>
+    c.name === card.name &&
+    c.variantType === 'Hyperspace' &&
+    c.rarity === card.rarity // Same rarity (Common leaders stay Common, etc.)
+  )
+
+  if (hsVariant) {
+    return { ...hsVariant, isHyperspace: true }
+  }
+  return null
+}
+
+/**
+ * Find the Showcase variant of a specific card
+ * Returns the Showcase version if found, null otherwise
+ */
+function findShowcaseVariant(card, setCode) {
+  if (!card || !card.name) return null
+
+  const allCards = getCachedCards(setCode)
+
+  const showcaseVariant = allCards.find(c =>
+    c.name === card.name &&
+    c.variantType === 'Showcase'
+  )
+
+  if (showcaseVariant) {
+    return { ...showcaseVariant, isShowcase: true }
+  }
+  return null
+}
+
 // Cache belts by set code so we reuse the same belt across pack generation
 const beltCache = new Map()
 
@@ -226,67 +268,74 @@ function applyUpgradePass(pack, setCode) {
   })
 
   // 1. Leader upgrades (Showcase takes precedence if both hit)
+  // IMPORTANT: Upgrades must find the variant of the SAME leader, not a random one!
+  // This prevents getting both HS and Normal versions of the same leader in a pod.
   if (leaderIndex >= 0) {
+    const currentLeader = pack.cards[leaderIndex]
     if (probs.leaderToShowcase && shouldUpgrade(probs.leaderToShowcase)) {
-      // Upgrade to Showcase leader
-      const showcaseBelt = getShowcaseLeaderBelt(setCode)
-      const upgraded = showcaseBelt.next()
+      // Upgrade to Showcase version of THIS leader
+      const upgraded = findShowcaseVariant(currentLeader, setCode)
       if (upgraded) pack.cards[leaderIndex] = upgraded
     } else if (probs.leaderToHyperspace && shouldUpgrade(probs.leaderToHyperspace)) {
-      // Upgrade to Hyperspace leader
-      const hsBelt = getHyperspaceLeaderBelt(setCode)
-      const upgraded = hsBelt.next()
+      // Upgrade to Hyperspace version of THIS leader
+      const upgraded = findHyperspaceVariant(currentLeader, setCode)
       if (upgraded) pack.cards[leaderIndex] = upgraded
     }
   }
 
-  // 2. Base upgrade
+  // 2. Base upgrade - find HS version of THIS base
   if (baseIndex >= 0 && probs.baseToHyperspace && shouldUpgrade(probs.baseToHyperspace)) {
-    const hsBelt = getHyperspaceBaseBelt(setCode)
-    const upgraded = hsBelt.next()
+    const currentBase = pack.cards[baseIndex]
+    const upgraded = findHyperspaceVariant(currentBase, setCode)
     if (upgraded) pack.cards[baseIndex] = upgraded
   }
 
-  // 3. Rare slot upgrade to Hyperspace R/L
+  // 3. Rare slot upgrade to Hyperspace R/L - find HS version of THIS card
   if (rareIndex >= 0 && probs.rareToHyperspaceRL && shouldUpgrade(probs.rareToHyperspaceRL)) {
-    const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode)
-    const upgraded = hsRLBelt.next()
+    const currentRare = pack.cards[rareIndex]
+    const upgraded = findHyperspaceVariant(currentRare, setCode)
     if (upgraded) pack.cards[rareIndex] = upgraded
   }
 
-  // 4. Foil upgrade to Hyperfoil
+  // 4. Foil upgrade to Hyperfoil - find HS version of THIS foil
   if (foilIndex >= 0 && probs.foilToHyperfoil && shouldUpgrade(probs.foilToHyperfoil)) {
-    const hyperfoilBelt = getHyperfoilBelt(setCode)
-    const upgraded = hyperfoilBelt.next()
-    if (upgraded) pack.cards[foilIndex] = upgraded
+    const currentFoil = pack.cards[foilIndex]
+    const upgraded = findHyperspaceVariant(currentFoil, setCode)
+    if (upgraded) {
+      upgraded.isFoil = true // Preserve foil status
+      pack.cards[foilIndex] = upgraded
+    }
   }
 
-  // 5. Third UC upgrade to Hyperspace R/L (not UC!)
+  // 5. First UC upgrade to Hyperspace UC - find HS version of THIS uncommon
+  // IMPORTANT: Apply UC->HS_UC upgrades BEFORE UC->HS_R/L to avoid index corruption
+  if (uncommonIndices.length >= 1 && probs.firstUCToHyperspaceUC && shouldUpgrade(probs.firstUCToHyperspaceUC)) {
+    const currentUC = pack.cards[uncommonIndices[0]]
+    const upgraded = findHyperspaceVariant(currentUC, setCode)
+    if (upgraded) pack.cards[uncommonIndices[0]] = upgraded
+  }
+
+  // 6. Second UC upgrade to Hyperspace UC - find HS version of THIS uncommon
+  if (uncommonIndices.length >= 2 && probs.secondUCToHyperspaceUC && shouldUpgrade(probs.secondUCToHyperspaceUC)) {
+    const currentUC = pack.cards[uncommonIndices[1]]
+    const upgraded = findHyperspaceVariant(currentUC, setCode)
+    if (upgraded) pack.cards[uncommonIndices[1]] = upgraded
+  }
+
+  // 7. Third UC upgrade to Hyperspace R/L (RARITY change - uses belt for random R/L)
+  // This is intentionally a random R/L card, not the same UC in HS form
+  // This MUST happen after UC->HS_UC upgrades since it changes rarity and corrupts uncommonIndices
   if (uncommonIndices.length >= 3 && probs.thirdUCToHyperspaceRL && shouldUpgrade(probs.thirdUCToHyperspaceRL)) {
     const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode)
     const upgraded = hsRLBelt.next()
     if (upgraded) pack.cards[uncommonIndices[2]] = upgraded
   }
 
-  // 6. First UC upgrade to Hyperspace UC
-  if (uncommonIndices.length >= 1 && probs.firstUCToHyperspaceUC && shouldUpgrade(probs.firstUCToHyperspaceUC)) {
-    const hsUCBelt = getHyperspaceUncommonBelt(setCode)
-    const upgraded = hsUCBelt.next()
-    if (upgraded) pack.cards[uncommonIndices[0]] = upgraded
-  }
-
-  // 7. Second UC upgrade to Hyperspace UC
-  if (uncommonIndices.length >= 2 && probs.secondUCToHyperspaceUC && shouldUpgrade(probs.secondUCToHyperspaceUC)) {
-    const hsUCBelt = getHyperspaceUncommonBelt(setCode)
-    const upgraded = hsUCBelt.next()
-    if (upgraded) pack.cards[uncommonIndices[1]] = upgraded
-  }
-
-  // 8. Common upgrade (pick one random common and replace with HS common)
+  // 8. Common upgrade - find HS version of a random common
   if (commonIndices.length > 0 && probs.commonToHyperspace && shouldUpgrade(probs.commonToHyperspace)) {
     const randomCommonIndex = commonIndices[Math.floor(Math.random() * commonIndices.length)]
-    const hsCommonBelt = getHyperspaceCommonBelt(setCode)
-    const upgraded = hsCommonBelt.next()
+    const currentCommon = pack.cards[randomCommonIndex]
+    const upgraded = findHyperspaceVariant(currentCommon, setCode)
     if (upgraded) pack.cards[randomCommonIndex] = upgraded
   }
 
