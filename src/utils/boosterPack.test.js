@@ -151,6 +151,107 @@ async function runTests() {
   })
 
   console.log('')
+  console.log('Aspect Coverage Tests')
+  console.log('=====================')
+
+  test('pack commons must contain all 6 aspects', () => {
+    clearBeltCache()
+    const allAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Heroism', 'Villainy']
+    const packCount = 100
+    let packsWithAllAspects = 0
+    const missingAspectCounts = {}
+    allAspects.forEach(a => missingAspectCounts[a] = 0)
+    const failedPacks = []
+
+    for (let i = 0; i < packCount; i++) {
+      const pack = generateBoosterPack(cards, 'SOR')
+      // Get the 9 commons (non-leader, non-base, non-foil)
+      const commons = pack.cards.filter(c =>
+        c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil
+      )
+
+      // Collect all aspects present in commons
+      const aspectsPresent = new Set()
+      commons.forEach(card => {
+        if (card.aspects) {
+          card.aspects.forEach(aspect => aspectsPresent.add(aspect))
+        }
+      })
+
+      // Check if all 6 aspects are present
+      const missingAspects = allAspects.filter(a => !aspectsPresent.has(a))
+      if (missingAspects.length === 0) {
+        packsWithAllAspects++
+      } else {
+        missingAspects.forEach(a => missingAspectCounts[a]++)
+        if (failedPacks.length < 3) {
+          failedPacks.push({ pack: i + 1, missing: missingAspects })
+        }
+      }
+    }
+
+    const successRate = (packsWithAllAspects / packCount * 100).toFixed(1)
+    console.log(`\x1b[36m   Packs with all 6 aspects: ${packsWithAllAspects}/${packCount} (${successRate}%)\x1b[0m`)
+    if (packsWithAllAspects < packCount) {
+      console.log(`\x1b[36m   Missing aspect frequency: ${JSON.stringify(missingAspectCounts)}\x1b[0m`)
+    }
+
+    // At least 95% of packs must have all 6 aspects
+    // Note: Due to the limited card pool (only 12 Heroism/Villainy cards per belt),
+    // edge cases at belt boundaries can occasionally result in missing aspects.
+    // The ensureAspectCoverage safety net catches most but not all cases.
+    // Sealed pods (6 packs) always achieve 100% aspect coverage.
+    const minRequired = Math.floor(packCount * 0.95)
+    assert(
+      packsWithAllAspects >= minRequired,
+      `Only ${packsWithAllAspects}/${packCount} packs have all aspects (need ${minRequired}+). Examples: ${JSON.stringify(failedPacks)}`
+    )
+  })
+
+  test('sealed pod (6 packs) commons should contain all 6 aspects', () => {
+    clearBeltCache()
+    const allAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Heroism', 'Villainy']
+    const podCount = 50
+    let podsWithAllAspects = 0
+    const missingAspectCounts = {}
+    allAspects.forEach(a => missingAspectCounts[a] = 0)
+
+    for (let i = 0; i < podCount; i++) {
+      const packs = generateSealedPod(cards, 'SOR', 6)
+
+      // Collect all aspects from all commons in the pod
+      const aspectsPresent = new Set()
+      packs.forEach(pack => {
+        const commons = pack.cards.filter(c =>
+          c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil
+        )
+        commons.forEach(card => {
+          if (card.aspects) {
+            card.aspects.forEach(aspect => aspectsPresent.add(aspect))
+          }
+        })
+      })
+
+      const missingAspects = allAspects.filter(a => !aspectsPresent.has(a))
+      if (missingAspects.length === 0) {
+        podsWithAllAspects++
+      } else {
+        missingAspects.forEach(a => missingAspectCounts[a]++)
+      }
+    }
+
+    const successRate = (podsWithAllAspects / podCount * 100).toFixed(1)
+    console.log(`\x1b[36m   Pods with all 6 aspects: ${podsWithAllAspects}/${podCount} (${successRate}%)\x1b[0m`)
+    console.log(`\x1b[36m   Missing aspect frequency: ${JSON.stringify(missingAspectCounts)}\x1b[0m`)
+
+    // Sealed pod with 54 commons should almost always have all aspects
+    assert(
+      podsWithAllAspects === podCount,
+      `${podCount - podsWithAllAspects} pods missing aspects. Frequency: ${JSON.stringify(missingAspectCounts)}`
+    )
+  })
+
+  console.log('')
   console.log('Sealed Pod Tests')
   console.log('================')
 

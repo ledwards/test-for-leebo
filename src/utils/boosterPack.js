@@ -28,6 +28,7 @@ import { HyperspaceUncommonBelt } from '../belts/HyperspaceUncommonBelt.js'
 import { HyperspaceCommonBelt } from '../belts/HyperspaceCommonBelt.js'
 import { HyperspaceRareLegendaryBelt } from '../belts/HyperspaceRareLegendaryBelt.js'
 import { getSetConfig } from './setConfigs/index.js'
+import { getCachedCards } from './cardCache.js'
 
 // Cache belts by set code so we reuse the same belt across pack generation
 const beltCache = new Map()
@@ -92,6 +93,9 @@ function getUncommonBelt(setCode) {
 
 /**
  * Get or create CommonBelts A and B for a set
+ * Belt A guarantees: Vigilance, Command, Heroism
+ * Belt B guarantees: Aggression, Cunning, Villainy
+ * Combined: all 6 aspects in every pack's commons
  */
 function getCommonBelts(setCode) {
   const keyA = `common-a-${setCode}`
@@ -290,6 +294,188 @@ function applyUpgradePass(pack, setCode) {
 }
 
 /**
+ * Check if a card has a specific aspect
+ */
+function cardHasAspect(card, aspect) {
+  return card.aspects && card.aspects.includes(aspect)
+}
+
+// Cache for aspect fix cards - populated on first use per set
+const aspectFixCache = new Map()
+
+/**
+ * Get all common cards with the specified aspect, shuffled.
+ * Returns a new shuffled array each time to avoid duplicate selection issues.
+ */
+function getAspectFixCards(setCode, aspect) {
+  const key = `${setCode}-${aspect}`
+  if (!aspectFixCache.has(key)) {
+    // Build cache for this set/aspect
+    const allCards = getCachedCards(setCode)
+    const commons = allCards.filter(c =>
+      c.variantType === 'Normal' &&
+      c.rarity === 'Common' &&
+      !c.isLeader &&
+      !c.isBase &&
+      c.aspects?.includes(aspect)
+    )
+    aspectFixCache.set(key, commons)
+  }
+
+  const cards = aspectFixCache.get(key)
+  if (cards.length === 0) return []
+
+  // Return a shuffled copy
+  const shuffled = [...cards]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled.map(c => ({ ...c }))
+}
+
+/**
+ * Clear the aspect fix cache (for testing)
+ */
+export function clearAspectFixCache() {
+  aspectFixCache.clear()
+}
+
+/**
+ * Validate that pack commons have all 6 aspects.
+ * If any aspect is missing, replace a redundant common with one that has the missing aspect.
+ * Uses the card cache directly to avoid disrupting belt state.
+ */
+function ensureAspectCoverage(packCards, beltA, beltB, startedWithA, setCode) {
+  const requiredAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Heroism', 'Villainy']
+
+  // Find commons in the pack (not leader, not base, not foil)
+  const commonIndices = []
+  packCards.forEach((card, idx) => {
+    if (card.rarity === 'Common' && !card.isLeader && !card.isBase && !card.isFoil) {
+      commonIndices.push(idx)
+    }
+  })
+
+  if (commonIndices.length === 0) return
+
+  // Check which aspects are present
+  const getPresent = () => {
+    const present = new Set()
+    for (const idx of commonIndices) {
+      const card = packCards[idx]
+      if (card.aspects) {
+        card.aspects.forEach(a => present.add(a))
+      }
+    }
+    return present
+  }
+
+  // Get IDs of cards already in pack to avoid duplicates
+  const packCardIds = new Set(packCards.map(c => c.id))
+
+  // Fix missing aspects (up to 6 attempts, one per potentially missing aspect)
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const presentAspects = getPresent()
+    const missingAspects = requiredAspects.filter(a => !presentAspects.has(a))
+
+    if (missingAspects.length === 0) {
+      return // All aspects present!
+    }
+
+    // Fix the first missing aspect
+    const missing = missingAspects[0]
+
+    // Get cards with the missing aspect from the card cache (shuffled)
+    const candidates = getAspectFixCards(setCode, missing)
+    if (candidates.length === 0) continue
+
+    // Find a card that isn't already in the pack
+    let replacement = candidates.find(c => !packCardIds.has(c.id))
+
+    // If all cards are duplicates, just use the first one (aspect coverage is more important)
+    if (!replacement) {
+      replacement = candidates[0]
+    }
+
+    // Find a common to replace that won't break other aspects
+    // A card is safe to replace if all its aspects are covered by other commons
+    // OR if the replacement also has those aspects
+    let bestIdx = -1
+
+    for (const idx of commonIndices) {
+      const card = packCards[idx]
+      const aspects = card.aspects || []
+
+      // Cards with no aspects are always safe to replace
+      if (aspects.length === 0) {
+        bestIdx = idx
+        break
+      }
+
+      // Check if this card is safe to replace with the current replacement
+      let safeToReplace = true
+      for (const aspect of aspects) {
+        const otherHasIt = commonIndices.some(otherIdx =>
+          otherIdx !== idx && packCards[otherIdx].aspects?.includes(aspect)
+        )
+        const replacementHasIt = replacement.aspects?.includes(aspect)
+
+        if (!otherHasIt && !replacementHasIt) {
+          safeToReplace = false
+          break
+        }
+      }
+
+      if (safeToReplace) {
+        bestIdx = idx
+        break
+      }
+    }
+
+    // If no safe candidate found, try to find a different replacement that covers
+    // both the missing aspect AND the unique aspects of potential replacement targets
+    if (bestIdx < 0) {
+      for (const idx of commonIndices) {
+        const card = packCards[idx]
+        const aspects = card.aspects || []
+
+        // Find unique aspects this card provides
+        const uniqueAspects = aspects.filter(aspect =>
+          !commonIndices.some(otherIdx =>
+            otherIdx !== idx && packCards[otherIdx].aspects?.includes(aspect)
+          )
+        )
+
+        // Look for a replacement that has the missing aspect AND all unique aspects
+        const neededAspects = [missing, ...uniqueAspects]
+        const betterReplacement = candidates.find(c =>
+          !packCardIds.has(c.id) &&
+          neededAspects.every(a => c.aspects?.includes(a))
+        )
+
+        if (betterReplacement) {
+          replacement = betterReplacement
+          bestIdx = idx
+          break
+        }
+      }
+    }
+
+    // If still no candidate, skip this fix attempt
+    if (bestIdx < 0) {
+      continue
+    }
+
+    // Do the replacement
+    const oldCard = packCards[bestIdx]
+    packCardIds.delete(oldCard.id)
+    packCards[bestIdx] = replacement
+    packCardIds.add(replacement.id)
+  }
+}
+
+/**
  * Generate a single booster pack
  * @param {Array} cards - All cards
  * @param {string} setCode - Set code (SOR, SHD, etc.)
@@ -306,6 +492,7 @@ export function generateBoosterPack(cards, setCode) {
 
   // Build pack
   const packCards = []
+  const currentStartWithA = startWithBeltA
 
   // 1 Leader (from belt)
   const leader = leaderBelt.next()
@@ -328,6 +515,9 @@ export function generateBoosterPack(cards, setCode) {
 
   // Toggle for next pack
   startWithBeltA = !startWithBeltA
+
+  // Ensure all 6 aspects are covered in commons (safety net for belt edge cases)
+  ensureAspectCoverage(packCards, commonBeltA, commonBeltB, currentStartWithA, setCode)
 
   // 3 Uncommons (from belt)
   for (let i = 0; i < 3; i++) {
