@@ -283,6 +283,95 @@ test('Unranked leaders fall to the end', () => {
   assert(leader.name === 'Jyn Erso', `Expected ranked Jyn Erso over unranked, got ${leader.name}`)
 })
 
+// In-color picking tests
+console.log('\n\x1b[36mIn-Color Card Selection Tests\x1b[0m')
+
+test('Bot strongly prefers in-color cards over off-color cards', () => {
+  const behavior = new PopularLeaderBehavior()
+  // Sabine is Aggression/Heroism
+  const context = {
+    draftedLeaders: [{ name: 'Sabine Wren', aspects: ['Aggression', 'Heroism'] }],
+    setCode: 'SOR'
+  }
+
+  // Off-color rare vs in-color common - should pick in-color
+  const pack = [
+    { id: '1', name: 'Off-Color Rare', type: 'Unit', rarity: 'Rare', aspects: ['Vigilance', 'Villainy'], cost: 3, power: 4, hp: 4 },
+    { id: '2', name: 'In-Color Common', type: 'Unit', rarity: 'Common', aspects: ['Aggression'], cost: 2, power: 2, hp: 2 },
+  ]
+
+  const card = behavior.selectCard(pack, context)
+  assert(card.name === 'In-Color Common', `Should pick in-color common over off-color rare, got ${card.name}`)
+})
+
+test('Bot picks in-color over neutral when same rarity/type', () => {
+  const behavior = new PopularLeaderBehavior()
+  const context = {
+    draftedLeaders: [{ name: 'Sabine Wren', aspects: ['Aggression', 'Heroism'] }],
+    setCode: 'SOR'
+  }
+
+  const pack = [
+    { id: '1', name: 'Neutral Unit', type: 'Unit', rarity: 'Common', aspects: [], cost: 2, power: 2, hp: 2 },
+    { id: '2', name: 'Aggression Unit', type: 'Unit', rarity: 'Common', aspects: ['Aggression'], cost: 2, power: 2, hp: 2 },
+  ]
+
+  const card = behavior.selectCard(pack, context)
+  assert(card.name === 'Aggression Unit', `Should pick in-color over neutral, got ${card.name}`)
+})
+
+test('Bot consistently picks cards matching leader aspects over 10 picks', () => {
+  const behavior = new PopularLeaderBehavior()
+  // Darth Vader is Aggression/Villainy
+  const context = {
+    draftedLeaders: [{ name: 'Darth Vader', aspects: ['Aggression', 'Villainy'] }],
+    setCode: 'SOR'
+  }
+
+  let inColorPicks = 0
+  const totalPicks = 10
+
+  for (let i = 0; i < totalPicks; i++) {
+    // Each pack has mix of in-color and off-color
+    const pack = [
+      { id: `off-${i}`, name: 'Off-Color Card', type: 'Unit', rarity: 'Common', aspects: ['Command', 'Heroism'], cost: 2, power: 2, hp: 2 },
+      { id: `in-${i}`, name: 'In-Color Card', type: 'Unit', rarity: 'Common', aspects: ['Aggression'], cost: 2, power: 2, hp: 2 },
+      { id: `neutral-${i}`, name: 'Neutral Card', type: 'Unit', rarity: 'Common', aspects: [], cost: 2, power: 2, hp: 2 },
+    ]
+
+    const card = behavior.selectCard(pack, context)
+    if (card.aspects && card.aspects.some(a => ['Aggression', 'Villainy'].includes(a))) {
+      inColorPicks++
+    }
+  }
+
+  // Should pick in-color at least 80% of the time
+  const inColorRate = inColorPicks / totalPicks
+  assert(inColorRate >= 0.8, `Should pick in-color 80%+ of time, got ${inColorRate * 100}%`)
+})
+
+test('Bot with multiple leaders uses combined aspects', () => {
+  const behavior = new PopularLeaderBehavior()
+  // Two leaders with different aspects
+  const context = {
+    draftedLeaders: [
+      { name: 'Sabine Wren', aspects: ['Aggression', 'Heroism'] },
+      { name: 'Boba Fett', aspects: ['Cunning', 'Villainy'] },
+    ],
+    setCode: 'SOR'
+  }
+
+  // Card that matches second leader but not first
+  const pack = [
+    { id: '1', name: 'Cunning Card', type: 'Unit', rarity: 'Common', aspects: ['Cunning'], cost: 2, power: 2, hp: 2 },
+    { id: '2', name: 'Vigilance Card', type: 'Unit', rarity: 'Common', aspects: ['Vigilance'], cost: 2, power: 2, hp: 2 },
+  ]
+
+  const card = behavior.selectCard(pack, context)
+  // Cunning matches Boba Fett, Vigilance matches neither
+  assert(card.name === 'Cunning Card', `Should pick card matching any leader's aspect, got ${card.name}`)
+})
+
 // Summary
 console.log('\n\x1b[35m======================\x1b[0m')
 console.log(`\x1b[32m✅ Tests passed: ${passed}\x1b[0m`)
