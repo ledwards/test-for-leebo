@@ -174,6 +174,115 @@ test('PopularLeaderBehavior can reset state', () => {
   assert(behavior.secondaryColor === null, 'Reset should clear secondary color')
 })
 
+// Comprehensive leader ranking tests
+console.log('\n\x1b[36mLeader Ranking Tests\x1b[0m')
+
+test('SOR: Sabine Wren is #1 pick when available', () => {
+  const behavior = new PopularLeaderBehavior()
+  const allSORLeaders = [
+    { id: 'SOR-018', name: 'Jyn Erso', set: 'SOR', aspects: ['Cunning', 'Heroism'] },
+    { id: 'SOR-014', name: 'Sabine Wren', set: 'SOR', aspects: ['Aggression', 'Heroism'] },
+    { id: 'SOR-007', name: 'Grand Moff Tarkin', set: 'SOR', aspects: ['Command', 'Villainy'] },
+    { id: 'SOR-010', name: 'Darth Vader', set: 'SOR', aspects: ['Aggression', 'Villainy'] },
+  ]
+  const leader = behavior.selectLeader(allSORLeaders, { setCode: 'SOR' })
+  assert(leader.name === 'Sabine Wren', `Expected Sabine Wren, got ${leader.name}`)
+})
+
+test('SOR: Picks in ranking order (Sabine > Boba > Vader > Han > Tarkin)', () => {
+  const behavior = new PopularLeaderBehavior()
+
+  // Simulate drafting - each pick removes the selected leader
+  let available = [
+    { id: 'SOR-018', name: 'Jyn Erso', set: 'SOR', aspects: ['Cunning', 'Heroism'] },
+    { id: 'SOR-014', name: 'Sabine Wren', set: 'SOR', aspects: ['Aggression', 'Heroism'] },
+    { id: 'SOR-015', name: 'Boba Fett', set: 'SOR', aspects: ['Cunning', 'Villainy'] },
+    { id: 'SOR-007', name: 'Grand Moff Tarkin', set: 'SOR', aspects: ['Command', 'Villainy'] },
+    { id: 'SOR-010', name: 'Darth Vader', set: 'SOR', aspects: ['Aggression', 'Villainy'] },
+    { id: 'SOR-017', name: 'Han Solo', set: 'SOR', aspects: ['Cunning', 'Heroism'] },
+  ]
+
+  const expectedOrder = ['Sabine Wren', 'Boba Fett', 'Darth Vader', 'Han Solo', 'Grand Moff Tarkin']
+  const actualOrder = []
+
+  for (let i = 0; i < 5; i++) {
+    const pick = behavior.selectLeader(available, { setCode: 'SOR' })
+    actualOrder.push(pick.name)
+    available = available.filter(l => l.id !== pick.id)
+  }
+
+  assert(
+    JSON.stringify(actualOrder) === JSON.stringify(expectedOrder),
+    `Expected order ${expectedOrder.join(' > ')}, got ${actualOrder.join(' > ')}`
+  )
+})
+
+test('SHD: Han Solo is #1 pick when available', () => {
+  const behavior = new PopularLeaderBehavior()
+  const shdLeaders = [
+    { id: 'SHD-013', name: 'Han Solo', set: 'SHD', aspects: ['Aggression', 'Heroism'] },
+    { id: 'SHD-008', name: 'Boba Fett', set: 'SHD', aspects: ['Command', 'Heroism'] },
+    { id: 'SHD-014', name: 'Cad Bane', set: 'SHD', aspects: ['Cunning', 'Villainy'] },
+  ]
+  const leader = behavior.selectLeader(shdLeaders, { setCode: 'SHD' })
+  assert(leader.name === 'Han Solo', `Expected Han Solo, got ${leader.name}`)
+})
+
+test('TWI: Yoda is #1 pick when available', () => {
+  const behavior = new PopularLeaderBehavior()
+  const twiLeaders = [
+    { id: 'TWI-004', name: 'Yoda', set: 'TWI', aspects: ['Vigilance', 'Heroism'] },
+    { id: 'TWI-012', name: 'Anakin Skywalker', set: 'TWI', aspects: ['Aggression', 'Heroism'] },
+    { id: 'TWI-018', name: 'Quinlan Vos', set: 'TWI', aspects: ['Cunning', 'Heroism'] },
+  ]
+  const leader = behavior.selectLeader(twiLeaders, { setCode: 'TWI' })
+  assert(leader.name === 'Yoda', `Expected Yoda, got ${leader.name}`)
+})
+
+test('JTL: Poe Dameron is #1 pick when available', () => {
+  const behavior = new PopularLeaderBehavior()
+  const jtlLeaders = [
+    { id: 'JTL-013', name: 'Poe Dameron', set: 'JTL', aspects: ['Aggression', 'Heroism'] },
+    { id: 'JTL-006', name: 'Darth Vader', set: 'JTL', aspects: ['Command', 'Villainy'] },
+    { id: 'JTL-017', name: 'Han Solo', set: 'JTL', aspects: ['Cunning', 'Heroism'] },
+  ]
+  const leader = behavior.selectLeader(jtlLeaders, { setCode: 'JTL' })
+  assert(leader.name === 'Poe Dameron', `Expected Poe Dameron, got ${leader.name}`)
+})
+
+test('LOF: Rey is #1 pick when available', () => {
+  const behavior = new PopularLeaderBehavior()
+  const lofLeaders = [
+    { id: 'LOF-012', name: 'Rey', set: 'LOF', aspects: ['Aggression', 'Heroism'] },
+    { id: 'LOF-009', name: 'Darth Maul', set: 'LOF', aspects: ['Aggression', 'Villainy'] },
+    { id: 'LOF-003', name: 'Ahsoka Tano', set: 'LOF', aspects: ['Vigilance', 'Heroism'] },
+  ]
+  const leader = behavior.selectLeader(lofLeaders, { setCode: 'LOF' })
+  assert(leader.name === 'Rey', `Expected Rey, got ${leader.name}`)
+})
+
+test('SEC: Leia Organa is #1 pick when available', () => {
+  const behavior = new PopularLeaderBehavior()
+  const secLeaders = [
+    { id: 'SEC-004', name: 'Leia Organa', set: 'SEC', aspects: ['Vigilance', 'Heroism'] },
+    { id: 'SEC-001', name: 'Chancellor Palpatine', set: 'SEC', aspects: ['Vigilance', 'Villainy'] },
+    { id: 'SEC-012', name: 'Cassian Andor', set: 'SEC', aspects: ['Aggression', 'Heroism'] },
+  ]
+  const leader = behavior.selectLeader(secLeaders, { setCode: 'SEC' })
+  assert(leader.name === 'Leia Organa', `Expected Leia Organa, got ${leader.name}`)
+})
+
+test('Unranked leaders fall to the end', () => {
+  const behavior = new PopularLeaderBehavior()
+  const mixedLeaders = [
+    { id: 'FAKE-001', name: 'Fake Leader', set: 'SOR', aspects: ['Aggression', 'Heroism'] },
+    { id: 'SOR-018', name: 'Jyn Erso', set: 'SOR', aspects: ['Cunning', 'Heroism'] },
+  ]
+  const leader = behavior.selectLeader(mixedLeaders, { setCode: 'SOR' })
+  // Jyn Erso is ranked (last), Fake Leader is unranked
+  assert(leader.name === 'Jyn Erso', `Expected ranked Jyn Erso over unranked, got ${leader.name}`)
+})
+
 // Summary
 console.log('\n\x1b[35m======================\x1b[0m')
 console.log(`\x1b[32m✅ Tests passed: ${passed}\x1b[0m`)
