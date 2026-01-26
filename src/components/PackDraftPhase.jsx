@@ -29,6 +29,7 @@ function PackDraftPhase({
   isHost,
   onTogglePause,
   shareId,
+  onTimerExpire,
 }) {
 
   const [showReviewModal, setShowReviewModal] = useState(false)
@@ -368,6 +369,7 @@ function PackDraftPhase({
           players={players}
           isHost={isHost}
           onTogglePause={onTogglePause}
+          onTimerExpire={onTimerExpire}
           onClose={() => setShowReviewModal(false)}
         />
       )}

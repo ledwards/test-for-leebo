@@ -6,6 +6,8 @@ import { requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/utils.js'
 import { processAllStagedPicks } from '@/src/utils/draftAdvance.js'
 import { processBotTurns } from '@/src/utils/botLogic.js'
+import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout.js'
+import { broadcastDraftState } from '@/src/lib/sseBroadcast.js'
 
 export async function POST(request, { params }) {
   try {
@@ -27,6 +29,17 @@ export async function POST(request, { params }) {
 
     if (pod.status !== 'active') {
       return errorResponse('Draft is not active', 400)
+    }
+
+    // Check and enforce timeouts before validating selection
+    // This ensures we're working with current state (leaders/packs may have rotated)
+    const timeoutEnforced = await checkAndEnforceTimeout(pod.id)
+    if (timeoutEnforced) {
+      // State changed - broadcast update and return error so client can refresh
+      broadcastDraftState(shareId).catch(err => {
+        console.error('Error broadcasting after timeout:', err)
+      })
+      return errorResponse('Draft state changed, please refresh', 409)
     }
 
     // Get current player
@@ -55,6 +68,15 @@ export async function POST(request, { params }) {
           (l.instanceId && l.instanceId === cardId) || (!l.instanceId && l.id === cardId)
         )
         if (!leaderExists) {
+          // Debug: log what we have vs what was requested
+          console.error('[SELECT] Leader not available:', {
+            cardId,
+            leadersCount: leaders.length,
+            leaderIds: leaders.slice(0, 5).map(l => ({ id: l.id, instanceId: l.instanceId, name: l.name })),
+            playerId: player.id,
+            pickStatus: player.pick_status,
+            rawLeaders: typeof player.leaders === 'string' ? 'string' : 'object'
+          })
           return errorResponse('Leader not available', 400)
         }
       } else if (draftState.phase === 'pack_draft') {
@@ -85,6 +107,11 @@ export async function POST(request, { params }) {
       'UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1',
       [pod.id]
     )
+
+    // Broadcast state update immediately so clients see the selection
+    broadcastDraftState(shareId).catch(err => {
+      console.error('Error broadcasting draft state:', err)
+    })
 
     // Check if all players have now selected - if so, process picks immediately
     // This handles the case of all-human drafts without relying on bot processing

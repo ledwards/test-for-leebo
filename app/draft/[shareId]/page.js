@@ -201,8 +201,14 @@ export default function DraftRoomPage({ params }) {
     setSelecting(true)
     setError(null)
     try {
-      await selectCard(shareId, cardId)
-      await refresh()
+      const result = await selectCard(shareId, cardId)
+      // Handle state changed response (409) - refresh data silently
+      if (result?.stateChanged) {
+        await refresh()
+        // Don't show error - the SSE will update the UI with current state
+        return
+      }
+      // SSE will push the state update, no need to refresh normally
     } catch (err) {
       setError(err.message)
     } finally {
@@ -336,6 +342,7 @@ export default function DraftRoomPage({ params }) {
             isHost={isHost}
             onTogglePause={handleTogglePause}
             shareId={shareId}
+            onTimerExpire={refresh}
           />
         )
       }
@@ -353,6 +360,7 @@ export default function DraftRoomPage({ params }) {
             isHost={isHost}
             onTogglePause={handleTogglePause}
             shareId={shareId}
+            onTimerExpire={refresh}
           />
         )
       }

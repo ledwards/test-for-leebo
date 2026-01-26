@@ -274,11 +274,19 @@ export async function processBotTurns(podId) {
      WHERE id = $1
        AND status = 'active'
        AND (bot_processing_since IS NULL OR bot_processing_since < NOW() - INTERVAL '30 seconds')
-     RETURNING id`,
+     RETURNING id, share_id`,
     [podId]
   )
 
   if (lockResult.rowCount === 0) {
+    // Another process is handling bots - but still broadcast current state
+    // in case the other process finished and we missed the broadcast
+    const pod = await queryRow('SELECT share_id FROM draft_pods WHERE id = $1', [podId])
+    if (pod?.share_id) {
+      broadcastDraftState(pod.share_id).catch(err => {
+        console.error('Error broadcasting after lock fail:', err)
+      })
+    }
     return
   }
 
@@ -341,16 +349,15 @@ export async function processBotTurns(podId) {
       [podId]
     )
 
-    // Broadcast state update if any iterations happened (bots made picks)
-    if (iterations > 0) {
-      try {
-        const podForBroadcast = await queryRow('SELECT share_id FROM draft_pods WHERE id = $1', [podId])
-        if (podForBroadcast?.share_id) {
-          await broadcastDraftState(podForBroadcast.share_id)
-        }
-      } catch (err) {
-        console.error('Error broadcasting after bot turns:', err)
+    // Always broadcast state update after bot processing
+    // This ensures clients get the latest state even if no picks were made
+    try {
+      const podForBroadcast = await queryRow('SELECT share_id FROM draft_pods WHERE id = $1', [podId])
+      if (podForBroadcast?.share_id) {
+        await broadcastDraftState(podForBroadcast.share_id)
       }
+    } catch (err) {
+      console.error('Error broadcasting after bot turns:', err)
     }
   }
 }

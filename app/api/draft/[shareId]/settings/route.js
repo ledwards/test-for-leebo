@@ -2,6 +2,7 @@
 import { query, queryRow } from '@/lib/db.js'
 import { requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
+import { broadcastDraftState } from '@/src/lib/sseBroadcast.js'
 
 export async function PATCH(request, { params }) {
   try {
@@ -66,6 +67,11 @@ export async function PATCH(request, { params }) {
       'UPDATE draft_pods SET ' + updates.join(', ') + ' WHERE id = $' + paramIndex,
       values
     )
+
+    // Broadcast state update to all connected clients
+    broadcastDraftState(shareId).catch(err => {
+      console.error('Error broadcasting draft state:', err)
+    })
 
     return jsonResponse({ success: true })
   } catch (error) {

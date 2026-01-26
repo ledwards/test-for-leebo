@@ -1849,7 +1849,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       return updated
     })
     // Note: sectionBounds intentionally excluded - this effect writes to it, including it would cause infinite loop
-  }, [sortOption, cardMatchesFilters, getAspectKey, showAspectPenalties, activeLeader, activeBase])
+    // Note: cardMatchesFilters excluded - it depends on cardPositions which this effect writes to
+  }, [sortOption, getAspectKey, showAspectPenalties, activeLeader, activeBase])
 
   const handleMouseDown = (e, cardId) => {
     if (e.button !== 0) return // Only left click

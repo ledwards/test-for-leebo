@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import './DraftReviewModal.css'
 import TimerPanel from './TimerPanel'
 
-function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, packSize = 14, draft, players = [], isHost = false, onTogglePause }) {
+function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, packSize = 14, draft, players = [], isHost = false, onTogglePause, onTimerExpire }) {
   const [sortMode, setSortMode] = useState('pick') // 'pick', 'cost', 'type', 'aspect'
   const [groupMode, setGroupMode] = useState('none') // 'none', 'cost', 'type', 'aspect'
   const [hoveredCardPreview, setHoveredCardPreview] = useState(null)
@@ -283,7 +283,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
           </div>
           <div className="review-controls-center">
             {draft && players && (
-              <TimerPanel draft={draft} players={players} compact={false} isHost={isHost} onTogglePause={onTogglePause} />
+              <TimerPanel draft={draft} players={players} compact={false} isHost={isHost} onTogglePause={onTogglePause} onTimerExpire={onTimerExpire} />
             )}
           </div>
           <div className="review-controls-right">

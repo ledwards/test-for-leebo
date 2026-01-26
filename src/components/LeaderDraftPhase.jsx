@@ -17,6 +17,7 @@ function LeaderDraftPhase({
   isHost,
   onTogglePause,
   shareId,
+  onTimerExpire,
 }) {
   const leaders = myPlayer?.leaders || []
   const draftedLeaders = myPlayer?.draftedLeaders || []

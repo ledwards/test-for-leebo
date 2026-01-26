@@ -242,6 +242,10 @@ export async function selectCard(shareId, cardId) {
 
     if (!response.ok) {
       const error = await response.json()
+      // Return special object for 409 (state changed) - caller should refresh
+      if (response.status === 409) {
+        return { stateChanged: true, message: error.message }
+      }
       throw new Error(error.message || 'Failed to select card')
     }
 

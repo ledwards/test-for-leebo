@@ -25,6 +25,8 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
   const eventSourceRef = useRef(null)
   const reconnectTimeoutRef = useRef(null)
   const stateVersionRef = useRef(0)
+  const prevPhaseRef = useRef(null)
+  const prevStatusRef = useRef(null)
 
   // Fetch user-specific data (myPlayer) since SSE broadcasts don't include it
   const fetchMyPlayer = useCallback(async () => {
@@ -65,44 +67,89 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
         case 'state':
           // Only update if version is newer
           if (data.stateVersion > stateVersionRef.current) {
+            const prevVersion = stateVersionRef.current
             stateVersionRef.current = data.stateVersion
 
-            // Fetch user-specific data
-            const userData = await fetchMyPlayer()
+            // Check if we need to refresh myPlayer (using refs for previous state)
+            // Include transitions from null to a phase (draft starting)
+            const phaseChanged = prevPhaseRef.current !== data.draftState?.phase
+            const statusChanged = prevStatusRef.current !== data.status
+            const bigVersionJump = data.stateVersion - prevVersion > 1
 
-            setDraft(prev => ({
-              ...prev,
-              status: data.status,
-              draftState: data.draftState,
-              players: data.players,
-              timed: data.timed,
-              timerEnabled: data.timerEnabled,
-              timerSeconds: data.timerSeconds,
-              pickTimeoutSeconds: data.pickTimeoutSeconds,
-              startedAt: data.startedAt,
-              completedAt: data.completedAt,
-              pickStartedAt: data.pickStartedAt,
-              stateVersion: data.stateVersion,
-              paused: data.paused,
-              pausedAt: data.pausedAt,
-              pausedDurationSeconds: data.pausedDurationSeconds,
-              // Merge user-specific data
-              ...(userData || {}),
-            }))
+            // Update refs for next comparison
+            prevPhaseRef.current = data.draftState?.phase
+            prevStatusRef.current = data.status
+
+            // If myPlayer data is in the message (initial connection), use it directly
+            if (data.myPlayer) {
+              setDraft(prev => ({
+                ...prev,
+                status: data.status,
+                draftState: data.draftState,
+                players: data.players,
+                timed: data.timed,
+                timerEnabled: data.timerEnabled,
+                timerSeconds: data.timerSeconds,
+                pickTimeoutSeconds: data.pickTimeoutSeconds,
+                startedAt: data.startedAt,
+                completedAt: data.completedAt,
+                pickStartedAt: data.pickStartedAt,
+                stateVersion: data.stateVersion,
+                paused: data.paused,
+                pausedAt: data.pausedAt,
+                pausedDurationSeconds: data.pausedDurationSeconds,
+                myPlayer: data.myPlayer,
+                isHost: data.isHost ?? prev?.isHost,
+                isPlayer: data.isPlayer ?? prev?.isPlayer,
+              }))
+            } else {
+              // Broadcast without myPlayer - update public state immediately
+              setDraft(prev => ({
+                ...prev,
+                status: data.status,
+                draftState: data.draftState,
+                players: data.players,
+                timed: data.timed,
+                timerEnabled: data.timerEnabled,
+                timerSeconds: data.timerSeconds,
+                pickTimeoutSeconds: data.pickTimeoutSeconds,
+                startedAt: data.startedAt,
+                completedAt: data.completedAt,
+                pickStartedAt: data.pickStartedAt,
+                stateVersion: data.stateVersion,
+                paused: data.paused,
+                pausedAt: data.pausedAt,
+                pausedDurationSeconds: data.pausedDurationSeconds,
+              }))
+
+              // Fetch myPlayer when:
+              // - Phase changes (draft starting, moving to pack phase, etc.)
+              // - Status changes (waiting -> active -> completed)
+              // - Big version jump (missed updates)
+              // - During active drafting phases (leader_draft or pack_draft) to catch
+              //   leader/pack rotations that don't change phase but update player data
+              const isActiveDraftingPhase = data.draftState?.phase === 'leader_draft' ||
+                                            data.draftState?.phase === 'pack_draft'
+              if (phaseChanged || statusChanged || bigVersionJump || isActiveDraftingPhase) {
+                fetchMyPlayer().then(userData => {
+                  if (userData) {
+                    setDraft(p => ({ ...p, ...userData }))
+                  }
+                })
+              }
+            }
           }
           break
 
         case 'pick':
         case 'advance':
         case 'timer':
-          // For lightweight events, fetch fresh state
-          const userData = await fetchMyPlayer()
-          if (userData) {
-            setDraft(prev => ({
-              ...prev,
-              ...userData,
-            }))
-          }
+          // For lightweight events, fetch fresh state in background
+          fetchMyPlayer().then(userData => {
+            if (userData) {
+              setDraft(prev => ({ ...prev, ...userData }))
+            }
+          })
           break
 
         default:
@@ -148,20 +195,27 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
   }, [shareId, enabled, deleted, reconnectDelay, handleMessage])
 
   // Initial load (before SSE connects)
-  const loadInitial = useCallback(async () => {
+  // showLoading=false for background refreshes to avoid UI flash
+  const loadInitial = useCallback(async (showLoading = true) => {
     if (!shareId) return
 
-    setLoading(true)
+    if (showLoading) {
+      setLoading(true)
+    }
     setError(null)
 
     try {
       const data = await loadDraft(shareId)
       setDraft(data)
       stateVersionRef.current = data.stateVersion || 0
+      prevPhaseRef.current = data.draftState?.phase || null
+      prevStatusRef.current = data.status || null
     } catch (err) {
       setError(err.message)
     } finally {
-      setLoading(false)
+      if (showLoading) {
+        setLoading(false)
+      }
     }
   }, [shareId])
 
@@ -185,9 +239,9 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
     }
   }, [shareId, enabled, loadInitial, connect])
 
-  // Manual refresh
+  // Manual refresh (silent - no loading spinner)
   const refresh = useCallback(async () => {
-    await loadInitial()
+    await loadInitial(false)
   }, [loadInitial])
 
   // Force reconnect
