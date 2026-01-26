@@ -3,6 +3,7 @@ import { query, queryRow } from '@/lib/db.js'
 import { requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
 import { processBotTurns } from '@/src/utils/botLogic.js'
+import { broadcastDraftState } from '@/src/lib/sseBroadcast.js'
 
 export async function POST(request, { params }) {
   try {
@@ -56,6 +57,11 @@ export async function POST(request, { params }) {
         console.error('Error processing bot turns after resume:', err)
       }
 
+      // Broadcast state update to SSE clients
+      broadcastDraftState(shareId).catch(err => {
+        console.error('Error broadcasting draft state:', err)
+      })
+
       return jsonResponse({
         success: true,
         paused: false,
@@ -71,6 +77,11 @@ export async function POST(request, { params }) {
          WHERE id = $2`,
         [now.toISOString(), pod.id]
       )
+
+      // Broadcast state update to SSE clients
+      broadcastDraftState(shareId).catch(err => {
+        console.error('Error broadcasting draft state:', err)
+      })
 
       return jsonResponse({
         success: true,

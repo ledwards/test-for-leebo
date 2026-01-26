@@ -6,6 +6,7 @@ import { generateDraftPacks } from '@/src/utils/draftLogic.js'
 import { processBotTurns } from '@/src/utils/botLogic.js'
 import { initializeCardCache } from '@/src/utils/cardCache.js'
 import { trackBulkGenerations } from '@/src/utils/trackGeneration.js'
+import { broadcastDraftState } from '@/src/lib/sseBroadcast.js'
 
 export async function POST(request, { params }) {
   // console.log('[START] Starting draft...')
@@ -145,6 +146,11 @@ export async function POST(request, { params }) {
     // Trigger bot picks in the background
     processBotTurns(pod.id).catch(err => {
       console.error('Error processing bot turns after start:', err)
+    })
+
+    // Broadcast state update to SSE clients
+    broadcastDraftState(shareId).catch(err => {
+      console.error('Error broadcasting draft state:', err)
     })
 
     // console.log('[START] Returning success response')

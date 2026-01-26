@@ -2,6 +2,7 @@
 import { query, queryRow } from '@/lib/db.js'
 import { requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
+import { broadcastDraftState } from '@/src/lib/sseBroadcast.js'
 
 export async function POST(request, { params }) {
   try {
@@ -52,6 +53,11 @@ export async function POST(request, { params }) {
        WHERE id = $1`,
       [pod.id]
     )
+
+    // Broadcast state update to SSE clients
+    broadcastDraftState(shareId).catch(err => {
+      console.error('Error broadcasting draft state:', err)
+    })
 
     return jsonResponse({ message: 'Left draft' })
   } catch (error) {

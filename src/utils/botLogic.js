@@ -341,8 +341,7 @@ export async function processBotTurns(podId) {
       [podId]
     )
 
-    // Always broadcast state update after bot processing
-    // This ensures clients get the latest state
+    // Broadcast state update if any iterations happened (bots made picks)
     if (iterations > 0) {
       try {
         const podForBroadcast = await queryRow('SELECT share_id FROM draft_pods WHERE id = $1', [podId])

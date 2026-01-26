@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/utils.js'
 import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft } from '@/src/utils/draftAdvance.js'
 import { processBotTurns } from '@/src/utils/botLogic.js'
+import { broadcastDraftState } from '@/src/lib/sseBroadcast.js'
 
 export async function POST(request, { params }) {
   try {
@@ -156,6 +157,11 @@ export async function POST(request, { params }) {
     // Run this in the background so it doesn't block the response
     processBotTurns(pod.id).catch(err => {
       console.error('Error processing bot turns:', err)
+    })
+
+    // Broadcast state update to SSE clients
+    broadcastDraftState(shareId).catch(err => {
+      console.error('Error broadcasting draft state:', err)
     })
 
     return jsonResponse({ message: 'Pick successful' })
