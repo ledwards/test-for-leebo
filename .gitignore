@@ -36,3 +36,11 @@ out
 
 # Generated sheet visualizations
 sheets/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+tests/e2e/screenshots/*.png
+!tests/e2e/screenshots/.gitkeep
