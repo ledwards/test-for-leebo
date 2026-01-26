@@ -11,8 +11,6 @@ export async function GET(request, { params }) {
     // All pools are public - allow viewing any user's pools
     // No authorization check needed
 
-    console.log('Fetching pools for userId:', userId, 'type:', typeof userId)
-
     // Parse query parameters - use high limit to get all pools
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '1000', 10) // High limit to get all pools
@@ -40,7 +38,6 @@ export async function GET(request, { params }) {
          LIMIT $2 OFFSET $3`,
         [userId, limit, offset]
       )
-      console.log('Query returned', pools?.length || 0, 'pools')
     } catch (error) {
       console.error('Error fetching pools:', error)
       // Fallback if name, set_name or pool_type columns don't exist
@@ -110,7 +107,6 @@ export async function GET(request, { params }) {
       [userId]
     )
     const total = parseInt(countResult.total, 10)
-    console.log('Total pools for user:', total)
 
     return jsonResponse({
       pools: pools.map((pool) => {

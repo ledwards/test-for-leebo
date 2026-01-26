@@ -29,7 +29,6 @@ export function initializeCardCache() {
     })
     
     cacheInitialized = true
-    console.log('Card cache initialized with', allCards.length, 'total cards')
     // Return resolved promise immediately since data is already loaded
     return Promise.resolve()
   } catch (error) {

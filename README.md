@@ -1,20 +1,46 @@
-# Protect the Pod - Star Wars: Unlimited Sealed Pod Simulator
+# Protect the Pod - Star Wars: Unlimited Draft & Sealed Simulator
 
-A web application that simulates opening sealed pods of Star Wars: Unlimited booster packs.
+A web application for Star Wars: Unlimited limited formats - draft pods and sealed pools with deck building.
 
 ## Features
 
-- **Sealed Mode**: Generate and open 6 booster packs according to official SWU pack distribution
-- **Set Selection**: Choose from available Star Wars: Unlimited expansion sets
-- **Booster Pack Generation**: Accurately simulates pack contents based on official rules:
-  - 1 Leader card (guaranteed)
-  - 1 Base card (guaranteed)
-  - 9 Common cards
-  - 3 Uncommon cards
-  - 1 Rare or Legendary card
-  - 1 Foil card (any rarity)
-  - Hyperspace variants (rare)
-  - Showcase variants (very rare, leaders only)
+### Sealed Mode
+- Generate and open 6 booster packs according to official SWU pack distribution
+- Choose from all available Star Wars: Unlimited expansion sets
+- Share sealed pools via unique URLs
+- Build decks from your pool with the integrated deck builder
+
+### Draft Mode
+- **Multiplayer drafts** with 2-8 players (fill empty seats with bots)
+- **Leader Draft**: 3-round Rochester-style leader draft before pack drafting
+- **Pack Draft**: Traditional booster draft with pass-left/pass-right rotation
+- **Real-time sync**: See other players' pick status live
+- **Timers**: Configurable round timer and last-player timer with pause/resume
+- **Bot players**: AI bots that make random picks to fill empty seats
+- **Shareable draft rooms**: Invite players via unique draft URL
+
+### Deck Builder
+- Drag-and-drop deck construction
+- Filter and sort by aspect, cost, type
+- Multiple view modes (playmat, grid, table)
+- Aspect penalty tracking for off-leader cards
+- Export deck lists
+
+### Other Features
+- **History**: View and resume past drafts and sealed pools
+- **Discord authentication**: Save your pools and drafts to your account
+- **Responsive design**: Works on desktop and mobile
+
+### Booster Pack Generation
+Accurately simulates pack contents based on official rules:
+- 1 Leader card (guaranteed)
+- 1 Base card (guaranteed)
+- 9 Common cards
+- 3 Uncommon cards
+- 1 Rare or Legendary card
+- 1 Foil card (any rarity)
+- Hyperspace variants (rare)
+- Showcase variants (very rare, leaders only)
 
 ## Getting Started
 
@@ -224,40 +250,58 @@ See `src/qa/README.md` for detailed testing documentation.
 
 ```
 src/
+├── components/                 # React UI components
+│   ├── DeckBuilder.jsx         # Deck building interface
+│   ├── LeaderDraftPhase.jsx    # Leader draft UI
+│   ├── PackDraftPhase.jsx      # Pack draft UI
+│   ├── PlayerCircle.jsx        # Draft player display
+│   ├── SealedPod.jsx           # Sealed pool viewer
+│   └── ...
+├── hooks/
+│   └── useDraftSync.js         # Real-time draft state sync
 ├── utils/
 │   ├── setConfigs/             # Set-specific parameters (SOR, SHD, TWI, JTL, LOF, SEC)
+│   ├── botLogic.js             # Bot player AI
+│   ├── draftAdvance.js         # Draft turn advancement logic
+│   ├── draftTimeout.js         # Timer/timeout handling
 │   ├── cardCache.js            # Card data management
 │   ├── cardData.js             # Card loading with automatic fixes
-│   ├── cardFixes.js            # Runtime fix application
 │   └── cardFilters.js          # Card filtering logic
 ├── data/
 │   └── cards.json              # 4,973 cards from all sets
-└── components/                 # React UI components
 
 scripts/
 ├── cardFixes.js                # Define card data fixes here
-├── postProcessCards.js         # CLI tool to apply fixes
 ├── fetchCards.js               # Fetch from API and apply fixes
 └── showFixes.js                # Utility to inspect fixes
 
 docs/
 ├── QUICKSTART_FIXES.md         # Quick start guide for fixes
 ├── CARD_FIXES.md               # Complete fix system documentation
-├── EXAMPLE_ADDING_FIX.md       # Real-world fix example
 └── IMPLEMENTATION_SUMMARY.md   # Implementation details
 
 app/
-├── api/                        # API routes
-└── [pages]                     # Next.js pages
+├── api/
+│   ├── draft/                  # Draft API endpoints
+│   ├── sealed/                 # Sealed pool API endpoints
+│   └── auth/                   # Authentication endpoints
+├── draft/                      # Draft pages
+├── sealed_pool/                # Sealed pool pages
+├── history/                    # History page
+└── pools/                      # Pool creation pages
+
+lib/
+├── db.js                       # Database connection and queries
+├── auth.js                     # Authentication helpers
+└── utils.js                    # API utilities
 ```
 
 ## Future Features
 
-- Draft mode (coming soon)
-- Real-time card data from swudb.com API
-- Card image display
-- Export deck lists
-- Statistics tracking
+- Tournament bracket support
+- Cube draft format
+- Draft statistics and analytics
+- Deck sharing and public deck lists
 
 ## Disclaimer
 

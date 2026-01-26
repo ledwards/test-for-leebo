@@ -7,12 +7,12 @@ import { processBotTurns } from '@/src/utils/botLogic.js'
 import { initializeCardCache } from '@/src/utils/cardCache.js'
 
 export async function POST(request, { params }) {
-  console.log('[START] Starting draft...')
+  // console.log('[START] Starting draft...')
   try {
     const { shareId } = await params
-    console.log('[START] shareId:', shareId)
+    // console.log('[START] shareId:', shareId)
     const session = requireAuth(request)
-    console.log('[START] session:', session?.id)
+    // console.log('[START] session:', session?.id)
 
     // Get draft pod
     const pod = await queryRow(
@@ -49,9 +49,9 @@ export async function POST(request, { params }) {
     await initializeCardCache()
 
     // Generate packs for all players
-    console.log('[START] Generating packs for', players.length, 'players, set:', pod.set_code)
+    // console.log('[START] Generating packs for', players.length, 'players, set:', pod.set_code)
     const { packs, leaders } = generateDraftPacks(pod.set_code, players.length)
-    console.log('[START] Packs generated, leaders per player:', leaders[0]?.length)
+    // console.log('[START] Packs generated, leaders per player:', leaders[0]?.length)
 
     // Assign leaders and first pack to each player
     for (let i = 0; i < players.length; i++) {
@@ -101,14 +101,14 @@ export async function POST(request, { params }) {
       ]
     )
 
-    console.log('[START] Draft state updated, triggering bot turns')
+    // console.log('[START] Draft state updated, triggering bot turns')
 
     // Trigger bot picks in the background
     processBotTurns(pod.id).catch(err => {
       console.error('Error processing bot turns after start:', err)
     })
 
-    console.log('[START] Returning success response')
+    // console.log('[START] Returning success response')
     return jsonResponse({
       message: 'Draft started',
       phase: 'leader_draft',

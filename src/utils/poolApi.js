@@ -125,10 +125,8 @@ export async function fetchUserPools(userId) {
     }
 
     const data = await response.json()
-    console.log('fetchUserPools response:', data)
     // API returns { data: { pools: [...], total, limit, offset } } or { pools: [...] }
     const pools = data.data?.pools || data.pools || []
-    console.log('Extracted pools:', pools.length)
     return pools
   } catch (error) {
     console.error('Failed to fetch user pools:', error)

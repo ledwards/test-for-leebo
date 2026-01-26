@@ -199,7 +199,6 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
       const newUrl = `/pool/${saved.shareId}`
       window.history.replaceState({}, '', newUrl)
 
-      console.log('Pool saved:', saved.shareId)
     } catch (error) {
       console.error('Failed to auto-save pool:', error)
       // Don't show error to user - silent fail is okay

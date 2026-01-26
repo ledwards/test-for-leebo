@@ -163,7 +163,7 @@ export async function GET(request, { params }) {
       }
     }
 
-    return jsonResponse({
+    const response = jsonResponse({
       changed: true,
       stateVersion: pod.state_version,
       status: pod.status,
@@ -181,6 +181,11 @@ export async function GET(request, { params }) {
       pausedAt: pod.paused_at,
       pausedDurationSeconds: pod.paused_duration_seconds || 0,
     })
+
+    // Add cache headers to reduce bandwidth usage
+    response.headers.set('Cache-Control', 'private, max-age=3, must-revalidate')
+
+    return response
   } catch (error) {
     return handleApiError(error)
   }

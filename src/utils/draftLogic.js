@@ -15,7 +15,7 @@ import { generateBoosterPack, clearBeltCache } from './boosterPack.js'
  * @returns {Object} { packs: playerPacks[][], leaders: playerLeaders[][] }
  */
 export function generateDraftPacks(setCode, playerCount = 8) {
-  console.log('[DRAFT] Generating packs for', playerCount, 'players, set:', setCode)
+  // console.log('[DRAFT] Generating packs for', playerCount, 'players, set:', setCode)
 
   // Clear belt cache for fresh generation
   clearBeltCache()
@@ -28,15 +28,15 @@ export function generateDraftPacks(setCode, playerCount = 8) {
   let instanceCounter = 0
 
   for (let player = 0; player < playerCount; player++) {
-    console.log('[DRAFT] Generating packs for player', player + 1)
+    // console.log('[DRAFT] Generating packs for player', player + 1)
     const playerPacks = []
     const playerLeaders = []
 
     for (let packNum = 0; packNum < packsPerPlayer; packNum++) {
-      console.log('[DRAFT] Player', player + 1, 'pack', packNum + 1, '- starting generation')
+      // console.log('[DRAFT] Player', player + 1, 'pack', packNum + 1, '- starting generation')
       // Generate a pack
       const pack = generateBoosterPack(null, setCode)
-      console.log('[DRAFT] Player', player + 1, 'pack', packNum + 1, '- generation complete')
+      // console.log('[DRAFT] Player', player + 1, 'pack', packNum + 1, '- generation complete')
 
       // Add unique instance IDs to all cards in the pack
       // This prevents race conditions where the same base card ID exists in multiple packs

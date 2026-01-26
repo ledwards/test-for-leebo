@@ -31,7 +31,6 @@ export function AuthProvider({ children }) {
   async function loadSession() {
     try {
       const session = await getSession()
-      console.log('AuthContext: Loaded session:', session)
       setUser(session)
     } catch (error) {
       console.error('Failed to load session:', error)
@@ -45,7 +44,6 @@ export function AuthProvider({ children }) {
     // Check if we already have a valid session
     const session = await getSession()
     if (session) {
-      console.log('Already logged in, refreshing session')
       setUser(session)
       return
     }

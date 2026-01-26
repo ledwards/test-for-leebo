@@ -92,10 +92,8 @@ export default function NewPoolPage() {
           isPublic: false,
           shareId: shareId, // Pass client-generated shareId
         }).then((saved) => {
-          console.log('Pool saved to database:', saved)
           // Server should use the same shareId, but handle mismatch just in case
           if (saved && saved.shareId && saved.shareId !== shareId) {
-            console.warn('Server generated different shareId, updating URL')
             window.history.replaceState({}, '', `/pool/${saved.shareId}`)
             setPool(prev => ({ ...prev, shareId: saved.shareId }))
           }

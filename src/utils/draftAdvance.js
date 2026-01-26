@@ -16,8 +16,6 @@ import { getPassDirection, getLeaderPassDirection, getNextSeat, getCardsPerDraft
  * 3. Then advances the draft
  */
 export async function processAllStagedPicks(podId, draftState, pod) {
-  console.log('[STAGED-PICKS] Processing all staged picks for phase:', draftState.phase)
-
   const players = await queryRows(
     'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
     [podId]
@@ -445,7 +443,7 @@ async function passLeaders(players, direction) {
  * Check if all players picked and advance pack draft
  */
 export async function checkAndAdvancePackDraft(podId, draftState, pod) {
-  console.log('[ADVANCE-PACK] Checking pack draft advance, pack:', draftState.packNumber, 'pick:', draftState.pickInPack)
+  // console.log('[ADVANCE-PACK] Checking pack draft advance, pack:', draftState.packNumber, 'pick:', draftState.pickInPack)
 
   const players = await queryRows(
     'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
@@ -454,7 +452,7 @@ export async function checkAndAdvancePackDraft(podId, draftState, pod) {
 
   const allPicked = players.every(p => p.pick_status === 'picked')
   if (!allPicked) {
-    console.log('[ADVANCE-PACK] Not all picked yet')
+    // console.log('[ADVANCE-PACK] Not all picked yet')
     // Just increment state version
     await query(
       'UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1',
@@ -474,10 +472,10 @@ export async function checkAndAdvancePackDraft(podId, draftState, pod) {
     ? JSON.parse(firstPlayer.current_pack)
     : firstPlayer.current_pack || []
 
-  console.log('[ADVANCE-PACK] All picked. Pack', packNumber, 'remaining cards:', remainingPack.length)
+  // console.log('[ADVANCE-PACK] All picked. Pack', packNumber, 'remaining cards:', remainingPack.length)
 
   if (remainingPack.length === 0) {
-    console.log('[ADVANCE-PACK] Pack exhausted, packNumber:', packNumber, 'totalPacks:', totalPacks)
+    // console.log('[ADVANCE-PACK] Pack exhausted, packNumber:', packNumber, 'totalPacks:', totalPacks)
     // Pack is done, move to next pack or complete draft
     if (packNumber >= totalPacks) {
       // Draft complete!
@@ -496,20 +494,20 @@ export async function checkAndAdvancePackDraft(podId, draftState, pod) {
     // Move to next pack
     draftState.packNumber = packNumber + 1
     draftState.pickInPack = 1
-    console.log('[ADVANCE-PACK] Moving to pack', draftState.packNumber)
+    // console.log('[ADVANCE-PACK] Moving to pack', draftState.packNumber)
 
     // Get all packs and distribute next pack
     const allPacks = typeof pod.all_packs === 'string'
       ? JSON.parse(pod.all_packs)
       : pod.all_packs
 
-    console.log('[ADVANCE-PACK] allPacks structure:', allPacks?.length, 'players, packs per player:', allPacks?.[0]?.length)
+    // console.log('[ADVANCE-PACK] allPacks structure:', allPacks?.length, 'players, packs per player:', allPacks?.[0]?.length)
 
     // Assign next pack to each player
     for (let i = 0; i < players.length; i++) {
       const player = players[i]
       const pack = allPacks[i][packNumber] // Next pack (0-indexed array, packNumber is the old value which equals new index)
-      console.log('[ADVANCE-PACK] Player', i, 'getting pack index', packNumber, 'with', pack?.length, 'cards')
+      // console.log('[ADVANCE-PACK] Player', i, 'getting pack index', packNumber, 'with', pack?.length, 'cards')
 
       await query(
         `UPDATE draft_pod_players

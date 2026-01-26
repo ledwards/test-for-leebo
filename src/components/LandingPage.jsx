@@ -10,11 +10,6 @@ function LandingPage({ onSealedClick, onDraftClick }) {
   const router = useRouter()
   const [activeDraft, setActiveDraft] = useState(null)
 
-  // Debug: Log auth state
-  useEffect(() => {
-    console.log('LandingPage: Auth state - user:', user, 'loading:', loading)
-  }, [user, loading])
-
   // Check for active drafts when user is logged in
   useEffect(() => {
     if (!user || loading) {
