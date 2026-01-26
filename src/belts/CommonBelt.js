@@ -168,6 +168,9 @@ export class CommonBelt {
     this.recentIds = []
     this.DEDUP_WINDOW = 12  // Slightly larger than max pack draw (9 commons)
 
+    // Track total draws to know the phase offset for pattern validation
+    this.totalDraws = 0
+
     this._initialize()
   }
 
@@ -216,6 +219,117 @@ export class CommonBelt {
     // Run seam dedup as additional safety if hopper wasn't empty
     if (!wasEmpty) {
       this._seamDedup(bootStart, boot.length)
+    }
+
+    // Validate and fix period-3 pattern
+    // Focus on the head of the hopper (first 15 cards = 5 pack draws worth)
+    // since that's what will be drawn soon. Also validate the seam area.
+    this._validateAndFixPattern(0, Math.min(15, this.hopper.length))
+    if (bootStart > 0) {
+      // Also validate around the seam
+      const seamStart = Math.max(0, bootStart - 6)
+      const seamEnd = Math.min(this.hopper.length, bootStart + 12)
+      this._validateAndFixPattern(seamStart, seamEnd)
+    }
+  }
+
+  /**
+   * Validate that the hopper maintains period-3 aspect pattern.
+   * If any card is in the wrong slot, swap it with a card that belongs in this slot.
+   * This guarantees that any 3+ consecutive draws will have all 3 required aspects.
+   *
+   * @param {number} startIdx - Start of range to validate
+   * @param {number} endIdx - End of range to validate (defaults to hopper length)
+   */
+  _validateAndFixPattern(startIdx = 0, endIdx = undefined) {
+    if (endIdx === undefined) endIdx = this.hopper.length
+    // Build aspect sets for each slot from the pools
+    const slot0Aspects = new Set()
+    const slot1Aspects = new Set()
+    const slot2Aspects = new Set()
+
+    this.pool.primary1.forEach(c => c.aspects?.forEach(a => slot0Aspects.add(a)))
+    this.pool.primary2.forEach(c => c.aspects?.forEach(a => slot1Aspects.add(a)))
+    this.pool.assigned.forEach(c => c.aspects?.forEach(a => slot2Aspects.add(a)))
+
+    const slotAspects = [slot0Aspects, slot1Aspects, slot2Aspects]
+
+    // Helper to check if a card fits a given slot
+    const cardFitsSlot = (card, slot) => {
+      const cardAspects = card.aspects || []
+      return cardAspects.some(a => slotAspects[slot].has(a))
+    }
+
+    // Helper to check if swapping would create a duplicate within DEDUP_WINDOW
+    const wouldCreateDuplicate = (idxA, idxB) => {
+      const cardA = this.hopper[idxA]
+      const cardB = this.hopper[idxB]
+
+      // Check if cardB would duplicate anything near position idxA
+      for (let k = Math.max(0, idxA - this.DEDUP_WINDOW); k < Math.min(this.hopper.length, idxA + this.DEDUP_WINDOW + 1); k++) {
+        if (k === idxA || k === idxB) continue
+        if (this.hopper[k].id === cardB.id) return true
+      }
+
+      // Check if cardA would duplicate anything near position idxB
+      for (let k = Math.max(0, idxB - this.DEDUP_WINDOW); k < Math.min(this.hopper.length, idxB + this.DEDUP_WINDOW + 1); k++) {
+        if (k === idxA || k === idxB) continue
+        if (this.hopper[k].id === cardA.id) return true
+      }
+
+      return false
+    }
+
+    // First pass: identify all violations in the range
+    const violations = []
+    for (let i = startIdx; i < endIdx; i++) {
+      const slot = i % 3
+      if (!cardFitsSlot(this.hopper[i], slot)) {
+        violations.push(i)
+      }
+    }
+
+    // Second pass: fix violations by finding swap partners
+    for (const violationIdx of violations) {
+      const violationSlot = violationIdx % 3
+      const violatingCard = this.hopper[violationIdx]
+
+      // Skip if this violation was already fixed by a previous swap
+      if (cardFitsSlot(violatingCard, violationSlot)) continue
+
+      // Find a card that:
+      // 1. Fits the violation's slot (has the right aspect)
+      // 2. Won't create a duplicate when swapped
+      // 3. Ideally: is in a position where the violating card would fit (mutual benefit)
+      let bestSwapIdx = -1
+
+      for (let j = violationIdx + 1; j < this.hopper.length; j++) {
+        const candidateSlot = j % 3
+        const candidate = this.hopper[j]
+
+        // Does candidate fit the violation slot?
+        if (!cardFitsSlot(candidate, violationSlot)) continue
+
+        // Would this swap create a duplicate?
+        if (wouldCreateDuplicate(violationIdx, j)) continue
+
+        // Would the violating card fit the candidate's slot? (mutual benefit)
+        if (cardFitsSlot(violatingCard, candidateSlot)) {
+          // Perfect - mutual swap
+          bestSwapIdx = j
+          break
+        }
+
+        // Otherwise, just remember this as a fallback
+        if (bestSwapIdx < 0) {
+          bestSwapIdx = j
+        }
+      }
+
+      if (bestSwapIdx >= 0) {
+        ;[this.hopper[violationIdx], this.hopper[bestSwapIdx]] =
+          [this.hopper[bestSwapIdx], this.hopper[violationIdx]]
+      }
     }
   }
 
@@ -378,8 +492,103 @@ export class CommonBelt {
   next() {
     this._fillIfNeeded()
 
+    // Validate the first few cards to ensure aspect coverage
+    // Use phase offset to account for previous draws
+    this._ensureHeadValid()
+
     const card = this.hopper.shift()
+    this.totalDraws++
     return { ...card } // Return a copy
+  }
+
+  /**
+   * Ensure the first 9 cards in the hopper have all required aspects.
+   * This guarantees the next pack's draws will have proper coverage.
+   */
+  _ensureHeadValid() {
+    if (this.hopper.length < 9) return
+
+    // Build aspect sets for each slot
+    const slot0Aspects = new Set()
+    const slot1Aspects = new Set()
+    const slot2Aspects = new Set()
+
+    this.pool.primary1.forEach(c => c.aspects?.forEach(a => slot0Aspects.add(a)))
+    this.pool.primary2.forEach(c => c.aspects?.forEach(a => slot1Aspects.add(a)))
+    this.pool.assigned.forEach(c => c.aspects?.forEach(a => slot2Aspects.add(a)))
+
+    const slotAspects = [slot0Aspects, slot1Aspects, slot2Aspects]
+
+    // Check first 9 cards - account for phase offset from previous draws
+    const phaseOffset = this.totalDraws % 3
+
+    // Build set of IDs in first 9 for duplicate checking
+    const headIds = new Set(this.hopper.slice(0, 9).map(c => c.id))
+
+    for (let i = 0; i < 9; i++) {
+      const expectedSlot = (i + phaseOffset) % 3
+      const card = this.hopper[i]
+      const cardAspects = card.aspects || []
+
+      const hasCorrectAspect = cardAspects.some(a => slotAspects[expectedSlot].has(a))
+
+      if (!hasCorrectAspect) {
+        // Find a swap candidate from later in the hopper
+        // Must have correct aspect AND not already in the first 9 cards
+        for (let j = 9; j < this.hopper.length; j++) {
+          const candidate = this.hopper[j]
+          const candidateAspects = candidate.aspects || []
+
+          // Check: has correct aspect AND won't create duplicate in head
+          if (candidateAspects.some(a => slotAspects[expectedSlot].has(a)) &&
+              !headIds.has(candidate.id)) {
+            // Update headIds: remove old card, add new card
+            // Only remove if this card doesn't appear elsewhere in head
+            let cardAppearsElsewhere = false
+            for (let k = 0; k < 9; k++) {
+              if (k !== i && this.hopper[k].id === card.id) {
+                cardAppearsElsewhere = true
+                break
+              }
+            }
+            if (!cardAppearsElsewhere) {
+              headIds.delete(card.id)
+            }
+            headIds.add(candidate.id)
+            ;[this.hopper[i], this.hopper[j]] = [this.hopper[j], this.hopper[i]]
+            break
+          }
+        }
+      }
+    }
+
+    // Final pass: fix any duplicates in first 9
+    // This handles pre-existing duplicates that might exist
+    this._dedupHead()
+  }
+
+  /**
+   * Remove duplicates from the first 9 cards in the hopper
+   */
+  _dedupHead() {
+    if (this.hopper.length < 9) return
+
+    const seenIds = new Set()
+    for (let i = 0; i < 9; i++) {
+      const card = this.hopper[i]
+      if (seenIds.has(card.id)) {
+        // Found a duplicate - swap with a card from later that isn't in first 9
+        const headIds = new Set(this.hopper.slice(0, 9).map(c => c.id))
+        for (let j = 9; j < this.hopper.length; j++) {
+          const candidate = this.hopper[j]
+          if (!headIds.has(candidate.id)) {
+            ;[this.hopper[i], this.hopper[j]] = [this.hopper[j], this.hopper[i]]
+            break
+          }
+        }
+      }
+      seenIds.add(this.hopper[i].id)
+    }
   }
 
   /**

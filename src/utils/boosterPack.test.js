@@ -448,6 +448,82 @@ async function runTests() {
   console.log('Card + Foil Co-occurrence Tests')
   console.log('================================')
 
+  test('foil should not match pack commons more than expected (bug detection)', () => {
+    // This test detects if foil belt is accidentally correlated with common belt
+    // Bug scenario: if foil belt were a copy of common belt, match rate would be ~100%
+    // Normal rate: ~7.8% (foil common matching one of 9 pack commons)
+    clearBeltCache()
+    const packCount = 500
+    let foilMatchesCommon = 0
+    const matchExamples = []
+
+    for (let i = 0; i < packCount; i++) {
+      const pack = generateBoosterPack(cards, 'SOR')
+      const foil = pack.cards.find(c => c.isFoil)
+      if (!foil) continue
+
+      // Get the 9 non-foil commons in this pack
+      const packCommons = pack.cards.filter(c =>
+        c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil
+      )
+
+      // Check if foil matches ANY common in the pack (by ID)
+      const matchingCommon = packCommons.find(c => c.id === foil.id)
+      if (matchingCommon) {
+        foilMatchesCommon++
+        if (matchExamples.length < 5) {
+          matchExamples.push(`Pack ${i + 1}: foil "${foil.name}" matches common`)
+        }
+      }
+    }
+
+    const observedRate = foilMatchesCommon / packCount
+
+    // Calculate expected rate:
+    // Get actual card counts from the set for accurate calculation
+    const allCards = getCachedCards('SOR')
+    const nonLeaderBase = allCards.filter(c => c.variantType === 'Normal' && !c.isLeader && !c.isBase)
+    const uniqueCommons = nonLeaderBase.filter(c => c.rarity === 'Common').length
+    const uniqueUncommons = nonLeaderBase.filter(c => c.rarity === 'Uncommon').length
+    const uniqueRares = nonLeaderBase.filter(c => c.rarity === 'Rare').length
+    const uniqueLegendaries = nonLeaderBase.filter(c => c.rarity === 'Legendary').length
+
+    // Foil belt weights
+    const totalWeight = 54 * uniqueCommons + 18 * uniqueUncommons + 6 * uniqueRares + 1 * uniqueLegendaries
+    const commonWeight = 54 * uniqueCommons
+    const pFoilIsCommon = commonWeight / totalWeight
+
+    // P(foil common matches one of 9 pack commons) = 9 / uniqueCommons
+    // Expected rate = P(foil is common) * P(matches one of 9)
+    const expectedRate = pFoilIsCommon * (9 / uniqueCommons)
+
+    // Z-score for statistical test
+    const stdDev = Math.sqrt(packCount * expectedRate * (1 - expectedRate))
+    const zScore = (foilMatchesCommon - packCount * expectedRate) / stdDev
+
+    // Warning at z > 2.5, fail at z > 4 (extreme outlier detection)
+    // We use one-sided test (only care if rate is TOO HIGH, indicating correlation bug)
+    const warningZScore = 2.5
+    const failZScore = 4.0
+
+    console.log(`\x1b[36m   Foil-common match rate: ${(observedRate * 100).toFixed(2)}% (${foilMatchesCommon}/${packCount})\x1b[0m`)
+    console.log(`\x1b[36m   Expected rate: ${(expectedRate * 100).toFixed(2)}% (based on ${uniqueCommons} unique commons)\x1b[0m`)
+    console.log(`\x1b[36m   Z-score: ${zScore.toFixed(2)} (warn: ${warningZScore}, fail: ${failZScore})\x1b[0m`)
+
+    if (zScore > warningZScore && zScore <= failZScore) {
+      console.log(`\x1b[33m   ⚠️  WARNING: Foil-common rate higher than expected (may be normal variance)\x1b[0m`)
+    }
+
+    // Only fail for extreme outliers (z > 4) which would indicate a real bug
+    // A bug like "foil belt = copy of common belt" would show z-scores of 50+
+    assert(
+      zScore <= failZScore,
+      `Foil-common match rate (${(observedRate * 100).toFixed(1)}%) is extremely high vs expected ${(expectedRate * 100).toFixed(1)}% ` +
+      `(z=${zScore.toFixed(2)} > ${failZScore}). This indicates foil belt may be correlated with common belt. ` +
+      `Examples: ${matchExamples.join('; ')}`
+    )
+  })
+
   test('single pack: card+foil pair rate should be within expected range', () => {
     clearBeltCache()
     const packCount = 500
@@ -691,6 +767,211 @@ async function runTests() {
 
     // It's OK if we don't find one - it's a very rare upgrade
     // Just ensure the test completes without error
+  })
+
+  console.log('')
+  console.log('Hyperspace Co-occurrence Tests')
+  console.log('==============================')
+
+  test('hyperspace commons should not match non-hyperspace commons more than expected', () => {
+    // This test detects if hyperspace upgrade doesn't properly replace the card
+    // Bug scenario: if upgrade ADDS hyperspace instead of replacing, we'd see 100% match
+    // Normal rate: very low (both must randomly draw the same card independently)
+    clearBeltCache()
+    const packCount = 500
+    let matchesFound = 0
+    const matchExamples = []
+
+    for (let i = 0; i < packCount; i++) {
+      const pack = generateBoosterPack(cards, 'SOR')
+
+      // Find hyperspace commons (non-leader, non-base, non-foil)
+      const hsCommons = pack.cards.filter(c =>
+        c.isHyperspace && c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil
+      )
+
+      // Find normal commons
+      const normalCommons = pack.cards.filter(c =>
+        !c.isHyperspace && c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil
+      )
+
+      // Check if any hyperspace common has a matching normal common
+      for (const hsCard of hsCommons) {
+        // Get base ID (strip hyperspace variant suffix if any)
+        const baseId = hsCard.id.replace(/-HS$/, '')
+        const normalId = hsCard.id.includes('-HS') ? baseId : hsCard.id
+
+        const matchingNormal = normalCommons.find(c => {
+          const cBaseId = c.id.replace(/-HS$/, '')
+          return cBaseId === baseId || c.id === normalId || c.name === hsCard.name
+        })
+
+        if (matchingNormal) {
+          matchesFound++
+          if (matchExamples.length < 5) {
+            matchExamples.push(`Pack ${i + 1}: HS "${hsCard.name}" + normal "${matchingNormal.name}"`)
+          }
+        }
+      }
+    }
+
+    // Expected rate calculation:
+    // - Hyperspace upgrade occurs ~1/6 of the time for one common slot
+    // - P(pack has hyperspace common) ≈ 1 - (5/6)^9 ≈ 80%
+    // - When we have an HS common, normal commons are drawn from ~90 unique cards
+    // - The other 8 normal commons each have 1/90 chance of matching the HS card
+    // - P(match | HS common exists) = 1 - (89/90)^8 ≈ 8.5%
+    // - Expected match rate ≈ 0.80 * 0.085 ≈ 6.8%
+    // But this assumes independent draws. Belt dedup may reduce this.
+    // Use conservative estimate of ~5%
+    const expectedRate = 0.05
+
+    const observedRate = matchesFound / packCount
+    const stdDev = Math.sqrt(packCount * expectedRate * (1 - expectedRate))
+    const zScore = (matchesFound - packCount * expectedRate) / stdDev
+
+    // Warning at z > 2.5, fail at z > 4
+    const warningZScore = 2.5
+    const failZScore = 4.0
+
+    console.log(`\x1b[36m   HS-normal common match rate: ${(observedRate * 100).toFixed(2)}% (${matchesFound}/${packCount})\x1b[0m`)
+    console.log(`\x1b[36m   Expected rate: ~${(expectedRate * 100).toFixed(1)}%\x1b[0m`)
+    console.log(`\x1b[36m   Z-score: ${zScore.toFixed(2)} (warn: ${warningZScore}, fail: ${failZScore})\x1b[0m`)
+
+    if (zScore > warningZScore && zScore <= failZScore) {
+      console.log(`\x1b[33m   ⚠️  WARNING: HS-common match rate higher than expected\x1b[0m`)
+    }
+
+    assert(
+      zScore <= failZScore,
+      `Hyperspace-normal common match rate (${(observedRate * 100).toFixed(1)}%) is extremely high vs expected ~${(expectedRate * 100).toFixed(1)}% ` +
+      `(z=${zScore.toFixed(2)} > ${failZScore}). This may indicate hyperspace upgrade is not replacing cards properly. ` +
+      `Examples: ${matchExamples.join('; ')}`
+    )
+  })
+
+  test('hyperspace foil should not match non-foil in pack more than expected', () => {
+    // Test that hyperfoil upgrades don't create unexpected duplicates
+    clearBeltCache()
+    const packCount = 500
+    let matchesFound = 0
+    const matchExamples = []
+
+    for (let i = 0; i < packCount; i++) {
+      const pack = generateBoosterPack(cards, 'SOR')
+
+      // Find hyperspace foil
+      const hsFoil = pack.cards.find(c => c.isFoil && c.isHyperspace)
+      if (!hsFoil) continue
+
+      // Check if non-foil version exists in pack
+      const nonFoilMatch = pack.cards.find(c =>
+        !c.isFoil && (c.id === hsFoil.id || c.name === hsFoil.name)
+      )
+
+      if (nonFoilMatch) {
+        matchesFound++
+        if (matchExamples.length < 5) {
+          matchExamples.push(`Pack ${i + 1}: HS foil "${hsFoil.name}" + "${nonFoilMatch.name}" (${nonFoilMatch.rarity})`)
+        }
+      }
+    }
+
+    // Hyperfoil rate is ~1/15
+    // Expected match rate with any non-foil: similar to normal foil test
+    // Use conservative ~8% (slightly higher due to HS cards in normal slots too)
+    const packsWithHsFoil = packCount / 15 // rough estimate
+    const observedRate = matchesFound / packCount
+    const expectedRate = 0.008 // ~0.8% overall (1/15 * ~12% match chance)
+
+    const stdDev = Math.sqrt(packCount * expectedRate * (1 - expectedRate))
+    const zScore = (matchesFound - packCount * expectedRate) / stdDev
+
+    const warningZScore = 2.5
+    const failZScore = 4.0
+
+    console.log(`\x1b[36m   HS foil-nonfoil match rate: ${(observedRate * 100).toFixed(2)}% (${matchesFound}/${packCount})\x1b[0m`)
+    console.log(`\x1b[36m   Expected rate: ~${(expectedRate * 100).toFixed(2)}%\x1b[0m`)
+    console.log(`\x1b[36m   Z-score: ${zScore.toFixed(2)} (warn: ${warningZScore}, fail: ${failZScore})\x1b[0m`)
+
+    if (zScore > warningZScore && zScore <= failZScore) {
+      console.log(`\x1b[33m   ⚠️  WARNING: HS foil match rate higher than expected\x1b[0m`)
+    }
+
+    assert(
+      zScore <= failZScore,
+      `Hyperspace foil match rate (${(observedRate * 100).toFixed(1)}%) is extremely high ` +
+      `(z=${zScore.toFixed(2)} > ${failZScore}). This may indicate hyperfoil upgrade issue. ` +
+      `Examples: ${matchExamples.join('; ')}`
+    )
+  })
+
+  test('hyperspace + normal same-card pairs should be within expected range', () => {
+    // When a common slot upgrades to hyperspace, it draws from the HS belt (random card)
+    // NOT the hyperspace version of the specific card being replaced.
+    // So occasionally the HS belt will serve a card that matches a normal card in the pack.
+    //
+    // Expected rate calculation:
+    // - P(common upgrade occurs) = 1/6 per pack
+    // - When upgrade occurs, HS belt serves random HS common from ~90 unique commons
+    // - P(HS common matches one of 8 remaining normal commons) = 8/90 ≈ 8.9%
+    // - P(match in pack) ≈ 1/6 * 8/90 ≈ 1.5%
+    //
+    // This test ensures the rate isn't MUCH higher (which would indicate a belt correlation bug)
+    clearBeltCache()
+    const packCount = 500
+    let pairsFound = 0
+    const pairExamples = []
+
+    for (let i = 0; i < packCount; i++) {
+      const pack = generateBoosterPack(cards, 'SOR')
+
+      // Find all hyperspace cards (non-foil, as foils use different upgrade path)
+      const hsCards = pack.cards.filter(c => c.isHyperspace && !c.isFoil)
+
+      for (const hsCard of hsCards) {
+        // Look for normal variant with same name
+        const normalVariant = pack.cards.find(c =>
+          c.variantType === 'Normal' &&
+          c.name === hsCard.name &&
+          !c.isFoil
+        )
+
+        if (normalVariant) {
+          pairsFound++
+          if (pairExamples.length < 5) {
+            pairExamples.push(`Pack ${i + 1}: "${hsCard.name}" HS+Normal`)
+          }
+        }
+      }
+    }
+
+    const observedRate = pairsFound / packCount
+    // Expected rate ~1.5% (1/6 chance of upgrade * 8/90 chance of match)
+    const expectedRate = 0.015
+
+    const stdDev = Math.sqrt(packCount * expectedRate * (1 - expectedRate))
+    const zScore = (pairsFound - packCount * expectedRate) / stdDev
+
+    // Use same thresholds as other tests: warn at 2.5, fail at 4
+    const warningZScore = 2.5
+    const failZScore = 4.0
+
+    console.log(`\x1b[36m   HS+Normal same-card rate: ${(observedRate * 100).toFixed(2)}% (${pairsFound}/${packCount})\x1b[0m`)
+    console.log(`\x1b[36m   Expected rate: ~${(expectedRate * 100).toFixed(1)}%\x1b[0m`)
+    console.log(`\x1b[36m   Z-score: ${zScore.toFixed(2)} (warn: ${warningZScore}, fail: ${failZScore})\x1b[0m`)
+
+    if (zScore > warningZScore && zScore <= failZScore) {
+      console.log(`\x1b[33m   ⚠️  WARNING: HS+Normal pair rate higher than expected\x1b[0m`)
+      console.log(`\x1b[33m   Examples: ${pairExamples.join('; ')}\x1b[0m`)
+    }
+
+    assert(
+      zScore <= failZScore,
+      `HS+Normal same-card rate (${(observedRate * 100).toFixed(1)}%) is extremely high vs expected ~${(expectedRate * 100).toFixed(1)}% ` +
+      `(z=${zScore.toFixed(2)} > ${failZScore}). This may indicate hyperspace belt is correlated with common belt. ` +
+      `Examples: ${pairExamples.join('; ')}`
+    )
   })
 
   console.log('')
