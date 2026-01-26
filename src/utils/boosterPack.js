@@ -325,9 +325,21 @@ function applyUpgradePass(pack, setCode) {
   // 7. Third UC upgrade to Hyperspace R/L (RARITY change - uses belt for random R/L)
   // This is intentionally a random R/L card, not the same UC in HS form
   // This MUST happen after UC->HS_UC upgrades since it changes rarity and corrupts uncommonIndices
+  // IMPORTANT: Must avoid picking a card whose Normal version is already in the pack (e.g., the Rare slot)
   if (uncommonIndices.length >= 3 && probs.thirdUCToHyperspaceRL && shouldUpgrade(probs.thirdUCToHyperspaceRL)) {
     const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode)
-    const upgraded = hsRLBelt.next()
+    // Get names of all non-foil cards already in the pack to avoid duplicates
+    const existingNames = new Set(pack.cards.filter(c => !c.isFoil).map(c => c.name))
+
+    // Try to get a HS R/L card that isn't already in the pack (up to 5 attempts)
+    let upgraded = null
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const candidate = hsRLBelt.next()
+      if (candidate && !existingNames.has(candidate.name)) {
+        upgraded = candidate
+        break
+      }
+    }
     if (upgraded) pack.cards[uncommonIndices[2]] = upgraded
   }
 
@@ -420,8 +432,10 @@ function ensureAspectCoverage(packCards, beltA, beltB, startedWithA, setCode) {
     return present
   }
 
-  // Get IDs of cards already in pack to avoid duplicates
-  const packCardIds = new Set(packCards.map(c => c.id))
+  // Get names of cards already in pack to avoid duplicates
+  // Use names instead of IDs because a card upgraded to Hyperspace has a different ID
+  // but is still the "same card" for duplicate purposes
+  const packCardNames = new Set(packCards.map(c => c.name))
 
   // Fix missing aspects (up to 6 attempts, one per potentially missing aspect)
   for (let attempt = 0; attempt < 6; attempt++) {
@@ -440,7 +454,7 @@ function ensureAspectCoverage(packCards, beltA, beltB, startedWithA, setCode) {
     if (candidates.length === 0) continue
 
     // Find a card that isn't already in the pack
-    let replacement = candidates.find(c => !packCardIds.has(c.id))
+    let replacement = candidates.find(c => !packCardNames.has(c.name))
 
     // If all cards with this aspect are already in the pack, skip this fix
     // Having a missing aspect is better than having duplicate cards
@@ -500,7 +514,7 @@ function ensureAspectCoverage(packCards, beltA, beltB, startedWithA, setCode) {
         // Look for a replacement that has the missing aspect AND all unique aspects
         const neededAspects = [missing, ...uniqueAspects]
         const betterReplacement = candidates.find(c =>
-          !packCardIds.has(c.id) &&
+          !packCardNames.has(c.name) &&
           neededAspects.every(a => c.aspects?.includes(a))
         )
 
@@ -519,9 +533,9 @@ function ensureAspectCoverage(packCards, beltA, beltB, startedWithA, setCode) {
 
     // Do the replacement
     const oldCard = packCards[bestIdx]
-    packCardIds.delete(oldCard.id)
+    packCardNames.delete(oldCard.name)
     packCards[bestIdx] = replacement
-    packCardIds.add(replacement.id)
+    packCardNames.add(replacement.name)
   }
 }
 
@@ -565,6 +579,30 @@ export function generateBoosterPack(cards, setCode) {
 
   // Toggle for next pack
   startWithBeltA = !startWithBeltA
+
+  // Dedup commons - belt cycling can rarely produce duplicates
+  // Replace any duplicate commons with fresh cards from the appropriate belt
+  const commonNames = new Set()
+  for (let i = 2; i < packCards.length; i++) { // Start at index 2 (after leader/base)
+    const card = packCards[i]
+    if (commonNames.has(card.name)) {
+      // Duplicate found - get a replacement from the belt this card came from
+      const beltIdx = (i - 2) % 2 // Which belt this position came from
+      const replacementBelt = (beltIdx === 0) ? firstBelt : secondBelt
+
+      // Try to find a non-duplicate replacement
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const replacement = replacementBelt.next()
+        if (replacement && !commonNames.has(replacement.name)) {
+          packCards[i] = replacement
+          commonNames.add(replacement.name)
+          break
+        }
+      }
+    } else {
+      commonNames.add(card.name)
+    }
+  }
 
   // Ensure all 6 aspects are covered in commons (safety net for belt edge cases)
   ensureAspectCoverage(packCards, commonBeltA, commonBeltB, currentStartWithA, setCode)

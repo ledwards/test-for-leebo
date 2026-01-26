@@ -295,8 +295,9 @@ test('Bot strongly prefers in-color cards over off-color cards', () => {
   }
 
   // Off-color rare vs in-color common - should pick in-color
+  // Use pure Villainy (alignment only) so it can't match any secondary color
   const pack = [
-    { id: '1', name: 'Off-Color Rare', type: 'Unit', rarity: 'Rare', aspects: ['Vigilance', 'Villainy'], cost: 3, power: 4, hp: 4 },
+    { id: '1', name: 'Off-Color Rare', type: 'Unit', rarity: 'Rare', aspects: ['Villainy'], cost: 3, power: 4, hp: 4 },
     { id: '2', name: 'In-Color Common', type: 'Unit', rarity: 'Common', aspects: ['Aggression'], cost: 2, power: 2, hp: 2 },
   ]
 

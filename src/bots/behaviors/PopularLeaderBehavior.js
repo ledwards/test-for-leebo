@@ -46,23 +46,21 @@ const LEADER_RANKINGS = {
 
   SHD: [
     'Han Solo',           // 55.2% win rate, aggression/heroism
-    'Boba Fett',          // Strong in limited, command/heroism
     'Cad Bane',           // Excels in limited, Underworld synergy
+    'Qi\'ra',             // Vigilance/villainy
+    'Boba Fett',          // Strong in limited, command/heroism
     'Bossk',              // Bounties mechanic, strong limited
+    'Gar Saxon',          // Vigilance/villainy
+    'Rey',                // Vigilance/heroism
     'Kylo Ren',           // Aggression/villainy
     'Bo-Katan Kryze',     // Aggression/heroism
-    'The Mandalorian',    // Cunning/heroism
     'Fennec Shand',       // Cunning/heroism
-    'Moff Gideon',        // Command/villainy
-    'Hunter',             // Command/heroism
     'Jabba the Hutt',     // Command/villainy
-    'Rey',                // Vigilance/heroism
     'Finn',               // Vigilance/heroism
-    'Gar Saxon',          // Vigilance/villainy
-    'Qi\'ra',             // Vigilance/villainy
     'Hondo Ohnaka',       // Command/villainy
     'Doctor Aphra',       // Cunning/villainy
     'Lando Calrissian',   // Cunning/heroism
+    'Hunter',             // Command/heroism
   ],
 
   TWI: [
@@ -83,7 +81,7 @@ const LEADER_RANKINGS = {
     'General Grievous',   // Cunning/villainy
     'Wat Tambor',         // Beast in limited, command/villainy
     'Pre Vizsla',         // Aggression/villainy
-    'Chancellor Palpatine // Darth Sidious', // Complex but powerful
+    'Chancellor Palpatine', // Complex but powerful
   ],
 
   JTL: [
@@ -129,23 +127,23 @@ const LEADER_RANKINGS = {
   ],
 
   SEC: [
+    'Sly Moore',          // Cunning/villainy
     'Leia Organa',        // Vigilance/heroism
+    'Colonel Yularen',    // Command/villainy
+    'Sabé',               // Cunning/heroism
     'Chancellor Palpatine', // Vigilance/villainy, versatile
     'Cassian Andor',      // Aggression/heroism
-    'Luthen Rael',        // Aggression/heroism
     'Mon Mothma',         // Command/heroism
     'Jabba the Hutt',     // Vigilance/villainy
-    'Bail Organa',        // Command/heroism
     'Dedra Meero',        // Aggression/villainy
     'Governor Pryce',     // Aggression/villainy
+    'Luthen Rael',        // Aggression/heroism
     'Dryden Vos',         // Command/villainy
-    'Colonel Yularen',    // Command/villainy
+    'Bail Organa',        // Command/heroism
     'Satine Kryze',       // Vigilance/heroism
     'Padmé Amidala',      // Cunning/heroism
-    'C-3P0',              // Cunning/heroism
-    'Sabé',               // Cunning/heroism
-    'Sly Moore',          // Cunning/villainy
     'Lama Su',            // Vigilance/villainy
+    'C-3P0',              // Cunning/heroism
     'DJ',                 // Cunning/cunning (unique)
   ],
 }
