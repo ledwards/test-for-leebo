@@ -440,11 +440,12 @@ function ensureAspectCoverage(packCards, beltA, beltB, startedWithA, setCode) {
     if (candidates.length === 0) continue
 
     // Find a card that isn't already in the pack
-    let replacement = candidates.find(c => !packCardIds.has(c.id))
+    const replacement = candidates.find(c => !packCardIds.has(c.id))
 
-    // If all cards are duplicates, just use the first one (aspect coverage is more important)
+    // If all cards with this aspect are already in the pack, skip this fix
+    // Having a missing aspect is better than having duplicate cards
     if (!replacement) {
-      replacement = candidates[0]
+      continue
     }
 
     // Find a common to replace that won't break other aspects
