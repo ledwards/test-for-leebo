@@ -1,5 +1,7 @@
 # Protect the Pod - Star Wars: Unlimited Draft & Sealed Simulator
 
+![QA Tests](https://img.shields.io/badge/QA_Tests-passing-brightgreen?style=flat-square)
+
 A web application for Star Wars: Unlimited limited formats - draft pods and sealed pools with deck building.
 
 ## Features
@@ -245,6 +247,39 @@ npm run qa              # Full QA analysis (~1-2 min)
 - 💥 Failure indicators
 
 See `src/qa/README.md` for detailed testing documentation.
+
+## CI/CD & Deployment
+
+Every deployment automatically runs tests and QA checks:
+
+**Automated Pipeline:**
+- ✅ Unit tests (belts, utils, draft logic)
+- 📊 QA tests (100 pods per set, 600 packs)
+- 🔄 Database migrations
+- 📦 Build artifacts (includes QA results)
+
+**Quick Commands:**
+```bash
+npm run build           # Full production build with tests
+npm run test           # Run all unit tests
+npm run qa             # Generate QA results
+```
+
+**QA Results Artifact:**
+- Generated on every build: `src/qa/results.json`
+- Copied to deployment: `public/qa-results.json`
+- Accessible at: `https://www.protectthepod.com/qa-results.json`
+
+**Documentation:**
+- 📋 [CI/CD Documentation](docs/CI_CD.md) - Full pipeline details
+- ✅ [Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md) - Pre/post deployment steps
+- 🔧 GitHub Actions workflow in `.github/workflows/ci.yml`
+
+**Vercel Integration:**
+- Tests run automatically on every push
+- QA results included in deployments
+- Preview deployments for PRs
+- Instant rollback available
 
 ## Code Structure
 
