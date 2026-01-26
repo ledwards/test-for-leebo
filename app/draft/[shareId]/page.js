@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../src/contexts/AuthContext'
-import { useDraftSync } from '../../../src/hooks/useDraftSync'
+import { useDraftSSE } from '../../../src/hooks/useDraftSSE'
 import { joinDraft, leaveDraft, startDraft, randomizeSeats, makePick, selectCard, updateSettings, togglePause } from '../../../src/utils/draftApi'
 import DraftLobby from '../../../src/components/DraftLobby'
 import LeaderDraftPhase from '../../../src/components/LeaderDraftPhase'
@@ -46,20 +46,20 @@ export default function DraftRoomPage({ params }) {
     getParams()
   }, [params])
 
-  // Use draft sync hook
+  // Use draft SSE hook for real-time updates
   const {
     draft,
     loading,
     error: syncError,
     deleted,
-    forcePoll,
+    refresh,
     isHost,
     isPlayer,
     players,
     myPlayer,
     draftState,
     status,
-  } = useDraftSync(shareId, { enabled: !!shareId && isAuthenticated })
+  } = useDraftSSE(shareId, { enabled: !!shareId && isAuthenticated })
 
   // Redirect if draft was deleted
   useEffect(() => {
@@ -100,7 +100,7 @@ export default function DraftRoomPage({ params }) {
     const autoJoin = async () => {
       try {
         await joinDraft(shareId)
-        await forcePoll()
+        await refresh()
       } catch (err) {
         // Ignore "already in draft" errors
         if (!err.message.includes('Already in draft')) {
@@ -110,7 +110,7 @@ export default function DraftRoomPage({ params }) {
     }
 
     autoJoin()
-  }, [shareId, isAuthenticated, loading, isPlayer, status, forcePoll])
+  }, [shareId, isAuthenticated, loading, isPlayer, status, refresh])
 
   const handleLeave = async () => {
     try {
@@ -127,7 +127,7 @@ export default function DraftRoomPage({ params }) {
     setError(null)
     try {
       await startDraft(shareId)
-      await forcePoll()
+      await refresh()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -140,7 +140,7 @@ export default function DraftRoomPage({ params }) {
     setRandomizing(true)
     try {
       await randomizeSeats(shareId)
-      await forcePoll()
+      await refresh()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -153,7 +153,7 @@ export default function DraftRoomPage({ params }) {
     setChangingSettings(true)
     try {
       await updateSettings(shareId, settings)
-      await forcePoll()
+      await refresh()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -174,7 +174,7 @@ export default function DraftRoomPage({ params }) {
         const data = await response.json()
         throw new Error(data.message || 'Failed to add bot')
       }
-      await forcePoll()
+      await refresh()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -188,7 +188,7 @@ export default function DraftRoomPage({ params }) {
     setError(null)
     try {
       await makePick(shareId, cardId)
-      await forcePoll()
+      await refresh()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -202,7 +202,7 @@ export default function DraftRoomPage({ params }) {
     setError(null)
     try {
       await selectCard(shareId, cardId)
-      await forcePoll()
+      await refresh()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -242,7 +242,7 @@ export default function DraftRoomPage({ params }) {
     setError(null)
     try {
       await togglePause(shareId)
-      await forcePoll()
+      await refresh()
     } catch (err) {
       setError(err.message)
     } finally {
