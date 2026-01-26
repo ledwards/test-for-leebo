@@ -32,6 +32,8 @@
     "test:e2e:chromium": "npx playwright test --project=chromium",
     "test:e2e:mobile": "npx playwright test --project='Mobile Chrome' --project='Mobile Safari'",
     "test:e2e:regression": "npx playwright test regression.spec.js",
+    "test:e2e:draft": "npx playwright test multiplayer-draft.spec.js --project=chromium --workers=1 --headed",
+    "test:e2e:draft:debug": "npx playwright test multiplayer-draft.spec.js --project=chromium --workers=1 --headed --debug",
     "test:e2e:report": "npx playwright show-report"
   },
   "dependencies": {

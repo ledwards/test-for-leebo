@@ -39,6 +39,10 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
   const isPaused = draft?.paused === true
   const pausedDurationSeconds = draft?.pausedDurationSeconds || 0
 
+  // Get lastPlayerStartedAt from server-provided draft state
+  // This ensures consistency between client timer display and server timeout enforcement
+  const lastPlayerStartedAt = draft?.draftState?.lastPlayerStartedAt || null
+
   // Calculate which timer to show based on remaining time
   useEffect(() => {
     if (!isDrafting || !pickStartedAt) return
@@ -53,9 +57,14 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
       const elapsed = timeSinceStart - effectivePausedDuration
 
       const roundRemaining = isRoundTimerEnabled ? Math.max(0, pickTimeoutSeconds - elapsed) : Infinity
-      const lastPlayerRemaining = (isLastPlayerTimerEnabled && isLastPlayer)
-        ? Math.max(0, lastPlayerTimerSeconds - elapsed)
-        : Infinity
+
+      // Last player timer uses its own start time (when they became the last player)
+      let lastPlayerRemaining = Infinity
+      if (isLastPlayerTimerEnabled && isLastPlayer && lastPlayerStartedAt) {
+        const lastPlayerStart = new Date(lastPlayerStartedAt).getTime()
+        const lastPlayerElapsed = Math.floor((now - lastPlayerStart) / 1000)
+        lastPlayerRemaining = Math.max(0, lastPlayerTimerSeconds - lastPlayerElapsed)
+      }
 
       // Show whichever has less time remaining
       if (lastPlayerRemaining <= roundRemaining && lastPlayerRemaining !== Infinity) {
@@ -71,7 +80,7 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
       const interval = setInterval(calculateActiveTimer, 1000)
       return () => clearInterval(interval)
     }
-  }, [isDrafting, pickStartedAt, pausedDurationSeconds, isRoundTimerEnabled, isLastPlayerTimerEnabled, isLastPlayer, pickTimeoutSeconds, lastPlayerTimerSeconds, isPaused])
+  }, [isDrafting, pickStartedAt, pausedDurationSeconds, isRoundTimerEnabled, isLastPlayerTimerEnabled, isLastPlayer, pickTimeoutSeconds, lastPlayerTimerSeconds, isPaused, lastPlayerStartedAt])
 
   // Determine what should be shown
   const showRoundTimer = isRoundTimerEnabled
@@ -114,12 +123,12 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
           <CountdownTimer
             label={compact ? "Last Player" : "Last Player:"}
             totalSeconds={lastPlayerTimerSeconds}
-            startedAt={pickStartedAt}
+            startedAt={lastPlayerStartedAt || pickStartedAt}
             warningThreshold={30}
             active={true}
             compact={compact}
             paused={isPaused}
-            pausedDurationSeconds={pausedDurationSeconds}
+            pausedDurationSeconds={0}
           />
         ) : (
           <CountdownTimer

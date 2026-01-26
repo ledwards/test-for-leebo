@@ -8,6 +8,7 @@
 import { query, queryRow, queryRows } from '@/lib/db.js'
 import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft, processAllStagedPicks } from './draftAdvance.js'
 import { getBehavior } from '@/src/bots/behaviors/index.js'
+import { broadcastDraftState } from '@/src/lib/sseBroadcast.js'
 
 // Cache behavior instances per bot to maintain state across picks
 const botBehaviors = new Map()
@@ -136,11 +137,36 @@ async function makeBotLeaderPick(bot, draftState) {
     [cardId, bot.id]
   )
 
-  // Increment state version so clients see the update
-  await query(
-    `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
+  // Check if only one player remains picking (for last player timer)
+  const remainingPickers = await queryRows(
+    `SELECT id FROM draft_pod_players WHERE draft_pod_id = $1 AND pick_status = 'picking'`,
     [bot.draft_pod_id]
   )
+
+  if (remainingPickers.length === 1) {
+    // One player left - set lastPlayerStartedAt if not already set
+    const pod = await queryRow('SELECT draft_state FROM draft_pods WHERE id = $1', [bot.draft_pod_id])
+    const currentState = typeof pod.draft_state === 'string' ? JSON.parse(pod.draft_state) : pod.draft_state || {}
+
+    if (!currentState.lastPlayerStartedAt) {
+      currentState.lastPlayerStartedAt = new Date().toISOString()
+      await query(
+        `UPDATE draft_pods SET draft_state = $1, state_version = state_version + 1 WHERE id = $2`,
+        [JSON.stringify(currentState), bot.draft_pod_id]
+      )
+    } else {
+      await query(
+        `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
+        [bot.draft_pod_id]
+      )
+    }
+  } else {
+    // Increment state version so clients see the update
+    await query(
+      `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
+      [bot.draft_pod_id]
+    )
+  }
 
   // console.log('[BOT] Bot', bot.id, 'selected leader:', pickedLeader.name)
   return true
@@ -197,11 +223,36 @@ async function makeBotCardPick(bot, draftState) {
     [cardId, bot.id]
   )
 
-  // Increment state version so clients see the update
-  await query(
-    `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
+  // Check if only one player remains picking (for last player timer)
+  const remainingPickers = await queryRows(
+    `SELECT id FROM draft_pod_players WHERE draft_pod_id = $1 AND pick_status = 'picking'`,
     [bot.draft_pod_id]
   )
+
+  if (remainingPickers.length === 1) {
+    // One player left - set lastPlayerStartedAt if not already set
+    const pod = await queryRow('SELECT draft_state FROM draft_pods WHERE id = $1', [bot.draft_pod_id])
+    const currentState = typeof pod.draft_state === 'string' ? JSON.parse(pod.draft_state) : pod.draft_state || {}
+
+    if (!currentState.lastPlayerStartedAt) {
+      currentState.lastPlayerStartedAt = new Date().toISOString()
+      await query(
+        `UPDATE draft_pods SET draft_state = $1, state_version = state_version + 1 WHERE id = $2`,
+        [JSON.stringify(currentState), bot.draft_pod_id]
+      )
+    } else {
+      await query(
+        `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
+        [bot.draft_pod_id]
+      )
+    }
+  } else {
+    // Increment state version so clients see the update
+    await query(
+      `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
+      [bot.draft_pod_id]
+    )
+  }
 
   // console.log('[BOT] Bot', bot.id, 'selected card:', pickedCard.name)
   return true
@@ -304,5 +355,18 @@ export async function processBotTurns(podId) {
       [podId]
     )
     // console.log('[BOT]', instanceId, 'Released processing lock after', iterations, 'iterations')
+
+    // Always broadcast state update after bot processing
+    // This ensures clients get the latest state
+    if (iterations > 0) {
+      try {
+        const podForBroadcast = await queryRow('SELECT share_id FROM draft_pods WHERE id = $1', [podId])
+        if (podForBroadcast?.share_id) {
+          await broadcastDraftState(podForBroadcast.share_id)
+        }
+      } catch (err) {
+        console.error('Error broadcasting after bot turns:', err)
+      }
+    }
   }
 }

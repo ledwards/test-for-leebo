@@ -107,9 +107,14 @@ export function useDraftSync(shareId, { pollInterval = 2000, enabled = true } = 
     await loadInitial()
   }, [loadInitial])
 
-  // Force immediate poll
+  // Force immediate poll with retry for state changes
   const forcePoll = useCallback(async () => {
     await poll()
+    // If state didn't change, retry once after a short delay
+    // This handles the case where bot processing is still running
+    setTimeout(async () => {
+      await poll()
+    }, 500)
   }, [poll])
 
   return {

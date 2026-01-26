@@ -134,6 +134,7 @@ async function advanceLeaderDraftAfterPicks(podId, draftState, pod, players) {
     await passLeaders(updatedPlayers, direction)
 
     draftState.leaderRound = 2
+    delete draftState.lastPlayerStartedAt // Clear last player timer for new round
     await query(
       `UPDATE draft_pods
        SET draft_state = $1,
@@ -159,6 +160,7 @@ async function advanceLeaderDraftAfterPicks(podId, draftState, pod, players) {
     await passLeaders(updatedPlayers, direction)
 
     draftState.leaderRound = 3
+    delete draftState.lastPlayerStartedAt // Clear last player timer for new round
     await query(
       `UPDATE draft_pods
        SET draft_state = $1,
@@ -179,6 +181,7 @@ async function advanceLeaderDraftAfterPicks(podId, draftState, pod, players) {
     draftState.phase = 'pack_draft'
     draftState.packNumber = 1
     draftState.pickInPack = 1
+    delete draftState.lastPlayerStartedAt // Clear last player timer for new phase
 
     const allPacks = typeof pod.all_packs === 'string'
       ? JSON.parse(pod.all_packs)
@@ -250,6 +253,7 @@ async function advancePackDraftAfterPicks(podId, draftState, pod) {
     // Move to next pack
     draftState.packNumber = packNumber + 1
     draftState.pickInPack = 1
+    delete draftState.lastPlayerStartedAt // Clear last player timer for new pack
 
     const allPacks = typeof pod.all_packs === 'string'
       ? JSON.parse(pod.all_packs)
@@ -283,6 +287,7 @@ async function advancePackDraftAfterPicks(podId, draftState, pod) {
     await passPacks(players, direction)
 
     draftState.pickInPack = pickInPack + 1
+    delete draftState.lastPlayerStartedAt // Clear last player timer for new pick
 
     await query(
       `UPDATE draft_pods
@@ -330,6 +335,7 @@ export async function checkAndAdvanceLeaderDraft(podId, draftState, pod) {
 
     // Update state for round 2
     draftState.leaderRound = 2
+    delete draftState.lastPlayerStartedAt // Clear last player timer for new round
     await query(
       `UPDATE draft_pods
        SET draft_state = $1,
@@ -355,6 +361,7 @@ export async function checkAndAdvanceLeaderDraft(podId, draftState, pod) {
 
     // Move to round 3 - let players confirm their final leader
     draftState.leaderRound = 3
+    delete draftState.lastPlayerStartedAt // Clear last player timer for new round
     await query(
       `UPDATE draft_pods
        SET draft_state = $1,
@@ -378,6 +385,7 @@ export async function checkAndAdvanceLeaderDraft(podId, draftState, pod) {
     draftState.phase = 'pack_draft'
     draftState.packNumber = 1
     draftState.pickInPack = 1
+    delete draftState.lastPlayerStartedAt // Clear last player timer for new phase
 
     // Get all packs and distribute pack 1
     const allPacks = typeof pod.all_packs === 'string'
@@ -494,6 +502,7 @@ export async function checkAndAdvancePackDraft(podId, draftState, pod) {
     // Move to next pack
     draftState.packNumber = packNumber + 1
     draftState.pickInPack = 1
+    delete draftState.lastPlayerStartedAt // Clear last player timer for new pack
     // console.log('[ADVANCE-PACK] Moving to pack', draftState.packNumber)
 
     // Get all packs and distribute next pack
@@ -535,6 +544,7 @@ export async function checkAndAdvancePackDraft(podId, draftState, pod) {
 
     // Update state
     draftState.pickInPack = pickInPack + 1
+    delete draftState.lastPlayerStartedAt // Clear last player timer for new pick
 
     await query(
       `UPDATE draft_pods

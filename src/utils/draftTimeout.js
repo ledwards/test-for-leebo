@@ -11,6 +11,7 @@ import { processBotTurns } from './botLogic.js'
 
 /**
  * Check if timeout has been exceeded and force picks if needed
+ * Uses atomic locking to prevent concurrent timeout enforcement
  * @param {string} podId - Draft pod ID
  * @returns {boolean} - Whether any picks were forced
  */
@@ -66,18 +67,44 @@ export async function checkAndEnforceTimeout(podId) {
   // Check if either timer has expired
   const isLastPlayer = players.length === 1
 
+  // Round timer uses elapsed time since pick started
   const roundTimerExpired = isRoundTimerEnabled && elapsed >= roundTimeoutSeconds * 1000
-  const lastPlayerTimerExpired = isLastPlayerTimerEnabled && isLastPlayer && elapsed >= lastPlayerTimeoutSeconds * 1000
+
+  // Last player timer uses the time since they became the last player
+  // This is stored in draft_state.lastPlayerStartedAt when bots finish picking
+  const draftState = typeof pod.draft_state === 'string'
+    ? JSON.parse(pod.draft_state)
+    : pod.draft_state || {}
+
+  let lastPlayerTimerExpired = false
+  if (isLastPlayerTimerEnabled && isLastPlayer && draftState.lastPlayerStartedAt) {
+    const lastPlayerStartedAt = new Date(draftState.lastPlayerStartedAt).getTime()
+    const lastPlayerElapsed = now - lastPlayerStartedAt
+    lastPlayerTimerExpired = lastPlayerElapsed >= lastPlayerTimeoutSeconds * 1000
+  }
 
   if (!roundTimerExpired && !lastPlayerTimerExpired) {
     // Neither timeout reached yet
     return false
   }
 
-  // Parse draft state
-  const draftState = typeof pod.draft_state === 'string'
-    ? JSON.parse(pod.draft_state)
-    : pod.draft_state || {}
+  // Try to acquire lock using atomic update on pick_started_at
+  // This prevents concurrent timeout enforcement by checking that pick_started_at
+  // hasn't changed since we read it (meaning no other process has advanced the draft)
+  const lockResult = await query(
+    `UPDATE draft_pods
+     SET state_version = state_version + 1
+     WHERE id = $1
+       AND status = 'active'
+       AND pick_started_at = $2
+     RETURNING id`,
+    [podId, pod.pick_started_at]
+  )
+
+  if (lockResult.rowCount === 0) {
+    // Another process already handled this timeout or state changed
+    return false
+  }
 
   const phase = draftState.phase
 
