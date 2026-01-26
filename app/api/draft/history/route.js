@@ -46,11 +46,18 @@ export async function GET(request) {
           if (state.poolName) {
             poolNameFromState = state.poolName
           }
-          if (state.activeLeader) {
-            leaderName = state.activeLeader.name || state.activeLeader.title
+          // activeLeader/activeBase are cardId strings, actual card data is in cardPositions
+          if (state.activeLeader && state.cardPositions) {
+            const leaderCard = state.cardPositions[state.activeLeader]?.card
+            if (leaderCard) {
+              leaderName = leaderCard.name || leaderCard.title
+            }
           }
-          if (state.activeBase) {
-            baseName = state.activeBase.name || state.activeBase.title
+          if (state.activeBase && state.cardPositions) {
+            const baseCard = state.cardPositions[state.activeBase]?.card
+            if (baseCard) {
+              baseName = baseCard.name || baseCard.title
+            }
           }
         } catch (e) {
           console.error('Failed to parse deck_builder_state:', e)

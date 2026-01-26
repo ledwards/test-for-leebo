@@ -840,6 +840,25 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         // Load deck state from database (savedState prop)
         const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState
 
+        // Check localStorage for more recent deck/sideboard state (backup for debounced database save)
+        let localDeckCardIds = null
+        let localSideboardCardIds = null
+        if (shareId) {
+          try {
+            const uiState = localStorage.getItem(`deckBuilderUI_${shareId}`)
+            if (uiState) {
+              const localState = JSON.parse(uiState)
+              // Use localStorage deck/sideboard state if it exists (it's saved immediately, unlike database)
+              if (localState.deckCardIds && localState.sideboardCardIds) {
+                localDeckCardIds = new Set(localState.deckCardIds)
+                localSideboardCardIds = new Set(localState.sideboardCardIds)
+              }
+            }
+          } catch (e) {
+            // Ignore localStorage errors
+          }
+        }
+
         if (state.cardPositions && Object.keys(state.cardPositions).length > 0) {
           // Ensure all cards have enabled property (default to true)
           // Also remove any bases/leaders that might have been in 'main' section
@@ -849,9 +868,24 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             if ((pos.section === 'deck' || pos.section === 'sideboard') && (pos.card?.isBase || pos.card?.isLeader)) {
               return // Skip this card - it shouldn't be in main section
             }
+
+            // Use localStorage deck/sideboard state if available (more recent than database)
+            let section = pos.section
+            let enabled = pos.enabled !== undefined ? pos.enabled : true
+            if (localDeckCardIds && localSideboardCardIds && (pos.section === 'deck' || pos.section === 'sideboard')) {
+              if (localDeckCardIds.has(id)) {
+                section = 'deck'
+                enabled = true
+              } else if (localSideboardCardIds.has(id)) {
+                section = 'sideboard'
+                enabled = false
+              }
+            }
+
             positionsWithEnabled[id] = {
               ...pos,
-              enabled: pos.enabled !== undefined ? pos.enabled : true
+              section,
+              enabled
             }
           })
 
@@ -958,7 +992,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         console.error('Failed to restore deck builder state:', e)
       }
     }
-  }, [savedState, cards])
+  }, [savedState, cards, shareId])
 
   // Restore UI state from localStorage
   useEffect(() => {
@@ -1394,7 +1428,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         tableSort,
         // Also save active leader/base to localStorage as backup (database save is debounced)
         activeLeader,
-        activeBase
+        activeBase,
+        // Save deck/sideboard card IDs to localStorage as backup (database save is debounced)
+        deckCardIds,
+        sideboardCardIds,
+        lastSavedAt: Date.now()
       }
 
       // Save UI state to localStorage keyed by pool shareId
