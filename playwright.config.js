@@ -14,10 +14,11 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI */
   workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use */
+  /* Reporter to use - dot for compact CLI output, html for detailed report, json for summary script */
   reporter: [
+    ['dot'],
     ['html', { open: 'never' }],
-    ['list']
+    ['json', { outputFile: 'test-results/results.json' }]
   ],
   /* Shared settings for all the projects below */
   use: {
@@ -34,32 +35,36 @@ export default defineConfig({
     video: 'on-first-retry',
   },
 
-  /* Configure projects for major browsers */
-  projects: [
+  /* Configure projects for major browsers
+   * Local dev: Only Chromium (fast feedback)
+   * CI: All browsers (comprehensive coverage)
+   */
+  projects: process.env.CI ? [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
     },
-
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
-
-    /* Test against mobile viewports */
     {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
     },
-
     {
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
+    },
+  ] : [
+    // Local development: just Chromium for speed
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
 

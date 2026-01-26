@@ -19,6 +19,7 @@
     "test:json": "node scripts/run-tests-json.js",
     "test:bots": "node src/bots/behaviors/behaviors.test.js",
     "test:all": "npm run test; npm run qa; npm run test:e2e; node scripts/test-summary.js",
+    "test:quiet": "node scripts/run-tests-quiet.js",
     "test:summary": "bash scripts/run-tests.sh",
     "test:belts": "node src/belts/BaseBelt.test.js && node src/belts/CommonBelt.test.js && node src/belts/FoilBelt.test.js && node src/belts/HyperfoilBelt.test.js && node src/belts/HyperspaceBelts.test.js && node src/belts/LeaderBelt.test.js && node src/belts/RareLegendaryBelt.test.js && node src/belts/ShowcaseLeaderBelt.test.js && node src/belts/UncommonBelt.test.js",
     "test:utils": "node src/utils/boosterPack.test.js",
