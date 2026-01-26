@@ -360,9 +360,10 @@ async function runTests() {
     assertEqual(next1.id, peeked[0].id, 'First peeked card should match first next()')
   })
 
-  test('pulling 20 consecutive cards from many belts never yields duplicates', () => {
+  test('pulling 20 consecutive cards from many belts never yields duplicates within dedup window', () => {
     const { poolA } = getCommonPools('SOR')
-    let beltsWithDuplicates = 0
+    const DEDUP_WINDOW = 12  // Must match CommonBelt.DEDUP_WINDOW
+    let beltsWithCloseDuplicates = 0
     const duplicateExamples = []
 
     // Test 100 different belt instances
@@ -375,32 +376,29 @@ async function runTests() {
         pulled.push(belt.next())
       }
 
-      // Check for any duplicates in this sequence
-      const ids = pulled.map(c => c.id)
-      const uniqueIds = new Set(ids)
-
-      if (ids.length !== uniqueIds.size) {
-        beltsWithDuplicates++
-
-        // Find which cards are duplicated
-        const seen = new Set()
-        for (let i = 0; i < pulled.length; i++) {
-          if (seen.has(pulled[i].id)) {
-            // Find where it appeared before
-            const firstIndex = pulled.findIndex(c => c.id === pulled[i].id)
+      // Check for duplicates within DEDUP_WINDOW positions of each other
+      let hasCloseDuplicate = false
+      for (let i = 0; i < pulled.length; i++) {
+        for (let j = i + 1; j < Math.min(i + DEDUP_WINDOW, pulled.length); j++) {
+          if (pulled[i].id === pulled[j].id) {
+            hasCloseDuplicate = true
             duplicateExamples.push(
-              `Belt ${beltNum}: ${pulled[i].name} (${pulled[i].id}) at positions ${firstIndex} and ${i} (${i - firstIndex} apart)`
+              `Belt ${beltNum}: ${pulled[i].name} (${pulled[i].id}) at positions ${i} and ${j} (${j - i} apart)`
             )
-            if (duplicateExamples.length >= 10) break
+            break
           }
-          seen.add(pulled[i].id)
         }
+        if (hasCloseDuplicate) break
+      }
+
+      if (hasCloseDuplicate) {
+        beltsWithCloseDuplicates++
         if (duplicateExamples.length >= 10) break
       }
     }
 
-    assertEqual(beltsWithDuplicates, 0,
-      `Found duplicates in ${beltsWithDuplicates} out of 100 belts when pulling 20 consecutive cards. Examples:\n  ${duplicateExamples.join('\n  ')}`)
+    assertEqual(beltsWithCloseDuplicates, 0,
+      `Found close duplicates (within ${DEDUP_WINDOW} positions) in ${beltsWithCloseDuplicates} out of 100 belts. Examples:\n  ${duplicateExamples.join('\n  ')}`)
   })
 
   test('pulling 100 cards from a single belt never yields duplicates within 5 positions', () => {

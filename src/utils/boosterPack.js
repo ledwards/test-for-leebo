@@ -566,7 +566,13 @@ export function generateBoosterPack(cards, setCode) {
 
   // Create pack and apply upgrade pass
   const pack = { cards: packCards }
-  return applyUpgradePass(pack, setCode)
+  const upgradedPack = applyUpgradePass(pack, setCode)
+
+  // Run aspect coverage again after upgrades
+  // Hyperspace upgrades can break aspect coverage by replacing commons with random HS commons
+  ensureAspectCoverage(upgradedPack.cards, commonBeltA, commonBeltB, currentStartWithA, setCode)
+
+  return upgradedPack
 }
 
 /**

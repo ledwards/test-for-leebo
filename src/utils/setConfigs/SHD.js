@@ -3,6 +3,10 @@
  * Set 2
  */
 
+import { SETS_1_3_CONSTANTS } from '../packConstants.js'
+
+const constants = SETS_1_3_CONSTANTS
+
 export const SHD_CONFIG = {
   setCode: 'SHD',
   setName: 'Shadows of the Galaxy',
@@ -31,19 +35,43 @@ export const SHD_CONFIG = {
   // Pack construction rules
   packRules: {
     rareBasesInRareSlot: true,
-    specialInFoilSlot: false,
+    specialInFoilSlot: constants.specialInFoilSlot,
+  },
+
+  // Rarity weights for different slots (from packConstants)
+  rarityWeights: {
+    foilSlot: constants.foilSlotWeights,
+    hyperfoil: constants.hyperfoilWeights,
+    ucSlot3Upgraded: constants.ucSlot3UpgradedWeights,
+    hyperspaceNonFoil: constants.hyperspaceNonFoilWeights,
+  },
+
+  // Belt ratios
+  beltRatios: {
+    rareToLegendary: constants.rareSlotLegendaryRatio,  // 6:1 for R slot
   },
 
   // Upgrade probabilities (chance for slot to be upgraded)
   upgradeProbabilities: {
-    leaderToHyperspace: 1/6,
-    baseToHyperspace: 1/6,
-    leaderToShowcase: 1/(2*6*24),
-    rareToHyperspaceRL: 1/15,
-    foilToHyperfoil: 1/15,
-    thirdUCToHyperspaceRL: 1/10,
-    firstUCToHyperspaceUC: 1/10,
-    secondUCToHyperspaceUC: 1/10,
-    commonToHyperspace: 1/6,
+    // Leader upgrades
+    leaderToHyperspace: constants.leaderHyperspaceRate,         // ~1/6
+    leaderToShowcase: constants.showcaseLeaderRate,             // ~1/288
+
+    // Base upgrade
+    baseToHyperspace: constants.baseHyperspaceRate,             // ~1/4
+
+    // Foil upgrade
+    foilToHyperfoil: constants.hyperfoilRate,                   // ~1/50
+
+    // UC slot upgrades
+    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,        // ~1/5.5
+    firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,    // ~1/8.5
+    secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // ~1/8.5
+
+    // Common upgrade
+    commonToHyperspace: constants.commonHyperspaceRate,         // ~1/3
+
+    // Rare slot upgrade (always 0%)
+    rareToHyperspaceRL: constants.rareSlotHyperspaceRate,       // 0%
   }
 }
