@@ -5,7 +5,7 @@
  */
 
 import { query, queryRow, queryRows } from '@/lib/db.js'
-import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft } from './draftAdvance.js'
+import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft, processAllStagedPicks } from './draftAdvance.js'
 
 /**
  * Check if any bots need to pick and make picks for them
@@ -33,8 +33,8 @@ export async function triggerBotPicks(podId) {
   for (const bot of botsNeedingPicks) {
     const made = await makeBotPick(bot.id, draftState)
     if (made) picksMade = true
-    // Small delay between bot picks
-    await new Promise(resolve => setTimeout(resolve, 100))
+    // Minimal delay between bot picks (just enough to prevent race conditions)
+    await new Promise(resolve => setTimeout(resolve, 10))
   }
 
   return picksMade
@@ -68,8 +68,9 @@ async function makeBotPick(botId, draftState) {
 }
 
 /**
- * Bot picks a leader (random selection)
- * @returns {boolean} - Whether a pick was made
+ * Bot selects a leader (random selection)
+ * Uses the staged pick system - selection is finalized when all players have selected
+ * @returns {boolean} - Whether a selection was made
  */
 async function makeBotLeaderPick(bot, draftState) {
   const leaders = typeof bot.leaders === 'string'
@@ -84,40 +85,31 @@ async function makeBotLeaderPick(bot, draftState) {
   // Pick randomly
   const pickIndex = Math.floor(Math.random() * leaders.length)
   const pickedLeader = leaders[pickIndex]
-  const remainingLeaders = leaders.filter((_, i) => i !== pickIndex)
+  const cardId = pickedLeader.instanceId || pickedLeader.id
 
-  const draftedLeaders = typeof bot.drafted_leaders === 'string'
-    ? JSON.parse(bot.drafted_leaders)
-    : bot.drafted_leaders || []
-
-  // Add pick metadata
-  const leaderRound = draftState?.leaderRound || 1
-  pickedLeader.pickNumber = draftedLeaders.length + 1
-  pickedLeader.leaderRound = leaderRound
-
-  draftedLeaders.push(pickedLeader)
-
+  // Use staged selection system
   await query(
     `UPDATE draft_pod_players
-     SET drafted_leaders = $1,
-         leaders = $2,
-         pick_status = 'picked',
-         last_pick_at = NOW()
-     WHERE id = $3`,
-    [
-      JSON.stringify(draftedLeaders),
-      JSON.stringify(remainingLeaders),
-      bot.id
-    ]
+     SET selected_card_id = $1,
+         pick_status = 'selected'
+     WHERE id = $2`,
+    [cardId, bot.id]
   )
 
-  console.log('[BOT] Bot', bot.id, 'picked leader:', pickedLeader.name)
+  // Increment state version so clients see the update
+  await query(
+    `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
+    [bot.draft_pod_id]
+  )
+
+  console.log('[BOT] Bot', bot.id, 'selected leader:', pickedLeader.name)
   return true
 }
 
 /**
- * Bot picks a card (prefers higher rarity)
- * @returns {boolean} - Whether a pick was made
+ * Bot selects a card (prefers higher rarity)
+ * Uses the staged pick system - selection is finalized when all players have selected
+ * @returns {boolean} - Whether a selection was made
  */
 async function makeBotCardPick(bot, draftState) {
   const currentPack = typeof bot.current_pack === 'string'
@@ -136,41 +128,24 @@ async function makeBotCardPick(bot, draftState) {
   )
 
   const pickedCard = sorted[0]
-  // Use instanceId if available to ensure correct card is removed (handles duplicate base IDs)
-  const remainingPack = currentPack.filter(c =>
-    pickedCard.instanceId
-      ? c.instanceId !== pickedCard.instanceId
-      : c.id !== pickedCard.id
-  )
+  const cardId = pickedCard.instanceId || pickedCard.id
 
-  const draftedCards = typeof bot.drafted_cards === 'string'
-    ? JSON.parse(bot.drafted_cards)
-    : bot.drafted_cards || []
-
-  // Add pick metadata
-  const packNumber = draftState?.packNumber || 1
-  const pickInPack = draftState?.pickInPack || 1
-  pickedCard.pickNumber = draftedCards.length + 1
-  pickedCard.packNumber = packNumber
-  pickedCard.pickInPack = pickInPack
-
-  draftedCards.push(pickedCard)
-
+  // Use staged selection system
   await query(
     `UPDATE draft_pod_players
-     SET drafted_cards = $1,
-         current_pack = $2,
-         pick_status = 'picked',
-         last_pick_at = NOW()
-     WHERE id = $3`,
-    [
-      JSON.stringify(draftedCards),
-      JSON.stringify(remainingPack),
-      bot.id
-    ]
+     SET selected_card_id = $1,
+         pick_status = 'selected'
+     WHERE id = $2`,
+    [cardId, bot.id]
   )
 
-  console.log('[BOT] Bot', bot.id, 'picked card:', pickedCard.name, '(pack', packNumber, 'pick', pickInPack, ')')
+  // Increment state version so clients see the update
+  await query(
+    `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
+    [bot.draft_pod_id]
+  )
+
+  console.log('[BOT] Bot', bot.id, 'selected card:', pickedCard.name)
   return true
 }
 
@@ -223,36 +198,25 @@ export async function processBotTurns(podId) {
         break
       }
 
-      // Don't process bot turns while draft is paused
-      if (pod.paused === true) {
-        console.log('[BOT]', instanceId, 'Draft is paused, breaking')
-        break
-      }
+      // Note: We still process bot turns while paused - pause only affects timers, not turn advancement
+      // This allows the draft to continue if all players have selected while paused
 
       const draftState = typeof pod.draft_state === 'string'
         ? JSON.parse(pod.draft_state)
         : pod.draft_state || {}
 
-      // Check if all players have picked
+      // Check if all players have selected (using new staged pick system)
       const players = await queryRows(
-        'SELECT pick_status, is_bot FROM draft_pod_players WHERE draft_pod_id = $1',
+        'SELECT pick_status, is_bot, selected_card_id FROM draft_pod_players WHERE draft_pod_id = $1',
         [podId]
       )
 
-      const allPicked = players.every(p => p.pick_status === 'picked')
+      const allSelected = players.every(p => p.pick_status === 'selected' && p.selected_card_id)
 
-      if (allPicked) {
-        console.log('[BOT]', instanceId, 'All picked, advancing state. Phase:', draftState.phase)
-        // Advance the draft state
-        let advanced = false
-        if (draftState.phase === 'leader_draft') {
-          advanced = await checkAndAdvanceLeaderDraft(podId, draftState, pod)
-        } else if (draftState.phase === 'pack_draft') {
-          advanced = await checkAndAdvancePackDraft(podId, draftState, pod)
-        }
-
-        console.log('[BOT]', instanceId, 'Advanced:', advanced)
-        if (!advanced) break
+      if (allSelected) {
+        console.log('[BOT]', instanceId, 'All selected, processing staged picks. Phase:', draftState.phase)
+        // Process all staged picks and advance
+        await processAllStagedPicks(podId, draftState, pod)
 
         // After advancing, trigger bot picks if any bots need to pick
         const botsMadePicks = await triggerBotPicks(podId)
@@ -268,8 +232,8 @@ export async function processBotTurns(podId) {
           if (humansNeedToPick) break // Wait for human input
         }
       } else {
-        console.log('[BOT]', instanceId, 'Not all picked, triggering bot picks')
-        // Not all picked yet - trigger bot picks
+        console.log('[BOT]', instanceId, 'Not all selected, triggering bot picks')
+        // Not all selected yet - trigger bot picks
         const botsMadePicks = await triggerBotPicks(podId)
         console.log('[BOT]', instanceId, 'Bots made picks:', botsMadePicks)
         if (!botsMadePicks) break // No bots to pick, wait for humans

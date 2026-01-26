@@ -11,6 +11,7 @@ function DraftableCard({
   onHover,
   disabled = false,
   selected = false,
+  dimmed = false,
   useStaticPreview = false
 }) {
   const [imageError, setImageError] = useState(false)
@@ -47,6 +48,11 @@ function DraftableCard({
 
   const handleMouseEnter = (e) => {
     onHover?.(card)
+
+    // MOBILE: Never show hover preview on mobile/touch devices
+    // Check both screen width and touch capability to be safe
+    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
+    if (isMobile) return
 
     const rect = e.currentTarget.getBoundingClientRect()
 
@@ -100,7 +106,7 @@ function DraftableCard({
   return (
     <>
       <div
-        className={`draftable-card ${disabled ? 'disabled' : ''} ${selected ? 'selected' : ''} ${card.isFoil ? 'foil' : ''} ${card.treatment === 'hyperspace' ? 'hyperspace' : ''} ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''}`}
+        className={`draftable-card ${disabled ? 'disabled' : ''} ${selected ? 'selected' : ''} ${dimmed ? 'dimmed' : ''} ${card.isFoil ? 'foil' : ''} ${card.treatment === 'hyperspace' ? 'hyperspace' : ''} ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''}`}
         onClick={handleClick}
         onContextMenu={handleRightClick}
         onMouseEnter={handleMouseEnter}

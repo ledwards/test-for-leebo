@@ -49,6 +49,11 @@ export async function PATCH(request, { params }) {
       values.push(body.timerSeconds)
     }
 
+    if (typeof body.timerEnabled === 'boolean') {
+      updates.push('timer_enabled = $' + paramIndex++)
+      values.push(body.timerEnabled)
+    }
+
     if (updates.length === 0) {
       return errorResponse('No valid settings to update', 400)
     }

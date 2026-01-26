@@ -210,6 +210,31 @@ async function runTests() {
     assert(belt.size >= poolSize, 'Hopper should refill')
   })
 
+  test('HyperspaceRL: no repeating pattern in consecutive fills', () => {
+    const belt = new HyperspaceRareLegendaryBelt('SOR')
+    const fillSize = belt.fillingPool.length
+
+    const firstFill = []
+    for (let i = 0; i < fillSize; i++) {
+      firstFill.push(belt.next().id)
+    }
+
+    const secondFill = []
+    for (let i = 0; i < fillSize; i++) {
+      secondFill.push(belt.next().id)
+    }
+
+    const areIdentical = firstFill.every((id, idx) => id === secondFill[idx])
+    assert(!areIdentical, 'Consecutive fills should not be identical')
+
+    let differences = 0
+    for (let i = 0; i < firstFill.length; i++) {
+      if (firstFill[i] !== secondFill[i]) differences++
+    }
+    const diffPercent = (differences / firstFill.length) * 100
+    assert(diffPercent > 50, `At least 50% should differ, got ${diffPercent.toFixed(1)}%`)
+  })
+
   console.log('')
   console.log('\x1b[35m' + '='.repeat(40) + '\x1b[0m')
   console.log(`\x1b[32m✅ Tests passed: ${passed}\x1b[0m`)

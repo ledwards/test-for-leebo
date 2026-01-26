@@ -217,6 +217,39 @@ async function runTests() {
     assertEqual(belt.rarityQuantities.Special, 1, 'Special should use 1x rate in sets 1-3')
   })
 
+  test('no repeating pattern: consecutive belt fills produce different sequences', () => {
+    const belt = new FoilBelt('SOR')
+    const fillSize = Math.min(belt.fillingPool.length, 50) // Use smaller sample for FoilBelt
+
+    // Deploy first batch into an array
+    const firstFill = []
+    for (let i = 0; i < fillSize; i++) {
+      firstFill.push(belt.next().id)
+    }
+
+    // Deploy second batch into an array
+    const secondFill = []
+    for (let i = 0; i < fillSize; i++) {
+      secondFill.push(belt.next().id)
+    }
+
+    // Arrays should not be identical
+    const areIdentical = firstFill.length === secondFill.length &&
+      firstFill.every((id, idx) => id === secondFill[idx])
+
+    assert(!areIdentical, 'Consecutive belt fills should not produce identical sequences')
+
+    // Count how many positions are different
+    let differences = 0
+    for (let i = 0; i < Math.min(firstFill.length, secondFill.length); i++) {
+      if (firstFill[i] !== secondFill[i]) differences++
+    }
+
+    // At least 50% of positions should be different (shuffled)
+    const diffPercent = (differences / firstFill.length) * 100
+    assert(diffPercent > 50, `At least 50% of positions should differ, got ${diffPercent.toFixed(1)}%`)
+  })
+
   console.log('')
   console.log('\x1b[35m' + '='.repeat(40) + '\x1b[0m')
   console.log(`\x1b[32m✅ Tests passed: ${passed}\x1b[0m`)

@@ -22,11 +22,19 @@
   margin-bottom: 10px;
 }
 
+.draft-settings.draft-settings-left {
+  align-items: flex-start;
+}
+
 .settings-row {
   display: flex;
   gap: 20px;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.draft-settings-left .settings-row {
+  justify-content: flex-start;
 }
 
 .setting-item {

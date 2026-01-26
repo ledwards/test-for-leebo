@@ -35,11 +35,13 @@ function CountdownTimer({
     const calculateRemaining = () => {
       const startTime = new Date(startedAt).getTime()
       const now = Date.now()
-      // Subtract paused duration from elapsed time
-      const elapsed = Math.floor((now - startTime) / 1000) - pausedDurationSeconds
-      // Cap remaining time to never exceed totalSeconds (handles edge cases where
-      // pausedDurationSeconds exceeds elapsed time after pick resets)
-      const remaining = Math.min(totalSeconds, Math.max(0, totalSeconds - elapsed))
+      const timeSinceStart = Math.floor((now - startTime) / 1000)
+
+      // If pausedDurationSeconds exceeds time since pick started, it's stale data
+      // from before a turn advance - ignore it
+      const effectivePausedDuration = pausedDurationSeconds > timeSinceStart ? 0 : pausedDurationSeconds
+      const elapsed = timeSinceStart - effectivePausedDuration
+      const remaining = Math.max(0, totalSeconds - elapsed)
       setRemainingSeconds(remaining)
     }
 
@@ -54,6 +56,7 @@ function CountdownTimer({
   }, [totalSeconds, startedAt, active, paused, pausedDurationSeconds])
 
   const isWarning = remainingSeconds <= warningThreshold && remainingSeconds > 0
+  const isCaution = remainingSeconds <= totalSeconds * 0.5 && remainingSeconds > warningThreshold
   const isExpired = remainingSeconds === 0
 
   const formatTime = (seconds) => {
@@ -72,7 +75,7 @@ function CountdownTimer({
   }
 
   return (
-    <div className={`countdown-timer ${isWarning ? 'warning' : ''} ${isExpired ? 'expired' : ''} ${compact ? 'compact' : ''}`}>
+    <div className={`countdown-timer ${isExpired ? 'expired' : isWarning ? 'warning' : isCaution ? 'caution' : ''} ${compact ? 'compact' : ''}`}>
       {label && <span className="timer-label">{label}</span>}
       <span className="timer-value">{formatTime(remainingSeconds)}</span>
     </div>

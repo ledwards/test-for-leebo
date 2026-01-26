@@ -16,6 +16,7 @@ export function useDraftSync(shareId, { pollInterval = 2000, enabled = true } = 
   const [draft, setDraft] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [deleted, setDeleted] = useState(false)
   const stateVersionRef = useRef(0)
   const pollTimeoutRef = useRef(null)
 
@@ -39,7 +40,7 @@ export function useDraftSync(shareId, { pollInterval = 2000, enabled = true } = 
 
   // Poll for updates
   const poll = useCallback(async () => {
-    if (!shareId || !enabled) return
+    if (!shareId || !enabled || deleted) return
 
     try {
       const data = await pollState(shareId, stateVersionRef.current)
@@ -67,14 +68,18 @@ export function useDraftSync(shareId, { pollInterval = 2000, enabled = true } = 
         stateVersionRef.current = data.stateVersion
       }
     } catch (err) {
-      console.error('Poll error:', err)
-      // Don't set error for poll failures - just retry
+      // Check if draft was deleted
+      if (err.message === 'Draft not found') {
+        setDeleted(true)
+        return
+      }
+      // Don't set error for other poll failures - just retry
     }
-  }, [shareId, enabled])
+  }, [shareId, enabled, deleted])
 
   // Start polling
   useEffect(() => {
-    if (!shareId || !enabled) return
+    if (!shareId || !enabled || deleted) return
 
     const startPolling = () => {
       pollTimeoutRef.current = setTimeout(async () => {
@@ -90,7 +95,7 @@ export function useDraftSync(shareId, { pollInterval = 2000, enabled = true } = 
         clearTimeout(pollTimeoutRef.current)
       }
     }
-  }, [shareId, enabled, pollInterval, poll])
+  }, [shareId, enabled, deleted, pollInterval, poll])
 
   // Initial load
   useEffect(() => {
@@ -111,6 +116,7 @@ export function useDraftSync(shareId, { pollInterval = 2000, enabled = true } = 
     draft,
     loading,
     error,
+    deleted,
     refresh,
     forcePoll,
     // Convenience accessors

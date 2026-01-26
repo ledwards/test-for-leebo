@@ -109,42 +109,47 @@ async function runTests() {
     assert(belt.size >= fillingPoolSize, `Hopper should refill. Size: ${belt.size}, threshold: ${fillingPoolSize}`)
   })
 
-  test('commons appear more frequently than rares in hopper', () => {
+  test('rare leaders appear in approximately 1/6 of packs (5:1 ratio)', () => {
     const belt = new LeaderBelt('SOR')
 
-    // Sample 100 cards
+    // Sample 600 cards (should give ~100 rares)
     const counts = { Common: 0, Rare: 0 }
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 600; i++) {
       const card = belt.next()
       counts[card.rarity] = (counts[card.rarity] || 0) + 1
     }
 
     const commonCount = counts.Common
     const rareCount = counts.Rare
+    const ratio = commonCount / rareCount
 
-    assert(commonCount > rareCount, `Commons (${commonCount}) should appear more than rares (${rareCount})`)
+    // Expected: 5:1 ratio (1/6 rares = ~16.67%)
+    // Allow some variance: ratio should be between 4:1 and 6:1
+    assert(ratio >= 4 && ratio <= 6, `Ratio should be ~5:1, got ${ratio.toFixed(2)}:1 (${commonCount} common, ${rareCount} rare)`)
+
+    // Rare frequency should be approximately 1 in 6
+    const rareFrequency = 600 / rareCount
+    assert(rareFrequency >= 5 && rareFrequency <= 7, `Rare frequency should be ~1 in 6, got 1 in ${rareFrequency.toFixed(1)}`)
   })
 
-  test('no duplicate leaders within 6 slots of each other (seam dedup)', () => {
+  test('no immediately adjacent duplicate leaders (seam dedup)', () => {
     const belt = new LeaderBelt('SOR')
 
-    // Check first 50 cards for adjacent duplicates
+    // Check first 100 cards for immediately adjacent duplicates
     const sample = []
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 100; i++) {
       sample.push(belt.next())
     }
 
     let violations = 0
-    for (let i = 0; i < sample.length; i++) {
-      for (let j = i + 1; j <= Math.min(i + 6, sample.length - 1); j++) {
-        if (sample[i].id === sample[j].id) {
-          violations++
-        }
+    for (let i = 0; i < sample.length - 1; i++) {
+      if (sample[i].id === sample[i + 1].id) {
+        violations++
       }
     }
 
-    // Allow some violations since dedup isn't perfect with small card pool (16 leaders in SOR)
-    assert(violations <= 5, `Found ${violations} duplicate pairs within 6 slots (max allowed: 5)`)
+    // Should have zero or very few immediate adjacencies
+    assert(violations <= 2, `Found ${violations} immediately adjacent duplicates (max allowed: 2)`)
   })
 
   test('different belt instances start at different positions', () => {
@@ -170,6 +175,39 @@ async function runTests() {
     // Verify peek matches what next() returns
     const next1 = belt.next()
     assertEqual(next1.id, peeked[0].id, 'First peeked card should match first next()')
+  })
+
+  test('no repeating pattern: consecutive belt fills produce different sequences', () => {
+    const belt = new LeaderBelt('SOR')
+
+    // Deploy entire first fill into an array
+    const firstFill = []
+    const fillSize = belt.fillingPool.length * 5 + belt.fillingPool.length // 5 commons + 1 rare per leader
+    for (let i = 0; i < fillSize; i++) {
+      firstFill.push(belt.next().id)
+    }
+
+    // Deploy second fill into an array
+    const secondFill = []
+    for (let i = 0; i < fillSize; i++) {
+      secondFill.push(belt.next().id)
+    }
+
+    // Arrays should not be identical
+    const areIdentical = firstFill.length === secondFill.length &&
+      firstFill.every((id, idx) => id === secondFill[idx])
+
+    assert(!areIdentical, 'Consecutive belt fills should not produce identical sequences')
+
+    // Count how many positions are different
+    let differences = 0
+    for (let i = 0; i < Math.min(firstFill.length, secondFill.length); i++) {
+      if (firstFill[i] !== secondFill[i]) differences++
+    }
+
+    // At least 50% of positions should be different (shuffled)
+    const diffPercent = (differences / firstFill.length) * 100
+    assert(diffPercent > 50, `At least 50% of positions should differ, got ${diffPercent.toFixed(1)}%`)
   })
 
   console.log('')

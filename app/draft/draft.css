@@ -969,7 +969,7 @@
   }
 
   .draft-content {
-    padding: 0.5rem;
+    padding: 0;
   }
 
   /* Lobby container - center content */
@@ -998,7 +998,7 @@
   }
 
   .draft-content {
-    padding: 0.5rem;
+    padding: 0;
   }
 
   .draft-landing {

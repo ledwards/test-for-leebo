@@ -1,7 +1,8 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import PlayerSeat from './PlayerSeat'
-import TimerPanel from './TimerPanel'
 import './PlayerCircle.css'
 
 /**
@@ -9,7 +10,30 @@ import './PlayerCircle.css'
  * Current user is always at the bottom (6 o'clock)
  * Other players arranged clockwise from bottom-left
  */
-function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = false, draft, showTimers = false, enableTooltip = true, hideEmptySeats = false, isHost = false, onTogglePause }) {
+function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = false, draft, hideEmptySeats = false, showLeaderInfo = false, passDirection = null, leaderRound = 1 }) {
+  const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState(null)
+  const previewTimeoutRef = useRef(null)
+
+  const handleLeaderMouseEnter = (leader) => {
+    // Disable hover preview on mobile
+    const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
+    if (isMobileDevice) return
+
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current)
+    }
+    previewTimeoutRef.current = setTimeout(() => {
+      setHoveredLeaderPreview(leader)
+    }, 400)
+  }
+
+  const handleLeaderMouseLeave = () => {
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current)
+    }
+    setHoveredLeaderPreview(null)
+  }
+
   // Find current user's seat
   const currentUser = players.find(p => p.id === currentUserId)
   const userSeat = currentUser?.seatNumber || 1
@@ -41,7 +65,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
 
   // Calculate position on circle
   // For dynamic positioning, we calculate based on actual number of seats shown
-  const getPositionStyle = (index, totalSeats) => {
+  const getPositionStyle = (index, totalSeats, radius = 42) => {
     // Start from bottom (180 degrees) and go clockwise
     // Current user should be at the bottom
     let currentUserIndex = seats.findIndex(s => s.isCurrentUser)
@@ -62,20 +86,157 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
     const angle = adjustedIndex * angleStep
     const angleRad = (angle * Math.PI) / 180
 
-    // radius as percentage (42% to keep seats inside container)
-    const radius = 42
     const left = 50 + radius * Math.sin(angleRad)
-    const top = 50 + radius * Math.cos(angleRad)
+    const top = 52.5 + radius * Math.cos(angleRad)
 
     return {
       left: `${left}%`,
-      top: `${top}%`
+      top: `${top}%`,
+      angle: angle // Return angle for text alignment
     }
   }
 
-  // Check if only one player is left picking (last player timer mode)
-  const playersStillPicking = players.filter(p => p.pickStatus === 'picking').length
-  const isLastPlayerTimer = playersStillPicking === 1 && draft?.status === 'active'
+  // Render aspect icons
+  const renderAspectIcons = (aspects) => {
+    if (!aspects || aspects.length === 0) return null
+    return (
+      <span className="leader-aspects">
+        {aspects.map((aspect, idx) => (
+          <img
+            key={idx}
+            src={`/icons/${aspect.toLowerCase()}.png`}
+            alt={aspect}
+            className="leader-aspect-icon"
+          />
+        ))}
+      </span>
+    )
+  }
+
+  // Get status color
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'picked': return '#4CAF50'
+      case 'selected': return '#4CAF50'  // Green - player has made their choice
+      case 'picking': return '#FFC107'
+      case 'timeout': return '#F44336'
+      default: return '#666'
+    }
+  }
+
+  // Render simple leader info (just drafted leaders, no headers) - for pack draft
+  const renderSimpleLeaderInfo = (player) => {
+    if (!player) return null
+
+    const draftedLeaders = player.draftedLeaders || []
+    const displayName = player.username || `Player ${player.seatNumber}`
+
+    return (
+      <div className="radial-leader-info simple">
+        <div className="radial-player-name">{displayName}</div>
+        {draftedLeaders.length > 0 && (
+          <div className="leader-info-list">
+            {draftedLeaders.map((leader, idx) => (
+              <div key={idx} className="leader-info-item">
+                <span
+                  className="leader-name hoverable"
+                  onMouseEnter={() => handleLeaderMouseEnter(leader)}
+                  onMouseLeave={handleLeaderMouseLeave}
+                >
+                  {leader.name}
+                </span>
+                {renderAspectIcons(leader.aspects)}
+              </div>
+            ))}
+          </div>
+        )}
+        <div
+          className="leader-info-status"
+          style={{ color: getStatusColor(player.pickStatus) }}
+        >
+          {player.pickStatus === 'picked' || player.pickStatus === 'selected' ? 'Done' : 'Picking...'}
+        </div>
+      </div>
+    )
+  }
+
+  // Render full leader info (with pack, status, etc.) - for leader draft
+  const renderLeaderInfo = (player, isCurrentUser) => {
+    if (!player) return null
+
+    const allPickedLeaders = player.draftedLeaders || []
+    const remainingPack = player.leaderPack || []
+    const displayName = player.username || `Player ${player.seatNumber}`
+
+    // Show picks from PREVIOUS rounds only (not current round)
+    // Round 1: show 0, Round 2: show 1, Round 3: show 2
+    const pickedLeaders = allPickedLeaders.slice(0, leaderRound - 1)
+
+    // Get the leader picked THIS round (if any)
+    // If they have picked this round, it's at index leaderRound - 1
+    const currentRoundPick = allPickedLeaders.length >= leaderRound
+      ? allPickedLeaders[leaderRound - 1]
+      : null
+
+    // Build full pack: remaining leaders + current round pick (should always be 3)
+    const fullPack = currentRoundPick
+      ? [...remainingPack, currentRoundPick]
+      : remainingPack
+
+    const showDivider = pickedLeaders.length > 0 && fullPack.length > 0
+
+    return (
+      <div className="radial-leader-info">
+        <div className="radial-player-name">{displayName}</div>
+        {pickedLeaders.length > 0 && (
+          <div className="leader-info-section">
+            <div className="leader-info-list">
+              {pickedLeaders.map((leader, idx) => (
+                <div key={idx} className="leader-info-item">
+                  <span
+                    className="leader-name hoverable"
+                    onMouseEnter={() => handleLeaderMouseEnter(leader)}
+                    onMouseLeave={handleLeaderMouseLeave}
+                  >
+                    {leader.name}
+                  </span>
+                  {renderAspectIcons(leader.aspects)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {showDivider && <hr className="leader-info-divider" />}
+        <div className="leader-info-section">
+          <div className="leader-info-label">Current Pack</div>
+          {fullPack.length > 0 ? (
+            <div className="leader-info-list">
+              {fullPack.map((leader, idx) => (
+                <div key={idx} className="leader-info-item">
+                  <span
+                    className="leader-name hoverable"
+                    onMouseEnter={() => handleLeaderMouseEnter(leader)}
+                    onMouseLeave={handleLeaderMouseLeave}
+                  >
+                    {leader.name}
+                  </span>
+                  {renderAspectIcons(leader.aspects)}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="leader-info-empty">Waiting...</div>
+          )}
+        </div>
+        <div
+          className="leader-info-status"
+          style={{ color: getStatusColor(player.pickStatus) }}
+        >
+          {player.pickStatus === 'picked' || player.pickStatus === 'selected' ? 'Done' : 'Picking...'}
+        </div>
+      </div>
+    )
+  }
 
   // Get CSS class for position (only used when not hiding empty seats)
   const getDisplayPosition = (seatNumber) => {
@@ -90,16 +251,148 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
     return `seat-position-${displayPosition}`
   }
 
+  // Detect mobile for adjusted radii
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Center point of the circle
+  const centerX = 50
+  const centerY = 52.5
+
+  // Radii for concentric circles (in percentage of container)
+  // Bring inward on mobile to fit screen
+  const seatRadius = isMobile ? 18 : 27
+  const leaderInfoRadius = isMobile ? 43 : 52
+
+  // Render leader preview portal
+  const renderLeaderPreview = () => {
+    if (!hoveredLeaderPreview) return null
+
+    const leader = hoveredLeaderPreview
+    const hasBackImage = leader.backImageUrl
+
+    // Calculate scaled dimensions
+    const scale = 0.6
+    const scaledFrontWidth = 504 * scale
+    const scaledFrontHeight = 360 * scale
+    const scaledBackWidth = 360 * scale
+    const scaledBackHeight = 504 * scale
+
+    return createPortal(
+      <div
+        className="card-preview-enlarged"
+        style={{
+          position: 'fixed',
+          right: '0',
+          top: '0',
+          width: '50vw',
+          height: '100vh',
+          zIndex: 9999,
+          pointerEvents: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          paddingLeft: '20px',
+        }}
+      >
+        {hasBackImage ? (
+          <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+            {/* Front - horizontal */}
+            <div style={{
+              width: `${scaledFrontWidth}px`,
+              height: `${scaledFrontHeight}px`,
+              overflow: 'hidden',
+              borderRadius: '12px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+            }}>
+              <img
+                src={leader.imageUrl}
+                alt={leader.name}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            </div>
+            {/* Back - vertical */}
+            <div style={{
+              width: `${scaledBackWidth}px`,
+              height: `${scaledBackHeight}px`,
+              overflow: 'hidden',
+              borderRadius: '12px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+            }}>
+              <img
+                src={leader.backImageUrl}
+                alt={`${leader.name} - Back`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            width: `${504 * 1.5}px`,
+            height: `${360 * 1.5}px`,
+            overflow: 'hidden',
+            borderRadius: '24px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+          }}>
+            <img
+              src={leader.imageUrl}
+              alt={leader.name}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          </div>
+        )}
+      </div>,
+      document.body
+    )
+  }
+
   return (
-    <div className="player-circle">
+    <div className={`player-circle ${showLeaderInfo ? 'with-leader-info' : ''}`}>
       <div className="circle-container">
+        {/* Center arrow - innermost */}
+        {passDirection && (
+          <div className="center-arrow">
+            <span className="arrow-symbol">
+              {passDirection === 'left' ? '←' : '→'}
+            </span>
+            <span className="pass-direction-text">
+              <span className="pass-word">Pass</span>
+              <span className="direction-word">{passDirection === 'left' ? 'Left' : 'Right'}</span>
+            </span>
+          </div>
+        )}
+
+        {/* Player seats - middle ring */}
         {seats.map((seat, index) => {
           const displayPosition = getDisplayPosition(seat.seatNumber)
-          const positionStyle = hideEmptySeats ? getPositionStyle(index, seats.length) : null
+          const positionStyle = hideEmptySeats ? getPositionStyle(index, seats.length, seatRadius) : null
 
           return (
             <div
-              key={seat.seatNumber}
+              key={`seat-${seat.seatNumber}`}
               className={`seat-wrapper ${!hideEmptySeats ? getPositionClass(displayPosition) : ''}`}
               style={positionStyle || undefined}
             >
@@ -108,30 +401,47 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
                 seatNumber={seat.seatNumber}
                 isCurrentUser={seat.isCurrentUser}
                 isEmpty={!seat.player}
-                showStatus={showStatus}
-                enableTooltip={enableTooltip}
+                showStatus={false}
               />
             </div>
           )
         })}
 
-        {/* Center area */}
-        <div className={`circle-center ${draft?.paused ? 'paused' : ''} ${isLastPlayerTimer ? 'last-player' : ''}`}>
-          {showTimers && draft ? (
-            <div className="circle-timers">
-              <TimerPanel
-                draft={draft}
-                players={players}
-                compact={true}
-                isHost={isHost}
-                onTogglePause={onTogglePause}
-              />
+        {/* Leader info - outer ring (skip current user) */}
+        {showLeaderInfo && seats.map((seat, index) => {
+          if (!seat.player || seat.isCurrentUser) return null
+
+          const totalSeats = seats.length
+          let currentUserIndex = seats.findIndex(s => s.isCurrentUser)
+          if (currentUserIndex === -1) currentUserIndex = 0
+
+          let adjustedIndex = index - currentUserIndex
+          if (adjustedIndex < 0) adjustedIndex += totalSeats
+
+          const angleStep = 360 / totalSeats
+          const angle = adjustedIndex * angleStep
+          const angleRad = (angle * Math.PI) / 180
+
+          const left = centerX + leaderInfoRadius * Math.sin(angleRad)
+          const top = centerY + leaderInfoRadius * Math.cos(angleRad)
+
+          return (
+            <div
+              key={`info-${seat.seatNumber}`}
+              className="radial-info-wrapper"
+              style={{
+                left: `${left}%`,
+                top: `${top}%`,
+              }}
+            >
+              {showLeaderInfo === 'simple'
+                ? renderSimpleLeaderInfo(seat.player)
+                : renderLeaderInfo(seat.player, seat.isCurrentUser)}
             </div>
-          ) : (
-            <div className="center-label">Draft</div>
-          )}
-        </div>
+          )
+        })}
       </div>
+      {renderLeaderPreview()}
     </div>
   )
 }

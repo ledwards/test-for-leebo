@@ -21,7 +21,7 @@
 }
 
 .timer-value {
-  color: white;
+  color: #4CAF50;
   font-variant-numeric: tabular-nums;
   font-size: 2rem;
   line-height: 2rem;
@@ -37,13 +37,19 @@
   color: #666;
 }
 
-.countdown-timer.warning .timer-value {
-  color: #ff4444;
+.countdown-timer.caution .timer-value {
+  color: #FFC107;
+}
+
+.countdown-timer.warning .timer-value,
+.countdown-timer.warning .timer-label {
+  color: #F44336;
   animation: flash 1s ease-in-out infinite;
 }
 
-.countdown-timer.expired .timer-value {
-  color: #ff0000;
+.countdown-timer.expired .timer-value,
+.countdown-timer.expired .timer-label {
+  color: #F44336;
   animation: flash 0.5s ease-in-out infinite;
 }
 

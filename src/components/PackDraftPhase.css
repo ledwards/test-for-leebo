@@ -3,6 +3,76 @@
   margin: 0 auto;
 }
 
+.pack-draft-phase .timer-bar {
+  background: #1e1e1e;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 4px 16px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pack-draft-phase .timer-bar .timer-panel {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+.pack-draft-phase .timer-bar .countdown-timer {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.pack-draft-phase .timer-bar .timer-label {
+  line-height: 1;
+}
+
+.pack-draft-phase .timer-bar .timer-value {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.pack-draft-phase .timer-bar .pause-button {
+  margin: 0;
+}
+
+/* Yellow glow on outer timer-bar when paused */
+.pack-draft-phase .timer-bar:has(.timer-panel.paused) {
+  border-color: #FFC107;
+  background: rgba(255, 193, 7, 0.1);
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+}
+
+/* Red border when timer is in warning state (30s or less) */
+.pack-draft-phase .timer-bar:has(.countdown-timer.warning),
+.pack-draft-phase .timer-bar:has(.countdown-timer.expired) {
+  border-color: #F44336;
+  background: rgba(244, 67, 54, 0.1);
+  animation: pulse-warning-bar 1s ease-in-out infinite;
+}
+
+.pack-draft-phase .timer-bar:has(.countdown-timer.warning) .pause-button,
+.pack-draft-phase .timer-bar:has(.countdown-timer.expired) .pause-button {
+  border-color: #F44336;
+  color: #F44336;
+  animation: pulse-warning-bar 1s ease-in-out infinite;
+}
+
+@keyframes pulse-warning-bar {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(244, 67, 54, 0.5);
+  }
+}
 
 .draft-info-header {
   background: #1e1e1e;
@@ -113,27 +183,32 @@
 
 .draft-layout {
   display: flex;
-  gap: 30px;
-  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
 }
 
 .players-section {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 20px;
+  padding-top: 25px;
+  /* Account for radial leader info extending beyond circle */
+  min-width: 650px;
 }
 
 .cards-section {
-  flex: 1;
   background: rgba(30, 30, 30, 0.8);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 20px;
-  margin-right: 80px;
+  min-width: 400px;
+  max-width: 600px;
+  flex: 1;
 }
 
 .pack-controls {
@@ -180,28 +255,55 @@
   text-align: center;
 }
 
+/* When wrapped to single column, reverse order so cards are on top */
+@media (max-width: 1100px) {
+  .pack-draft-phase .draft-layout {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .pack-draft-phase .players-section {
+    min-width: auto;
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .pack-draft-phase .cards-section {
+    width: calc(100% - 2rem);
+    max-width: 600px;
+    min-width: auto;
+  }
+}
+
 @media (max-width: 768px) {
   .pack-draft-phase {
-    padding: 0.5rem;
+    padding: 0 10px;
   }
 
-  .draft-layout {
-    flex-direction: column;
-    align-items: center;
+  .pack-draft-phase .draft-layout {
     gap: 1rem;
     padding: 0;
-  }
-
-  .players-section {
     width: 100%;
+    max-width: 100%;
   }
 
-  /* Cards section - equal margins left and right, wider */
-  .cards-section {
-    width: calc(100% - 1rem);
-    max-width: calc(100% - 1rem);
-    margin: 0 0.5rem;
-    padding: 0.75rem;
+  /* Cards section - full width with reduced padding */
+  .pack-draft-phase .cards-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+
+  .pack-draft-phase .players-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    overflow: visible;
   }
 
   .draft-info-header {

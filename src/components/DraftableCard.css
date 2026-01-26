@@ -31,8 +31,64 @@
   opacity: 0.6;
 }
 
+.draftable-card {
+  isolation: isolate;
+}
+
+.draftable-card::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 12px;
+  background: linear-gradient(
+    45deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #0000ff,
+    #4b0082,
+    #9400d3,
+    #ff0000
+  );
+  background-size: 400% 400%;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: rainbow-border 3s linear infinite;
+  pointer-events: none;
+}
+
 .draftable-card.selected {
-  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.8);
+  transform: translateY(-6px) scale(1.03);
+}
+
+.draftable-card.selected::before {
+  opacity: 1;
+}
+
+/* Dim non-selected cards when there's an active selection */
+.draftable-card.dimmed .card-image {
+  filter: grayscale(100%);
+  opacity: 0.7;
+  transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+.draftable-card.dimmed:hover .card-image {
+  filter: grayscale(50%);
+  opacity: 0.85;
+}
+
+@keyframes rainbow-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Foil effect - rainbow shimmer */

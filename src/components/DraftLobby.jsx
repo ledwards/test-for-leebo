@@ -20,9 +20,11 @@ function DraftLobby({
   onStart,
   onRandomize,
   onAddBot,
-  onTimedChange,
+  onSettingsChange,
   onLeave,
-  loading,
+  startingDraft,
+  randomizing,
+  addingBot,
   error,
   shareId,
 }) {
@@ -73,8 +75,10 @@ function DraftLobby({
               onStart={onStart}
               onRandomize={onRandomize}
               onAddBot={onAddBot}
-              onTimedChange={onTimedChange}
-              loading={loading}
+              onSettingsChange={onSettingsChange}
+              startingDraft={startingDraft}
+              randomizing={randomizing}
+              addingBot={addingBot}
               isFull={isFull}
               shareId={shareId}
             />
@@ -86,7 +90,6 @@ function DraftLobby({
               <button
                 className="leave-button"
                 onClick={onLeave}
-                disabled={loading}
               >
                 Leave Draft
               </button>

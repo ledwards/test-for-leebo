@@ -1,10 +1,8 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import PlayerCircle from './PlayerCircle'
 import DraftableCard from './DraftableCard'
-import PassDirectionArrow from './PassDirectionArrow'
-
 import TimerPanel from './TimerPanel'
 import DraftReviewModal from './DraftReviewModal'
 import './PackDraftPhase.css'
@@ -24,18 +22,25 @@ function PackDraftPhase({
   players,
   myPlayer,
   draftState,
-  onPick,
+  onSelect,
   loading,
   error,
   isHost,
   onTogglePause,
+  shareId,
 }) {
 
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState(null)
+  const [selectedCardId, setSelectedCardId] = useState(null)
   const previewTimeoutRef = useRef(null)
 
   const handleLeaderNameMouseEnter = (e, leader) => {
+    // Disable hover preview on mobile
+    if (window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      return
+    }
+
     if (previewTimeoutRef.current) {
       clearTimeout(previewTimeoutRef.current)
     }
@@ -55,10 +60,45 @@ function PackDraftPhase({
   const currentPack = myPlayer?.currentPack || []
   const draftedCards = myPlayer?.draftedCards || []
   const draftedLeaders = myPlayer?.draftedLeaders || []
-  const canPick = myPlayer?.pickStatus === 'picking' && currentPack.length > 0
+  const canSelect = (myPlayer?.pickStatus === 'picking' || myPlayer?.pickStatus === 'selected') && currentPack.length > 0
+  const hasSelected = myPlayer?.pickStatus === 'selected'
 
   const packNumber = draftState?.packNumber || 1
   const pickInPack = draftState?.pickInPack || 1
+
+  // Local selection state, persisted to localStorage
+  const storageKey = `draft-selection-${shareId}-pack-${packNumber}-${pickInPack}`
+
+  // Load selection from localStorage on mount and when pick changes
+  useEffect(() => {
+    const stored = localStorage.getItem(storageKey)
+    if (stored && currentPack.some(c => (c.instanceId || c.id) === stored)) {
+      setSelectedCardId(stored)
+    } else {
+      setSelectedCardId(null)
+    }
+  }, [storageKey, currentPack])
+
+  // Sync localStorage selection with server on mount (in case of refresh)
+  useEffect(() => {
+    const stored = localStorage.getItem(storageKey)
+    if (stored && canSelect && myPlayer?.pickStatus === 'picking') {
+      // Re-send selection to server after refresh
+      onSelect(stored)
+    }
+  }, []) // Only on mount
+
+  // Clear localStorage when pick advances (currentPack changes)
+  useEffect(() => {
+    if (myPlayer?.pickStatus === 'picking' && !hasSelected) {
+      // New pick started, clear old selection if card no longer in pack
+      const stored = localStorage.getItem(storageKey)
+      if (stored && !currentPack.some(c => (c.instanceId || c.id) === stored)) {
+        localStorage.removeItem(storageKey)
+        setSelectedCardId(null)
+      }
+    }
+  }, [currentPack, myPlayer?.pickStatus, hasSelected, storageKey])
 
   // Pack draft: pack 1 & 3 pass left, pack 2 passes right
   const passDirection = packNumber % 2 === 1 ? 'left' : 'right'
@@ -75,9 +115,21 @@ function PackDraftPhase({
   const sortedPack = sortCards(currentPack)
 
   const handleCardClick = (card) => {
-    if (!canPick || loading) return
-    // Use instanceId if available (prevents race condition bugs with duplicate card IDs)
-    onPick(card.instanceId || card.id)
+    if (loading || !canSelect) return
+
+    const cardId = card.instanceId || card.id
+
+    if (selectedCardId === cardId) {
+      // Unselect
+      localStorage.removeItem(storageKey)
+      setSelectedCardId(null)
+      onSelect(null)
+    } else {
+      // Select new card
+      localStorage.setItem(storageKey, cardId)
+      setSelectedCardId(cardId)
+      onSelect(cardId)
+    }
   }
 
   const handleCardRightClick = (e) => {
@@ -98,11 +150,21 @@ function PackDraftPhase({
             hideEmptySeats={true}
             isHost={isHost}
             onTogglePause={onTogglePause}
+            passDirection={passDirection}
+            showLeaderInfo="simple"
           />
-          <PassDirectionArrow direction={passDirection} />
         </div>
 
         <div className="cards-section">
+          {/* Timer bar above pick area - TimerPanel handles its own visibility */}
+          <TimerPanel
+            draft={draft}
+            players={players}
+            compact={false}
+            isHost={isHost}
+            onTogglePause={onTogglePause}
+          />
+
           <div className="draft-info-header">
             <div className="my-leaders-info">
               <span className="info-label">Your Leaders:</span>
@@ -140,23 +202,31 @@ function PackDraftPhase({
           </div>
 
           <div className="current-pack">
+            {hasSelected && !selectedCardId && (
+              <p className="selection-status">Waiting for other players...</p>
+            )}
             {sortedPack.length > 0 ? (
               <div className="pack-grid">
-                {sortedPack.map((card) => (
-                  <DraftableCard
-                    key={card.instanceId || card.id}
-                    card={card}
-                    onClick={() => handleCardClick(card)}
-                    onRightClick={(e) => handleCardRightClick(e, card)}
-                    disabled={!canPick || loading}
-                    useStaticPreview={true}
-                  />
-                ))}
+                {sortedPack.map((card) => {
+                  const cardId = card.instanceId || card.id
+                  return (
+                    <DraftableCard
+                      key={cardId}
+                      card={card}
+                      onClick={() => handleCardClick(card)}
+                      onRightClick={(e) => handleCardRightClick(e, card)}
+                      disabled={loading}
+                      selected={selectedCardId === cardId}
+                      dimmed={selectedCardId && selectedCardId !== cardId}
+                      useStaticPreview={true}
+                    />
+                  )
+                })}
               </div>
             ) : (
               <p className="no-cards">
                 {myPlayer?.pickStatus === 'picked'
-                  ? 'Waiting for other players to pick...'
+                  ? 'Waiting for other players...'
                   : 'No cards in pack'}
               </p>
             )}
@@ -177,6 +247,8 @@ function PackDraftPhase({
           packSize={draft?.packSize || 14}
           draft={draft}
           players={players}
+          isHost={isHost}
+          onTogglePause={onTogglePause}
           onClose={() => setShowReviewModal(false)}
         />
       )}
@@ -197,7 +269,7 @@ function PackDraftPhase({
             className="card-preview-enlarged"
             style={{
               position: 'fixed',
-              left: '0',
+              right: '0',
               top: '0',
               width: '50vw',
               height: '100vh',
@@ -205,7 +277,8 @@ function PackDraftPhase({
               pointerEvents: 'none',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
+              paddingLeft: '20px',
             }}
           >
             {hasBackImage ? (

@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import './DraftReviewModal.css'
 import TimerPanel from './TimerPanel'
 
-function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, packSize = 14, draft, players = [] }) {
+function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, packSize = 14, draft, players = [], isHost = false, onTogglePause }) {
   const [sortMode, setSortMode] = useState('pick') // 'pick', 'cost', 'type', 'aspect'
   const [groupMode, setGroupMode] = useState('none') // 'none', 'cost', 'type', 'aspect'
   const [hoveredCardPreview, setHoveredCardPreview] = useState(null)
@@ -172,6 +172,11 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
   }, [cardsWithPickInfo, groupMode])
 
   const handleCardMouseEnter = (e, card) => {
+    // Disable hover preview on mobile
+    if (window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      return
+    }
+
     // Clear any existing timeout
     if (previewTimeoutRef.current) {
       clearTimeout(previewTimeoutRef.current)
@@ -278,7 +283,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
           </div>
           <div className="review-controls-center">
             {draft && players && (
-              <TimerPanel draft={draft} players={players} compact={false} />
+              <TimerPanel draft={draft} players={players} compact={false} isHost={isHost} onTogglePause={onTogglePause} />
             )}
           </div>
           <div className="review-controls-right">

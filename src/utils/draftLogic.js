@@ -84,6 +84,9 @@ export function getPassDirection(packNumber) {
 
 /**
  * Calculate next seat in pass direction
+ * In a clockwise-seated draft:
+ * - Pass LEFT = clockwise = to the player on your left = decreasing seat number (1→8, 2→1)
+ * - Pass RIGHT = counter-clockwise = to the player on your right = increasing seat number (1→2, 2→3)
  *
  * @param {number} currentSeat - Current seat number (1-indexed)
  * @param {string} direction - 'left' or 'right'
@@ -92,11 +95,11 @@ export function getPassDirection(packNumber) {
  */
 export function getNextSeat(currentSeat, direction, totalSeats = 8) {
   if (direction === 'left') {
-    // Left means increasing seat numbers (1 -> 2 -> 3 -> ... -> 8 -> 1)
-    return currentSeat >= totalSeats ? 1 : currentSeat + 1
-  } else {
-    // Right means decreasing seat numbers (1 -> 8 -> 7 -> ... -> 2 -> 1)
+    // Left = clockwise = decreasing seat numbers (1 -> 8 -> 7 -> ... -> 2 -> 1)
     return currentSeat <= 1 ? totalSeats : currentSeat - 1
+  } else {
+    // Right = counter-clockwise = increasing seat numbers (1 -> 2 -> 3 -> ... -> 8 -> 1)
+    return currentSeat >= totalSeats ? 1 : currentSeat + 1
   }
 }
 
@@ -112,14 +115,13 @@ export function allPlayersPicked(players) {
 
 /**
  * Get leader pass direction for leader draft round
- * Round 1: pass right
- * Round 2: pass left
+ * Leader draft always passes RIGHT
  *
  * @param {number} round - 1-indexed round number
- * @returns {string} 'left' or 'right'
+ * @returns {string} 'right'
  */
 export function getLeaderPassDirection(round) {
-  return round === 1 ? 'right' : 'left'
+  return 'right'
 }
 
 /**

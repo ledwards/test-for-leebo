@@ -76,92 +76,92 @@ export class LeaderBelt {
 
   /**
    * Fill the hopper with a new batch of leaders
+   *
+   * Target ratio: 1/6 packs get a Rare leader (5:1 Common:Rare)
+   * Achieved by adding each common 5 times and each rare 1 time per cycle
    */
   _fill() {
     const wasEmpty = this.hopper.length === 0
 
-    // Shuffle rare leaders for this fill cycle
-    const shuffledRares = shuffle([...this.rareLeaders])
-    const raresPerSegment = Math.floor(shuffledRares.length / 3)
+    // Create weighted pool: each common appears 5 times, each rare appears 1 time
+    // This gives a 5:1 ratio = 1/6 chance of rare = ~16.67% rare
+    const weightedPool = []
 
-    // Segment 1: common leaders + first 1/3 of rare leaders
-    const segment1Rares = shuffledRares.slice(0, raresPerSegment)
-    const segment1 = shuffle([...this.commonLeaders, ...segment1Rares])
-
-    // Add segment 1 to hopper
-    this.hopper.push(...segment1)
-
-    // Run seam dedup only if hopper wasn't empty before
-    if (!wasEmpty) {
-      this._seamDedup(this.hopper.length - segment1.length, segment1.length)
+    // Add each common leader 5 times
+    for (const common of this.commonLeaders) {
+      for (let i = 0; i < 5; i++) {
+        weightedPool.push(common)
+      }
     }
 
-    // Segment 2: common leaders + next 1/3 of rare leaders
-    const segment2Rares = shuffledRares.slice(raresPerSegment, raresPerSegment * 2)
-    const segment2 = shuffle([...this.commonLeaders, ...segment2Rares])
+    // Add each rare leader 1 time
+    for (const rare of this.rareLeaders) {
+      weightedPool.push(rare)
+    }
 
-    // Add segment 2 to hopper
-    const segment2Start = this.hopper.length
-    this.hopper.push(...segment2)
+    // Shuffle the weighted pool
+    const segment = shuffle(weightedPool)
 
-    // Run seam dedup
-    this._seamDedup(segment2Start, segment2.length)
+    // Add segment to hopper
+    const segmentStart = this.hopper.length
+    this.hopper.push(...segment)
 
-    // Segment 3: common leaders + remaining rare leaders
-    const segment3Rares = shuffledRares.slice(raresPerSegment * 2)
-    const segment3 = shuffle([...this.commonLeaders, ...segment3Rares])
-
-    // Add segment 3 to hopper
-    const segment3Start = this.hopper.length
-    this.hopper.push(...segment3)
-
-    // Run seam dedup
-    this._seamDedup(segment3Start, segment3.length)
+    // Run seam dedup - include some cards before the seam to fix boundary
+    const dedupStart = wasEmpty ? segmentStart : Math.max(0, segmentStart - 1)
+    const dedupLength = this.hopper.length - dedupStart
+    this._seamDedup(dedupStart, dedupLength)
   }
 
   /**
    * Seam deduplication
-   * Look at the first 5 cards in the segment (the seam).
-   * For each, check if it has a duplicate within 6 slots.
-   * If so, swap with a random card from the back half of the segment.
+   * Prevents the same leader from appearing in immediately adjacent slots.
+   * With weighted pools (commons appear 5x), we can only guarantee no immediate adjacency.
    */
   _seamDedup(segmentStart, segmentLength, depth = 0) {
     // Prevent infinite recursion
-    if (depth > 10) return
+    if (depth > 50) return
 
-    const seamSize = Math.min(5, segmentLength)
-    const backHalfStart = segmentStart + Math.floor(segmentLength / 2)
-    const backHalfEnd = segmentStart + segmentLength
+    for (let i = segmentStart + 1; i < segmentStart + segmentLength; i++) {
+      const card = this.hopper[i]
+      const prevCard = this.hopper[i - 1]
 
-    for (let i = 0; i < seamSize; i++) {
-      const cardIndex = segmentStart + i
-      const card = this.hopper[cardIndex]
+      // Check if same leader as previous slot
+      if (isSameCard(card, prevCard)) {
+        // Try to swap with a non-adjacent card further in the segment
+        const swapRangeStart = i + 2
+        const swapRangeEnd = segmentStart + segmentLength
 
-      // Check for duplicates within 6 slots (before and after)
-      let hasDuplicate = false
-      for (let offset = -6; offset <= 6; offset++) {
-        if (offset === 0) continue
-        const checkIndex = cardIndex + offset
-        if (checkIndex < 0 || checkIndex >= this.hopper.length) continue
-        if (checkIndex >= segmentStart + segmentLength) continue // Don't check beyond segment
+        if (swapRangeStart < swapRangeEnd) {
+          // Find a card to swap that won't create new adjacency issues
+          const candidates = []
+          for (let k = swapRangeStart; k < swapRangeEnd; k++) {
+            candidates.push(k)
+          }
+          // Shuffle candidates for randomness
+          for (let k = candidates.length - 1; k > 0; k--) {
+            const j = Math.floor(Math.random() * (k + 1))
+            ;[candidates[k], candidates[j]] = [candidates[j], candidates[k]]
+          }
 
-        if (isSameCard(card, this.hopper[checkIndex])) {
-          hasDuplicate = true
-          break
-        }
-      }
+          for (const swapIndex of candidates) {
+            const swapCard = this.hopper[swapIndex]
+            // Check if swapping would create adjacency conflict at position i or swapIndex
+            const wouldConflictAtI = isSameCard(swapCard, prevCard)
+            const nextCard = i + 1 < segmentStart + segmentLength ? this.hopper[i + 1] : null
+            const wouldConflictAtINext = nextCard && isSameCard(swapCard, nextCard)
 
-      if (hasDuplicate) {
-        // Swap with a random card from the back half of the segment
-        const backHalfLength = backHalfEnd - backHalfStart
-        if (backHalfLength > 0) {
-          const swapIndex = backHalfStart + Math.floor(Math.random() * backHalfLength)
-          ;[this.hopper[cardIndex], this.hopper[swapIndex]] =
-            [this.hopper[swapIndex], this.hopper[cardIndex]]
+            const prevSwap = swapIndex > 0 ? this.hopper[swapIndex - 1] : null
+            const nextSwap = swapIndex + 1 < this.hopper.length ? this.hopper[swapIndex + 1] : null
+            const wouldConflictAtSwap = (prevSwap && isSameCard(card, prevSwap)) ||
+                                        (nextSwap && isSameCard(card, nextSwap))
 
-          // Run dedup again
-          this._seamDedup(segmentStart, segmentLength, depth + 1)
-          return
+            if (!wouldConflictAtI && !wouldConflictAtINext && !wouldConflictAtSwap) {
+              ;[this.hopper[i], this.hopper[swapIndex]] = [this.hopper[swapIndex], this.hopper[i]]
+              // Run dedup again
+              this._seamDedup(segmentStart, segmentLength, depth + 1)
+              return
+            }
+          }
         }
       }
     }

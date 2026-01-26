@@ -95,10 +95,18 @@ export async function GET(request, { params }) {
       ? JSON.parse(pod.draft_state)
       : pod.draft_state || {}
 
+    // Check if we're in leader draft phase (show leader packs to all)
+    const isLeaderDraftPhase = draftState?.phase === 'leader_draft'
+
     // Format players
     const formattedPlayers = players.map(p => {
       const draftedLeaders = p.drafted_leaders
         ? (typeof p.drafted_leaders === 'string' ? JSON.parse(p.drafted_leaders) : p.drafted_leaders)
+        : []
+
+      // Parse leaders pack (for leader draft phase visibility)
+      const leadersPack = p.leaders
+        ? (typeof p.leaders === 'string' ? JSON.parse(p.leaders) : p.leaders)
         : []
 
       return {
@@ -108,6 +116,13 @@ export async function GET(request, { params }) {
         avatarUrl: p.avatar_url,
         seatNumber: p.seat_number,
         pickStatus: p.pick_status,
+        // During leader draft, show each player's leader pack to all (packs rotate anyway)
+        leaderPack: isLeaderDraftPhase ? leadersPack.map(l => ({
+          name: l.name,
+          aspects: l.aspects || [],
+          imageUrl: l.imageUrl,
+          backImageUrl: l.backImageUrl,
+        })) : null,
         draftedCardsCount: p.drafted_cards
           ? (typeof p.drafted_cards === 'string' ? JSON.parse(p.drafted_cards) : p.drafted_cards).length
           : 0,
@@ -116,6 +131,8 @@ export async function GET(request, { params }) {
         draftedLeaders: draftedLeaders.map(l => ({
           name: l.name,
           aspects: l.aspects || [],
+          imageUrl: l.imageUrl,
+          backImageUrl: l.backImageUrl,
         })),
       }
     })
@@ -129,6 +146,7 @@ export async function GET(request, { params }) {
           id: player.id,
           seatNumber: player.seat_number,
           pickStatus: player.pick_status,
+          selectedCardId: player.selected_card_id || null,
           currentPack: typeof player.current_pack === 'string'
             ? JSON.parse(player.current_pack)
             : player.current_pack,

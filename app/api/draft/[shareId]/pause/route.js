@@ -2,6 +2,7 @@
 import { query, queryRow } from '@/lib/db.js'
 import { requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
+import { processBotTurns } from '@/src/utils/botLogic.js'
 
 export async function POST(request, { params }) {
   try {
@@ -46,6 +47,14 @@ export async function POST(request, { params }) {
          WHERE id = $2`,
         [totalPausedDuration, pod.id]
       )
+
+      // After resuming, check if all players have selected and process picks
+      // This handles the case where everyone selected while paused
+      try {
+        await processBotTurns(pod.id)
+      } catch (err) {
+        console.error('Error processing bot turns after resume:', err)
+      }
 
       return jsonResponse({
         success: true,

@@ -214,7 +214,41 @@ export async function pollState(shareId, sinceVersion = 0) {
     const data = await response.json()
     return data.data
   } catch (error) {
-    console.error('Failed to poll state:', error)
+    // Don't log "Draft not found" - it's expected when drafts are cancelled
+    if (!error.message?.includes('Draft not found')) {
+      console.error('Failed to poll state:', error)
+    }
+    throw error
+  }
+}
+
+/**
+ * Select a card (staged pick)
+ * The pick is finalized when all players have selected
+ * @param {string} shareId - Share ID of the draft
+ * @param {string|null} cardId - ID of the card to select, or null to unselect
+ * @returns {Promise<Object>} Selection result
+ */
+export async function selectCard(shareId, cardId) {
+  try {
+    const response = await fetch(`${API_BASE}/draft/${shareId}/select`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ cardId }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Failed to select card')
+    }
+
+    const data = await response.json()
+    return data.data
+  } catch (error) {
+    console.error('Failed to select card:', error)
     throw error
   }
 }

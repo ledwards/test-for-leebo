@@ -707,17 +707,6 @@ export default function PlayPage({ params }) {
     }
   }
 
-  const clonePool = () => {
-    if (!user) {
-      setMessage('Please log in to clone this pool')
-      setMessageType('error')
-      setTimeout(() => { setMessage(null); setMessageType(null) }, 3000)
-      return
-    }
-    // Redirect to clone endpoint or handle clone
-    router.push(`/pool/${shareId}/deck?clone=true`)
-  }
-
   if (loading) {
     return (
       <div className="play-page">
@@ -921,19 +910,6 @@ export default function PlayPage({ params }) {
             {generatingImage ? 'Generating...' : 'Deck Image'}
           </button>
         </div>
-
-        {!isOwner && (
-          <div className="play-secondary-actions">
-            <button className="play-secondary-button" onClick={clonePool}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="8.5" cy="7" r="4"></circle>
-                <path d="M20 8v6M23 11h-6"></path>
-              </svg>
-              Clone Pool
-            </button>
-          </div>
-        )}
 
         {message && (
           <div className={`play-message ${messageType}`}>

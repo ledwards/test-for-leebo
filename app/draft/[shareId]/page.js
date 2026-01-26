@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { useDraftSync } from '../../../src/hooks/useDraftSync'
-import { joinDraft, leaveDraft, startDraft, randomizeSeats, makePick, updateSettings, togglePause } from '../../../src/utils/draftApi'
+import { joinDraft, leaveDraft, startDraft, randomizeSeats, makePick, selectCard, updateSettings, togglePause } from '../../../src/utils/draftApi'
 import DraftLobby from '../../../src/components/DraftLobby'
 import LeaderDraftPhase from '../../../src/components/LeaderDraftPhase'
 import PackDraftPhase from '../../../src/components/PackDraftPhase'
@@ -26,7 +26,13 @@ export default function DraftRoomPage({ params }) {
   const { isAuthenticated, loading: authLoading } = useAuth()
   const [shareId, setShareId] = useState(null)
   const [error, setError] = useState(null)
-  const [actionLoading, setActionLoading] = useState(false)
+  const [startingDraft, setStartingDraft] = useState(false)
+  const [randomizing, setRandomizing] = useState(false)
+  const [addingBot, setAddingBot] = useState(false)
+  const [changingSettings, setChangingSettings] = useState(false)
+  const [picking, setPicking] = useState(false)
+  const [selecting, setSelecting] = useState(false)
+  const [togglingPause, setTogglingPause] = useState(false)
   const [showOpponentTooltip, setShowOpponentTooltip] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
@@ -45,6 +51,7 @@ export default function DraftRoomPage({ params }) {
     draft,
     loading,
     error: syncError,
+    deleted,
     forcePoll,
     isHost,
     isPlayer,
@@ -53,6 +60,38 @@ export default function DraftRoomPage({ params }) {
     draftState,
     status,
   } = useDraftSync(shareId, { enabled: !!shareId && isAuthenticated })
+
+  // Redirect if draft was deleted
+  useEffect(() => {
+    if (deleted) {
+      router.push('/draft')
+    }
+  }, [deleted, router])
+
+  // Redirect to deck builder when draft completes
+  useEffect(() => {
+    if (status === 'complete' && shareId) {
+      const buildDeck = async () => {
+        try {
+          const response = await fetch(`/api/draft/${shareId}/pool`, {
+            credentials: 'include',
+          })
+          if (!response.ok) {
+            const data = await response.json()
+            throw new Error(data.message || 'Failed to create pool')
+          }
+          const data = await response.json()
+          const poolShareId = data.data?.poolShareId
+          if (poolShareId) {
+            router.push(`/pool/${poolShareId}`)
+          }
+        } catch (err) {
+          setError(err.message)
+        }
+      }
+      buildDeck()
+    }
+  }, [status, shareId, router])
 
   // Auto-join on load if authenticated and not already in draft
   useEffect(() => {
@@ -74,20 +113,17 @@ export default function DraftRoomPage({ params }) {
   }, [shareId, isAuthenticated, loading, isPlayer, status, forcePoll])
 
   const handleLeave = async () => {
-    if (actionLoading) return
-    setActionLoading(true)
     try {
       await leaveDraft(shareId)
       router.push('/draft')
     } catch (err) {
       setError(err.message)
-      setActionLoading(false)
     }
   }
 
   const handleStart = async () => {
-    if (actionLoading) return
-    setActionLoading(true)
+    if (startingDraft) return
+    setStartingDraft(true)
     setError(null)
     try {
       await startDraft(shareId)
@@ -95,39 +131,39 @@ export default function DraftRoomPage({ params }) {
     } catch (err) {
       setError(err.message)
     } finally {
-      setActionLoading(false)
+      setStartingDraft(false)
     }
   }
 
   const handleRandomize = async () => {
-    if (actionLoading) return
-    setActionLoading(true)
+    if (randomizing) return
+    setRandomizing(true)
     try {
       await randomizeSeats(shareId)
       await forcePoll()
     } catch (err) {
       setError(err.message)
     } finally {
-      setActionLoading(false)
+      setRandomizing(false)
     }
   }
 
-  const handleTimedChange = async (timed) => {
-    if (actionLoading) return
-    setActionLoading(true)
+  const handleSettingsChange = async (settings) => {
+    if (changingSettings) return
+    setChangingSettings(true)
     try {
-      await updateSettings(shareId, { timed })
+      await updateSettings(shareId, settings)
       await forcePoll()
     } catch (err) {
       setError(err.message)
     } finally {
-      setActionLoading(false)
+      setChangingSettings(false)
     }
   }
 
   const handleAddBot = async () => {
-    if (actionLoading) return
-    setActionLoading(true)
+    if (addingBot) return
+    setAddingBot(true)
     setError(null)
     try {
       const response = await fetch(`/api/draft/${shareId}/dev/add-bots?count=1`, {
@@ -142,13 +178,13 @@ export default function DraftRoomPage({ params }) {
     } catch (err) {
       setError(err.message)
     } finally {
-      setActionLoading(false)
+      setAddingBot(false)
     }
   }
 
   const handlePick = async (cardId) => {
-    if (actionLoading) return
-    setActionLoading(true)
+    if (picking) return
+    setPicking(true)
     setError(null)
     try {
       await makePick(shareId, cardId)
@@ -156,7 +192,21 @@ export default function DraftRoomPage({ params }) {
     } catch (err) {
       setError(err.message)
     } finally {
-      setActionLoading(false)
+      setPicking(false)
+    }
+  }
+
+  const handleSelect = async (cardId) => {
+    if (selecting) return
+    setSelecting(true)
+    setError(null)
+    try {
+      await selectCard(shareId, cardId)
+      await forcePoll()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSelecting(false)
     }
   }
 
@@ -187,8 +237,8 @@ export default function DraftRoomPage({ params }) {
   }
 
   const handleTogglePause = async () => {
-    if (actionLoading) return
-    setActionLoading(true)
+    if (togglingPause) return
+    setTogglingPause(true)
     setError(null)
     try {
       await togglePause(shareId)
@@ -196,32 +246,7 @@ export default function DraftRoomPage({ params }) {
     } catch (err) {
       setError(err.message)
     } finally {
-      setActionLoading(false)
-    }
-  }
-
-  const handleBuildDeck = async () => {
-    if (actionLoading) return
-    setActionLoading(true)
-    setError(null)
-    try {
-      const response = await fetch(`/api/draft/${shareId}/pool`, {
-        credentials: 'include',
-      })
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.message || 'Failed to create pool')
-      }
-      const data = await response.json()
-      const poolShareId = data.data?.poolShareId
-      if (poolShareId) {
-        router.push(`/pool/${poolShareId}`)
-      } else {
-        throw new Error('No pool ID returned')
-      }
-    } catch (err) {
-      setError(err.message)
-      setActionLoading(false)
+      setTogglingPause(false)
     }
   }
 
@@ -284,9 +309,11 @@ export default function DraftRoomPage({ params }) {
           onStart={handleStart}
           onRandomize={handleRandomize}
           onAddBot={handleAddBot}
-          onTimedChange={handleTimedChange}
+          onSettingsChange={handleSettingsChange}
           onLeave={handleLeave}
-          loading={actionLoading}
+          startingDraft={startingDraft}
+          randomizing={randomizing}
+          addingBot={addingBot}
           error={error}
           shareId={shareId}
         />
@@ -303,11 +330,12 @@ export default function DraftRoomPage({ params }) {
             players={players}
             myPlayer={myPlayer}
             draftState={draftState}
-            onPick={handlePick}
-            loading={actionLoading}
+            onSelect={handleSelect}
+            loading={selecting}
             error={error}
             isHost={isHost}
             onTogglePause={handleTogglePause}
+            shareId={shareId}
           />
         )
       }
@@ -319,19 +347,19 @@ export default function DraftRoomPage({ params }) {
             players={players}
             myPlayer={myPlayer}
             draftState={draftState}
-            onPick={handlePick}
-            loading={actionLoading}
+            onSelect={handleSelect}
+            loading={selecting}
             error={error}
             isHost={isHost}
             onTogglePause={handleTogglePause}
+            shareId={shareId}
           />
         )
       }
     }
 
     if (status === 'complete') {
-      // Automatically redirect to draft pool page
-      handleBuildDeck()
+      // useEffect will handle redirect to deck builder
       return <div className="loading"></div>
     }
 

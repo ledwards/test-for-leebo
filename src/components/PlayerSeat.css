@@ -151,6 +151,13 @@
   object-fit: contain;
 }
 
+@media (max-width: 768px) {
+  /* Hide name below avatar on mobile - name shows in leader info area instead */
+  .seat-name {
+    display: none;
+  }
+}
+
 @media (max-width: 500px) {
   .player-seat {
     padding: 2px;
@@ -160,10 +167,5 @@
   .seat-avatar {
     width: 36px;
     height: 36px;
-  }
-
-  .seat-name {
-    font-size: 0.7rem;
-    max-width: 90px;
   }
 }

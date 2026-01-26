@@ -72,10 +72,18 @@ export async function GET(request, { params }) {
       ? JSON.parse(pod.settings)
       : pod.settings || {}
 
+    // Check if we're in leader draft phase (show leader packs to all)
+    const isLeaderDraftPhase = draftState?.phase === 'leader_draft'
+
     // Format players for response
     const formattedPlayers = players.map(p => {
       const draftedLeaders = p.drafted_leaders
         ? (typeof p.drafted_leaders === 'string' ? JSON.parse(p.drafted_leaders) : p.drafted_leaders)
+        : []
+
+      // Parse leaders pack (for leader draft phase visibility)
+      const leadersPack = p.leaders
+        ? (typeof p.leaders === 'string' ? JSON.parse(p.leaders) : p.leaders)
         : []
 
       return {
@@ -89,6 +97,13 @@ export async function GET(request, { params }) {
         currentPack: session && p.user_id === session.id
           ? (typeof p.current_pack === 'string' ? JSON.parse(p.current_pack) : p.current_pack)
           : null,
+        // During leader draft, show each player's leader pack to all (packs rotate anyway)
+        leaderPack: isLeaderDraftPhase ? leadersPack.map(l => ({
+          name: l.name,
+          aspects: l.aspects || [],
+          imageUrl: l.imageUrl,
+          backImageUrl: l.backImageUrl,
+        })) : null,
         draftedCardsCount: p.drafted_cards
           ? (typeof p.drafted_cards === 'string' ? JSON.parse(p.drafted_cards) : p.drafted_cards).length
           : 0,
@@ -97,6 +112,8 @@ export async function GET(request, { params }) {
         draftedLeaders: draftedLeaders.map(l => ({
           name: l.name,
           aspects: l.aspects || [],
+          imageUrl: l.imageUrl,
+          backImageUrl: l.backImageUrl,
         })),
       }
     })
@@ -129,6 +146,7 @@ export async function GET(request, { params }) {
         id: myPlayer.id,
         seatNumber: myPlayer.seat_number,
         pickStatus: myPlayer.pick_status,
+        selectedCardId: myPlayer.selected_card_id || null,
         currentPack: typeof myPlayer.current_pack === 'string'
           ? JSON.parse(myPlayer.current_pack)
           : myPlayer.current_pack,

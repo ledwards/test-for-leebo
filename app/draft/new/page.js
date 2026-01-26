@@ -87,7 +87,7 @@ export default function NewDraftPage() {
   }
 
   return (
-    <div className="app draft-page-bg">
+    <div className="app">
       <SetSelection onSetSelect={handleSetSelect} onBack={handleBack} />
     </div>
   )

@@ -34,11 +34,14 @@ export default function DraftLandingPage() {
           const data = await response.json()
           const allPods = data.data?.pods || data.pods || []
 
-          // Only show Lobby (waiting) and In Progress (active) drafts
-          const activePods = allPods.filter(pod =>
-            pod.status === 'waiting' || pod.status === 'active' || pod.status === 'leader_draft' || pod.status === 'pack_draft'
-          )
-          setHistory(activePods)
+          // Always show the most recent draft, plus any active/waiting drafts
+          const filteredPods = allPods.filter((pod, index) => {
+            // Always include the most recent draft (index 0)
+            if (index === 0) return true
+            // Include any other waiting or active drafts
+            return pod.status === 'waiting' || pod.status === 'active'
+          })
+          setHistory(filteredPods)
         }
       } catch (err) {
         console.error('Failed to fetch draft history:', err)

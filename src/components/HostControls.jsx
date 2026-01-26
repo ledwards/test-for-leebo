@@ -46,8 +46,10 @@ function HostControls({
   onStart,
   onRandomize,
   onAddBot,
-  onTimedChange,
-  loading,
+  onSettingsChange,
+  startingDraft,
+  randomizing,
+  addingBot,
   isFull,
   shareId,
   showCancelButton = true,
@@ -58,7 +60,8 @@ function HostControls({
   const [isCancelling, setIsCancelling] = useState(false)
   const canStart = playerCount >= 2
   const canAddBot = playerCount < (draft?.maxPlayers || 8)
-  const isTimed = draft?.timed !== false
+  const isRoundTimerEnabled = draft?.timed !== false
+  const isLastPlayerTimerEnabled = draft?.timerEnabled !== false
 
   const handleCancelDraft = async () => {
     if (!shareId) return
@@ -97,9 +100,15 @@ function HostControls({
   const pickTimeoutSeconds = draft?.pickTimeoutSeconds || 120
   const lastPlayerTimerSeconds = draft?.timerSeconds || 30
 
-  const handleTimedChange = (e) => {
-    if (onTimedChange) {
-      onTimedChange(e.target.checked)
+  const handleRoundTimerChange = (e) => {
+    if (onSettingsChange) {
+      onSettingsChange({ timed: e.target.checked })
+    }
+  }
+
+  const handleLastPlayerTimerChange = (e) => {
+    if (onSettingsChange) {
+      onSettingsChange({ timerEnabled: e.target.checked })
     }
   }
 
@@ -112,24 +121,25 @@ function HostControls({
           <label className="setting-checkbox">
             <input
               type="checkbox"
-              checked={isTimed}
-              onChange={handleTimedChange}
+              checked={isRoundTimerEnabled}
+              onChange={handleRoundTimerChange}
             />
-            <span>Enable Round Timers</span>
+            <span>Enable Round Timer: {pickTimeoutSeconds}s</span>
           </label>
         </div>
 
         <div className="settings-row">
-          {isTimed && (
-            <>
-              <span className="setting-item">
-                <span className="setting-label">Pick:</span> <span className="setting-value">{pickTimeoutSeconds}s</span>
-              </span>
-              <span className="setting-item">
-                <span className="setting-label">Last Player:</span> <span className="setting-value">{lastPlayerTimerSeconds}s</span>
-              </span>
-            </>
-          )}
+          <label className="setting-checkbox">
+            <input
+              type="checkbox"
+              checked={isLastPlayerTimerEnabled}
+              onChange={handleLastPlayerTimerChange}
+            />
+            <span>Enable Last Player Timer: {lastPlayerTimerSeconds}s</span>
+          </label>
+        </div>
+
+        <div className="settings-row">
           <span className="setting-item">
             <span className="setting-label">Max Players:</span> <span className="setting-value">{draft?.maxPlayers || 8}</span>
           </span>
@@ -138,19 +148,19 @@ function HostControls({
           <button
             className="control-button secondary"
             onClick={onRandomize}
-            disabled={loading || playerCount < 2}
+            disabled={randomizing || playerCount < 2}
           >
             <DiceIcon />
-            <span>Randomize Seats</span>
+            <span>{randomizing ? 'Randomizing...' : 'Randomize Seats'}</span>
           </button>
 
           <button
             className="control-button secondary"
             onClick={onAddBot}
-            disabled={loading || !canAddBot}
+            disabled={addingBot || !canAddBot}
           >
             <RobotIcon />
-            <span>Add Bot</span>
+            <span>{addingBot ? 'Adding...' : 'Add Bot'}</span>
           </button>
         </div>
       </div>
@@ -161,9 +171,9 @@ function HostControls({
           <button
             className="control-button primary"
             onClick={onStart}
-            disabled={loading || !canStart}
+            disabled={startingDraft || !canStart}
           >
-            {loading ? 'Starting...' : 'Start Draft'}
+            {startingDraft ? 'Starting...' : 'Start Draft'}
           </button>
         </div>
 
@@ -182,7 +192,7 @@ function HostControls({
             <button
               className="control-button cancel"
               onClick={() => setShowCancelConfirm(true)}
-              disabled={loading || isCancelling}
+              disabled={isCancelling}
             >
               <XIcon />
               <span>Cancel Draft</span>
