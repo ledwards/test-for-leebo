@@ -141,10 +141,11 @@
   transition: all 0.3s ease;
   font-size: 1rem;
   box-sizing: border-box;
-  margin-left: calc(2rem - 20px - 5px);
-  margin-right: calc(2rem - 20px - 5px + 120px);
-  width: calc(100% - (2rem - 20px - 5px) - (2rem - 20px - 5px + 120px));
+  margin-left: 20px;
+  margin-right: 140px;
+  width: auto;
   overflow: visible;
+  will-change: transform;
 }
 
 .deck-info-bar:not(.sticky) {
@@ -154,8 +155,8 @@
 /* When sticky, buttons on left of deck-counts-info, deck-counts-info on far right */
 .deck-info-bar.sticky {
   margin-left: 20px;
-  margin-right: 80px; /* Space for Discord icon (40px width + 20px right + 20px spacing) */
-  width: calc(100% - 20px - 80px);
+  margin-right: 100px;
+  width: auto;
   justify-content: flex-start;
   gap: 0;
   overflow: visible;
