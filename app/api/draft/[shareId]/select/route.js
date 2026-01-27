@@ -86,14 +86,54 @@ export async function POST(request, { params }) {
       [pod.id]
     )
 
-    // Always trigger bot processing when human makes a selection
-    // Bots will select their cards, and if all selected, picks are processed
-    // Await so the client sees complete state when polling
+    // Check if all players have now selected - if so, process picks immediately
+    // This handles the case of all-human drafts without relying on bot processing
     if (cardId) {
-      try {
-        await processBotTurns(pod.id)
-      } catch (err) {
-        console.error('Error processing bot turns:', err)
+      // Retry loop to handle race conditions
+      for (let attempt = 0; attempt < 3; attempt++) {
+        // Try to acquire a short lock to prevent race conditions
+        const lockResult = await query(
+          `UPDATE draft_pods
+           SET bot_processing_since = NOW()
+           WHERE id = $1
+             AND status = 'active'
+             AND (bot_processing_since IS NULL OR bot_processing_since < NOW() - INTERVAL '2 seconds')
+           RETURNING id`,
+          [pod.id]
+        )
+
+        if (lockResult.rowCount > 0) {
+          try {
+            // Re-fetch players after acquiring lock
+            const allPlayers = await queryRows(
+              'SELECT pick_status, selected_card_id FROM draft_pod_players WHERE draft_pod_id = $1',
+              [pod.id]
+            )
+            const allSelected = allPlayers.every(p => p.pick_status === 'selected' && p.selected_card_id)
+
+            if (allSelected) {
+              // All players have selected - process picks and advance
+              // Re-fetch pod state to ensure fresh data
+              const freshPod = await queryRow('SELECT * FROM draft_pods WHERE id = $1', [pod.id])
+              const freshState = typeof freshPod.draft_state === 'string'
+                ? JSON.parse(freshPod.draft_state)
+                : freshPod.draft_state
+              await processAllStagedPicks(pod.id, freshState, freshPod)
+            }
+
+            // Also trigger bot processing for drafts with bots
+            await processBotTurns(pod.id)
+          } catch (err) {
+            console.error('Error processing picks:', err)
+          } finally {
+            // Release lock
+            await query('UPDATE draft_pods SET bot_processing_since = NULL WHERE id = $1', [pod.id])
+          }
+          break // Success, exit retry loop
+        } else {
+          // Couldn't acquire lock - wait and retry
+          await new Promise(resolve => setTimeout(resolve, 150 + attempt * 100))
+        }
       }
     }
 

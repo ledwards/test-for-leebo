@@ -21,6 +21,13 @@ export async function processAllStagedPicks(podId, draftState, pod) {
     [podId]
   )
 
+  // Check if there are actually picks to process
+  const hasPicksToProcess = players.some(p => p.selected_card_id && p.pick_status === 'selected')
+  if (!hasPicksToProcess) {
+    // No picks to process - already processed or nothing selected
+    return false
+  }
+
   if (draftState.phase === 'leader_draft') {
     // Process leader picks
     for (const player of players) {
