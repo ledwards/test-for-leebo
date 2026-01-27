@@ -44,3 +44,7 @@ sheets/
 /playwright/.cache/
 tests/e2e/screenshots/*.png
 !tests/e2e/screenshots/.gitkeep
+
+# Test results (generated)
+src/tests/results.json
+src/qa/results.json

@@ -307,13 +307,13 @@ export default function PlayPage({ params }) {
       }
     })
 
-    // Get all cards from deck and sideboard sections
+    // Get all cards from deck and sideboard sections (excluding leaders and bases)
     const deckCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'deck' && pos.enabled !== false)
+      .filter(pos => pos.section === 'deck' && pos.enabled !== false && !pos.card.isBase && !pos.card.isLeader)
       .map(pos => pos.card)
 
     const sideboardCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'sideboard')
+      .filter(pos => pos.section === 'sideboard' && !pos.card.isBase && !pos.card.isLeader)
       .map(pos => pos.card)
 
 

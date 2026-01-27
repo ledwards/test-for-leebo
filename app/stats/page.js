@@ -30,7 +30,7 @@ export default function StatsPage() {
   }
 
   useEffect(() => {
-    if (activeTab === 'Reference' || activeTab === 'QA') {
+    if (activeTab === 'Reference' || activeTab === 'QA' || activeTab === 'Test') {
       setLoading(false)
       return
     }
@@ -50,7 +50,7 @@ export default function StatsPage() {
       })
   }, [activeTab])
 
-  const tabs = ['Reference', 'QA', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
+  const tabs = ['Reference', 'QA', 'Test', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
 
   // Set colors for tabs
   const setColors = {
@@ -93,6 +93,8 @@ export default function StatsPage() {
           <ReferenceTab stats={stats} />
         ) : activeTab === 'QA' ? (
           <QATab />
+        ) : activeTab === 'Test' ? (
+          <TestTab />
         ) : loading ? (
           <div className="stats-loading">Loading statistics...</div>
         ) : error ? (
@@ -106,6 +108,8 @@ export default function StatsPage() {
 }
 
 function GenerationStatsTab({ stats, setCode }) {
+  const [subTab, setSubTab] = useState('cards')
+
   if (!stats || !stats.cards || stats.cards.length === 0) {
     return (
       <div className="stats-empty">
@@ -131,6 +135,7 @@ function GenerationStatsTab({ stats, setCode }) {
 
   return (
     <div className="generation-stats">
+      {/* Global summary stats - outside tabs */}
       <div className="stats-summary">
         <h2>{setCode} Statistics</h2>
         <div className="stats-summary-grid">
@@ -164,6 +169,35 @@ function GenerationStatsTab({ stats, setCode }) {
         <PackMetricsSection metrics={stats.packMetrics} />
       )}
 
+      {/* Sub-tabs for Cards and Packs - directly above content */}
+      <div className="stats-subtabs">
+        <button
+          className={`stats-subtab ${subTab === 'cards' ? 'active' : ''}`}
+          onClick={() => setSubTab('cards')}
+        >
+          Cards
+        </button>
+        <button
+          className={`stats-subtab ${subTab === 'packs' ? 'active' : ''}`}
+          onClick={() => setSubTab('packs')}
+        >
+          Packs
+        </button>
+      </div>
+
+      {subTab === 'cards' ? (
+        <CardsSubTab stats={stats} setCode={setCode} hasEnoughData={hasEnoughData} />
+      ) : (
+        <PacksSubTab setCode={setCode} />
+      )}
+    </div>
+  )
+}
+
+function CardsSubTab({ stats, setCode, hasEnoughData }) {
+  return (
+    <div className="cards-subtab">
+      {/* Cards table only - stats are above the tabs now */}
       <div className="stats-table-container">
         <table className="stats-table">
           <thead>
@@ -214,6 +248,108 @@ function GenerationStatsTab({ stats, setCode }) {
           </tbody>
         </table>
       </div>
+    </div>
+  )
+}
+
+function PacksSubTab({ setCode }) {
+  const [packs, setPacks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [total, setTotal] = useState(0)
+  const [offset, setOffset] = useState(0)
+  const limit = 20
+
+  useEffect(() => {
+    setLoading(true)
+    setOffset(0)
+    fetch(`/api/stats/packs?setCode=${setCode}&limit=${limit}&offset=0`)
+      .then(res => res.json())
+      .then(response => {
+        const data = response.data || response
+        setPacks(data.packs || [])
+        setTotal(data.total || 0)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Error loading packs:', err)
+        setLoading(false)
+      })
+  }, [setCode])
+
+  const loadMore = () => {
+    const newOffset = offset + limit
+    setLoading(true)
+    fetch(`/api/stats/packs?setCode=${setCode}&limit=${limit}&offset=${newOffset}`)
+      .then(res => res.json())
+      .then(response => {
+        const data = response.data || response
+        setPacks(prev => [...prev, ...(data.packs || [])])
+        setOffset(newOffset)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Error loading more packs:', err)
+        setLoading(false)
+      })
+  }
+
+  if (loading && packs.length === 0) {
+    return <div className="stats-loading">Loading packs...</div>
+  }
+
+  if (packs.length === 0) {
+    return (
+      <div className="stats-empty">
+        <p>No pack data available for {setCode} yet.</p>
+        <p>Pack contents will appear after packs are generated.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="packs-subtab">
+      <div className="packs-summary">
+        <p>Showing {packs.length} of {total} packs</p>
+      </div>
+      <div className="packs-grid">
+        {packs.map((pack, idx) => (
+          <div key={`${pack.sourceId}-${pack.packIndex}-${idx}`} className="pack-container">
+            <div className="pack-header">
+              <span className="pack-label">Pack {pack.packIndex + 1}</span>
+              <span className="pack-source">{pack.sourceType}</span>
+              {pack.sourceId && (
+                <a href={`/pool/${pack.sourceId}`} className="pack-pool-link" title={`View pool ${pack.sourceId}`}>
+                  {pack.sourceId.slice(0, 8)}...
+                </a>
+              )}
+            </div>
+            <div className="pack-cards">
+              {pack.cards.map((card, cardIdx) => (
+                <div
+                  key={`${card.cardId}-${cardIdx}`}
+                  className={`pack-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`}
+                  title={`${card.name}${card.subtitle ? ` - ${card.subtitle}` : ''} (${card.treatment})`}
+                >
+                  {card.imageUrl ? (
+                    <img src={card.imageUrl} alt={card.name} className="pack-card-image" />
+                  ) : (
+                    <div className="pack-card-placeholder">
+                      <span className="placeholder-name">{card.name}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {packs.length < total && (
+        <div className="load-more-container">
+          <button className="load-more-button" onClick={loadMore} disabled={loading}>
+            {loading ? 'Loading...' : `Load More (${total - packs.length} remaining)`}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -1092,6 +1228,112 @@ function QATab() {
                 </div>
                 {test.errorMessage && (
                   <div className="qa-test-error">{test.errorMessage}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function TestTab() {
+  const [testResults, setTestResults] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadTestResults()
+  }, [])
+
+  const loadTestResults = () => {
+    setLoading(true)
+    fetch('/api/stats/tests')
+      .then(res => res.json())
+      .then(response => {
+        setTestResults(response.data || response)
+        setLoading(false)
+      })
+      .catch(() => {
+        setLoading(false)
+      })
+  }
+
+  if (loading) {
+    return <div className="stats-loading">Loading test results...</div>
+  }
+
+  return (
+    <div className="test-tab">
+      <div className="qa-header">
+        <h2>Unit Test Results</h2>
+      </div>
+
+      {!testResults?.available || !testResults?.latestRun ? (
+        <div className="stats-empty">
+          <p>Unit tests have not been run yet.</p>
+          <p>Run <code>npm run test:json</code> to generate results.</p>
+        </div>
+      ) : (
+        <div className="qa-results">
+          <div className="qa-summary">
+            <div className="qa-summary-card">
+              <div className="qa-summary-number">{testResults.latestRun.summary.totalSuites}</div>
+              <div className="qa-summary-label">Test Suites</div>
+            </div>
+            <div className="qa-summary-card">
+              <div className="qa-summary-number">{testResults.latestRun.summary.totalTests}</div>
+              <div className="qa-summary-label">Total Tests</div>
+            </div>
+            <div className="qa-summary-card qa-summary-passed">
+              <div className="qa-summary-number">{testResults.latestRun.summary.passed}</div>
+              <div className="qa-summary-label">Passed</div>
+            </div>
+            <div className="qa-summary-card qa-summary-failed">
+              <div className="qa-summary-number">{testResults.latestRun.summary.failed}</div>
+              <div className="qa-summary-label">Failed</div>
+            </div>
+          </div>
+
+          <div className="test-execution-time">
+            Execution time: {(testResults.latestRun.executionTime / 1000).toFixed(2)}s
+          </div>
+
+          <div className="qa-test-list">
+            <h3>Test Suites</h3>
+            <p className="qa-run-time">
+              Run at: {new Date(testResults.latestRun.runAt).toLocaleString()}
+            </p>
+
+            {testResults.latestRun.suites.map((suite, index) => (
+              <div
+                key={index}
+                className={`qa-test-item qa-test-${suite.status}`}
+              >
+                <div className="qa-test-header">
+                  <span className={`qa-test-status qa-status-${suite.status}`}>
+                    {suite.status === 'passed' ? '✓' : '✗'}
+                  </span>
+                  <span className="qa-test-name">{suite.name}</span>
+                  <span className="qa-test-suite">{suite.suite}</span>
+                  {suite.executionTime != null && (
+                    <span className="qa-test-time">{suite.executionTime}ms</span>
+                  )}
+                </div>
+                {suite.errorMessage && (
+                  <div className="qa-test-error">{suite.errorMessage}</div>
+                )}
+                {suite.tests && suite.tests.length > 1 && (
+                  <div className="test-suite-details">
+                    {suite.tests.map((test, testIdx) => (
+                      <div key={testIdx} className={`test-detail test-detail-${test.status}`}>
+                        <span className="test-detail-icon">
+                          {test.status === 'passed' ? '✓' : '✗'}
+                        </span>
+                        <span className="test-detail-name">{test.name}</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             ))}

@@ -1503,8 +1503,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // If all cards of an aspect are in sideboard, checkbox should be OFF
   // If all cards of an aspect are in deck, checkbox should be ON
   useEffect(() => {
-    if (Object.keys(cardPositions).length === 0) return
-
     // Get all pool cards (not leaders/bases)
     const poolCards = Object.values(cardPositions).filter(
       pos => !pos.card.isLeader && !pos.card.isBase &&
@@ -1512,7 +1510,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
              (pos.section === 'deck' || pos.section === 'sideboard')
     )
 
-    if (poolCards.length === 0) return
+    // Allow running even if poolCards is empty to uncheck all filters when deck is empty
 
     const newAspectFilters = { ...aspectFilters }
     let hasAspectChanges = false
@@ -1528,7 +1526,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         return cardAspects.includes(aspect)
       })
 
-      if (aspectCards.length === 0) return // No cards of this aspect in pool
+      // If no cards of this aspect exist in pool, uncheck the filter
+      if (aspectCards.length === 0) {
+        if (aspectFilters[aspect]) {
+          newAspectFilters[aspect] = false
+          hasAspectChanges = true
+        }
+        return
+      }
 
       const inDeckCount = aspectCards.filter(pos => pos.section === 'deck').length
       const totalCount = aspectCards.length
@@ -2463,13 +2468,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       }
     })
 
-    // Get cards from deck and sideboard sections
+    // Get cards from deck and sideboard sections (excluding leaders and bases)
     const deckCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'deck' && pos.visible && pos.enabled !== false)
+      .filter(pos => pos.section === 'deck' && pos.visible && pos.enabled !== false && !pos.card.isBase && !pos.card.isLeader)
       .map(pos => pos.card)
 
     const sideboardCards = Object.values(cardPositions)
-      .filter(pos => pos.section === 'sideboard' && pos.visible)
+      .filter(pos => pos.section === 'sideboard' && pos.visible && !pos.card.isBase && !pos.card.isLeader)
       .map(pos => pos.card)
 
     // Count cards by base ID, excluding leaders and bases

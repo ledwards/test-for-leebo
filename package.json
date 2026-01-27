@@ -16,6 +16,7 @@
     "migrate:prod": "node scripts/migrate.js prod",
     "migrate:status": "node scripts/migrate.js dev status && node scripts/migrate.js prod status",
     "test": "npm run test:utils && npm run test:belts && npm run test:fixes && npm run test:draft && npm run test:bots && npm run test:data",
+    "test:json": "node scripts/run-tests-json.js",
     "test:bots": "node src/bots/behaviors/behaviors.test.js",
     "test:all": "npm run test; npm run qa; npm run test:e2e; node scripts/test-summary.js",
     "test:summary": "bash scripts/run-tests.sh",
