@@ -157,9 +157,9 @@ export async function PUT(request, { params }) {
     const session = requireAuth(request)
     const body = await parseBody(request)
 
-    // Check ownership
+    // Check ownership - only select needed columns (avoid loading large JSONB)
     const pool = await queryRow(
-      'SELECT * FROM card_pools WHERE share_id = $1',
+      'SELECT id, user_id, deck_builder_state FROM card_pools WHERE share_id = $1',
       [shareId]
     )
 
@@ -242,9 +242,9 @@ export async function DELETE(request, { params }) {
     const { shareId } = await params
     const session = requireAuth(request)
 
-    // Check ownership
+    // Check ownership - only select needed columns (avoid loading large JSONB)
     const pool = await queryRow(
-      'SELECT * FROM card_pools WHERE share_id = $1',
+      'SELECT id, user_id FROM card_pools WHERE share_id = $1',
       [shareId]
     )
 

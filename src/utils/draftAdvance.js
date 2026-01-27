@@ -16,15 +16,25 @@ import { getPassDirection, getLeaderPassDirection, getNextSeat, getCardsPerDraft
  * 3. Then advances the draft
  */
 export async function processAllStagedPicks(podId, draftState, pod) {
+  // Use SELECT FOR UPDATE to lock the rows and prevent race conditions
+  // This ensures only one request can process picks at a time
   const players = await queryRows(
-    'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
+    'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number FOR UPDATE',
     [podId]
   )
 
-  // Check if there are actually picks to process
+  // Check if there are actually picks to process (must re-check after acquiring lock)
   const hasPicksToProcess = players.some(p => p.selected_card_id && p.pick_status === 'selected')
   if (!hasPicksToProcess) {
     // No picks to process - already processed or nothing selected
+    return false
+  }
+
+  // Double-check ALL players are in 'selected' status before processing
+  // This prevents partial processing if some picks already went through
+  const allSelected = players.every(p => p.pick_status === 'selected' && p.selected_card_id)
+  if (!allSelected) {
+    // Not all players have selected - don't process yet
     return false
   }
 

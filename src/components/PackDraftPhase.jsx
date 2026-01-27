@@ -205,6 +205,26 @@ function PackDraftPhase({
             </div>
           </div>
 
+          {/* Selection confirmation banner */}
+          {selectedCardId && (() => {
+            const selectedCard = currentPack.find(c => (c.instanceId || c.id) === selectedCardId)
+            if (!selectedCard) return null
+            return (
+              <div className="selection-confirmation-banner">
+                <div className="selection-info">
+                  <span className="selection-label">Selected:</span>
+                  <span className="selection-card-name">{selectedCard.name}</span>
+                  {selectedCard.subtitle && (
+                    <span className="selection-card-subtitle">{selectedCard.subtitle}</span>
+                  )}
+                </div>
+                <div className="selection-status-text">
+                  {hasSelected ? 'Waiting for other players...' : 'Click again to deselect'}
+                </div>
+              </div>
+            )
+          })()}
+
           <div className="current-pack">
             {hasSelected && !selectedCardId && (
               <p className="selection-status">Waiting for other players...</p>
