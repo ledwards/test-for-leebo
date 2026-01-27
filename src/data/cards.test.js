@@ -198,16 +198,16 @@ async function runTests() {
 
     test(`${setCode}: non-units/leaders have null power and hp`, () => {
       const nonCombatCards = cards.filter(c =>
-        c.type !== 'Unit' && c.type !== 'Leader' && c.variantType === 'Normal'
+        c.type !== 'Unit' && c.type !== 'Leader' && c.type !== 'Upgrade' && c.variantType === 'Normal'
       )
       nonCombatCards.forEach(card => {
         assert(
           card.power === null,
-          `Non-combat card "${card.name}" (${card.id}) should have null power`
+          `Non-combat card "${card.name}" (${card.id}) should have null power (Upgrades are allowed to have power/hp as +X/+Y)`
         )
         assert(
           card.hp === null,
-          `Non-combat card "${card.name}" (${card.id}) should have null hp`
+          `Non-combat card "${card.name}" (${card.id}) should have null hp (Upgrades are allowed to have power/hp as +X/+Y)`
         )
       })
     })

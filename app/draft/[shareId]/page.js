@@ -387,10 +387,10 @@ export default function DraftRoomPage({ params }) {
                 <h1>{draft.setName || draft.setCode} Draft</h1>
               </div>
               {status === 'active' && draftState?.phase === 'leader_draft' && (
-                <span className="draft-round-info">Leader Round {draftState?.leaderRound || 1}/3</span>
+                <span className="draft-round-info">Leader Drafting Phase</span>
               )}
               {status === 'active' && draftState?.phase === 'pack_draft' && (
-                <span className="draft-round-info">Round {draftState?.packNumber || 1} - Pick {draftState?.pickInPack || 1}</span>
+                <span className="draft-round-info">Drafting Phase</span>
               )}
             </div>
           </div>

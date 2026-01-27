@@ -11,7 +11,10 @@ const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000'
 const TEST_ID = `e2e_${Date.now()}`
 
 test.describe.configure({ mode: 'serial' })
-test.skip(({ browserName }) => browserName !== 'chromium', 'Test only runs on chromium')
+test.skip(({ browserName, isMobile }) =>
+  browserName !== 'chromium' || isMobile,
+  'Skipped: Desktop Chromium only (long-running integration test)'
+)
 test.setTimeout(900000) // 15 minutes for 8 players
 
 test.describe('Full 8-player draft', () => {

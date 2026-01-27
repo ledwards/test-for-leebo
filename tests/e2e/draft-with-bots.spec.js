@@ -1,5 +1,6 @@
 // @ts-check
 import { test, expect, chromium } from '@playwright/test'
+import { debugLog, debugError, testLog } from './debug-utils.js'
 import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.js'
 
 /**
@@ -11,10 +12,15 @@ const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000'
 const TEST_ID = `e2e_bots_${Date.now()}`
 
 test.describe.configure({ mode: 'serial' })
-test.skip(({ browserName }) => browserName !== 'chromium', 'Test only runs on chromium')
 test.setTimeout(600000) // 10 minutes
 
 test.describe('Draft with bots', () => {
+  // Skip on non-chromium browsers and mobile
+  test.skip(({ browserName, isMobile }) =>
+    browserName !== 'chromium' || isMobile,
+    'Skipped: Desktop Chromium only (long-running integration test)'
+  )
+
   /** @type {import('@playwright/test').Browser} */
   let browser
   /** @type {import('@playwright/test').BrowserContext} */
@@ -25,10 +31,10 @@ test.describe('Draft with bots', () => {
   let shareId = null
 
   test.beforeAll(async () => {
-    console.log(`\n${'='.repeat(50)}`)
-    console.log('Starting 1 Human + 7 Bots Draft Test')
-    console.log(`Test ID: ${TEST_ID}`)
-    console.log(`${'='.repeat(50)}\n`)
+    debugLog(`\n${'='.repeat(50)}`)
+    debugLog('Starting 1 Human + 7 Bots Draft Test')
+    debugLog(`Test ID: ${TEST_ID}`)
+    debugLog(`${'='.repeat(50)}\n`)
 
     browser = await chromium.launch({
       headless: false,
@@ -36,7 +42,7 @@ test.describe('Draft with bots', () => {
     })
 
     // Create test user
-    console.log('Creating test user...')
+    debugLog('Creating test user...')
     user = await createTestUser('HumanPlayer', TEST_ID)
 
     context = await browser.newContext({
@@ -62,19 +68,19 @@ test.describe('Draft with bots', () => {
     page = await context.newPage()
     page.on('console', msg => {
       if (msg.type() === 'error') {
-        console.log(`  [Error]:`, msg.text().slice(0, 80))
+        debugLog(`  [Error]:`, msg.text().slice(0, 80))
       }
     })
 
-    console.log(`✓ Created: ${user.user.username}\n`)
+    debugLog(`✓ Created: ${user.user.username}\n`)
   })
 
   test.afterAll(async () => {
-    console.log('\nCleaning up...')
+    debugLog('\nCleaning up...')
     try {
       await cleanupTestUsers(TEST_ID)
     } catch (e) {
-      console.error('Cleanup error:', e.message)
+      debugError('Cleanup error:', e.message)
     }
     await closeDb()
     if (context) await context.close()
@@ -83,7 +89,7 @@ test.describe('Draft with bots', () => {
 
   test('complete a draft with 7 bots', async () => {
     // === STEP 1: Create draft ===
-    console.log('--- STEP 1: Creating draft ---')
+    debugLog('--- STEP 1: Creating draft ---')
     await page.goto(`${BASE_URL}/draft`)
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
@@ -98,12 +104,12 @@ test.describe('Draft with bots', () => {
     }, { timeout: 20000 })
 
     shareId = page.url().split('/draft/')[1]?.split('?')[0]
-    console.log(`✓ Draft created: ${shareId}`)
+    debugLog(`✓ Draft created: ${shareId}`)
 
     await page.waitForSelector('.draft-lobby', { timeout: 10000 })
 
     // === STEP 2: Add 7 bots ===
-    console.log('\n--- STEP 2: Adding 7 bots ---')
+    debugLog('\n--- STEP 2: Adding 7 bots ---')
 
     // Add bots using the API
     const addBotsResponse = await page.evaluate(async (shareId) => {
@@ -127,11 +133,11 @@ test.describe('Draft with bots', () => {
     }, shareId)
 
     if (addBotsResponse.error) {
-      console.log(`  ⚠ Error adding bots: ${addBotsResponse.error}`)
+      debugLog(`  ⚠ Error adding bots: ${addBotsResponse.error}`)
     } else if (!addBotsResponse.ok) {
-      console.log(`  ⚠ Add bots failed: ${addBotsResponse.status} - ${JSON.stringify(addBotsResponse.data || addBotsResponse.text)}`)
+      debugLog(`  ⚠ Add bots failed: ${addBotsResponse.status} - ${JSON.stringify(addBotsResponse.data || addBotsResponse.text)}`)
     } else {
-      console.log(`✓ Added ${addBotsResponse.data?.bots?.length || 0} bots`)
+      debugLog(`✓ Added ${addBotsResponse.data?.bots?.length || 0} bots`)
     }
 
     // Wait for UI to update and verify player count
@@ -141,22 +147,22 @@ test.describe('Draft with bots', () => {
 
     // Check player count
     const playerCountText = await page.locator('.player-count').textContent()
-    console.log(`  Player count: ${playerCountText}`)
+    debugLog(`  Player count: ${playerCountText}`)
 
     // === STEP 3: Start draft ===
-    console.log('\n--- STEP 3: Starting draft ---')
+    debugLog('\n--- STEP 3: Starting draft ---')
     const startButton = page.locator('button:has-text("Start Draft")')
     await expect(startButton).toBeEnabled({ timeout: 10000 })
     await startButton.click()
 
     await page.waitForSelector('.leader-draft-phase', { timeout: 30000 })
-    console.log('✓ Draft started - Leader draft phase')
+    debugLog('✓ Draft started - Leader draft phase')
 
     // === STEP 4: Leader draft (3 rounds) ===
-    console.log('\n--- STEP 4: Leader draft ---')
+    debugLog('\n--- STEP 4: Leader draft ---')
 
     for (let round = 1; round <= 3; round++) {
-      console.log(`  Round ${round}/3:`)
+      debugLog(`  Round ${round}/3:`)
 
       // Wait for leaders to be available (with polling)
       let leadersFound = false
@@ -167,18 +173,18 @@ test.describe('Draft with bots', () => {
         leadersFound = leaderCardCount > 0
         if (!leadersFound) {
           if (i % 10 === 0) {
-            console.log(`    Waiting for leaders... (grid: ${leaderGridExists}, cards: ${leaderCardCount})`)
+            debugLog(`    Waiting for leaders... (grid: ${leaderGridExists}, cards: ${leaderCardCount})`)
           }
           await page.waitForTimeout(500)
         }
       }
 
       if (!leadersFound) {
-        console.log('    ⚠ No leaders found, checking page state...')
+        debugLog('    ⚠ No leaders found, checking page state...')
         const url = page.url()
         const html = await page.locator('body').innerHTML().catch(() => 'error')
-        console.log(`    URL: ${url}`)
-        console.log(`    Body preview: ${html.slice(0, 200)}`)
+        debugLog(`    URL: ${url}`)
+        debugLog(`    Body preview: ${html.slice(0, 200)}`)
         throw new Error('Leaders not found')
       }
 
@@ -190,19 +196,19 @@ test.describe('Draft with bots', () => {
         const disabledCards = document.querySelectorAll('.leaders-grid .draftable-card.disabled')
         return disabledCards.length === 0
       }, { timeout: 10000 }).catch(() => {
-        console.log('    (waited for loading state)')
+        debugLog('    (waited for loading state)')
       })
 
       // Select a leader by clicking
       const leaderCards = page.locator('.leaders-grid .draftable-card:not(.dimmed):not(.disabled)')
       const leaderCount = await leaderCards.count()
-      console.log(`    Found ${leaderCount} selectable leaders`)
+      debugLog(`    Found ${leaderCount} selectable leaders`)
 
       if (leaderCount > 0) {
         const firstLeader = leaderCards.first()
         await firstLeader.scrollIntoViewIfNeeded()
         await firstLeader.click()
-        console.log(`    Clicked leader`)
+        debugLog(`    Clicked leader`)
 
         // Wait for selection to register with retry
         let selectedCount = 0
@@ -215,32 +221,32 @@ test.describe('Draft with bots', () => {
             await firstLeader.click()
           }
         }
-        console.log(`    Selected count after click: ${selectedCount}`)
+        debugLog(`    Selected count after click: ${selectedCount}`)
       } else {
-        console.log(`    ⚠ No selectable leaders found!`)
+        debugLog(`    ⚠ No selectable leaders found!`)
       }
 
       // Wait for round to advance
-      console.log(`    Waiting for advancement...`)
+      debugLog(`    Waiting for advancement...`)
       if (round < 3) {
         await waitForLeaderRoundOrPackDraft(round + 1)
       } else {
         await waitForPackDraft()
       }
 
-      console.log(`    ✓ Round ${round} complete`)
+      debugLog(`    ✓ Round ${round} complete`)
     }
 
-    console.log('✓ Leader draft complete!')
+    debugLog('✓ Leader draft complete!')
 
     // === STEP 5: Pack draft ===
-    console.log('\n--- STEP 5: Pack draft ---')
+    debugLog('\n--- STEP 5: Pack draft ---')
 
     for (let pack = 1; pack <= 3; pack++) {
-      console.log(`  Pack ${pack}/3:`)
+      debugLog(`  Pack ${pack}/3:`)
 
       for (let pick = 1; pick <= 14; pick++) {
-        process.stdout.write(`    Pick ${pick}/14...`)
+        debugLog(`    Pick ${pick}/14...`)
 
         // Wait for cards to be available (with polling to trigger bot processing)
         let cardsFound = false
@@ -255,12 +261,12 @@ test.describe('Draft with bots', () => {
         }
 
         if (!cardsFound && !page.url().includes('/pool/')) {
-          console.log('\n    ⚠ No pack cards found')
+          debugLog('\n    ⚠ No pack cards found')
           throw new Error('Pack cards not found')
         }
 
         if (page.url().includes('/pool/')) {
-          console.log(' (draft complete)')
+          debugLog(' (draft complete)')
           break
         }
 
@@ -293,17 +299,19 @@ test.describe('Draft with bots', () => {
           await waitForPickAdvance(pack, pick)
         }
 
-        console.log(' ✓')
+        debugLog(' ✓')
       }
 
       // Check if draft completed early
       if (page.url().includes('/pool/')) break
 
-      console.log(`  ✓ Pack ${pack} complete!`)
+      debugLog(`  ✓ Pack ${pack} complete`)
     }
 
+    debugLog('\n✓ Draft complete!')
+
     // === STEP 6: Verify completion ===
-    console.log('\n--- STEP 6: Verifying completion ---')
+    testLog('\n--- STEP 6: Verifying completion ---')
 
     // Wait for redirect to pool
     let isComplete = false
@@ -317,9 +325,9 @@ test.describe('Draft with bots', () => {
 
     expect(isComplete).toBeTruthy()
 
-    console.log('\n' + '='.repeat(50))
-    console.log('✅ DRAFT WITH BOTS COMPLETED!')
-    console.log('='.repeat(50) + '\n')
+    testLog('\n' + '='.repeat(50))
+    testLog('✅ DRAFT WITH BOTS COMPLETED!')
+    testLog('='.repeat(50) + '\n')
   })
 
   // Helper: Poll the server to trigger state updates and timeouts
@@ -354,7 +362,7 @@ test.describe('Draft with bots', () => {
       await page.waitForTimeout(500)
       attempts++
     }
-    console.log(`    ⚠ Timeout waiting for leader round ${targetRound}`)
+    debugLog(`    ⚠ Timeout waiting for leader round ${targetRound}`)
   }
 
   // Helper: Wait for pack draft phase
@@ -373,7 +381,7 @@ test.describe('Draft with bots', () => {
       await page.waitForTimeout(500)
       attempts++
     }
-    console.log(`    ⚠ Timeout waiting for pack draft phase`)
+    debugLog(`    ⚠ Timeout waiting for pack draft phase`)
   }
 
   // Helper: Wait for pack pick to advance past current pick
@@ -399,6 +407,6 @@ test.describe('Draft with bots', () => {
       await page.waitForTimeout(500)
       attempts++
     }
-    console.log(`\n    ⚠ Timeout waiting to advance past Pack ${currentPack} Pick ${currentPick}`)
+    debugLog(`\n    ⚠ Timeout waiting to advance past Pack ${currentPack} Pick ${currentPick}`)
   }
 })

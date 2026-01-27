@@ -21,6 +21,12 @@ This directory contains Playwright end-to-end tests for the Protect the Pod appl
 npm run test:e2e
 ```
 
+### Run tests with debug logging
+```bash
+npm run test:e2e -- --debug
+```
+By default, e2e tests suppress console output for cleaner test results. Use the `--debug` flag to see detailed logging during test execution.
+
 ### Run tests with UI mode (interactive)
 ```bash
 npm run test:e2e:ui
@@ -53,11 +59,21 @@ npm run test:e2e:report
 
 ## Test Files
 
+### Run on All Browsers (Desktop + Mobile)
 - `landing.spec.js` - Tests for the landing page and basic navigation
 - `sealed-flow.spec.js` - Tests for the sealed pool creation and viewing flow
 - `deck-builder.spec.js` - Tests for the deck builder functionality
 - `draft-flow.spec.js` - Tests for the draft page (note: full draft flow requires auth)
 - `regression.spec.js` - Comprehensive regression tests for common issues
+
+### Desktop Chromium Only (Skipped on Mobile)
+These long-running integration tests are skipped on mobile browsers and non-Chromium browsers:
+- `draft-with-bots.spec.js` - 1 human + 7 bots draft (10 min)
+- `two-player-draft.spec.js` - 2 player draft flow (5 min)
+- `multiplayer-draft.spec.js` - Full 8 player draft (15 min)
+- `sealed-happy-path.spec.js` - Complete sealed flow (3 min)
+
+These tests use `test.skip()` to gracefully skip on unsupported configurations and will show as "Skipped" (not failed) in test reports.
 
 ## Test Configuration
 
@@ -73,14 +89,19 @@ Tests are configured in `playwright.config.js` at the project root. By default, 
 1. Create a new `.spec.js` file in this directory
 2. Import helpers from `helpers.js` for common utilities
 3. Use the standard Playwright test API
+4. Use debug logging utilities from `debug-utils.js` for conditional logging
 
 Example:
 ```javascript
 import { test, expect } from '@playwright/test'
 import { checkLayoutIssues, waitForNetworkIdle } from './helpers.js'
+import { debugLog, testLog } from './debug-utils.js'
 
 test.describe('My Feature', () => {
   test('should work correctly', async ({ page }) => {
+    debugLog('Starting test...') // Only shows with --debug
+    testLog('High-level progress') // Always shows
+    
     await page.goto('/my-page')
     await waitForNetworkIdle(page)
 
@@ -92,6 +113,13 @@ test.describe('My Feature', () => {
   })
 })
 ```
+
+### Debug Logging Utilities
+
+Import from `debug-utils.js`:
+- `debugLog()` - Only logs when `--debug` flag is used
+- `debugError()` - Only logs errors when `--debug` flag is used
+- `testLog()` - Always logs (for important progress indicators)
 
 ## CI/CD Integration
 

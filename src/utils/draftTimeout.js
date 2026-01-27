@@ -81,27 +81,12 @@ export async function checkAndEnforceTimeout(podId) {
     const lastPlayerStartedAt = new Date(draftState.lastPlayerStartedAt).getTime()
     const lastPlayerElapsed = now - lastPlayerStartedAt
     lastPlayerTimerExpired = lastPlayerElapsed >= lastPlayerTimeoutSeconds * 1000
-    console.log('[TIMEOUT] Last player timer check:', {
-      lastPlayerStartedAt: draftState.lastPlayerStartedAt,
-      lastPlayerElapsed: lastPlayerElapsed / 1000,
-      lastPlayerTimeoutSeconds,
-      expired: lastPlayerTimerExpired
-    })
-  } else if (isLastPlayer) {
-    console.log('[TIMEOUT] Last player but missing lastPlayerStartedAt:', {
-      isLastPlayerTimerEnabled,
-      isLastPlayer,
-      hasLastPlayerStartedAt: !!draftState.lastPlayerStartedAt,
-      draftStateKeys: Object.keys(draftState)
-    })
   }
 
   if (!roundTimerExpired && !lastPlayerTimerExpired) {
     // Neither timeout reached yet
     return false
   }
-
-  console.log('[TIMEOUT] Enforcing timeout:', { roundTimerExpired, lastPlayerTimerExpired, phase: draftState.phase })
 
   // Try to acquire lock using atomic update
   // Use state_version for locking instead of pick_started_at to avoid timestamp precision issues
@@ -117,11 +102,8 @@ export async function checkAndEnforceTimeout(podId) {
 
   if (lockResult.rowCount === 0) {
     // Another process already handled this timeout or state changed
-    console.log('[TIMEOUT] Lock acquisition failed - state_version changed from', pod.state_version)
     return false
   }
-
-  console.log('[TIMEOUT] Lock acquired, forcing picks for', players.length, 'players')
 
   const phase = draftState.phase
 

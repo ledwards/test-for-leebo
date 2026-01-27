@@ -86,6 +86,16 @@ export const batchFixes = [
  * These run after individual and batch fixes
  */
 export const customTransforms = [
+  // Filter out Prestige variants - we don't want these in our data
+  {
+    name: 'Remove Prestige variants',
+    transform: (cards) => {
+      // This transform filters the array, so it returns a new array
+      return cards.filter(card => card.variantType !== 'Prestige')
+    },
+    isArrayTransform: true // Flag to indicate this transforms the whole array
+  },
+
   // Ensure all boolean fields are explicitly true or false, never undefined
   {
     name: 'Ensure boolean flags are explicit',

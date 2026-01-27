@@ -39,18 +39,26 @@ function LeaderDraftPhase({
   }, [storageKey, leaders])
 
   // Sync localStorage selection with server on mount (in case of refresh)
+  // Only re-send if the stored leader is still in the current leaders array
   useEffect(() => {
     const stored = localStorage.getItem(storageKey)
     if (stored && canSelect && myPlayer?.pickStatus === 'picking') {
-      // Re-send selection to server after refresh
-      onSelect(stored)
+      // Verify the stored leader is still available before re-sending
+      const leaderStillAvailable = leaders.some(l => (l.instanceId || l.id) === stored)
+      if (leaderStillAvailable) {
+        onSelect(stored)
+      } else {
+        // Clear stale selection
+        localStorage.removeItem(storageKey)
+        setSelectedCardId(null)
+      }
     }
   }, []) // Only on mount
 
   // Clear localStorage when round advances (leaders array changes after pick)
   useEffect(() => {
     if (myPlayer?.pickStatus === 'picking' && !hasSelected) {
-      // New round started, clear old selection
+      // New round started, clear old selection if leader no longer available
       const stored = localStorage.getItem(storageKey)
       if (stored && !leaders.some(l => (l.instanceId || l.id) === stored)) {
         localStorage.removeItem(storageKey)
@@ -58,6 +66,17 @@ function LeaderDraftPhase({
       }
     }
   }, [leaders, myPlayer?.pickStatus, hasSelected, storageKey])
+
+  // Clear all old leader selections when round changes
+  useEffect(() => {
+    // Clean up selections from previous rounds
+    for (let r = 1; r <= 3; r++) {
+      if (r !== round) {
+        const oldKey = `draft-selection-${shareId}-leader-${r}`
+        localStorage.removeItem(oldKey)
+      }
+    }
+  }, [round, shareId])
 
   const handleCardClick = (card) => {
     if (loading || !canSelect) return
@@ -109,6 +128,7 @@ function LeaderDraftPhase({
             compact={false}
             isHost={isHost}
             onTogglePause={onTogglePause}
+            draftState={draftState}
           />
 
           <div className="drafted-leaders">

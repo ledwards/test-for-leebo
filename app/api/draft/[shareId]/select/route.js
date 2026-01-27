@@ -128,11 +128,10 @@ export async function POST(request, { params }) {
           }
 
           // Trigger bot processing for drafts with bots (after lock is released)
-          try {
-            await processBotTurns(pod.id)
-          } catch (err) {
+          // Don't await - let it run in background so response is fast
+          processBotTurns(pod.id).catch(err => {
             console.error('Error processing bot turns:', err)
-          }
+          })
 
           break // Success, exit retry loop
         } else {

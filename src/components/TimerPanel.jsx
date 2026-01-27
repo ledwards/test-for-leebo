@@ -22,7 +22,7 @@ const PlayIcon = () => (
  * Shows either pick timeout or last player timer (whichever has less time remaining)
  * Both timers can be enabled/disabled independently
  */
-function TimerPanel({ draft, players = [], compact = false, isHost = false, onTogglePause }) {
+function TimerPanel({ draft, players = [], compact = false, isHost = false, onTogglePause, draftState = null }) {
   const [activeTimer, setActiveTimer] = useState('round') // 'round' or 'lastPlayer'
 
   // Calculate if only one player left to pick (for last player timer)
@@ -96,52 +96,75 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
   const WrapperEl = compact ? 'div' : 'div'
   const wrapperClass = compact ? '' : 'timer-bar'
 
+  // Get timer label
+  const timerLabel = displayLastPlayer
+    ? (compact ? "Last Player" : "Last Player:")
+    : (compact ? "Pick" : "Pick Timeout:")
+
   return (
-    <div className={wrapperClass}>
-      <div className={`timer-panel ${compact ? 'compact' : ''} ${isPaused ? 'paused' : ''}`}>
-        {isPaused ? (
-          <button
-            className="paused-display-button"
-            onClick={isHost && onTogglePause ? onTogglePause : undefined}
-            disabled={!isHost || !onTogglePause}
-          >
-            <PlayIcon />
-            <span className="paused-text">PAUSED</span>
-          </button>
-        ) : (
-          <>
-            {displayLastPlayer ? (
-              <CountdownTimer
-                label={compact ? "Last Player" : "Last Player:"}
-                totalSeconds={lastPlayerTimerSeconds}
-                startedAt={lastPlayerStartedAt || pickStartedAt}
-                warningThreshold={30}
-                active={true}
-                compact={compact}
-                paused={isPaused}
-                pausedDurationSeconds={0}
-              />
-            ) : (
-              <CountdownTimer
-                label={compact ? "Pick" : "Pick Timeout:"}
-                totalSeconds={pickTimeoutSeconds}
-                startedAt={pickStartedAt}
-                warningThreshold={30}
-                active={isDrafting}
-                compact={compact}
-                paused={isPaused}
-                pausedDurationSeconds={pausedDurationSeconds}
-              />
-            )}
-            {isHost && onTogglePause && (
-              <button className="pause-button" onClick={onTogglePause}>
-                <PauseIcon />
-              </button>
-            )}
-          </>
-        )}
+    <>
+      {/* Round/Pick info displayed ABOVE the timer box */}
+      {draftState?.phase === 'leader_draft' && (
+        <div className="round-pick-info">
+          Leader {draftState?.leaderRound || 1}/3
+        </div>
+      )}
+      {draftState?.phase === 'pack_draft' && (
+        <div className="round-pick-info">
+          Pack {draftState?.packNumber || 1} - Pick {draftState?.pickInPack || 1}
+        </div>
+      )}
+
+      <div className={wrapperClass}>
+        <div className={`timer-panel ${compact ? 'compact' : ''} ${isPaused ? 'paused' : ''}`}>
+          {isPaused ? (
+            <>
+              {/* When paused: show label + "PAUSED" instead of time + play button */}
+              <div className="countdown-timer paused-timer">
+                <span className="timer-label">{timerLabel}</span>
+                <span className="timer-value paused-value">PAUSED</span>
+              </div>
+              {isHost && onTogglePause && (
+                <button className="pause-button resume" onClick={onTogglePause}>
+                  <PlayIcon />
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              {displayLastPlayer ? (
+                <CountdownTimer
+                  label={timerLabel}
+                  totalSeconds={lastPlayerTimerSeconds}
+                  startedAt={lastPlayerStartedAt || pickStartedAt}
+                  warningThreshold={30}
+                  active={true}
+                  compact={compact}
+                  paused={isPaused}
+                  pausedDurationSeconds={0}
+                />
+              ) : (
+                <CountdownTimer
+                  label={timerLabel}
+                  totalSeconds={pickTimeoutSeconds}
+                  startedAt={pickStartedAt}
+                  warningThreshold={30}
+                  active={isDrafting}
+                  compact={compact}
+                  paused={isPaused}
+                  pausedDurationSeconds={pausedDurationSeconds}
+                />
+              )}
+              {isHost && onTogglePause && (
+                <button className="pause-button" onClick={onTogglePause}>
+                  <PauseIcon />
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

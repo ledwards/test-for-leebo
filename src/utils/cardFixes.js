@@ -59,23 +59,37 @@ function applyBatchFixes(cards) {
  */
 function applyCustomTransforms(cards) {
   let transformCount = 0
+  let currentCards = cards
 
   customTransforms.forEach(transform => {
+    // Check if this is an array-level transform
+    if (transform.isArrayTransform) {
+      const originalLength = currentCards.length
+      currentCards = transform.transform(currentCards)
+      const newLength = currentCards.length
 
-
-    cards.forEach((card, index) => {
-      const original = JSON.stringify(card)
-      const transformed = transform.transform(card)
-      const modified = JSON.stringify(transformed)
-
-      if (original !== modified) {
-        cards[index] = transformed
-        transformCount++
+      // Count how many cards were filtered out
+      if (newLength !== originalLength) {
+        transformCount += originalLength - newLength
       }
-    })
+    } else {
+      // Per-card transform
+      currentCards.forEach((card, index) => {
+        const original = JSON.stringify(card)
+        const transformed = transform.transform(card)
+        const modified = JSON.stringify(transformed)
 
-
+        if (original !== modified) {
+          currentCards[index] = transformed
+          transformCount++
+        }
+      })
+    }
   })
+
+  // Replace cards array contents with transformed cards
+  cards.length = 0
+  cards.push(...currentCards)
 
   return transformCount
 }

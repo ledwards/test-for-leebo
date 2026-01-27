@@ -11,7 +11,10 @@ const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000'
 const TEST_ID = `e2e_2p_${Date.now()}`
 
 test.describe.configure({ mode: 'serial' })
-test.skip(({ browserName }) => browserName !== 'chromium', 'Test only runs on chromium')
+test.skip(({ browserName, isMobile }) =>
+  browserName !== 'chromium' || isMobile,
+  'Skipped: Desktop Chromium only (long-running integration test)'
+)
 test.setTimeout(300000) // 5 minutes
 
 test.describe('2-player draft', () => {

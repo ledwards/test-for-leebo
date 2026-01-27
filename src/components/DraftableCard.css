@@ -22,6 +22,7 @@
   z-index: 100;
 }
 
+
 .draftable-card.leader,
 .draftable-card.base {
   width: 168px;
@@ -40,15 +41,25 @@
 
 
 /* Dim non-selected cards when there's an active selection */
-.draftable-card.dimmed .card-image {
+/* Target the inner div that wraps the image */
+.draftable-card.dimmed > div {
   filter: grayscale(100%);
   opacity: 0.7;
   transition: filter 0.3s ease, opacity 0.3s ease;
 }
 
-.draftable-card.dimmed:hover .card-image {
+.draftable-card.dimmed:hover > div {
   filter: grayscale(50%);
   opacity: 0.85;
+}
+
+/* Selected card should NEVER be dimmed - even if dimmed class is present */
+.draftable-card.selected,
+.draftable-card.selected > div,
+.draftable-card.selected div,
+.draftable-card.selected img {
+  filter: none !important;
+  opacity: 1 !important;
 }
 
 /* Foil effect - holographic rainbow shimmer */
@@ -96,12 +107,7 @@
   box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
 }
 
-.draftable-card .card-image {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 6px;
-}
+/* Card image styles applied via inline styles in JSX */
 
 .draftable-card .card-placeholder {
   aspect-ratio: 5 / 7;
@@ -183,9 +189,7 @@
     max-width: 100%;
   }
 
-  .draftable-card .card-image {
-    border-radius: 8px;
-  }
+  /* Card image styles applied via inline styles in JSX */
 
   .draftable-card .card-placeholder {
     border-radius: 8px;

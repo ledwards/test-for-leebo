@@ -132,8 +132,43 @@
   letter-spacing: 1px;
 }
 
+/* Round/Pick info display - above the timer box */
+.round-pick-info {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  white-space: nowrap;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* Paused timer display */
+.paused-timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paused-value {
+  color: #FFC107 !important;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
 /* Mobile - 20% smaller text, pause button moves up */
 @media (max-width: 768px) {
+  .round-pick-info {
+    font-size: 0.85rem;
+    padding: 5px 10px;
+    margin-bottom: 8px;
+  }
+
+  .paused-value {
+    font-size: 1rem;
+  }
   .timer-panel.compact .timer-label {
     font-size: 0.68rem;
   }

@@ -137,6 +137,8 @@ function DraftableCard({
           bottom: '1px',
           borderRadius: '6px',
           overflow: 'hidden',
+          filter: 'none',
+          opacity: 1,
         } : {
           width: '100%',
           height: '100%',
@@ -148,7 +150,13 @@ function DraftableCard({
               src={card.imageUrl}
               alt={card.name}
               onError={() => setImageError(true)}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                ...(selected ? { filter: 'none', opacity: 1 } : {})
+              }}
             />
           ) : (
             <div className="card-placeholder">

@@ -4,9 +4,12 @@ const ASPECT_COLORS = {
   'Command': '#27AE60',      // Green
   'Aggression': '#E74C3C',   // Red
   'Cunning': '#F1C40F',      // Yellow
-  'Villainy': '#9B59B6',     // Purple
-  'Heroism': '#E67E22'       // Orange
+  'Villainy': '#1a1a1a',     // Black
+  'Heroism': '#f0f0f0'       // White
 }
+
+// Default color for cards with no aspects
+const NO_ASPECT_COLOR = '#888888'  // Grey
 
 /**
  * Converts hex color to RGB
@@ -67,7 +70,7 @@ function darkenColor(hex, percent) {
  */
 export function getAspectColor(card) {
   if (!card || !card.aspects || card.aspects.length === 0) {
-    return 'white'
+    return NO_ASPECT_COLOR
   }
   
   const aspects = card.aspects
@@ -103,7 +106,7 @@ export function getAspectColor(card) {
  * Gets the base color for a single aspect
  */
 export function getSingleAspectColor(aspect) {
-  return ASPECT_COLORS[aspect] || 'white'
+  return ASPECT_COLORS[aspect] || NO_ASPECT_COLOR
 }
 
-export { ASPECT_COLORS }
+export { ASPECT_COLORS, NO_ASPECT_COLOR }
