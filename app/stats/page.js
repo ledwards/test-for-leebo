@@ -52,6 +52,16 @@ export default function StatsPage() {
 
   const tabs = ['Reference', 'QA', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
 
+  // Set colors for tabs
+  const setColors = {
+    'SOR': '#CC0000',
+    'SHD': '#6B21A8',
+    'TWI': '#0891B2',
+    'JTL': '#EA580C',
+    'LOF': '#16A34A',
+    'SEC': '#7C3AED'
+  }
+
   return (
     <div className="stats-page">
       <div className="stats-header">
@@ -65,6 +75,13 @@ export default function StatsPage() {
             key={tab}
             className={`stats-tab ${activeTab === tab ? 'active' : ''}`}
             onClick={() => handleTabChange(tab)}
+            style={setColors[tab] ? {
+              '--set-color': setColors[tab],
+              ...(activeTab === tab ? {
+                backgroundColor: setColors[tab],
+                borderBottomColor: setColors[tab]
+              } : {})
+            } : {}}
           >
             {tab}
           </button>
@@ -94,6 +111,17 @@ function GenerationStatsTab({ stats, setCode }) {
       <div className="stats-empty">
         <p>No generation data available for {setCode} yet.</p>
         <p>Statistics will appear after packs are generated.</p>
+        {stats?.debug && (
+          <div className="stats-debug">
+            <p><strong>Debug info:</strong></p>
+            <p>Raw generations: {stats.debug.rawGenerationsCount || 0}</p>
+            <p>Treatment counts: {JSON.stringify(stats.debug.treatmentCounts || {})}</p>
+            <p>Unmatched cards: {stats.debug.unmatchedCardsCount || 0}</p>
+            {stats.debug.unmatchedSamples?.length > 0 && (
+              <p>Samples: {stats.debug.unmatchedSamples.slice(0, 3).map(c => c.name).join(', ')}</p>
+            )}
+          </div>
+        )}
       </div>
     )
   }
@@ -126,10 +154,15 @@ function GenerationStatsTab({ stats, setCode }) {
         </div>
         {!hasEnoughData && (
           <p className="stats-warning">
-            ⚠️ Small sample size - statistics may not be reliable yet. Generate more packs for better accuracy.
+            Warning: Small sample size - statistics may not be reliable yet. Generate more packs for better accuracy.
           </p>
         )}
       </div>
+
+      {/* Pack-Level Metrics Section */}
+      {stats.packMetrics && (
+        <PackMetricsSection metrics={stats.packMetrics} />
+      )}
 
       <div className="stats-table-container">
         <table className="stats-table">
@@ -186,7 +219,8 @@ function GenerationStatsTab({ stats, setCode }) {
 }
 
 function TreatmentCell({ treatment, hasEnoughData }) {
-  if (!treatment || treatment.expected === 0) {
+  // Show "-" if treatment is not applicable for this card
+  if (!treatment || treatment.isApplicable === false) {
     return <td className="treatment-cell treatment-na">—</td>
   }
 
@@ -214,6 +248,268 @@ function TreatmentCell({ treatment, hasEnoughData }) {
         {displayPercent}
       </div>
     </td>
+  )
+}
+
+function PackMetricsSection({ metrics }) {
+  if (!metrics) return null
+
+  const totalCards = Object.values(metrics.treatmentDistribution || {}).reduce((a, b) => a + b, 0)
+  const totalPools = metrics.poolSameTreatmentDuplicates?.totalPools || 0
+  const totalPacks = metrics.totalPacksTracked || 0
+
+  // Statistical analysis helper
+  const getMetricStatus = (observed, expected, threshold = 10) => {
+    const diff = Math.abs(observed - expected)
+    if (diff <= threshold) return { status: 'expected', color: '#27AE60' }
+    if (diff <= threshold * 2) return { status: 'outlier', color: '#F39C12' }
+    return { status: 'extreme', color: '#E74C3C' }
+  }
+
+  // Pack-level metrics
+  const packSameTreatmentPercent = totalPacks > 0
+    ? (metrics.packSameTreatmentDuplicates?.packsAffected / totalPacks) * 100
+    : 0
+  const packCrossTreatmentPercent = totalPacks > 0
+    ? (metrics.packCrossTreatmentDuplicates?.packsAffected / totalPacks) * 100
+    : 0
+
+  // Expected: same-treatment duplicates = 0%, cross-treatment = ~8%
+  const packSameTreatmentStatus = getMetricStatus(packSameTreatmentPercent, 0, 1) // Very strict - should be 0
+  const packCrossTreatmentStatus = getMetricStatus(packCrossTreatmentPercent, 8, 5)
+
+  // Pool-level metrics
+  const poolSameTreatmentPercent = totalPools > 0
+    ? (metrics.poolSameTreatmentDuplicates?.poolsAffected / totalPools) * 100
+    : 0
+  const poolCrossTreatmentPercent = totalPools > 0
+    ? (metrics.poolCrossTreatmentDuplicates?.poolsAffected / totalPools) * 100
+    : 0
+
+  // Expected: most pools should have duplicates across 6 packs (~90%), and cross-treatment pairs (~95%)
+  const poolSameTreatmentStatus = getMetricStatus(poolSameTreatmentPercent, 90, 15)
+  const poolCrossTreatmentStatus = getMetricStatus(poolCrossTreatmentPercent, 95, 10)
+
+  // Treatment distribution expected percentages (per 16 cards)
+  const treatmentExpected = {
+    base: 87, // ~14 of 16 cards
+    hyperspace: 6, // ~1 card
+    foil: 6, // 1 foil per pack
+    hyperspace_foil: 0.5, // rare
+    showcase: 0.5 // rare, leaders only
+  }
+
+  // Rarity distribution expected (per 16 cards)
+  const rarityExpected = {
+    Common: 56, // 9/16
+    Uncommon: 16, // 2.5/16
+    Rare: 8, // ~1.3/16
+    Legendary: 2, // ~0.3/16
+    Leader: 6, // 1/16
+    Base: 6, // 1/16
+    Special: 0.5
+  }
+
+  return (
+    <div className="pack-metrics-section">
+      {/* Pack-Level Statistics */}
+      <h3>Pack-Level Statistics</h3>
+      <p className="pack-metrics-description">
+        Per-pack analysis from {totalPacks.toLocaleString()} tracked packs
+      </p>
+
+      {totalPacks === 0 ? (
+        <div className="metrics-notice">
+          No pack-level data available yet. Generate new pools to see pack statistics.
+        </div>
+      ) : (
+        <div className="pack-metrics-grid">
+          {/* Pack same-treatment duplicates (should be 0) */}
+          <div className={`pack-metric-card metric-${packSameTreatmentStatus.status}`}>
+            <div className="metric-header">
+              <span className="metric-icon" style={{ background: packSameTreatmentStatus.color + '30', color: packSameTreatmentStatus.color }}>
+                {packSameTreatmentStatus.status === 'expected' ? '✓' : '!'}
+              </span>
+              <span className="metric-title">Same-Treatment Duplicates</span>
+            </div>
+            <div className="metric-stats-row">
+              <div className="metric-stat">
+                <span className="metric-stat-value">{packSameTreatmentPercent.toFixed(1)}%</span>
+                <span className="metric-stat-label">observed</span>
+              </div>
+              <div className="metric-stat">
+                <span className="metric-stat-value">0%</span>
+                <span className="metric-stat-label">expected</span>
+              </div>
+              <div className="metric-stat">
+                <span className="metric-stat-value" style={{ color: packSameTreatmentStatus.color }}>
+                  {packSameTreatmentPercent > 0 ? '+' : ''}{packSameTreatmentPercent.toFixed(1)}%
+                </span>
+                <span className="metric-stat-label">diff</span>
+              </div>
+            </div>
+            <p className="metric-description">
+              {metrics.packSameTreatmentDuplicates?.packsAffected || 0} / {totalPacks} packs have duplicate cards
+            </p>
+            {metrics.packSameTreatmentDuplicates?.samples?.length > 0 && (
+              <div className="metric-samples">
+                {metrics.packSameTreatmentDuplicates.samples.slice(0, 2).map((s, i) => (
+                  <span key={i} className="sample-tag">{s.card} ({s.treatment}) x{s.count}</span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Pack cross-treatment pairs (card+foil) */}
+          <div className={`pack-metric-card metric-${packCrossTreatmentStatus.status}`}>
+            <div className="metric-header">
+              <span className="metric-icon" style={{ background: packCrossTreatmentStatus.color + '30', color: packCrossTreatmentStatus.color }}>
+                {packCrossTreatmentStatus.status === 'expected' ? '✓' : '!'}
+              </span>
+              <span className="metric-title">Card+Foil Pairs</span>
+            </div>
+            <div className="metric-stats-row">
+              <div className="metric-stat">
+                <span className="metric-stat-value">{packCrossTreatmentPercent.toFixed(1)}%</span>
+                <span className="metric-stat-label">observed</span>
+              </div>
+              <div className="metric-stat">
+                <span className="metric-stat-value">~8%</span>
+                <span className="metric-stat-label">expected</span>
+              </div>
+              <div className="metric-stat">
+                <span className="metric-stat-value" style={{ color: packCrossTreatmentStatus.color }}>
+                  {packCrossTreatmentPercent >= 8 ? '+' : ''}{(packCrossTreatmentPercent - 8).toFixed(1)}%
+                </span>
+                <span className="metric-stat-label">diff</span>
+              </div>
+            </div>
+            <p className="metric-description">
+              {metrics.packCrossTreatmentDuplicates?.packsAffected || 0} / {totalPacks} packs have card+foil pair
+            </p>
+            {metrics.packCrossTreatmentDuplicates?.samples?.length > 0 && (
+              <div className="metric-samples">
+                {metrics.packCrossTreatmentDuplicates.samples.slice(0, 2).map((s, i) => (
+                  <span key={i} className="sample-tag">{s.card}: {s.treatments?.join('+')}</span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Treatment distribution with expected */}
+          <div className="pack-metric-card metric-info">
+            <div className="metric-header">
+              <span className="metric-icon">T</span>
+              <span className="metric-title">Treatment Distribution</span>
+            </div>
+            <div className="metric-distribution">
+              {metrics.treatmentDistribution && Object.entries(metrics.treatmentDistribution).map(([treatment, count]) => {
+                const pct = totalCards > 0 ? (count / totalCards) * 100 : 0
+                const expected = treatmentExpected[treatment] || 0
+                const status = getMetricStatus(pct, expected, expected * 0.3 || 2)
+                return (
+                  <div key={treatment} className="distribution-row">
+                    <span className="distribution-label">{treatment}:</span>
+                    <span className="distribution-value" style={{ color: status.color }}>
+                      {pct.toFixed(1)}% <span className="expected-hint">(exp: {expected}%)</span>
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Rarity distribution with expected */}
+          <div className="pack-metric-card metric-info">
+            <div className="metric-header">
+              <span className="metric-icon">R</span>
+              <span className="metric-title">Rarity Distribution</span>
+            </div>
+            <div className="metric-distribution">
+              {metrics.rarityDistribution && Object.entries(metrics.rarityDistribution).map(([rarity, count]) => {
+                const pct = totalCards > 0 ? (count / totalCards) * 100 : 0
+                const expected = rarityExpected[rarity] || 0
+                const status = getMetricStatus(pct, expected, expected * 0.3 || 2)
+                return (
+                  <div key={rarity} className="distribution-row">
+                    <span className="distribution-label">{rarity}:</span>
+                    <span className="distribution-value" style={{ color: status.color }}>
+                      {pct.toFixed(1)}% <span className="expected-hint">(exp: {expected}%)</span>
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pool-Level Statistics */}
+      <h3 style={{ marginTop: '2rem' }}>Pool-Level Statistics</h3>
+      <p className="pack-metrics-description">
+        Aggregate statistics from {totalPools} pools
+      </p>
+
+      <div className="pack-metrics-grid">
+        {/* Pool same-treatment duplicates */}
+        <div className={`pack-metric-card metric-${poolSameTreatmentStatus.status}`}>
+          <div className="metric-header">
+            <span className="metric-icon" style={{ background: poolSameTreatmentStatus.color + '30', color: poolSameTreatmentStatus.color }}>
+              {poolSameTreatmentStatus.status === 'expected' ? '✓' : '!'}
+            </span>
+            <span className="metric-title">Same-Treatment Duplicates</span>
+          </div>
+          <div className="metric-stats-row">
+            <div className="metric-stat">
+              <span className="metric-stat-value">{poolSameTreatmentPercent.toFixed(1)}%</span>
+              <span className="metric-stat-label">observed</span>
+            </div>
+            <div className="metric-stat">
+              <span className="metric-stat-value">~90%</span>
+              <span className="metric-stat-label">expected</span>
+            </div>
+            <div className="metric-stat">
+              <span className="metric-stat-value" style={{ color: poolSameTreatmentStatus.color }}>
+                {poolSameTreatmentPercent >= 90 ? '+' : ''}{(poolSameTreatmentPercent - 90).toFixed(1)}%
+              </span>
+              <span className="metric-stat-label">diff</span>
+            </div>
+          </div>
+          <p className="metric-description">
+            {metrics.poolSameTreatmentDuplicates?.poolsAffected || 0} / {totalPools} pools have card appearing 2+ times
+          </p>
+        </div>
+
+        {/* Pool cross-treatment pairs */}
+        <div className={`pack-metric-card metric-${poolCrossTreatmentStatus.status}`}>
+          <div className="metric-header">
+            <span className="metric-icon" style={{ background: poolCrossTreatmentStatus.color + '30', color: poolCrossTreatmentStatus.color }}>
+              {poolCrossTreatmentStatus.status === 'expected' ? '✓' : '!'}
+            </span>
+            <span className="metric-title">Cross-Treatment Pairs</span>
+          </div>
+          <div className="metric-stats-row">
+            <div className="metric-stat">
+              <span className="metric-stat-value">{poolCrossTreatmentPercent.toFixed(1)}%</span>
+              <span className="metric-stat-label">observed</span>
+            </div>
+            <div className="metric-stat">
+              <span className="metric-stat-value">~95%</span>
+              <span className="metric-stat-label">expected</span>
+            </div>
+            <div className="metric-stat">
+              <span className="metric-stat-value" style={{ color: poolCrossTreatmentStatus.color }}>
+                {poolCrossTreatmentPercent >= 95 ? '+' : ''}{(poolCrossTreatmentPercent - 95).toFixed(1)}%
+              </span>
+              <span className="metric-stat-label">diff</span>
+            </div>
+          </div>
+          <p className="metric-description">
+            {metrics.poolCrossTreatmentDuplicates?.poolsAffected || 0} / {totalPools} pools have card+foil pair
+          </p>
+        </div>
+      </div>
+    </div>
   )
 }
 

@@ -242,6 +242,13 @@
   gap: 15px;
 }
 
+.drafted-leaders-grid .draftable-card,
+.drafted-leaders-grid .draftable-card.leader {
+  width: 168px;
+  min-width: 168px;
+  max-width: 168px;
+}
+
 .drafted-leader {
   width: 168px;
   height: 120px;

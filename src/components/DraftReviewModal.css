@@ -156,13 +156,12 @@
   animation: timer-flash 0.5s ease-in-out infinite;
 }
 
-/* Yellow border on timer-bar when paused */
+/* No outer container when paused in modal - just show the button */
 .review-controls .timer-bar:has(.timer-panel.paused) {
-  background: rgba(255, 193, 7, 0.15);
-  border-radius: 8px;
-  padding: 4px 12px;
-  border: 2px solid #FFC107;
-  box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
 }
 
 /* Red border on timer-bar (outer wrapper) when warning */
@@ -364,28 +363,28 @@
   right: 0;
   bottom: 0;
   background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 70%
+    125deg,
+    transparent 0%,
+    rgba(255, 0, 0, 0.35) 15%,
+    rgba(255, 127, 0, 0.4) 25%,
+    rgba(255, 255, 0, 0.45) 35%,
+    rgba(0, 255, 0, 0.45) 45%,
+    rgba(0, 0, 255, 0.45) 55%,
+    rgba(75, 0, 130, 0.4) 65%,
+    rgba(148, 0, 211, 0.35) 75%,
+    transparent 85%,
+    transparent 100%
   );
   background-size: 200% 200%;
-  animation: foil-shimmer 3s ease-in-out infinite;
+  mix-blend-mode: overlay;
+  opacity: 0.8;
+  animation: foil-shimmer 6s ease-in-out infinite;
   pointer-events: none;
   border-radius: inherit;
+  filter: blur(10px);
 }
 
-@keyframes foil-shimmer {
-  0% {
-    background-position: 200% 200%;
-  }
-  50% {
-    background-position: 0% 0%;
-  }
-  100% {
-    background-position: -200% -200%;
-  }
-}
+/* foil-shimmer animation now defined in animations.css */
 
 @media (max-width: 768px) {
   .modal-overlay {

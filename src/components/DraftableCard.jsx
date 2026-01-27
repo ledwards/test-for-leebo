@@ -106,25 +106,57 @@ function DraftableCard({
   return (
     <>
       <div
-        className={`draftable-card ${disabled ? 'disabled' : ''} ${selected ? 'selected' : ''} ${dimmed ? 'dimmed' : ''} ${card.isFoil ? 'foil' : ''} ${card.treatment === 'hyperspace' ? 'hyperspace' : ''} ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''}`}
+        className={`draftable-card ${disabled ? 'disabled' : ''} ${selected ? 'selected' : ''} ${dimmed ? 'dimmed' : ''} ${card.isFoil ? 'foil' : ''} ${card.variantType === 'Hyperspace' ? 'hyperspace' : ''} ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''}`}
         onClick={handleClick}
         onContextMenu={handleRightClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {card.imageUrl && !imageError ? (
-          <img
-            src={card.imageUrl}
-            alt={card.name}
-            onError={() => setImageError(true)}
-            className="card-image"
-          />
-        ) : (
-          <div className="card-placeholder">
-            <div className="placeholder-name">{card.name}</div>
-            <div className="placeholder-rarity">{card.rarity}</div>
-          </div>
+        {/* Rainbow background - only when selected */}
+        {selected && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderRadius: '10px',
+            background: 'linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000)',
+            backgroundSize: '400% 400%',
+            animation: 'rainbow-border 2s linear infinite',
+          }} />
         )}
+        {/* Card image - when selected, make it smaller so rainbow peeks out */}
+        <div
+          className={card.isFoil ? 'foil-content' : ''}
+          style={selected ? {
+          position: 'absolute',
+          top: '1px',
+          left: '1px',
+          right: '1px',
+          bottom: '1px',
+          borderRadius: '6px',
+          overflow: 'hidden',
+        } : {
+          width: '100%',
+          height: '100%',
+          borderRadius: '6px',
+          overflow: 'hidden',
+        }}>
+          {card.imageUrl && !imageError ? (
+            <img
+              src={card.imageUrl}
+              alt={card.name}
+              onError={() => setImageError(true)}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          ) : (
+            <div className="card-placeholder">
+              <div className="placeholder-name">{card.name}</div>
+              <div className="placeholder-rarity">{card.rarity}</div>
+            </div>
+          )}
+        </div>
       </div>
 
       {mounted && hoveredCardPreview && createPortal(

@@ -96,56 +96,49 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
   const WrapperEl = compact ? 'div' : 'div'
   const wrapperClass = compact ? '' : 'timer-bar'
 
-  // Show paused state
-  if (isPaused) {
-    return (
-      <div className={wrapperClass}>
-        <div className={`timer-panel ${compact ? 'compact' : ''} paused`}>
-          <div className="paused-display">
-            <PauseIcon />
-            <span className="paused-text">PAUSED</span>
-          </div>
-          {isHost && onTogglePause && (
-            <button className="pause-button resume" onClick={onTogglePause}>
-              <PlayIcon />
-              <span>Resume</span>
-            </button>
-          )}
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className={wrapperClass}>
-      <div className={`timer-panel ${compact ? 'compact' : ''}`}>
-        {displayLastPlayer ? (
-          <CountdownTimer
-            label={compact ? "Last Player" : "Last Player:"}
-            totalSeconds={lastPlayerTimerSeconds}
-            startedAt={lastPlayerStartedAt || pickStartedAt}
-            warningThreshold={30}
-            active={true}
-            compact={compact}
-            paused={isPaused}
-            pausedDurationSeconds={0}
-          />
-        ) : (
-          <CountdownTimer
-            label={compact ? "Pick" : "Pick Timeout:"}
-            totalSeconds={pickTimeoutSeconds}
-            startedAt={pickStartedAt}
-            warningThreshold={30}
-            active={isDrafting}
-            compact={compact}
-            paused={isPaused}
-            pausedDurationSeconds={pausedDurationSeconds}
-          />
-        )}
-        {isHost && onTogglePause && (
-          <button className="pause-button" onClick={onTogglePause}>
-            <PauseIcon />
+      <div className={`timer-panel ${compact ? 'compact' : ''} ${isPaused ? 'paused' : ''}`}>
+        {isPaused ? (
+          <button
+            className="paused-display-button"
+            onClick={isHost && onTogglePause ? onTogglePause : undefined}
+            disabled={!isHost || !onTogglePause}
+          >
+            <PlayIcon />
+            <span className="paused-text">PAUSED</span>
           </button>
+        ) : (
+          <>
+            {displayLastPlayer ? (
+              <CountdownTimer
+                label={compact ? "Last Player" : "Last Player:"}
+                totalSeconds={lastPlayerTimerSeconds}
+                startedAt={lastPlayerStartedAt || pickStartedAt}
+                warningThreshold={30}
+                active={true}
+                compact={compact}
+                paused={isPaused}
+                pausedDurationSeconds={0}
+              />
+            ) : (
+              <CountdownTimer
+                label={compact ? "Pick" : "Pick Timeout:"}
+                totalSeconds={pickTimeoutSeconds}
+                startedAt={pickStartedAt}
+                warningThreshold={30}
+                active={isDrafting}
+                compact={compact}
+                paused={isPaused}
+                pausedDurationSeconds={pausedDurationSeconds}
+              />
+            )}
+            {isHost && onTogglePause && (
+              <button className="pause-button" onClick={onTogglePause}>
+                <PauseIcon />
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

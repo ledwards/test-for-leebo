@@ -6,13 +6,20 @@
   min-width: 120px;
   max-width: 120px;
   aspect-ratio: 2.5 / 3.5;
-  flex-shrink: 0;
-  flex-grow: 0;
   border-radius: 6px;
-  overflow: hidden;
+  overflow: visible;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
   background: transparent;
+}
+
+.draftable-card:active:not(.disabled) {
+  transform: translateY(2px);
+  transition: transform 0.05s ease;
+}
+
+.draftable-card.selected {
+  z-index: 100;
 }
 
 .draftable-card.leader,
@@ -20,54 +27,17 @@
   width: 168px;
   min-width: 168px;
   max-width: 168px;
-  aspect-ratio: 3.5 / 2.5;
+  height: auto;
 }
 
-.draftable-card:hover:not(.disabled) {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-}
+/* No transform on hover - only on selection */
 
 .draftable-card.disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-.draftable-card {
-  isolation: isolate;
-}
 
-.draftable-card::before {
-  content: '';
-  position: absolute;
-  inset: -7px;
-  border-radius: 12px;
-  background: linear-gradient(
-    45deg,
-    #ff0000,
-    #ff7f00,
-    #ffff00,
-    #00ff00,
-    #0000ff,
-    #4b0082,
-    #9400d3,
-    #ff0000
-  );
-  background-size: 400% 400%;
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  animation: rainbow-border 3s linear infinite;
-  pointer-events: none;
-}
-
-.draftable-card.selected {
-  transform: translateY(-6px) scale(1.03);
-}
-
-.draftable-card.selected::before {
-  opacity: 1;
-}
 
 /* Dim non-selected cards when there's an active selection */
 .draftable-card.dimmed .card-image {
@@ -81,37 +51,44 @@
   opacity: 0.85;
 }
 
-/* Foil effect - rainbow shimmer */
-.draftable-card.foil {
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+/* Foil effect - holographic rainbow shimmer */
+.foil-content {
   position: relative;
-  overflow: hidden;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
 
-.draftable-card.foil::after {
+.foil-content::after {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    125deg,
-    rgba(255, 0, 0, 0.3) 0%,
-    rgba(255, 127, 0, 0.3) 15%,
-    rgba(255, 255, 0, 0.3) 30%,
-    rgba(0, 255, 0, 0.3) 45%,
-    rgba(0, 0, 255, 0.3) 60%,
-    rgba(75, 0, 130, 0.3) 75%,
-    rgba(148, 0, 211, 0.3) 90%,
-    rgba(255, 0, 0, 0.3) 100%
-  );
-  background-size: 200% 200%;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(
+      115deg,
+      transparent 0%,
+      rgba(255, 0, 0, 0.35) 20%,
+      rgba(255, 127, 0, 0.4) 25%,
+      rgba(255, 255, 0, 0.45) 30%,
+      rgba(0, 255, 0, 0.45) 35%,
+      rgba(0, 255, 255, 0.45) 40%,
+      rgba(0, 0, 255, 0.45) 45%,
+      rgba(139, 0, 255, 0.4) 50%,
+      rgba(255, 0, 255, 0.35) 55%,
+      transparent 65%,
+      transparent 100%
+    );
+  background-size: 300% 300%;
+  background-position: -100% 0%;
   mix-blend-mode: overlay;
+  opacity: 0.8;
   pointer-events: none;
-  z-index: 2;
-  animation: foil-shimmer 3s ease-in-out infinite;
+  z-index: 10;
+  animation: foil-shimmer 6s linear infinite;
+  filter: blur(8px);
 }
+
 
 /* Hyperspace treatment */
 .draftable-card.hyperspace {
@@ -155,6 +132,7 @@
   cursor: default;
 }
 
+/* Card preview foil effect - larger version for hover */
 .card-preview-foil {
   position: relative;
   overflow: hidden;
@@ -169,20 +147,24 @@
   bottom: 0;
   background: linear-gradient(
     125deg,
-    rgba(255, 0, 0, 0.3) 0%,
-    rgba(255, 127, 0, 0.3) 15%,
-    rgba(255, 255, 0, 0.3) 30%,
-    rgba(0, 255, 0, 0.3) 45%,
-    rgba(0, 0, 255, 0.3) 60%,
-    rgba(75, 0, 130, 0.3) 75%,
-    rgba(148, 0, 211, 0.3) 90%,
-    rgba(255, 0, 0, 0.3) 100%
+    transparent 0%,
+    rgba(255, 0, 0, 0.35) 15%,
+    rgba(255, 127, 0, 0.4) 25%,
+    rgba(255, 255, 0, 0.45) 35%,
+    rgba(0, 255, 0, 0.45) 45%,
+    rgba(0, 0, 255, 0.45) 55%,
+    rgba(75, 0, 130, 0.4) 65%,
+    rgba(148, 0, 211, 0.35) 75%,
+    transparent 85%,
+    transparent 100%
   );
   background-size: 200% 200%;
   mix-blend-mode: overlay;
+  opacity: 0.8;
   pointer-events: none;
   z-index: 2;
-  animation: foil-shimmer 3s ease-in-out infinite;
+  animation: foil-shimmer 6s ease-in-out infinite;
+  filter: blur(10px);
 }
 
 /* Mobile styles */
@@ -210,7 +192,7 @@
   }
 
   /* Disable hover zoom on mobile */
-  .draftable-card:hover:not(.disabled) {
+  .draftable-card:hover:not(.disabled):not(.selected) {
     transform: none;
     box-shadow: none;
   }

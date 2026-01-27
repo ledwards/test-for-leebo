@@ -77,16 +77,50 @@
   background: rgba(255, 193, 7, 0.3);
 }
 
-/* Paused display */
-.paused-display {
+/* Paused display - now a clickable button */
+.paused-display-button {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
   color: #FFC107;
+  background: transparent;
+  border: 1px solid #FFC107;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
 }
 
-.paused-display svg {
+.paused-display-button:hover:not(:disabled) {
+  background: rgba(180, 140, 0, 0.4);
+  border-color: #b48c00;
+  outline: none;
+}
+
+.paused-display-button:focus {
+  outline: none;
+  border-color: #b48c00;
+  box-shadow: 0 0 0 2px rgba(180, 140, 0, 0.5);
+}
+
+.paused-display-button:focus-visible {
+  outline: none;
+  border-color: #b48c00;
+}
+
+.paused-display-button:active {
+  outline: none;
+  border-color: #b48c00;
+}
+
+.paused-display-button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.paused-display-button svg {
   width: 24px;
   height: 24px;
 }
@@ -119,7 +153,7 @@
     font-size: 0.8rem;
   }
 
-  .paused-display svg {
+  .paused-display-button svg {
     width: 20px;
     height: 20px;
   }

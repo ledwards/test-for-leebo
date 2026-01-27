@@ -151,6 +151,7 @@ async function makeBotLeaderPick(bot, draftState) {
 
     if (!currentState.lastPlayerStartedAt) {
       currentState.lastPlayerStartedAt = new Date().toISOString()
+      console.log('[BOT] Setting lastPlayerStartedAt:', currentState.lastPlayerStartedAt)
       await query(
         `UPDATE draft_pods SET draft_state = $1, state_version = state_version + 1 WHERE id = $2`,
         [JSON.stringify(currentState), bot.draft_pod_id]
@@ -236,6 +237,7 @@ async function makeBotCardPick(bot, draftState) {
 
     if (!currentState.lastPlayerStartedAt) {
       currentState.lastPlayerStartedAt = new Date().toISOString()
+      console.log('[BOT] Setting lastPlayerStartedAt:', currentState.lastPlayerStartedAt)
       await query(
         `UPDATE draft_pods SET draft_state = $1, state_version = state_version + 1 WHERE id = $2`,
         [JSON.stringify(currentState), bot.draft_pod_id]

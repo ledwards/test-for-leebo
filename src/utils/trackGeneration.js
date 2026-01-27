@@ -42,6 +42,7 @@ function determineSlotType(card, context = {}) {
  * @param {number} options.sourceId - ID of the draft_pod or pool
  * @param {string} options.sourceShareId - Share ID
  * @param {string} options.slotType - Optional: override slot type determination
+ * @param {number} options.packIndex - Optional: index of the pack within the pool (0-based)
  */
 export async function trackCardGeneration(card, options) {
   const {
@@ -49,7 +50,8 @@ export async function trackCardGeneration(card, options) {
     sourceType,
     sourceId,
     sourceShareId,
-    slotType = null
+    slotType = null,
+    packIndex = null
   } = options
 
   try {
@@ -71,8 +73,9 @@ export async function trackCardGeneration(card, options) {
         slot_type,
         source_type,
         source_id,
-        source_share_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+        source_share_id,
+        pack_index
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
       [
         card.id,
         card.set,
@@ -90,7 +93,8 @@ export async function trackCardGeneration(card, options) {
         slotType || determineSlotType(card),
         sourceType,
         sourceId,
-        sourceShareId
+        sourceShareId,
+        packIndex
       ]
     )
   } catch (error) {
@@ -130,13 +134,13 @@ export async function trackBulkGenerations(records) {
 
     records.forEach((record, index) => {
       const { card, options } = record
-      const baseIndex = index * 17
+      const baseIndex = index * 18
 
       placeholders.push(
         `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5}, ` +
         `$${baseIndex + 6}, $${baseIndex + 7}, $${baseIndex + 8}, $${baseIndex + 9}, $${baseIndex + 10}, ` +
         `$${baseIndex + 11}, $${baseIndex + 12}, $${baseIndex + 13}, $${baseIndex + 14}, $${baseIndex + 15}, ` +
-        `$${baseIndex + 16}, $${baseIndex + 17})`
+        `$${baseIndex + 16}, $${baseIndex + 17}, $${baseIndex + 18})`
       )
 
       values.push(
@@ -156,7 +160,8 @@ export async function trackBulkGenerations(records) {
         options.slotType || determineSlotType(card),
         options.sourceType,
         options.sourceId,
-        options.sourceShareId
+        options.sourceShareId,
+        options.packIndex ?? null
       )
     })
 
@@ -164,7 +169,7 @@ export async function trackBulkGenerations(records) {
       `INSERT INTO card_generations (
         card_id, set_code, card_name, card_subtitle, card_type, rarity, aspects,
         treatment, variant_type, is_foil, is_hyperspace, is_showcase,
-        pack_type, slot_type, source_type, source_id, source_share_id
+        pack_type, slot_type, source_type, source_id, source_share_id, pack_index
       ) VALUES ${placeholders.join(', ')}`,
       values
     )

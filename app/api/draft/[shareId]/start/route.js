@@ -56,6 +56,7 @@ export async function POST(request, { params }) {
 
     // Track all generated cards for statistics (async, non-blocking)
     const trackingRecords = []
+    let globalPackIndex = 0
     for (let i = 0; i < packs.length; i++) {
       for (let packNum = 0; packNum < packs[i].length; packNum++) {
         const pack = packs[i][packNum]
@@ -66,20 +67,23 @@ export async function POST(request, { params }) {
               packType: 'booster',
               sourceType: 'draft',
               sourceId: pod.id,
-              sourceShareId: shareId
+              sourceShareId: shareId,
+              packIndex: globalPackIndex
             }
           })
         })
+        globalPackIndex++
       }
-      // Track leaders separately
+      // Track leaders separately (no pack_index - they're from leader draft)
       leaders[i].forEach(leader => {
         trackingRecords.push({
           card: leader,
           options: {
-            packType: 'booster',
+            packType: 'leader',
             sourceType: 'draft',
             sourceId: pod.id,
-            sourceShareId: shareId
+            sourceShareId: shareId,
+            packIndex: null
           }
         })
       })

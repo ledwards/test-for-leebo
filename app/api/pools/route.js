@@ -165,14 +165,38 @@ export async function POST(request) {
     const shareUrl = `${APP_URL}/pool/${shareId}`
 
     // Track all generated cards for statistics (async, non-blocking)
-    if (cards && Array.isArray(cards)) {
+    // Use packs array if available to get pack_index, otherwise fall back to flat cards array
+    if (packs && Array.isArray(packs)) {
+      const trackingRecords = []
+      packs.forEach((pack, packIndex) => {
+        if (Array.isArray(pack)) {
+          pack.forEach(card => {
+            trackingRecords.push({
+              card,
+              options: {
+                packType: 'booster',
+                sourceType: 'sealed',
+                sourceId: pool.id,
+                sourceShareId: shareId,
+                packIndex
+              }
+            })
+          })
+        }
+      })
+      trackBulkGenerations(trackingRecords).catch(err => {
+        console.error('Failed to track sealed pool generations:', err)
+      })
+    } else if (cards && Array.isArray(cards)) {
+      // Fallback for older clients that don't send packs array
       const trackingRecords = cards.map(card => ({
         card,
         options: {
-          packType: packs ? 'booster' : 'booster', // Could differentiate sealed vs other types
+          packType: 'booster',
           sourceType: 'sealed',
           sourceId: pool.id,
-          sourceShareId: shareId
+          sourceShareId: shareId,
+          packIndex: null
         }
       }))
       trackBulkGenerations(trackingRecords).catch(err => {

@@ -81,6 +81,19 @@ export async function checkAndEnforceTimeout(podId) {
     const lastPlayerStartedAt = new Date(draftState.lastPlayerStartedAt).getTime()
     const lastPlayerElapsed = now - lastPlayerStartedAt
     lastPlayerTimerExpired = lastPlayerElapsed >= lastPlayerTimeoutSeconds * 1000
+    console.log('[TIMEOUT] Last player timer check:', {
+      lastPlayerStartedAt: draftState.lastPlayerStartedAt,
+      lastPlayerElapsed: lastPlayerElapsed / 1000,
+      lastPlayerTimeoutSeconds,
+      expired: lastPlayerTimerExpired
+    })
+  } else if (isLastPlayer) {
+    console.log('[TIMEOUT] Last player but missing lastPlayerStartedAt:', {
+      isLastPlayerTimerEnabled,
+      isLastPlayer,
+      hasLastPlayerStartedAt: !!draftState.lastPlayerStartedAt,
+      draftStateKeys: Object.keys(draftState)
+    })
   }
 
   if (!roundTimerExpired && !lastPlayerTimerExpired) {
@@ -88,23 +101,27 @@ export async function checkAndEnforceTimeout(podId) {
     return false
   }
 
-  // Try to acquire lock using atomic update on pick_started_at
-  // This prevents concurrent timeout enforcement by checking that pick_started_at
-  // hasn't changed since we read it (meaning no other process has advanced the draft)
+  console.log('[TIMEOUT] Enforcing timeout:', { roundTimerExpired, lastPlayerTimerExpired, phase: draftState.phase })
+
+  // Try to acquire lock using atomic update
+  // Use state_version for locking instead of pick_started_at to avoid timestamp precision issues
   const lockResult = await query(
     `UPDATE draft_pods
      SET state_version = state_version + 1
      WHERE id = $1
        AND status = 'active'
-       AND pick_started_at = $2
+       AND state_version = $2
      RETURNING id`,
-    [podId, pod.pick_started_at]
+    [podId, pod.state_version]
   )
 
   if (lockResult.rowCount === 0) {
     // Another process already handled this timeout or state changed
+    console.log('[TIMEOUT] Lock acquisition failed - state_version changed from', pod.state_version)
     return false
   }
+
+  console.log('[TIMEOUT] Lock acquired, forcing picks for', players.length, 'players')
 
   const phase = draftState.phase
 

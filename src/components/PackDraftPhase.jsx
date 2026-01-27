@@ -103,13 +103,17 @@ function PackDraftPhase({
   // Pack draft: pack 1 & 3 pass left, pack 2 passes right
   const passDirection = packNumber % 2 === 1 ? 'left' : 'right'
 
-  // Sort cards by rarity (common first, then uncommon, rare, legendary/foil)
+  // Sort cards by rarity (common first, then uncommon, rare, legendary), foil always last
   const sortCards = (cards) => {
     const sorted = [...cards]
     const rarityOrder = { 'Common': 0, 'Uncommon': 1, 'Rare': 2, 'Legendary': 3 }
-    return sorted.sort(
-      (a, b) => (rarityOrder[a.rarity] ?? 4) - (rarityOrder[b.rarity] ?? 4)
-    )
+    return sorted.sort((a, b) => {
+      // Foils always go last
+      if (a.isFoil && !b.isFoil) return 1
+      if (!a.isFoil && b.isFoil) return -1
+      // Then sort by rarity
+      return (rarityOrder[a.rarity] ?? 4) - (rarityOrder[b.rarity] ?? 4)
+    })
   }
 
   const sortedPack = sortCards(currentPack)
