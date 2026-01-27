@@ -20,7 +20,9 @@ const botBehaviors = new Map()
  */
 export async function triggerBotPicks(podId) {
   const pod = await queryRow('SELECT * FROM draft_pods WHERE id = $1', [podId])
-  if (!pod || pod.status !== 'active') return false
+  if (!pod || pod.status !== 'active') {
+    return false
+  }
 
   const draftState = typeof pod.draft_state === 'string'
     ? JSON.parse(pod.draft_state)
@@ -61,7 +63,6 @@ async function makeBotPick(botId, draftState) {
 
   // Bot may have already picked (race condition) or state changed
   if (!bot) {
-    // console.log('[BOT] Bot', botId, 'no longer needs to pick (already picked or state changed)')
     return false
   }
 
@@ -168,7 +169,6 @@ async function makeBotLeaderPick(bot, draftState) {
     )
   }
 
-  // console.log('[BOT] Bot', bot.id, 'selected leader:', pickedLeader.name)
   return true
 }
 
@@ -254,7 +254,6 @@ async function makeBotCardPick(bot, draftState) {
     )
   }
 
-  // console.log('[BOT] Bot', bot.id, 'selected card:', pickedCard.name)
   return true
 }
 
@@ -266,9 +265,6 @@ async function makeBotCardPick(bot, draftState) {
 export async function processBotTurns(podId) {
   let iterations = 0
   const maxIterations = 100 // Safety limit
-  const instanceId = Math.random().toString(36).slice(2, 8) // Unique ID for this execution
-
-  // console.log('[BOT]', instanceId, 'Starting processBotTurns for pod', podId)
 
   // Try to acquire processing lock using atomic update
   // Only one process can set bot_processing_since when it's NULL or stale (> 30s old)
@@ -283,16 +279,12 @@ export async function processBotTurns(podId) {
   )
 
   if (lockResult.rowCount === 0) {
-    // console.log('[BOT]', instanceId, 'Could not acquire lock, another process is handling bots or pod not active')
     return
   }
-
-  // console.log('[BOT]', instanceId, 'Acquired processing lock')
 
   try {
     while (iterations < maxIterations) {
       iterations++
-      // console.log('[BOT]', instanceId, 'Iteration', iterations)
 
       // Refresh the lock timestamp to prevent timeout
       await query(
@@ -303,7 +295,6 @@ export async function processBotTurns(podId) {
       // Get current state with fresh data
       const pod = await queryRow('SELECT * FROM draft_pods WHERE id = $1', [podId])
       if (!pod || pod.status !== 'active') {
-        // console.log('[BOT]', instanceId, 'Pod not active, breaking. Status:', pod?.status)
         break
       }
 
@@ -323,13 +314,11 @@ export async function processBotTurns(podId) {
       const allSelected = players.every(p => p.pick_status === 'selected' && p.selected_card_id)
 
       if (allSelected) {
-        // console.log('[BOT]', instanceId, 'All selected, processing staged picks. Phase:', draftState.phase)
         // Process all staged picks and advance
         await processAllStagedPicks(podId, draftState, pod)
 
         // After advancing, trigger bot picks if any bots need to pick
         const botsMadePicks = await triggerBotPicks(podId)
-        // console.log('[BOT]', instanceId, 'After advance, bots made picks:', botsMadePicks)
         if (!botsMadePicks) {
           // No bots picked, check if humans need to pick
           const updatedPlayers = await queryRows(
@@ -337,14 +326,11 @@ export async function processBotTurns(podId) {
             [podId]
           )
           const humansNeedToPick = updatedPlayers.some(p => !p.is_bot && p.pick_status === 'picking')
-          // console.log('[BOT]', instanceId, 'Humans need to pick:', humansNeedToPick)
           if (humansNeedToPick) break // Wait for human input
         }
       } else {
-        // console.log('[BOT]', instanceId, 'Not all selected, triggering bot picks')
         // Not all selected yet - trigger bot picks
         const botsMadePicks = await triggerBotPicks(podId)
-        // console.log('[BOT]', instanceId, 'Bots made picks:', botsMadePicks)
         if (!botsMadePicks) break // No bots to pick, wait for humans
       }
     }
@@ -354,7 +340,6 @@ export async function processBotTurns(podId) {
       `UPDATE draft_pods SET bot_processing_since = NULL WHERE id = $1`,
       [podId]
     )
-    // console.log('[BOT]', instanceId, 'Released processing lock after', iterations, 'iterations')
 
     // Always broadcast state update after bot processing
     // This ensures clients get the latest state

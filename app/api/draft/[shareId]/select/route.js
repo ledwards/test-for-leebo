@@ -120,15 +120,20 @@ export async function POST(request, { params }) {
                 : freshPod.draft_state
               await processAllStagedPicks(pod.id, freshState, freshPod)
             }
-
-            // Also trigger bot processing for drafts with bots
-            await processBotTurns(pod.id)
           } catch (err) {
             console.error('Error processing picks:', err)
           } finally {
-            // Release lock
+            // Release lock BEFORE calling bot processing (bot processing needs the lock)
             await query('UPDATE draft_pods SET bot_processing_since = NULL WHERE id = $1', [pod.id])
           }
+
+          // Trigger bot processing for drafts with bots (after lock is released)
+          try {
+            await processBotTurns(pod.id)
+          } catch (err) {
+            console.error('Error processing bot turns:', err)
+          }
+
           break // Success, exit retry loop
         } else {
           // Couldn't acquire lock - wait and retry

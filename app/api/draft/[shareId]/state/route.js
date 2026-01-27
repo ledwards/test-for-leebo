@@ -3,6 +3,7 @@ import { queryRow, queryRows } from '@/lib/db.js'
 import { getSession } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
 import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout.js'
+import { processBotTurns } from '@/src/utils/botLogic.js'
 
 export async function GET(request, { params }) {
   try {
@@ -43,6 +44,16 @@ export async function GET(request, { params }) {
 
     // Check and enforce timeouts (server-side timeout enforcement)
     const timeoutEnforced = await checkAndEnforceTimeout(pod.id)
+
+    // Also trigger bot processing on every poll as a safety mechanism
+    // This ensures bots pick even if the select route's call to processBotTurns failed
+    if (pod.status === 'active') {
+      processBotTurns(pod.id).catch(err => {
+        // Ignore errors - this is a best-effort safety mechanism
+        console.error('[STATE] Error in bot processing during poll:', err.message)
+      })
+    }
+
     if (timeoutEnforced) {
       // Re-fetch pod since state changed
       pod = await queryRow(
