@@ -19,7 +19,12 @@ const botBehaviors = new Map()
  * @returns {boolean} - Whether any bot picks were made
  */
 export async function triggerBotPicks(podId) {
-  const pod = await queryRow('SELECT * FROM draft_pods WHERE id = $1', [podId])
+  // Exclude all_packs to save memory
+  const pod = await queryRow(
+    `SELECT id, share_id, status, draft_state, state_version
+     FROM draft_pods WHERE id = $1`,
+    [podId]
+  )
   if (!pod || pod.status !== 'active') {
     return false
   }
@@ -300,8 +305,12 @@ export async function processBotTurns(podId) {
         [podId]
       )
 
-      // Get current state with fresh data
-      const pod = await queryRow('SELECT * FROM draft_pods WHERE id = $1', [podId])
+      // Get current state with fresh data (exclude all_packs to save memory)
+      const pod = await queryRow(
+        `SELECT id, share_id, status, draft_state, state_version
+         FROM draft_pods WHERE id = $1`,
+        [podId]
+      )
       if (!pod || pod.status !== 'active') {
         break
       }

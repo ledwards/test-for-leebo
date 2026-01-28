@@ -17,9 +17,11 @@ export async function POST(request, { params }) {
 
     const { cardId } = body // cardId can be null to unselect
 
-    // Get draft pod
+    // Get draft pod (exclude all_packs to save memory)
     const pod = await queryRow(
-      'SELECT * FROM draft_pods WHERE share_id = $1',
+      `SELECT id, share_id, status, draft_state, state_version,
+              host_id, bot_processing_since
+       FROM draft_pods WHERE share_id = $1`,
       [shareId]
     )
 

@@ -16,9 +16,12 @@ import { processBotTurns } from './botLogic.js'
  * @returns {boolean} - Whether any picks were forced
  */
 export async function checkAndEnforceTimeout(podId) {
-  // Get pod with timeout settings
+  // Get pod with timeout settings (exclude all_packs to save memory)
   const pod = await queryRow(
-    `SELECT * FROM draft_pods WHERE id = $1`,
+    `SELECT id, share_id, status, draft_state, state_version,
+            timed, timer_enabled, timer_seconds, pick_timeout_seconds,
+            pick_started_at, paused, paused_duration_seconds
+     FROM draft_pods WHERE id = $1`,
     [podId]
   )
 

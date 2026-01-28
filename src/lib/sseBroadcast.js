@@ -41,9 +41,11 @@ export async function broadcastDraftState(shareId) {
       return
     }
 
-    // Get all players
+    // Get all players (exclude current_pack to save memory - not needed for broadcast)
     const players = await queryRows(
-      `SELECT dpp.*, u.username, u.avatar_url
+      `SELECT dpp.id, dpp.user_id, dpp.seat_number, dpp.pick_status,
+              dpp.leaders, dpp.drafted_leaders, dpp.drafted_cards,
+              u.username, u.avatar_url
        FROM draft_pod_players dpp
        JOIN users u ON dpp.user_id = u.id
        WHERE dpp.draft_pod_id = $1
