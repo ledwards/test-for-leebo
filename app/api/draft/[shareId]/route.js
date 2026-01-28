@@ -15,7 +15,7 @@ export async function GET(request, { params }) {
     let pod = await queryRow(
       `SELECT
         dp.id, dp.share_id, dp.host_id, dp.status, dp.current_players, dp.max_players,
-        dp.set_code, dp.set_name,  dp.pack_size, dp.settings,
+        dp.set_code, dp.set_name,   dp.settings,
         dp.draft_state, dp.state_version, dp.started_at, dp.completed_at,
         dp.timer_enabled, dp.timer_seconds, dp.pick_timeout_seconds, dp.timed,
         dp.pick_started_at, dp.paused, dp.paused_at, dp.paused_duration_seconds,
@@ -39,7 +39,7 @@ export async function GET(request, { params }) {
       pod = await queryRow(
         `SELECT
           dp.id, dp.share_id, dp.host_id, dp.status, dp.current_players, dp.max_players,
-          dp.set_code, dp.set_name,  dp.pack_size, dp.settings,
+          dp.set_code, dp.set_name,   dp.settings,
           dp.draft_state, dp.state_version, dp.started_at, dp.completed_at,
           dp.timer_enabled, dp.timer_seconds, dp.pick_timeout_seconds, dp.timed,
           dp.pick_started_at, dp.paused, dp.paused_at, dp.paused_duration_seconds,
