@@ -91,7 +91,8 @@ export const customTransforms = [
     name: 'Remove Prestige variants',
     transform: (cards) => {
       // This transform filters the array, so it returns a new array
-      return cards.filter(card => card.variantType !== 'Prestige')
+      // Filter out all Prestige variants (Prestige, Prestige Foil, Prestige Serialized, etc.)
+      return cards.filter(card => !card.variantType?.startsWith('Prestige'))
     },
     isArrayTransform: true // Flag to indicate this transforms the whole array
   },

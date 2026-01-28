@@ -316,6 +316,112 @@
   object-fit: contain;
 }
 
+/* Selection confirmation banner */
+.selection-confirmation-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid;
+  margin-bottom: 15px;
+  gap: 12px;
+}
+
+.selection-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.selection-label {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.selection-card-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.selection-card-subtitle {
+  color: #aaa;
+  font-size: 0.85rem;
+}
+
+.selection-status-text {
+  color: #888;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.deselect-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 6px;
+  cursor: pointer;
+  color: #888;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deselect-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Passing message */
+.passing-message {
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #888;
+  margin-bottom: 15px;
+  animation: pulse-opacity 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Skeleton cards for leaders (horizontal) */
+.skeleton-card.leader {
+  width: calc(33.33% - 10px);
+  min-width: calc(33.33% - 10px);
+  max-width: calc(33.33% - 10px);
+  height: auto;
+  aspect-ratio: 504 / 360;
+  background: #2a2a2a;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.skeleton-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 .no-leaders {
   color: #888;
   text-align: center;
@@ -496,6 +602,32 @@
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
   }
+
+  /* Selection banner mobile */
+  .selection-confirmation-banner {
+    padding: 10px 12px;
+    flex-wrap: wrap;
+  }
+
+  .selection-card-name {
+    font-size: 0.9rem;
+  }
+
+  .selection-card-subtitle {
+    font-size: 0.75rem;
+  }
+
+  /* Skeleton cards mobile */
+  .skeleton-card.leader {
+    width: calc(33.33% - 0.3rem) !important;
+    min-width: calc(33.33% - 0.3rem) !important;
+    max-width: calc(33.33% - 0.3rem) !important;
+  }
+
+  .passing-message {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
 }
 
 @media (max-width: 500px) {
@@ -548,5 +680,12 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+  }
+
+  /* Skeleton cards at 500px */
+  .skeleton-card.leader {
+    width: calc(33.33% - 0.2rem) !important;
+    min-width: calc(33.33% - 0.2rem) !important;
+    max-width: calc(33.33% - 0.2rem) !important;
   }
 }

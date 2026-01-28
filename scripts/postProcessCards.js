@@ -129,25 +129,48 @@ function applyBatchFixes(cards) {
  */
 function applyCustomTransforms(cards) {
   const fixes = []
+  let currentCards = cards
 
   customTransforms.forEach(transform => {
     console.log(`  Running custom transform: ${transform.name}`)
-    cards.forEach((card, index) => {
-      const original = JSON.stringify(card)
-      const transformed = transform.transform(card)
-      const modified = JSON.stringify(transformed)
 
-      if (original !== modified) {
-        cards[index] = transformed
+    // Check if this is an array-level transform
+    if (transform.isArrayTransform) {
+      const originalLength = currentCards.length
+      currentCards = transform.transform(currentCards)
+      const removedCount = originalLength - currentCards.length
+
+      if (removedCount > 0) {
+        console.log(`    Removed ${removedCount} cards`)
         fixes.push({
           type: 'custom',
-          cardId: card.id,
-          cardName: card.name,
-          transform: transform.name
+          transform: transform.name,
+          cardsRemoved: removedCount
         })
       }
-    })
+    } else {
+      // Per-card transform
+      currentCards.forEach((card, index) => {
+        const original = JSON.stringify(card)
+        const transformed = transform.transform(card)
+        const modified = JSON.stringify(transformed)
+
+        if (original !== modified) {
+          currentCards[index] = transformed
+          fixes.push({
+            type: 'custom',
+            cardId: card.id,
+            cardName: card.name,
+            transform: transform.name
+          })
+        }
+      })
+    }
   })
+
+  // Replace cards array contents with transformed cards
+  cards.length = 0
+  cards.push(...currentCards)
 
   if (fixes.length > 0) {
     console.log(`  ✓ Applied ${fixes.length} custom transformations`)

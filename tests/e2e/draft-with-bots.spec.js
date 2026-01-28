@@ -108,6 +108,24 @@ test.describe('Draft with bots', () => {
 
     await page.waitForSelector('.draft-lobby', { timeout: 10000 })
 
+    // Configure draft with shorter timeout for testing
+    debugLog('  Configuring draft timeouts...')
+    await page.evaluate(async (shareId) => {
+      try {
+        await fetch(`/api/draft/${shareId}/settings`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            pickTimeoutSeconds: 5  // 5 second timeout for bots in tests
+          })
+        })
+      } catch (e) {
+        console.error('Failed to configure timeouts:', e)
+      }
+    }, shareId)
+    await page.waitForTimeout(500)
+
     // === STEP 2: Add 7 bots ===
     debugLog('\n--- STEP 2: Adding 7 bots ---')
 

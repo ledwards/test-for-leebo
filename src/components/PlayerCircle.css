@@ -212,6 +212,8 @@
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  gap: 0.25em;
 }
 
 @media (max-width: 768px) {

@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-01-28T00:14:24.003Z",
+  "totalFixes": 1,
+  "byType": {
+    "individual": 0,
+    "batch": 0,
+    "custom": 1
+  },
+  "byField": {},
+  "fixes": [
+    {
+      "type": "custom",
+      "transform": "Remove Prestige variants",
+      "cardsRemoved": 125
+    }
+  ]
+}

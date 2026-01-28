@@ -136,7 +136,8 @@ function PackDraftPhase({
     if (isPicked && currentPack.length > 0) {
       // Start showing passing state
       setShowPassing(true)
-      setLastPackSize(currentPack.length)
+      // Next pack will have one fewer card (the one we just picked)
+      setLastPackSize(Math.max(0, currentPack.length - 1))
 
       // Clear any existing timeout
       if (passingTimeoutRef.current) {

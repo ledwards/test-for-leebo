@@ -24,9 +24,11 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
 
   const eventSourceRef = useRef(null)
   const reconnectTimeoutRef = useRef(null)
+  const pollingIntervalRef = useRef(null)
   const stateVersionRef = useRef(0)
   const prevPhaseRef = useRef(null)
   const prevStatusRef = useRef(null)
+  const lastUpdateRef = useRef(Date.now())
 
   // Fetch user-specific data (myPlayer) since SSE broadcasts don't include it
   const fetchMyPlayer = useCallback(async () => {
@@ -69,6 +71,7 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
           if (data.stateVersion > stateVersionRef.current) {
             const prevVersion = stateVersionRef.current
             stateVersionRef.current = data.stateVersion
+            lastUpdateRef.current = Date.now() // Mark SSE update to skip redundant polling
 
             // Check if we need to refresh myPlayer (using refs for previous state)
             // Include transitions from null to a phase (draft starting)
@@ -236,8 +239,59 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
       }
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
     }
   }, [shareId, enabled, loadInitial, connect])
+
+  // Fallback polling for Vercel serverless (SSE broadcasts don't cross instances)
+  // Poll every 3 seconds during active drafting to ensure state stays in sync
+  useEffect(() => {
+    if (!shareId || !enabled || deleted) return
+
+    const phase = prevPhaseRef.current
+    const isActiveDrafting = phase === 'leader_draft' || phase === 'pack_draft'
+
+    // Only poll during active drafting phases
+    if (!isActiveDrafting) {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+      return
+    }
+
+    // Poll every 1 second as a fallback (fast enough for bot drafts)
+    pollingIntervalRef.current = setInterval(async () => {
+      // Skip if we received an SSE update recently (within 500ms)
+      if (Date.now() - lastUpdateRef.current < 500) {
+        return
+      }
+
+      try {
+        const data = await loadDraft(shareId)
+        // Only update if version is newer
+        if (data.stateVersion > stateVersionRef.current) {
+          stateVersionRef.current = data.stateVersion
+          prevPhaseRef.current = data.draftState?.phase || null
+          prevStatusRef.current = data.status || null
+          lastUpdateRef.current = Date.now()
+          setDraft(data)
+        }
+      } catch (err) {
+        // Silently ignore polling errors - SSE is primary
+        console.debug('Polling fallback error:', err.message)
+      }
+    }, 1000)
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+    }
+  }, [shareId, enabled, deleted, draft?.draftState?.phase])
 
   // Manual refresh (silent - no loading spinner)
   const refresh = useCallback(async () => {

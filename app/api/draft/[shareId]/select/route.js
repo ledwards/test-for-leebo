@@ -146,6 +146,9 @@ export async function POST(request, { params }) {
                 ? JSON.parse(freshPod.draft_state)
                 : freshPod.draft_state
               await processAllStagedPicks(pod.id, freshState, freshPod)
+
+              // Broadcast after picks processed so clients see the advanced state
+              await broadcastDraftState(shareId)
             }
           } catch (err) {
             console.error('Error processing picks:', err)

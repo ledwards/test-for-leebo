@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import PlayerCircle from './PlayerCircle'
 import DraftableCard from './DraftableCard'
 import TimerPanel from './TimerPanel'
+import { getSingleAspectColor, NO_ASPECT_COLOR } from '../utils/aspectColors'
 import './LeaderDraftPhase.css'
 
 function LeaderDraftPhase({
@@ -28,6 +29,9 @@ function LeaderDraftPhase({
   // Local selection state, persisted to localStorage
   const storageKey = `draft-selection-${shareId}-leader-${round}`
   const [selectedCardId, setSelectedCardId] = useState(null)
+  const [showPassing, setShowPassing] = useState(false)
+  const [lastLeadersCount, setLastLeadersCount] = useState(0)
+  const passingTimeoutRef = useRef(null)
 
   // Load selection from localStorage on mount and when round changes
   useEffect(() => {
@@ -78,6 +82,34 @@ function LeaderDraftPhase({
       }
     }
   }, [round, shareId])
+
+  // Manage "passing" state - show skeleton cards for minimum time
+  useEffect(() => {
+    const isPicked = hasSelected || myPlayer?.pickStatus === 'picked'
+
+    if (isPicked && leaders.length > 0) {
+      // Start showing passing state
+      setShowPassing(true)
+      // Next round will have one fewer leader (the one we just picked)
+      setLastLeadersCount(Math.max(0, leaders.length - 1))
+
+      // Clear any existing timeout
+      if (passingTimeoutRef.current) {
+        clearTimeout(passingTimeoutRef.current)
+      }
+    } else if (!isPicked && showPassing) {
+      // Pick completed, hide after brief delay to ensure smooth transition
+      passingTimeoutRef.current = setTimeout(() => {
+        setShowPassing(false)
+      }, 300)
+    }
+
+    return () => {
+      if (passingTimeoutRef.current) {
+        clearTimeout(passingTimeoutRef.current)
+      }
+    }
+  }, [hasSelected, myPlayer?.pickStatus, leaders.length, showPassing])
 
   const handleCardClick = (card) => {
     if (loading || !canSelect) return
@@ -153,6 +185,46 @@ function LeaderDraftPhase({
             </div>
           </div>
 
+          {/* Selection confirmation banner */}
+          {selectedCardId && (() => {
+            const selectedLeader = leaders.find(l => (l.instanceId || l.id) === selectedCardId)
+            if (!selectedLeader) return null
+            const firstAspect = selectedLeader.aspects?.[0]
+            const aspectColor = firstAspect ? getSingleAspectColor(firstAspect) : NO_ASPECT_COLOR
+            const handleDeselect = () => {
+              localStorage.removeItem(storageKey)
+              setSelectedCardId(null)
+              onSelect(null)
+            }
+            return (
+              <div
+                className="selection-confirmation-banner"
+                style={{
+                  background: `linear-gradient(135deg, ${aspectColor}33 0%, ${aspectColor}22 100%)`,
+                  borderColor: aspectColor,
+                }}
+              >
+                <div className="selection-info">
+                  <span className="selection-label">Selected:</span>
+                  <span className="selection-card-name" style={{ color: aspectColor }}>{selectedLeader.name}</span>
+                  {selectedLeader.subtitle && (
+                    <span className="selection-card-subtitle">{selectedLeader.subtitle}</span>
+                  )}
+                </div>
+                {hasSelected ? (
+                  <div className="selection-status-text">Waiting for other players...</div>
+                ) : (
+                  <button className="deselect-button" onClick={handleDeselect} title="Deselect">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )
+          })()}
+
           <div className="available-leaders">
             <h3>
               {hasSelected
@@ -161,7 +233,21 @@ function LeaderDraftPhase({
                   ? (round === 3 ? 'Select Your Final Leader' : 'Select a Leader')
                   : 'Waiting...'}
             </h3>
-            {leaders.length > 0 ? (
+            {/* Show skeleton cards when waiting for next round */}
+            {showPassing && (lastLeadersCount > 0 || leaders.length > 0) ? (
+              <>
+                <div className="passing-message">
+                  Passing Right...
+                </div>
+                <div className="leaders-grid">
+                  {Array.from({ length: lastLeadersCount || leaders.length }).map((_, idx) => (
+                    <div key={`skeleton-${idx}`} className="skeleton-card leader">
+                      <div className="skeleton-shimmer"></div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : leaders.length > 0 ? (
               <div className="leaders-grid">
                 {leaders.map((leader) => {
                   const cardId = leader.instanceId || leader.id

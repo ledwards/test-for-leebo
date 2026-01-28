@@ -196,9 +196,9 @@ async function runTests() {
       })
     })
 
-    test(`${setCode}: non-units/leaders have null power and hp`, () => {
+    test(`${setCode}: non-units/leaders/bases have null power and hp`, () => {
       const nonCombatCards = cards.filter(c =>
-        c.type !== 'Unit' && c.type !== 'Leader' && c.type !== 'Upgrade' && c.variantType === 'Normal'
+        c.type !== 'Unit' && c.type !== 'Leader' && c.type !== 'Base' && c.type !== 'Upgrade' && c.variantType === 'Normal'
       )
       nonCombatCards.forEach(card => {
         assert(
