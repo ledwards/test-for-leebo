@@ -133,6 +133,12 @@ function LeaderDraftPhase({
     e.preventDefault()
   }
 
+  const handleDeselect = () => {
+    localStorage.removeItem(storageKey)
+    setSelectedCardId(null)
+    onSelect(null)
+  }
+
   // Leader draft always passes right
   const passDirection = 'right'
 
