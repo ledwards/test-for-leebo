@@ -133,7 +133,8 @@ function LeaderDraftPhase({
     e.preventDefault()
   }
 
-  const handleDeselect = () => {
+  const handleDeselect = (e) => {
+    e.stopPropagation()
     localStorage.removeItem(storageKey)
     setSelectedCardId(null)
     onSelect(null)
@@ -197,11 +198,6 @@ function LeaderDraftPhase({
             if (!selectedLeader) return null
             const firstAspect = selectedLeader.aspects?.[0]
             const aspectColor = firstAspect ? getSingleAspectColor(firstAspect) : NO_ASPECT_COLOR
-            const handleDeselect = () => {
-              localStorage.removeItem(storageKey)
-              setSelectedCardId(null)
-              onSelect(null)
-            }
             return (
               <div
                 className="selection-confirmation-banner"

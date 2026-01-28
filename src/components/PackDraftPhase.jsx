@@ -205,6 +205,12 @@ function PackDraftPhase({
     e.preventDefault()
   }
 
+  const handleDeselect = () => {
+    localStorage.removeItem(storageKey)
+    setSelectedCardId(null)
+    onSelect(null)
+  }
+
   return (
     <div className="pack-draft-phase">
       <div className="draft-layout">
@@ -277,11 +283,6 @@ function PackDraftPhase({
             if (!selectedCard) return null
             const firstAspect = selectedCard.aspects?.[0]
             const aspectColor = firstAspect ? getSingleAspectColor(firstAspect) : NO_ASPECT_COLOR
-            const handleDeselect = () => {
-              localStorage.removeItem(storageKey)
-              setSelectedCardId(null)
-              onSelect(null)
-            }
             return (
               <div
                 className="selection-confirmation-banner"
