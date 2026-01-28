@@ -4,10 +4,12 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { loadDraft } from '@/src/utils/draftApi.js'
 
 /**
- * Hook for syncing draft state via Server-Sent Events
+ * Hook for syncing draft state via SSE + polling
  *
- * Uses SSE for real-time push updates instead of polling.
- * Falls back to polling if SSE connection fails.
+ * On Vercel serverless, SSE broadcasts only reach clients connected to the
+ * same instance. Since we can't guarantee that, polling is the primary
+ * sync mechanism during active drafting (1s) and waiting room (3s).
+ * SSE provides faster updates when it works.
  *
  * @param {string} shareId - Draft share ID
  * @param {Object} options - Options
@@ -50,7 +52,19 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
   // Handle incoming SSE messages
   const handleMessage = useCallback(async (event) => {
     try {
-      const data = JSON.parse(event.data)
+      // Guard against empty or malformed data
+      if (!event.data || event.data.trim() === '') {
+        console.debug('Empty SSE message received, ignoring')
+        return
+      }
+
+      let data
+      try {
+        data = JSON.parse(event.data)
+      } catch (parseErr) {
+        console.error('SSE JSON parse error:', parseErr.message, 'Raw data:', event.data?.substring(0, 100))
+        return
+      }
 
       // Handle different message types
       switch (data.type) {
@@ -246,15 +260,20 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
   }, [shareId, enabled, loadInitial, connect])
 
   // Fallback polling for Vercel serverless (SSE broadcasts don't cross instances)
-  // Poll every 3 seconds during active drafting to ensure state stays in sync
+  // SSE in-memory connections only work within a single serverless instance,
+  // so we MUST poll to catch updates from other instances.
   useEffect(() => {
     if (!shareId || !enabled || deleted) return
 
     const phase = prevPhaseRef.current
+    const status = prevStatusRef.current
     const isActiveDrafting = phase === 'leader_draft' || phase === 'pack_draft'
+    const isWaitingRoom = status === 'waiting'
 
-    // Only poll during active drafting phases
-    if (!isActiveDrafting) {
+    // Poll during active drafting (fast) or waiting room (slower)
+    const pollInterval = isActiveDrafting ? 1000 : isWaitingRoom ? 3000 : null
+
+    if (!pollInterval) {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current)
         pollingIntervalRef.current = null
@@ -262,13 +281,8 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
       return
     }
 
-    // Poll every 1 second as a fallback (fast enough for bot drafts)
+    // Always poll - don't skip based on SSE updates since they often don't cross instances
     pollingIntervalRef.current = setInterval(async () => {
-      // Skip if we received an SSE update recently (within 500ms)
-      if (Date.now() - lastUpdateRef.current < 500) {
-        return
-      }
-
       try {
         const data = await loadDraft(shareId)
         // Only update if version is newer
@@ -280,10 +294,10 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
           setDraft(data)
         }
       } catch (err) {
-        // Silently ignore polling errors - SSE is primary
+        // Silently ignore polling errors
         console.debug('Polling fallback error:', err.message)
       }
-    }, 1000)
+    }, pollInterval)
 
     return () => {
       if (pollingIntervalRef.current) {
@@ -291,7 +305,7 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
         pollingIntervalRef.current = null
       }
     }
-  }, [shareId, enabled, deleted, draft?.draftState?.phase])
+  }, [shareId, enabled, deleted, draft?.draftState?.phase, draft?.status])
 
   // Manual refresh (silent - no loading spinner)
   const refresh = useCallback(async () => {
