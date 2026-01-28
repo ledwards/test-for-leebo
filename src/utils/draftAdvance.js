@@ -200,9 +200,14 @@ async function advanceLeaderDraftAfterPicks(podId, draftState, pod, players) {
     draftState.pickInPack = 1
     delete draftState.lastPlayerStartedAt // Clear last player timer for new phase
 
-    const allPacks = typeof pod.all_packs === 'string'
-      ? JSON.parse(pod.all_packs)
-      : pod.all_packs
+    // Fetch all_packs only when transitioning to pack draft
+    const podWithPacks = await queryRow(
+      'SELECT all_packs FROM draft_pods WHERE id = $1',
+      [podId]
+    )
+    const allPacks = typeof podWithPacks.all_packs === 'string'
+      ? JSON.parse(podWithPacks.all_packs)
+      : podWithPacks.all_packs
 
     const updatedPlayers = await queryRows(
       'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
@@ -272,9 +277,15 @@ async function advancePackDraftAfterPicks(podId, draftState, pod) {
     draftState.pickInPack = 1
     delete draftState.lastPlayerStartedAt // Clear last player timer for new pack
 
-    const allPacks = typeof pod.all_packs === 'string'
-      ? JSON.parse(pod.all_packs)
-      : pod.all_packs
+    // Fetch all_packs only when we need to start a new pack
+    // (not loaded in most queries to save memory)
+    const podWithPacks = await queryRow(
+      'SELECT all_packs FROM draft_pods WHERE id = $1',
+      [podId]
+    )
+    const allPacks = typeof podWithPacks.all_packs === 'string'
+      ? JSON.parse(podWithPacks.all_packs)
+      : podWithPacks.all_packs
 
     for (let i = 0; i < players.length; i++) {
       const player = players[i]
@@ -404,10 +415,14 @@ export async function checkAndAdvanceLeaderDraft(podId, draftState, pod) {
     draftState.pickInPack = 1
     delete draftState.lastPlayerStartedAt // Clear last player timer for new phase
 
-    // Get all packs and distribute pack 1
-    const allPacks = typeof pod.all_packs === 'string'
-      ? JSON.parse(pod.all_packs)
-      : pod.all_packs
+    // Fetch all_packs only when transitioning to pack draft
+    const podWithPacks = await queryRow(
+      'SELECT all_packs FROM draft_pods WHERE id = $1',
+      [podId]
+    )
+    const allPacks = typeof podWithPacks.all_packs === 'string'
+      ? JSON.parse(podWithPacks.all_packs)
+      : podWithPacks.all_packs
 
     // Assign pack 1 to each player (by seat order, 0-indexed)
     for (let i = 0; i < players.length; i++) {
@@ -520,14 +535,15 @@ export async function checkAndAdvancePackDraft(podId, draftState, pod) {
     draftState.packNumber = packNumber + 1
     draftState.pickInPack = 1
     delete draftState.lastPlayerStartedAt // Clear last player timer for new pack
-    // console.log('[ADVANCE-PACK] Moving to pack', draftState.packNumber)
 
-    // Get all packs and distribute next pack
-    const allPacks = typeof pod.all_packs === 'string'
-      ? JSON.parse(pod.all_packs)
-      : pod.all_packs
-
-    // console.log('[ADVANCE-PACK] allPacks structure:', allPacks?.length, 'players, packs per player:', allPacks?.[0]?.length)
+    // Fetch all_packs only when moving to next pack
+    const podWithPacks = await queryRow(
+      'SELECT all_packs FROM draft_pods WHERE id = $1',
+      [podId]
+    )
+    const allPacks = typeof podWithPacks.all_packs === 'string'
+      ? JSON.parse(podWithPacks.all_packs)
+      : podWithPacks.all_packs
 
     // Assign next pack to each player
     for (let i = 0; i < players.length; i++) {
