@@ -1,6 +1,6 @@
 # Release Notes
 
-## 01.29.2026
+## 01.28.2026
 
 ### 🎉 New Features
 - Release notes display on landing page (lol)
@@ -15,12 +15,9 @@
 - Improved support for smaller desktop displays
 - Fixed mobile layout flex-direction causing off-center player circle
 
-### 🎨 UI Improvements
-- Players can show as disconnected
-
 ---
 
-## 01.15.2026 - Initial Release
+## 01.14.2026 - Initial Release
 
 ### 🎉 New Features
 - Sealed pool generation with proper booster pack simulation

@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { loadDraft } from '@/src/utils/draftApi.js'
 
-// Heartbeat interval (5 seconds - less than the 15s TTL in Redis)
-const HEARTBEAT_INTERVAL = 5000
 
 /**
  * Hook for syncing draft state via SSE + polling
@@ -29,7 +27,6 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
   const eventSourceRef = useRef(null)
   const reconnectTimeoutRef = useRef(null)
   const pollingIntervalRef = useRef(null)
-  const heartbeatIntervalRef = useRef(null)
   const stateVersionRef = useRef(0)
   const prevPhaseRef = useRef(null)
   const prevStatusRef = useRef(null)
@@ -271,9 +268,6 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current)
       }
-      if (heartbeatIntervalRef.current) {
-        clearInterval(heartbeatIntervalRef.current)
-      }
     }
   }, [shareId, enabled, loadInitial, connect])
 
@@ -289,7 +283,8 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
     const isWaitingRoom = status === 'waiting'
 
     // Poll during active drafting (fast) or waiting room (slower)
-    const pollInterval = isActiveDrafting ? 1000 : isWaitingRoom ? 3000 : null
+    // Waiting room doesn't need aggressive polling - SSE handles updates
+    const pollInterval = isActiveDrafting ? 1000 : isWaitingRoom ? 5000 : null
 
     if (!pollInterval) {
       if (pollingIntervalRef.current) {
@@ -324,37 +319,6 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
       }
     }
   }, [shareId, enabled, deleted, draft?.draftState?.phase, draft?.status])
-
-  // Heartbeat for presence/disconnect detection
-  // Sends heartbeat every 5s to Redis so other players know we're connected
-  useEffect(() => {
-    if (!shareId || !enabled || deleted) return
-
-    const sendHeartbeat = async () => {
-      try {
-        await fetch(`/api/draft/${shareId}/heartbeat`, {
-          method: 'POST',
-          credentials: 'include',
-        })
-      } catch (err) {
-        // Silently ignore heartbeat errors
-        console.debug('Heartbeat error:', err.message)
-      }
-    }
-
-    // Send initial heartbeat
-    sendHeartbeat()
-
-    // Then send every 5 seconds
-    heartbeatIntervalRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL)
-
-    return () => {
-      if (heartbeatIntervalRef.current) {
-        clearInterval(heartbeatIntervalRef.current)
-        heartbeatIntervalRef.current = null
-      }
-    }
-  }, [shareId, enabled, deleted])
 
   // Manual refresh (silent - no loading spinner)
   const refresh = useCallback(async () => {

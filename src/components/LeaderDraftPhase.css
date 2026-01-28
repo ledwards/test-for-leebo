@@ -127,7 +127,7 @@
   justify-content: flex-start;
   padding-top: 25px;
   /* Account for radial leader info extending beyond circle */
-  min-width: 500px;
+  min-width: 650px;
 }
 
 .cards-section {
@@ -136,7 +136,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 20px;
-  min-width: 350px;
+  min-width: 400px;
   max-width: 600px;
   flex: 1;
 }

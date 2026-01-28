@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo } from 'react'
 import { createPortal } from 'react-dom'
 import PlayerSeat from './PlayerSeat'
 import './PlayerCircle.css'
@@ -124,26 +124,16 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
     }
   }
 
-  // Disconnect icon component
-  const DisconnectIcon = () => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="disconnect-icon">
-      <line x1="18" y1="6" x2="6" y2="18"></line>
-      <line x1="6" y1="6" x2="18" y2="18"></line>
-    </svg>
-  )
-
   // Render simple leader info (just drafted leaders, no headers) - for pack draft
   const renderSimpleLeaderInfo = (player) => {
     if (!player) return null
 
     const draftedLeaders = player.draftedLeaders || []
     const displayName = player.username || `Player ${player.seatNumber}`
-    const isDisconnected = !player.isBot && player.isOnline === false
 
     return (
-      <div className={`radial-leader-info simple ${isDisconnected ? 'disconnected' : ''}`}>
-        <div className={`radial-player-name ${isDisconnected ? 'disconnected' : ''}`}>
-          {isDisconnected && <DisconnectIcon />}
+      <div className="radial-leader-info simple">
+        <div className="radial-player-name">
           {displayName}
         </div>
         {draftedLeaders.length > 0 && (
@@ -179,7 +169,6 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
     const allPickedLeaders = player.draftedLeaders || []
     const remainingPack = player.leaderPack || []
     const displayName = player.username || `Player ${player.seatNumber}`
-    const isDisconnected = !player.isBot && player.isOnline === false
 
     // Show picks from PREVIOUS rounds only (not current round)
     // Round 1: show 0, Round 2: show 1, Round 3: show 2
@@ -199,9 +188,8 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
     const showDivider = pickedLeaders.length > 0 && fullPack.length > 0
 
     return (
-      <div className={`radial-leader-info ${isDisconnected ? 'disconnected' : ''}`}>
-        <div className={`radial-player-name ${isDisconnected ? 'disconnected' : ''}`}>
-          {isDisconnected && <DisconnectIcon />}
+      <div className="radial-leader-info">
+        <div className="radial-player-name">
           {displayName}
         </div>
         {pickedLeaders.length > 0 && (
@@ -462,4 +450,4 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
   )
 }
 
-export default PlayerCircle
+export default memo(PlayerCircle)

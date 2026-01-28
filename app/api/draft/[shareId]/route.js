@@ -5,7 +5,6 @@ import { getSession, requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
 import { getPackArtUrl } from '@/src/utils/packArt.js'
 import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout.js'
-import { getOnlinePlayers } from '@/src/lib/redis.js'
 
 export async function GET(request, { params }) {
   try {
@@ -34,7 +33,8 @@ export async function GET(request, { params }) {
     }
 
     // Check and enforce timeouts (server-side timeout enforcement)
-    const timeoutEnforced = await checkAndEnforceTimeout(pod.id)
+    // Only run during active drafts - skip in waiting room for performance
+    const timeoutEnforced = pod.status === 'active' ? await checkAndEnforceTimeout(pod.id) : false
     if (timeoutEnforced) {
       // Re-fetch pod since state changed (exclude all_packs)
       pod = await queryRow(
@@ -86,9 +86,6 @@ export async function GET(request, { params }) {
     // Check if we're in leader draft phase (show leader packs to all)
     const isLeaderDraftPhase = draftState?.phase === 'leader_draft'
 
-    // Get online players from Redis for presence detection
-    const onlinePlayers = await getOnlinePlayers(shareId)
-
     // Format players for response
     const formattedPlayers = players.map(p => {
       const draftedLeaders = p.drafted_leaders
@@ -108,7 +105,6 @@ export async function GET(request, { params }) {
         seatNumber: p.seat_number,
         pickStatus: p.pick_status,
         isBot: p.is_bot === true,
-        isOnline: p.is_bot === true || onlinePlayers.includes(p.user_id.toString()),
         // Only include pack info for current user
         currentPack: session && p.user_id === session.id
           ? (typeof p.current_pack === 'string' ? JSON.parse(p.current_pack) : p.current_pack)
