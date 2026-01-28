@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../src/contexts/AuthContext'
-import { useDraftSSE } from '../../../src/hooks/useDraftSSE'
+import { useDraftSocket } from '../../../src/hooks/useDraftSocket'
 import { joinDraft, leaveDraft, startDraft, randomizeSeats, makePick, selectCard, updateSettings, togglePause } from '../../../src/utils/draftApi'
 import DraftLobby from '../../../src/components/DraftLobby'
 import LeaderDraftPhase from '../../../src/components/LeaderDraftPhase'
@@ -59,7 +59,7 @@ export default function DraftRoomPage({ params }) {
     myPlayer,
     draftState,
     status,
-  } = useDraftSSE(shareId, { enabled: !!shareId && isAuthenticated })
+  } = useDraftSocket(shareId, { enabled: !!shareId && isAuthenticated })
 
   // Redirect if draft was deleted
   useEffect(() => {

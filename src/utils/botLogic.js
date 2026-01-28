@@ -8,7 +8,7 @@
 import { query, queryRow, queryRows } from '@/lib/db.js'
 import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft, processAllStagedPicks } from './draftAdvance.js'
 import { getBehavior } from '@/src/bots/behaviors/index.js'
-import { broadcastDraftState } from '@/src/lib/sseBroadcast.js'
+import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
 
 // Cache behavior instances per bot to maintain state across picks
 const botBehaviors = new Map()

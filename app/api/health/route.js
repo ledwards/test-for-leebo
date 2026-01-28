@@ -1,22 +1,37 @@
 // GET /api/health - Health check endpoint with memory and connection stats
-import { getActiveDrafts, getConnectionCount } from '@/src/lib/sseConnections.js'
 import { testConnection } from '@/lib/db.js'
 
 export async function GET() {
   try {
     const memUsage = process.memoryUsage()
-    const activeDrafts = getActiveDrafts()
 
     // Test database connection
     const dbHealthy = await testConnection()
 
-    // Calculate total connections
-    let totalConnections = 0
-    const draftConnections = {}
-    for (const shareId of activeDrafts) {
-      const count = getConnectionCount(shareId)
-      draftConnections[shareId] = count
-      totalConnections += count
+    // Get Socket.io stats if available
+    const io = global.io
+    let socketStats = {
+      connected: false,
+      totalConnections: 0,
+      rooms: 0,
+    }
+
+    if (io) {
+      const sockets = await io.fetchSockets()
+      const rooms = io.sockets.adapter.rooms
+      // Count draft rooms (rooms that start with "draft:")
+      let draftRoomCount = 0
+      for (const [roomName] of rooms) {
+        if (roomName.startsWith('draft:')) {
+          draftRoomCount++
+        }
+      }
+
+      socketStats = {
+        connected: true,
+        totalConnections: sockets.length,
+        draftRooms: draftRoomCount,
+      }
     }
 
     // Memory stats in MB
@@ -30,11 +45,7 @@ export async function GET() {
         rss: Math.round(memUsage.rss / 1024 / 1024),
         external: Math.round(memUsage.external / 1024 / 1024),
       },
-      connections: {
-        activeDrafts: activeDrafts.length,
-        totalConnections,
-        perDraft: draftConnections,
-      },
+      sockets: socketStats,
       database: {
         connected: dbHealthy,
       },
@@ -47,7 +58,7 @@ export async function GET() {
     }
 
     // Warn if too many connections
-    if (totalConnections > 200) {
+    if (socketStats.totalConnections > 200) {
       stats.status = 'warning'
       stats.warning = 'High connection count'
     }

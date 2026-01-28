@@ -1,49 +1,39 @@
 /**
- * SSE Broadcast Helper
+ * Socket.io Broadcast Helper
  *
- * Helper functions for broadcasting draft state updates to SSE clients.
+ * Broadcasts draft state updates to all connected clients via WebSocket.
+ * Replaces the SSE-based broadcast system for Railway deployment.
  */
 import { queryRow, queryRows } from '@/lib/db.js'
-import { broadcast } from './sseConnections.js'
 
 /**
- * Broadcast a full state update to all connected clients for a draft.
- * This fetches the current state from the database and sends it.
- *
+ * Broadcast draft state to all connected clients in a draft room
  * @param {string} shareId - Draft share ID
  */
 export async function broadcastDraftState(shareId) {
+  const io = global.io
+  if (!io) {
+    console.warn('Socket.io not initialized - broadcast skipped')
+    return
+  }
+
   try {
     const pod = await queryRow(
-      `SELECT
-        dp.id,
-        dp.share_id,
-        dp.status,
-        dp.state_version,
-        dp.draft_state,
-        dp.timed,
-        dp.timer_enabled,
-        dp.timer_seconds,
-        dp.pick_timeout_seconds,
-        dp.started_at,
-        dp.completed_at,
-        dp.pick_started_at,
-        dp.paused,
-        dp.paused_at,
-        dp.paused_duration_seconds
-       FROM draft_pods dp
-       WHERE dp.share_id = $1`,
+      `SELECT dp.id, dp.share_id, dp.status, dp.state_version, dp.draft_state,
+              dp.timed, dp.timer_enabled, dp.timer_seconds, dp.pick_timeout_seconds,
+              dp.started_at, dp.completed_at, dp.pick_started_at,
+              dp.paused, dp.paused_at, dp.paused_duration_seconds
+       FROM draft_pods dp WHERE dp.share_id = $1`,
       [shareId]
     )
 
     if (!pod) {
-      broadcast(shareId, { type: 'deleted' })
+      io.to(`draft:${shareId}`).emit('deleted')
       return
     }
 
-    // Get all players (exclude current_pack to save memory - not needed for broadcast)
     const players = await queryRows(
-      `SELECT dpp.id, dpp.user_id, dpp.seat_number, dpp.pick_status,
+      `SELECT dpp.id, dpp.user_id, dpp.seat_number, dpp.pick_status, dpp.is_bot,
               dpp.leaders, dpp.drafted_leaders, dpp.drafted_cards,
               u.username, u.avatar_url
        FROM draft_pod_players dpp
@@ -53,19 +43,16 @@ export async function broadcastDraftState(shareId) {
       [pod.id]
     )
 
-    // Parse draft state
     const draftState = typeof pod.draft_state === 'string'
       ? JSON.parse(pod.draft_state)
       : pod.draft_state || {}
 
     const isLeaderDraftPhase = draftState?.phase === 'leader_draft'
 
-    // Format players (public view - no private data)
     const formattedPlayers = players.map(p => {
       const draftedLeaders = p.drafted_leaders
         ? (typeof p.drafted_leaders === 'string' ? JSON.parse(p.drafted_leaders) : p.drafted_leaders)
         : []
-
       const leadersPack = p.leaders
         ? (typeof p.leaders === 'string' ? JSON.parse(p.leaders) : p.leaders)
         : []
@@ -77,6 +64,7 @@ export async function broadcastDraftState(shareId) {
         avatarUrl: p.avatar_url,
         seatNumber: p.seat_number,
         pickStatus: p.pick_status,
+        isBot: p.is_bot === true,
         leaderPack: isLeaderDraftPhase ? leadersPack.map(l => ({
           name: l.name,
           aspects: l.aspects || [],
@@ -96,11 +84,7 @@ export async function broadcastDraftState(shareId) {
       }
     })
 
-    // Broadcast the public state
-    // Note: Each client will need to fetch their own myPlayer data
-    // since we can't send user-specific data in a broadcast
-    broadcast(shareId, {
-      type: 'state',
+    io.to(`draft:${shareId}`).emit('state', {
       stateVersion: pod.state_version,
       status: pod.status,
       draftState,
@@ -122,15 +106,19 @@ export async function broadcastDraftState(shareId) {
 }
 
 /**
- * Broadcast a simple event (pick made, timer update, etc.)
- *
+ * Broadcast a simple event to all clients in a draft room
  * @param {string} shareId - Draft share ID
  * @param {string} eventType - Event type
  * @param {object} data - Event data
  */
 export function broadcastEvent(shareId, eventType, data = {}) {
-  broadcast(shareId, {
-    type: eventType,
+  const io = global.io
+  if (!io) {
+    console.warn('Socket.io not initialized - event broadcast skipped')
+    return
+  }
+
+  io.to(`draft:${shareId}`).emit(eventType, {
     timestamp: Date.now(),
     ...data,
   })
