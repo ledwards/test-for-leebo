@@ -256,8 +256,8 @@ export default function DraftRoomPage({ params }) {
     }
   }
 
-  // Loading state
-  if (authLoading || !shareId || loading) {
+  // Loading auth state
+  if (authLoading || !shareId) {
     return (
       <div className="draft-page-bg">
         <div className="loading-container">
@@ -267,13 +267,29 @@ export default function DraftRoomPage({ params }) {
     )
   }
 
-  // Auth required
+  // Auth required - check before SSE loading since SSE is disabled when not authenticated
   if (!isAuthenticated) {
+    // Redirect to Discord auth with return URL
+    const returnUrl = encodeURIComponent(`/draft/${shareId}`)
     return (
       <div className="draft-page-bg">
         <div className="login-required">
           <h2>Sign In Required</h2>
           <p>Please sign in to join this draft</p>
+          <a href={`/api/auth/discord?returnUrl=${returnUrl}`} className="discord-login-button">
+            Sign in with Discord
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  // Loading draft data
+  if (loading) {
+    return (
+      <div className="draft-page-bg">
+        <div className="loading-container">
+          <div className="loading"></div>
         </div>
       </div>
     )

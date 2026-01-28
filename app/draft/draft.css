@@ -333,6 +333,26 @@
   margin-bottom: 20px;
 }
 
+.login-required .discord-login-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #5865F2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.login-required .discord-login-button:hover {
+  background: #4752c4;
+}
+
 /* Draft complete */
 .draft-complete {
   max-width: 600px;
