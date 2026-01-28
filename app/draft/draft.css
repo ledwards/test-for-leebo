@@ -337,20 +337,20 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
-  background: #5865F2;
+  padding: 0.5rem 1rem;
+  background: rgba(88, 101, 242, 0.8);
+  border: 1px solid rgba(88, 101, 242, 1);
+  border-radius: 4px;
   color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  text-decoration: none;
   cursor: pointer;
-  transition: background 0.2s;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.2s;
 }
 
 .login-required .discord-login-button:hover {
-  background: #4752c4;
+  background: rgba(88, 101, 242, 1);
+  transform: translateY(-1px);
 }
 
 /* Draft complete */

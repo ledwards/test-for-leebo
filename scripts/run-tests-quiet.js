@@ -174,6 +174,30 @@ async function main() {
   }
   console.log('')
 
+  // Show commands to re-run failing tests
+  if (failures.length > 0) {
+    log('─'.repeat(70), 'dim')
+    log('  Re-run failing tests:', 'yellow')
+    console.log('')
+
+    const rerunCommands = {
+      'Unit': 'npm run test',
+      'QA': 'npm run qa',
+      'E2E': 'npm run test:e2e'
+    }
+
+    for (const failure of failures) {
+      const cmd = rerunCommands[failure.name]
+      if (cmd) {
+        log(`  ${cmd}`, 'cyan')
+      }
+    }
+
+    console.log('')
+    log('═'.repeat(70), 'dim')
+    console.log('')
+  }
+
   process.exit(failures.length > 0 ? 1 : 0)
 }
 

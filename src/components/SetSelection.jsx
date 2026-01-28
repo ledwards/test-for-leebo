@@ -31,23 +31,23 @@ function SetSelection({ onSetSelect, onBack }) {
     return [...sets].sort((a, b) => {
       const numA = getSetNumber(a.code)
       const numB = getSetNumber(b.code)
-      
+
       // When vertical, reverse order by set number
       if (vertical) {
         return numB - numA // Reverse: highest number first
       }
-      
+
       // Define display order: [7, 8, 9, 4, 5, 6, 1, 2, 3]
       // Future-proof: when 7, 8, 9 come out, they'll be at the top
       const displayOrder = [7, 8, 9, 4, 5, 6, 1, 2, 3]
       const indexA = displayOrder.indexOf(numA)
       const indexB = displayOrder.indexOf(numB)
-      
+
       // If not in display order, put at end
       if (indexA === -1 && indexB === -1) return numA - numB
       if (indexA === -1) return 1
       if (indexB === -1) return -1
-      
+
       return indexA - indexB
     })
   }
@@ -55,9 +55,9 @@ function SetSelection({ onSetSelect, onBack }) {
   // Check if we're in vertical (single column) mode
   useEffect(() => {
     const checkVertical = () => {
-      setIsVertical(window.innerWidth <= 500)
+      setIsVertical(window.innerWidth <= 900)
     }
-    
+
     checkVertical()
     window.addEventListener('resize', checkVertical)
     return () => window.removeEventListener('resize', checkVertical)
@@ -112,9 +112,9 @@ function SetSelection({ onSetSelect, onBack }) {
       `https://swudb.com/images/booster/${setCode}.jpg`,
       `https://swudb.com/images/sets/${setCode}.jpg`,
     ]
-    
+
     const currentAttempt = imageFallbacks[setCode] || 0
-    
+
     if (currentAttempt < fallbacks.length) {
       // Try next fallback URL
       e.target.src = fallbacks[currentAttempt]
@@ -138,9 +138,9 @@ function SetSelection({ onSetSelect, onBack }) {
           >
             <div className="set-image-container">
               {set.imageUrl && !failedImages.has(set.code) && (
-                <img 
-                  src={set.imageUrl} 
-                  alt={`${set.name} booster pack`} 
+                <img
+                  src={set.imageUrl}
+                  alt={`${set.name} booster pack`}
                   className="set-image"
                   onError={(e) => handleImageError(set.code, e)}
                 />

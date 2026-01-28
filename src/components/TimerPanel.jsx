@@ -24,6 +24,7 @@ const PlayIcon = () => (
  */
 function TimerPanel({ draft, players = [], compact = false, isHost = false, onTogglePause, draftState = null }) {
   const [activeTimer, setActiveTimer] = useState('round') // 'round' or 'lastPlayer'
+  const [optimisticPaused, setOptimisticPaused] = useState(null) // null means use draft.paused
 
   // Calculate if only one player left to pick (for last player timer)
   const playersStillPicking = players.filter(p => p.pickStatus === 'picking').length
@@ -36,8 +37,23 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
   const isDrafting = draft?.status === 'active'
   const isRoundTimerEnabled = draft?.timed !== false
   const isLastPlayerTimerEnabled = draft?.timerEnabled !== false
-  const isPaused = draft?.paused === true
+  const isPaused = optimisticPaused !== null ? optimisticPaused : draft?.paused === true
   const pausedDurationSeconds = draft?.pausedDurationSeconds || 0
+
+  // Reset optimistic state when server state changes
+  useEffect(() => {
+    if (optimisticPaused !== null && draft?.paused !== undefined) {
+      setOptimisticPaused(null)
+    }
+  }, [draft?.paused])
+
+  // Handler that optimistically updates UI before server responds
+  const handleTogglePause = () => {
+    if (onTogglePause) {
+      setOptimisticPaused(!isPaused)
+      onTogglePause()
+    }
+  }
 
   // Get lastPlayerStartedAt from server-provided draft state
   // This ensures consistency between client timer display and server timeout enforcement
@@ -125,7 +141,7 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
                 <span className="timer-value paused-value">PAUSED</span>
               </div>
               {isHost && onTogglePause && (
-                <button className="pause-button resume" onClick={onTogglePause}>
+                <button className="pause-button resume" onClick={handleTogglePause}>
                   <PlayIcon />
                 </button>
               )}
@@ -156,7 +172,7 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
                 />
               )}
               {isHost && onTogglePause && (
-                <button className="pause-button" onClick={onTogglePause}>
+                <button className="pause-button" onClick={handleTogglePause}>
                   <PauseIcon />
                 </button>
               )}

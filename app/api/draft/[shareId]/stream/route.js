@@ -2,20 +2,24 @@
  * GET /api/draft/:shareId/stream - SSE endpoint for real-time draft updates
  *
  * Server-Sent Events stream that pushes draft state updates to connected clients.
- * Replaces polling with instant push notifications.
+ * Uses Redis to detect state changes across Vercel instances.
  */
 import { queryRow, queryRows } from '@/lib/db.js'
 import { getSession } from '@/lib/auth.js'
 import { registerConnection } from '@/src/lib/sseConnections.js'
 import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout.js'
+import { getStateVersion, getOnlinePlayers } from '@/src/lib/redis.js'
 
 // Heartbeat interval (25 seconds - under Vercel's 30s timeout)
 const HEARTBEAT_INTERVAL = 25000
 
+// Redis polling interval for state changes (fast!)
+const REDIS_POLL_INTERVAL = 400
+
 /**
  * Build the draft state response (same logic as state/route.js)
  */
-async function buildDraftState(shareId, session) {
+async function buildDraftState(shareId, session, onlinePlayers = []) {
   let pod = await queryRow(
     `SELECT
       dp.id,
@@ -75,7 +79,7 @@ async function buildDraftState(shareId, session) {
 
   const isLeaderDraftPhase = draftState?.phase === 'leader_draft'
 
-  // Format players
+  // Format players with online status
   const formattedPlayers = players.map(p => {
     const draftedLeaders = p.drafted_leaders
       ? (typeof p.drafted_leaders === 'string' ? JSON.parse(p.drafted_leaders) : p.drafted_leaders)
@@ -92,6 +96,7 @@ async function buildDraftState(shareId, session) {
       avatarUrl: p.avatar_url,
       seatNumber: p.seat_number,
       pickStatus: p.pick_status,
+      isOnline: onlinePlayers.includes(p.user_id.toString()),
       leaderPack: isLeaderDraftPhase ? leadersPack.map(l => ({
         name: l.name,
         aspects: l.aspects || [],
@@ -164,20 +169,25 @@ export async function GET(request, { params }) {
   const encoder = new TextEncoder()
   let cleanup = null
   let heartbeatInterval = null
+  let redisPollInterval = null
+  let lastKnownVersion = null
+  let isActive = true
 
   const stream = new ReadableStream({
     async start(controller) {
-      // Register this connection
+      // Register this connection for same-instance broadcasts
       cleanup = registerConnection(shareId, controller)
 
       // Send initial state
       try {
-        const initialState = await buildDraftState(shareId, session)
+        const onlinePlayers = await getOnlinePlayers(shareId)
+        const initialState = await buildDraftState(shareId, session, onlinePlayers)
         if (!initialState) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', message: 'Draft not found' })}\n\n`))
           controller.close()
           return
         }
+        lastKnownVersion = initialState.stateVersion
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(initialState)}\n\n`))
       } catch (err) {
         console.error('Error sending initial SSE state:', err)
@@ -186,28 +196,64 @@ export async function GET(request, { params }) {
         return
       }
 
+      // Poll Redis for state version changes (cross-instance updates)
+      redisPollInterval = setInterval(async () => {
+        if (!isActive) return
+
+        try {
+          const redisVersion = await getStateVersion(shareId)
+
+          // If Redis has a newer version, fetch full state and push
+          if (redisVersion !== null && redisVersion > lastKnownVersion) {
+            const onlinePlayers = await getOnlinePlayers(shareId)
+            const newState = await buildDraftState(shareId, session, onlinePlayers)
+
+            if (newState) {
+              lastKnownVersion = newState.stateVersion
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify(newState)}\n\n`))
+            } else {
+              // Draft was deleted
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'deleted' })}\n\n`))
+              isActive = false
+              controller.close()
+            }
+          }
+        } catch (err) {
+          // Silently ignore Redis polling errors - fall back to regular polling
+          console.error('Redis poll error:', err.message)
+        }
+      }, REDIS_POLL_INTERVAL)
+
       // Set up heartbeat to keep connection alive
       heartbeatInterval = setInterval(() => {
+        if (!isActive) return
+
         try {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'heartbeat', timestamp: Date.now() })}\n\n`))
         } catch (e) {
           // Connection closed
+          isActive = false
           clearInterval(heartbeatInterval)
+          clearInterval(redisPollInterval)
         }
       }, HEARTBEAT_INTERVAL)
     },
 
     cancel() {
       // Clean up on connection close
+      isActive = false
       if (cleanup) cleanup()
       if (heartbeatInterval) clearInterval(heartbeatInterval)
+      if (redisPollInterval) clearInterval(redisPollInterval)
     }
   })
 
   // Handle client disconnect
   request.signal.addEventListener('abort', () => {
+    isActive = false
     if (cleanup) cleanup()
     if (heartbeatInterval) clearInterval(heartbeatInterval)
+    if (redisPollInterval) clearInterval(redisPollInterval)
   })
 
   return new Response(stream, {

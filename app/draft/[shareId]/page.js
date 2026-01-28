@@ -209,8 +209,8 @@ export default function DraftRoomPage({ params }) {
       }
       // After selecting, refresh to catch state changes from bot processing
       // SSE often doesn't work across Vercel instances, so we poll aggressively
-      setTimeout(() => refresh(), 200)
-      setTimeout(() => refresh(), 600)
+      setTimeout(() => refresh().catch(() => {}), 200)
+      setTimeout(() => refresh().catch(() => {}), 600)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -272,15 +272,18 @@ export default function DraftRoomPage({ params }) {
   // Auth required - check before SSE loading since SSE is disabled when not authenticated
   if (!isAuthenticated) {
     // Redirect to Discord auth with return URL
-    const returnUrl = encodeURIComponent(`/draft/${shareId}`)
+    const returnTo = encodeURIComponent(`/draft/${shareId}`)
     return (
       <div className="draft-page-bg">
         <div className="login-required">
           <h2>Sign In Required</h2>
           <p>Please sign in to join this draft</p>
-          <a href={`/api/auth/discord?returnUrl=${returnUrl}`} className="discord-login-button">
+          <button
+            className="discord-login-button"
+            onClick={() => window.location.href = `/api/auth/signin/discord?return_to=${returnTo}`}
+          >
             Sign in with Discord
-          </a>
+          </button>
         </div>
       </div>
     )

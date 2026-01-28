@@ -3,13 +3,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { loadDraft } from '@/src/utils/draftApi.js'
 
+// Heartbeat interval (5 seconds - less than the 15s TTL in Redis)
+const HEARTBEAT_INTERVAL = 5000
+
 /**
  * Hook for syncing draft state via SSE + polling
  *
- * On Vercel serverless, SSE broadcasts only reach clients connected to the
- * same instance. Since we can't guarantee that, polling is the primary
- * sync mechanism during active drafting (1s) and waiting room (3s).
- * SSE provides faster updates when it works.
+ * Uses Redis for cross-instance state change detection and presence tracking.
+ * SSE endpoint polls Redis every 400ms for state version changes.
+ * Client sends heartbeats every 5s for disconnect detection.
  *
  * @param {string} shareId - Draft share ID
  * @param {Object} options - Options
@@ -27,6 +29,7 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
   const eventSourceRef = useRef(null)
   const reconnectTimeoutRef = useRef(null)
   const pollingIntervalRef = useRef(null)
+  const heartbeatIntervalRef = useRef(null)
   const stateVersionRef = useRef(0)
   const prevPhaseRef = useRef(null)
   const prevStatusRef = useRef(null)
@@ -268,6 +271,9 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current)
       }
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current)
+      }
     }
   }, [shareId, enabled, loadInitial, connect])
 
@@ -318,6 +324,37 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
       }
     }
   }, [shareId, enabled, deleted, draft?.draftState?.phase, draft?.status])
+
+  // Heartbeat for presence/disconnect detection
+  // Sends heartbeat every 5s to Redis so other players know we're connected
+  useEffect(() => {
+    if (!shareId || !enabled || deleted) return
+
+    const sendHeartbeat = async () => {
+      try {
+        await fetch(`/api/draft/${shareId}/heartbeat`, {
+          method: 'POST',
+          credentials: 'include',
+        })
+      } catch (err) {
+        // Silently ignore heartbeat errors
+        console.debug('Heartbeat error:', err.message)
+      }
+    }
+
+    // Send initial heartbeat
+    sendHeartbeat()
+
+    // Then send every 5 seconds
+    heartbeatIntervalRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL)
+
+    return () => {
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current)
+        heartbeatIntervalRef.current = null
+      }
+    }
+  }, [shareId, enabled, deleted])
 
   // Manual refresh (silent - no loading spinner)
   const refresh = useCallback(async () => {

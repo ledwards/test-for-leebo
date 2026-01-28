@@ -43,6 +43,9 @@ export async function createDraft(setCode, settings = {}) {
  * @returns {Promise<Object>} Draft data
  */
 export async function loadDraft(shareId) {
+  if (!shareId || typeof shareId !== 'string') {
+    throw new Error('Invalid shareId')
+  }
   try {
     const response = await fetch(`${API_BASE}/draft/${shareId}`, {
       credentials: 'include',
@@ -230,6 +233,9 @@ export async function pollState(shareId, sinceVersion = 0) {
  * @returns {Promise<Object>} Selection result
  */
 export async function selectCard(shareId, cardId) {
+  if (!shareId || typeof shareId !== 'string') {
+    throw new Error('Invalid shareId')
+  }
   try {
     const response = await fetch(`${API_BASE}/draft/${shareId}/select`, {
       method: 'POST',

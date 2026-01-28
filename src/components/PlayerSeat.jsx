@@ -27,6 +27,9 @@ function PlayerSeat({
   // Use passed statusColor or derive from player status
   const borderColor = statusColor || (player?.pickStatus ? getStatusColor(player.pickStatus) : undefined)
 
+  // Check if player is disconnected
+  const isDisconnected = player?.isOnline === false
+
   if (isEmpty) {
     return (
       <div className="player-seat empty">
@@ -41,11 +44,11 @@ function PlayerSeat({
   const displayName = isCurrentUser ? 'You' : player.username || `Player ${seatNumber}`
 
   return (
-    <div className={`player-seat ${isCurrentUser ? 'current-user' : ''}`}>
+    <div className={`player-seat ${isCurrentUser ? 'current-user' : ''} ${isDisconnected ? 'disconnected' : ''}`}>
       <div
-        className="seat-avatar"
+        className={`seat-avatar ${isDisconnected ? 'disconnected' : ''}`}
         style={{
-          borderColor: borderColor
+          borderColor: isDisconnected ? '#ff4444' : borderColor
         }}
       >
         {player.avatarUrl ? (
@@ -55,6 +58,14 @@ function PlayerSeat({
         )}
         {showStatus && player.pickStatus === 'picked' && (
           <div className="status-check">✓</div>
+        )}
+        {isDisconnected && (
+          <div className="disconnect-overlay">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </div>
         )}
       </div>
       {showStatus && (

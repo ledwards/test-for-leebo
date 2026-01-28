@@ -813,7 +813,7 @@
   aspect-ratio: 2.5 / 3.5;
   background: rgba(0, 0, 0, 0.6);
   border: none;
-  border-radius: 6px;
+  border-radius: 11px;
   transition: transform 0.1s ease;
   cursor: pointer;
   isolation: isolate;
@@ -833,7 +833,7 @@
   content: '';
   position: absolute;
   inset: -1px;
-  border-radius: 7px;
+  border-radius: 12px;
   background: linear-gradient(
     45deg,
     #ff0000,
@@ -857,11 +857,11 @@
 .canvas-card.leader::before,
 .canvas-card.base::before {
   inset: -1px;
-  border-radius: 7px;
+  border-radius: 12px;
 }
 
 .canvas-card > * {
-  border-radius: 6px;
+  border-radius: 11px;
   overflow: hidden;
 }
 

@@ -2606,38 +2606,32 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       setErrorMessage('Generating image...')
       setMessageType('success')
 
+      // Sort by cost for deck image export
+      const costSort = (a, b) => {
+        const costA = a.cost !== null && a.cost !== undefined ? a.cost : 999
+        const costB = b.cost !== null && b.cost !== undefined ? b.cost : 999
+        if (costA !== costB) return costA - costB
+        // Secondary sort by name
+        const nameA = (a.name || '').toLowerCase()
+        const nameB = (b.name || '').toLowerCase()
+        return nameA.localeCompare(nameB)
+      }
+
       // Get selected leader and base
       const selectedLeader = activeLeader ? cardPositions[activeLeader]?.card : null
       const selectedBase = activeBase ? cardPositions[activeBase]?.card : null
 
-      // Get deck cards (in color) - sorted by default sort
+      // Get deck cards (in color) - sorted by cost
       const deckCards = Object.values(cardPositions)
         .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
         .map(pos => pos.card)
-        .sort((a, b) => defaultSort(a, b))
+        .sort((a, b) => costSort(a, b))
 
-      // Get sideboard cards (will be grayscale) - sorted by default sort
+      // Get sideboard cards (will be grayscale) - sorted by cost
       const sideboardCards = Object.values(cardPositions)
         .filter(pos => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader)
         .map(pos => pos.card)
-        .sort((a, b) => defaultSort(a, b))
-
-      // Get unused leaders and bases (will be grayscale) - sorted by default sort
-      const unusedLeaders = Object.entries(cardPositions)
-        .filter(([cardId, pos]) => pos.section === 'leaders-bases' && pos.visible && pos.card.isLeader && cardId !== activeLeader)
-        .map(([_, pos]) => pos.card)
-        .sort((a, b) => defaultSort(a, b))
-
-      const unusedBases = Object.entries(cardPositions)
-        .filter(([cardId, pos]) => {
-          const card = pos.card
-          const rarity = card.rarity
-          // Only include rare bases (Rare, Legendary, or Special) - exclude common bases
-          const isRareBase = rarity === 'Rare' || rarity === 'Legendary' || rarity === 'Special'
-          return pos.section === 'leaders-bases' && pos.visible && card.isBase && cardId !== activeBase && isRareBase
-        })
-        .map(([_, pos]) => pos.card)
-        .sort((a, b) => defaultSort(a, b))
+        .sort((a, b) => costSort(a, b))
 
       // Card dimensions
       const cardWidth = 120
@@ -2654,10 +2648,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       // Calculate dimensions based on total cards (including duplicates)
       const deckRows = Math.ceil(deckCards.length / cardsPerRow)
       const sideboardRows = Math.ceil(sideboardCards.length / cardsPerRow)
-      // Unused leaders - calculate how many fit per row
       const width = padding * 2 + cardsPerRow * (cardWidth + spacing) - spacing
-      const leadersPerRow = Math.floor((width - 2 * padding + spacing) / (leaderBaseWidth + spacing))
-      const unusedLeadersRows = unusedLeaders.length > 0 ? Math.ceil(unusedLeaders.length / leadersPerRow) : 0
 
       let currentY = padding
 
@@ -2674,9 +2665,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
       // Sideboard section (label + cards)
       currentY += labelHeight + sideboardRows * (cardHeight + spacing) + sectionSpacing
-
-      // Unused leaders section (all on one row, wraps if needed)
-      currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing
 
       // Add space for Protect the Pod stamp
       const stampHeight = 40
@@ -2942,25 +2930,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
       }
       currentY += sideboardRows * (cardHeight + spacing) + sectionSpacing
-
-      // Draw unused leaders (in grayscale) - all on one row (wraps if needed)
-      if (unusedLeaders.length > 0) {
-        const leadersPerRow = Math.floor((width - 2 * padding + spacing) / (leaderBaseWidth + spacing))
-        col = 0
-        row = 0
-        for (const leader of unusedLeaders) {
-          const x = padding + col * (leaderBaseWidth + spacing)
-          const y = currentY + row * (leaderBaseHeight + spacing)
-          await drawCard(leader, x, y, leaderBaseWidth, leaderBaseHeight, null, true)
-          col++
-          if (col >= leadersPerRow) {
-            col = 0
-            row++
-          }
-        }
-        const unusedLeadersRows = Math.ceil(unusedLeaders.length / leadersPerRow)
-        currentY += unusedLeadersRows * (leaderBaseHeight + spacing) + sectionSpacing
-      }
 
       // Draw pool name and timestamp at bottom
       const now = new Date()

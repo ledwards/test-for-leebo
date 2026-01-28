@@ -62,11 +62,18 @@ export default function DraftDeckPage({ params }) {
   }
 
   if (!isAuthenticated) {
+    const returnTo = shareId ? encodeURIComponent(`/draft/${shareId}/deck`) : '/'
     return (
       <div className="draft-page-bg">
         <div className="login-required">
           <h2>Sign In Required</h2>
           <p>Please sign in to access your draft deck</p>
+          <button
+            className="discord-login-button"
+            onClick={() => window.location.href = `/api/auth/signin/discord?return_to=${returnTo}`}
+          >
+            Sign in with Discord
+          </button>
         </div>
       </div>
     )

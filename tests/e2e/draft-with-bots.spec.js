@@ -294,21 +294,29 @@ test.describe('Draft with bots', () => {
           return disabledCards.length === 0
         }, { timeout: 10000 }).catch(() => {})
 
-        // Select a card by clicking
-        const packCards = page.locator('.pack-grid .draftable-card:not(.dimmed):not(.disabled)')
-        const cardCount = await packCards.count()
+        // Select a card by clicking (with retry for race conditions with bots)
+        for (let clickAttempt = 0; clickAttempt < 5; clickAttempt++) {
+          try {
+            // Re-query cards each attempt since DOM may have changed
+            const packCards = page.locator('.pack-grid .draftable-card:not(.dimmed):not(.disabled)')
+            const cardCount = await packCards.count()
 
-        if (cardCount > 0) {
-          const firstCard = packCards.first()
-          await firstCard.scrollIntoViewIfNeeded()
-          await firstCard.click()
+            if (cardCount === 0) {
+              // Cards disappeared, might have already been picked
+              await page.waitForTimeout(300)
+              continue
+            }
 
-          // Wait for selection with retry
-          for (let retry = 0; retry < 5; retry++) {
+            const firstCard = packCards.first()
+            await firstCard.click({ force: true, timeout: 2000 })
+
+            // Wait for selection to register
             await page.waitForTimeout(300)
             const selected = await page.locator('.pack-grid .draftable-card.selected').count()
             if (selected > 0) break
-            await firstCard.click()
+          } catch (clickErr) {
+            // Element might have been removed by bots - retry
+            await page.waitForTimeout(300)
           }
         }
 
@@ -372,9 +380,9 @@ test.describe('Draft with bots', () => {
         // Check for pool redirect (draft complete)
         if (page.url().includes('/pool/')) return
 
-        // Check leader round
-        const roundInfo = await page.locator('.draft-round-info').textContent({ timeout: 500 })
-        const match = roundInfo?.match(/Leader Round (\d+)/)
+        // Check leader round in .round-pick-info (shows "Leader 1/3", "Leader 2/3", etc.)
+        const roundInfo = await page.locator('.round-pick-info').textContent({ timeout: 500 })
+        const match = roundInfo?.match(/Leader (\d+)\/3/)
         if (match && parseInt(match[1]) >= targetRound) return
       } catch {}
       await page.waitForTimeout(500)
@@ -413,8 +421,9 @@ test.describe('Draft with bots', () => {
         // Check for completion
         if (page.url().includes('/pool/')) return
 
-        const roundInfo = await page.locator('.draft-round-info').textContent({ timeout: 500 })
-        const match = roundInfo?.match(/Round (\d+) - Pick (\d+)/)
+        // Check pick info in .round-pick-info (shows "Pack 1 - Pick 1", etc.)
+        const roundInfo = await page.locator('.round-pick-info').textContent({ timeout: 500 })
+        const match = roundInfo?.match(/Pack (\d+) - Pick (\d+)/)
         if (match) {
           const pack = parseInt(match[1])
           const pick = parseInt(match[2])

@@ -58,19 +58,27 @@ export async function GET(request, { params }) {
 
     const allCards = [...draftedLeaders, ...draftedCards]
 
-    // Get the original packs assigned to this player
-    const allPacks = typeof pod.all_packs === 'string'
-      ? JSON.parse(pod.all_packs)
-      : pod.all_packs || []
+    // Group drafted cards by pack number (the round they were picked in)
+    const packsByRound = {}
+    for (const card of draftedCards) {
+      const packNum = card.packNumber || 1
+      if (!packsByRound[packNum]) {
+        packsByRound[packNum] = []
+      }
+      packsByRound[packNum].push(card)
+    }
 
-    // Player's seat number is 1-indexed, array is 0-indexed
-    const playerPacksIndex = player.seat_number - 1
-    const playerOriginalPacks = allPacks[playerPacksIndex] || []
+    // Sort cards within each pack by pick number
+    for (const packNum of Object.keys(packsByRound)) {
+      packsByRound[packNum].sort((a, b) => (a.pickNumber || 0) - (b.pickNumber || 0))
+    }
 
-    // Format packs to match sealed pools format (just cards property, no name)
-    const formattedPacks = playerOriginalPacks.map(packCards => ({
-      cards: packCards
-    }))
+    // Format packs to match sealed pools format (sorted by pack number)
+    const formattedPacks = Object.keys(packsByRound)
+      .sort((a, b) => Number(a) - Number(b))
+      .map(packNum => ({
+        cards: packsByRound[packNum]
+      }))
 
     // Create a new pool
     const poolShareId = nanoid(8)

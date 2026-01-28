@@ -127,7 +127,7 @@
   justify-content: flex-start;
   padding-top: 25px;
   /* Account for radial leader info extending beyond circle */
-  min-width: 650px;
+  min-width: 500px;
 }
 
 .cards-section {
@@ -136,7 +136,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 20px;
-  min-width: 400px;
+  min-width: 350px;
   max-width: 600px;
   flex: 1;
 }
@@ -440,7 +440,7 @@
 }
 
 /* When wrapped to single column, reverse order so cards are on top */
-@media (max-width: 1100px) {
+@media (max-width: 900px) {
   .draft-layout {
     flex-direction: column;
     gap: 1.5rem;

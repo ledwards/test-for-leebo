@@ -186,11 +186,20 @@ test.describe('2-player draft', () => {
     // === STEP 6: Verify completion ===
     console.log('\n--- STEP 6: Verifying completion ---')
 
-    // Wait for redirect to pool or completion state
-    await pages[0].waitForTimeout(3000)
-
-    const p1Complete = pages[0].url().includes('/pool/') ||
-      await pages[0].locator('.draft-complete, .deck-builder').isVisible().catch(() => false)
+    // Wait for redirect to pool or completion state (poll for up to 30 seconds)
+    let p1Complete = false
+    for (let i = 0; i < 30; i++) {
+      await pages[0].waitForTimeout(1000)
+      if (pages[0].url().includes('/pool/')) {
+        p1Complete = true
+        break
+      }
+      const isComplete = await pages[0].locator('.draft-complete, .deck-builder').isVisible().catch(() => false)
+      if (isComplete) {
+        p1Complete = true
+        break
+      }
+    }
 
     expect(p1Complete).toBeTruthy()
 
@@ -242,8 +251,13 @@ test.describe('2-player draft', () => {
       const states = await Promise.all(
         pages.map(async (page) => {
           try {
-            const roundInfo = await page.locator('.draft-round-info').textContent({ timeout: 300 })
-            const match = roundInfo?.match(/Leader Round (\d+)/)
+            // Check if we've moved to pack draft phase
+            const inPackPhase = await page.locator('.pack-draft-phase').isVisible({ timeout: 100 }).catch(() => false)
+            if (inPackPhase) return true
+
+            // Look for round info in .round-pick-info (shows "Leader 1/3", "Leader 2/3", etc.)
+            const roundInfo = await page.locator('.round-pick-info').textContent({ timeout: 300 })
+            const match = roundInfo?.match(/Leader (\d+)\/3/)
             if (match) {
               return parseInt(match[1]) > currentRound
             }
@@ -286,9 +300,9 @@ test.describe('2-player draft', () => {
             const complete = await page.locator('.draft-complete').isVisible({ timeout: 100 }).catch(() => false)
             if (complete) return true
 
-            // Check pick info
-            const roundInfo = await page.locator('.draft-round-info').textContent({ timeout: 300 })
-            const match = roundInfo?.match(/Round (\d+) - Pick (\d+)/)
+            // Check pick info in .round-pick-info (shows "Pack 1 - Pick 1", etc.)
+            const roundInfo = await page.locator('.round-pick-info').textContent({ timeout: 300 })
+            const match = roundInfo?.match(/Pack (\d+) - Pick (\d+)/)
             if (match) {
               const pack = parseInt(match[1])
               const pick = parseInt(match[2])

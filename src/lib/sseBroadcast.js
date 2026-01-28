@@ -2,9 +2,11 @@
  * SSE Broadcast Helper
  *
  * Helper functions for broadcasting draft state updates to SSE clients.
+ * Uses Redis to store state version for cross-instance change detection.
  */
 import { queryRow, queryRows } from '@/lib/db.js'
 import { broadcast } from './sseConnections.js'
+import { setStateVersion } from './redis.js'
 
 /**
  * Broadcast a full state update to all connected clients for a draft.
@@ -96,7 +98,11 @@ export async function broadcastDraftState(shareId) {
       }
     })
 
-    // Broadcast the public state
+    // Store state version in Redis for cross-instance change detection
+    // This allows SSE endpoints on other Vercel instances to detect changes
+    await setStateVersion(shareId, pod.state_version)
+
+    // Broadcast the public state (for same-instance clients)
     // Note: Each client will need to fetch their own myPlayer data
     // since we can't send user-specific data in a broadcast
     broadcast(shareId, {

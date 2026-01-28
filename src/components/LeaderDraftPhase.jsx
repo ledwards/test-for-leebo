@@ -26,6 +26,11 @@ function LeaderDraftPhase({
   const hasSelected = myPlayer?.pickStatus === 'selected'
   const round = draftState?.leaderRound || 1
 
+  // Check if all players have selected or picked
+  const allPlayersReady = players.length > 0 && players.every(p =>
+    p.pickStatus === 'selected' || p.pickStatus === 'picked'
+  )
+
   // Local selection state, persisted to localStorage
   const storageKey = `draft-selection-${shareId}-leader-${round}`
   const [selectedCardId, setSelectedCardId] = useState(null)
@@ -83,23 +88,42 @@ function LeaderDraftPhase({
     }
   }, [round, shareId])
 
-  // Manage "passing" state - show skeleton cards only when ALL players have picked
-  // (pickStatus becomes 'picked' after server processes all selections)
-  useEffect(() => {
-    const allPickedAndPassing = myPlayer?.pickStatus === 'picked'
+  // Track round to detect when new leaders arrive
+  const prevRoundRef = useRef(round)
 
-    if (allPickedAndPassing && leaders.length > 0) {
-      // Start showing passing state
+  // Manage "passing" state - show skeleton cards when ALL players have selected
+  // and the current player has also selected
+  useEffect(() => {
+    // Check if all players have selected or picked
+    const allPlayersReady = players.length > 0 && players.every(p =>
+      p.pickStatus === 'selected' || p.pickStatus === 'picked'
+    )
+
+    // Only show passing state if current player has selected AND all players ready
+    if (allPlayersReady && hasSelected && leaders.length > 0) {
+      // All players ready, show passing state
       setShowPassing(true)
-      // Next round will have one fewer leader (the one we just picked)
+      // Next round will have one fewer leader
       setLastLeadersCount(Math.max(0, leaders.length - 1))
 
       // Clear any existing timeout
       if (passingTimeoutRef.current) {
         clearTimeout(passingTimeoutRef.current)
       }
-    } else if (!allPickedAndPassing && showPassing) {
-      // Pick completed, hide after brief delay to ensure smooth transition
+    }
+
+    return () => {
+      if (passingTimeoutRef.current) {
+        clearTimeout(passingTimeoutRef.current)
+      }
+    }
+  }, [players, leaders.length, hasSelected])
+
+  // Reset passing state when round changes (new leaders arrived)
+  useEffect(() => {
+    if (round !== prevRoundRef.current) {
+      prevRoundRef.current = round
+      // New round arrived, hide passing state after brief delay
       passingTimeoutRef.current = setTimeout(() => {
         setShowPassing(false)
       }, 300)
@@ -110,7 +134,7 @@ function LeaderDraftPhase({
         clearTimeout(passingTimeoutRef.current)
       }
     }
-  }, [myPlayer?.pickStatus, leaders.length, showPassing])
+  }, [round])
 
   const handleCardClick = (card) => {
     if (loading || !canSelect) return
@@ -214,8 +238,10 @@ function LeaderDraftPhase({
                     <span className="selection-card-subtitle">{selectedLeader.subtitle}</span>
                   )}
                 </div>
-                {hasSelected ? (
+                {hasSelected && !allPlayersReady ? (
                   <div className="selection-status-text">Waiting for other players...</div>
+                ) : hasSelected && allPlayersReady ? (
+                  <div className="selection-status-text">Everyone has selected!</div>
                 ) : (
                   <button className="deselect-button" onClick={(e) => handleDeselect(e)} title="Deselect">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -230,11 +256,13 @@ function LeaderDraftPhase({
 
           <div className="available-leaders">
             <h3>
-              {hasSelected
+              {hasSelected && !allPlayersReady
                 ? 'Waiting for other players...'
-                : canSelect
-                  ? (round === 3 ? 'Select Your Final Leader' : 'Select a Leader')
-                  : 'Waiting...'}
+                : hasSelected && allPlayersReady
+                  ? 'Everyone has selected!'
+                  : canSelect
+                    ? (round === 3 ? 'Select Your Final Leader' : 'Select a Leader')
+                    : 'Waiting...'}
             </h3>
             {/* Show skeleton cards when waiting for next round */}
             {showPassing && (lastLeadersCount > 0 || leaders.length > 0) ? (
@@ -270,9 +298,11 @@ function LeaderDraftPhase({
               </div>
             ) : (
               <p className="no-leaders">
-                {myPlayer?.pickStatus === 'picked'
+                {myPlayer?.pickStatus === 'picked' && !allPlayersReady
                   ? 'Waiting for other players...'
-                  : 'No leaders available'}
+                  : myPlayer?.pickStatus === 'picked' && allPlayersReady
+                    ? 'Everyone has selected!'
+                    : 'No leaders available'}
               </p>
             )}
           </div>

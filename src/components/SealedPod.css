@@ -313,7 +313,7 @@
   flex-shrink: 0;
   background: rgba(0, 0, 0, 0.6);
   border: none;
-  border-radius: 6px;
+  border-radius: 11px;
   position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   aspect-ratio: 2.5 / 3.5;
@@ -326,7 +326,7 @@
   content: '';
   position: absolute;
   inset: -1px;
-  border-radius: 7px;
+  border-radius: 12px;
   background: linear-gradient(
     45deg,
     #ff0000,
@@ -347,7 +347,7 @@
 }
 
 .card-item > * {
-  border-radius: 6px;
+  border-radius: 11px;
   overflow: hidden;
 }
 
@@ -594,7 +594,7 @@
     width: 45%;
     max-width: 45%;
     flex: 0 0 45%;
-    border-radius: 8px;
+    border-radius: 11px;
   }
 
   /* Leaders and bases - landscape orientation on mobile, same width as other cards */
@@ -604,6 +604,9 @@
     max-width: 45%;
     flex: 0 0 45%;
     aspect-ratio: 3.5 / 2.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .draft-mode .card-item.leader,
@@ -620,6 +623,8 @@
     max-width: 45%;
     flex: 0 0 45%;
     aspect-ratio: 3.5 / 2.5;
+    overflow: hidden;
+    position: relative;
   }
 
   /* Leaders/bases rotated 90deg CCW on mobile to show landscape */
@@ -629,7 +634,7 @@
     top: 50%;
     left: 50%;
     width: auto;
-    height: calc(100% * 1.4);
+    height: 140%;
     transform: translate(-50%, -50%) rotate(-90deg);
     transform-origin: center;
     object-fit: contain;
@@ -641,16 +646,10 @@
     top: 50%;
     left: 50%;
     width: auto;
-    height: calc(100% * 1.4);
+    height: 140%;
     transform: translate(-50%, -50%) rotate(-90deg);
     transform-origin: center;
     aspect-ratio: 2.5 / 3.5;
-  }
-
-  /* Clip overflow on leader/base containers */
-  .sealed-mode .card-item.leader,
-  .sealed-mode .card-item.base {
-    overflow: hidden;
   }
 
   /* Disable hover zoom effect on mobile */

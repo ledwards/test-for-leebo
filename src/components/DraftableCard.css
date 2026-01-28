@@ -6,7 +6,7 @@
   min-width: 120px;
   max-width: 120px;
   aspect-ratio: 2.5 / 3.5;
-  border-radius: 6px;
+  border-radius: 11px;
   overflow: visible;
   cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.2s ease;
@@ -132,9 +132,9 @@
   color: #888;
 }
 
-/* Card preview tooltip */
+/* Card preview tooltip - pointer-events none to not block card clicks */
 .card-preview-enlarged {
-  pointer-events: auto;
+  pointer-events: none !important;
   cursor: default;
 }
 

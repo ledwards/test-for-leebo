@@ -27,9 +27,9 @@ export async function POST(request, { params }) {
     const url = new URL(request.url)
     const count = Math.min(7, Math.max(1, parseInt(url.searchParams.get('count') || '1', 10)))
 
-    // Get draft pod
+    // Get draft pod (only need id, status, max_players)
     const pod = await queryRow(
-      'SELECT * FROM draft_pods WHERE share_id = $1',
+      'SELECT id, status, max_players FROM draft_pods WHERE share_id = $1',
       [shareId]
     )
 

@@ -260,6 +260,42 @@ function displaySummary() {
   }
 
   console.log('')
+
+  // Show commands to re-run failing tests
+  if (hasErrors) {
+    log('─'.repeat(70), 'dim')
+    log('  Re-run failing tests:', 'yellow')
+    console.log('')
+
+    if (qaResults && qaResults.failed > 0) {
+      log('  npm run qa', 'cyan')
+    }
+
+    if (e2eResults && e2eResults.failed > 0) {
+      log('  npm run test:e2e', 'cyan')
+
+      // Show specific test file commands if we have failed test names
+      if (e2eResults.failedTests && e2eResults.failedTests.length > 0) {
+        console.log('')
+        log('  Or run specific failing tests:', 'dim')
+        const seenFiles = new Set()
+        e2eResults.failedTests.forEach(test => {
+          // Extract test file from test name (format: "file > test name")
+          const match = test.name.match(/^([^>]+)/)
+          if (match) {
+            const testFile = match[1].trim().toLowerCase().replace(/\s+/g, '-')
+            if (!seenFiles.has(testFile)) {
+              seenFiles.add(testFile)
+              log(`  npx playwright test ${testFile}`, 'dim')
+            }
+          }
+        })
+      }
+    }
+
+    console.log('')
+  }
+
   log('═'.repeat(70), 'cyan')
   console.log('')
 
