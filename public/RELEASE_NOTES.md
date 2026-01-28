@@ -12,6 +12,7 @@
 - Fixed player circle positioning on mobile devices
 - Fixed leader card clipping in sealed pools on mobile
 - Removed hover effects on touch devices for opponent leaders
+- Improved support for smaller desktop displays
 - Fixed mobile layout flex-direction causing off-center player circle
 
 ### 🎨 UI Improvements
