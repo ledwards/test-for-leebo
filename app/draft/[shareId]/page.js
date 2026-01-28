@@ -205,10 +205,12 @@ export default function DraftRoomPage({ params }) {
       // Handle state changed response (409) - refresh data silently
       if (result?.stateChanged) {
         await refresh()
-        // Don't show error - the SSE will update the UI with current state
         return
       }
-      // SSE will push the state update, no need to refresh normally
+      // After selecting, refresh to catch state changes from bot processing
+      // SSE often doesn't work across Vercel instances, so we poll aggressively
+      setTimeout(() => refresh(), 200)
+      setTimeout(() => refresh(), 600)
     } catch (err) {
       setError(err.message)
     } finally {
