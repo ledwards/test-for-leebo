@@ -83,11 +83,12 @@ function LeaderDraftPhase({
     }
   }, [round, shareId])
 
-  // Manage "passing" state - show skeleton cards for minimum time
+  // Manage "passing" state - show skeleton cards only when ALL players have picked
+  // (pickStatus becomes 'picked' after server processes all selections)
   useEffect(() => {
-    const isPicked = hasSelected || myPlayer?.pickStatus === 'picked'
+    const allPickedAndPassing = myPlayer?.pickStatus === 'picked'
 
-    if (isPicked && leaders.length > 0) {
+    if (allPickedAndPassing && leaders.length > 0) {
       // Start showing passing state
       setShowPassing(true)
       // Next round will have one fewer leader (the one we just picked)
@@ -97,7 +98,7 @@ function LeaderDraftPhase({
       if (passingTimeoutRef.current) {
         clearTimeout(passingTimeoutRef.current)
       }
-    } else if (!isPicked && showPassing) {
+    } else if (!allPickedAndPassing && showPassing) {
       // Pick completed, hide after brief delay to ensure smooth transition
       passingTimeoutRef.current = setTimeout(() => {
         setShowPassing(false)
@@ -109,7 +110,7 @@ function LeaderDraftPhase({
         clearTimeout(passingTimeoutRef.current)
       }
     }
-  }, [hasSelected, myPlayer?.pickStatus, leaders.length, showPassing])
+  }, [myPlayer?.pickStatus, leaders.length, showPassing])
 
   const handleCardClick = (card) => {
     if (loading || !canSelect) return

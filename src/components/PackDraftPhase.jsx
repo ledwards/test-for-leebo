@@ -129,11 +129,12 @@ function PackDraftPhase({
     keysToCheck.forEach(key => localStorage.removeItem(key))
   }, [packNumber, pickInPack, shareId, storageKey])
 
-  // Manage "passing" state - show skeleton cards for minimum time
+  // Manage "passing" state - show skeleton cards only when ALL players have picked
+  // (pickStatus becomes 'picked' after server processes all selections)
   useEffect(() => {
-    const isPicked = hasSelected || myPlayer?.pickStatus === 'picked'
+    const allPickedAndPassing = myPlayer?.pickStatus === 'picked'
 
-    if (isPicked && currentPack.length > 0) {
+    if (allPickedAndPassing && currentPack.length > 0) {
       // Start showing passing state
       setShowPassing(true)
       // Next pack will have one fewer card (the one we just picked)
@@ -143,7 +144,7 @@ function PackDraftPhase({
       if (passingTimeoutRef.current) {
         clearTimeout(passingTimeoutRef.current)
       }
-    } else if (!isPicked && showPassing) {
+    } else if (!allPickedAndPassing && showPassing) {
       // Pick completed, hide after brief delay to ensure smooth transition
       passingTimeoutRef.current = setTimeout(() => {
         setShowPassing(false)
@@ -155,7 +156,7 @@ function PackDraftPhase({
         clearTimeout(passingTimeoutRef.current)
       }
     }
-  }, [hasSelected, myPlayer?.pickStatus, currentPack.length, showPassing])
+  }, [myPlayer?.pickStatus, currentPack.length, showPassing])
 
   // Pack draft: pack 1 & 3 pass left, pack 2 passes right
   const passDirection = packNumber % 2 === 1 ? 'left' : 'right'

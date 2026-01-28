@@ -181,33 +181,45 @@ export function useDraftSSE(shareId, { enabled = true, reconnectDelay = 2000 } =
   const connect = useCallback(() => {
     if (!shareId || !enabled || deleted) return
 
+    // Validate shareId format (should be alphanumeric)
+    if (typeof shareId !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(shareId)) {
+      console.error('Invalid shareId format:', shareId)
+      return
+    }
+
     // Clean up existing connection
     if (eventSourceRef.current) {
       eventSourceRef.current.close()
     }
 
-    const eventSource = new EventSource(`/api/draft/${shareId}/stream`)
-    eventSourceRef.current = eventSource
+    try {
+      const eventSource = new EventSource(`/api/draft/${shareId}/stream`)
+      eventSourceRef.current = eventSource
 
-    eventSource.onopen = () => {
-      setConnected(true)
-      setError(null)
-      setLoading(false)
-    }
-
-    eventSource.onmessage = handleMessage
-
-    eventSource.onerror = (err) => {
-      console.error('SSE connection error:', err)
-      setConnected(false)
-      eventSource.close()
-
-      // Reconnect after delay (unless deleted)
-      if (!deleted) {
-        reconnectTimeoutRef.current = setTimeout(() => {
-          connect()
-        }, reconnectDelay)
+      eventSource.onopen = () => {
+        setConnected(true)
+        setError(null)
+        setLoading(false)
       }
+
+      eventSource.onmessage = handleMessage
+
+      eventSource.onerror = (err) => {
+        console.error('SSE connection error:', err)
+        setConnected(false)
+        eventSource.close()
+
+        // Reconnect after delay (unless deleted)
+        if (!deleted) {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            connect()
+          }, reconnectDelay)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to create EventSource:', err)
+      setError('Failed to connect to draft updates')
+      setLoading(false)
     }
   }, [shareId, enabled, deleted, reconnectDelay, handleMessage])
 
