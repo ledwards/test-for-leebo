@@ -9,7 +9,8 @@ function ReleaseNotes() {
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
-    fetch('/RELEASE_NOTES.md')
+    // Add cache-busting query parameter to always fetch fresh content
+    fetch(`/RELEASE_NOTES.md?v=${Date.now()}`)
       .then(response => response.text())
       .then(text => {
         // Remove everything after triple HR

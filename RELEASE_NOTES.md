@@ -1,34 +1,37 @@
 # Release Notes
 
-## v0.2.0 - TBD
+## 01.29.2026
 
 ### 🎉 New Features
-- Release notes display on landing page
-- Homepage logo now links to root URL for SEO
+- Release notes display on landing page (lol)
+
+### 🦾 Infrastructure
+- Improved draft reliability with new real-time event-based architecture
 
 ### 🐛 Bug Fixes
-- Fixed player circle centering on mobile devices
+- Fixed player circle positioning on mobile devices
 - Fixed leader card clipping in sealed pools on mobile
 - Removed hover effects on touch devices for opponent leaders
+- Improved support for smaller desktop displays
 - Fixed mobile layout flex-direction causing off-center player circle
 
 ### 🎨 UI Improvements
-- Bots no longer show as disconnected in player status
+- Players can show as disconnected
 
 ---
 
-## v0.1.0 - Initial Release
+## 01.15.2026 - Initial Release
 
 ### 🎉 New Features
 - Sealed pool generation with proper booster pack simulation
 - Draft pod creation and management with 2-8 players
-- Leader draft phase with 3-round Rochester-style drafting
+- Leader draft phase with 3-round drafting
 - Pack draft phase with dynamic pass-left/pass-right rotation
-- Bot players with intelligent drafting behavior
+- Bot players with random drafting behavior
 - Real-time multiplayer synchronization
 - Discord authentication and user accounts
 - Draft and sealed pool history
-- Comprehensive deck builder with drag-and-drop
+- Comprehensive deck builder
 - Mobile-responsive design
 
 ### 📦 Pack Generation
@@ -52,17 +55,16 @@
 
 ## How to Update Release Notes
 
-1. Add new version section at the top (above the previous version)
-2. Use semantic versioning (MAJOR.MINOR.PATCH)
+1. Add new date section at the top (above the previous date)
+2. Use US date format (MM.DD.YYYY)
 3. Use emoji categories:
    - 🎉 New Features
    - 🐛 Bug Fixes
    - 🎨 UI Improvements
    - ⚡ Performance
+   - 🦾 Infrastructure
    - 🔒 Security
    - 📝 Documentation
    - 🔧 Maintenance
    - 📦 Pack/Data Changes
 4. Keep entries concise and user-friendly
-5. Use format: `## vX.Y.Z - YYYY-MM-DD` or `## vX.Y.Z - TBD` for unreleased
-6. After publishing, update TBD to actual date
