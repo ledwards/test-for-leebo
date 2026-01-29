@@ -1,6 +1,20 @@
 # Release Notes
 
 ## 01.29.2026
+Great news, with this update, I'm excited to announce the migration to Railway.app as our new hosting platform. This move enables a shift to a lightning-fast, robust realtime architecture based on socket.io, ensuring more reliable multiplayer experiences.
+
+After a few more UI updates, the next focus area will be data quality and improving pack generation even further.
+
+Additionally, we've got a Discord now: [https://discord.gg/u6fkdDzWqF](https://discord.gg/u6fkdDzWqF). Join to find games and give feedback on the app. See you there!
+
+### 🦾 Infrastructure
+- Brand new hosting on Railway.app
+- Robust socket.io-based realtime architecture
+
+### 🎨 UI Features
+- Maintenance mode, 404, and 500 error pages using failpurrgils
+
+## 01.28.2026
 
 ### 🎉 New Features
 - Release notes display on landing page (lol)
@@ -15,12 +29,9 @@
 - Improved support for smaller desktop displays
 - Fixed mobile layout flex-direction causing off-center player circle
 
-### 🎨 UI Improvements
-- Players can show as disconnected
-
 ---
 
-## 01.15.2026 - Initial Release
+## 01.14.2026 - Initial Release
 
 ### 🎉 New Features
 - Sealed pool generation with proper booster pack simulation

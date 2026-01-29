@@ -16,6 +16,16 @@
   transition: all 0.2s ease;
   border-radius: 6px;
   text-decoration: none;
+  color: white;
+}
+
+/* Ensure links styled as buttons don't inherit link colors */
+a.btn,
+a.btn:visited,
+a.btn:hover,
+a.btn:active {
+  color: white;
+  text-decoration: none;
 }
 
 .btn:disabled,
@@ -65,6 +75,7 @@
 .btn--primary:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.85);
   border-color: rgba(0, 255, 0, 0.8);
+  color: white;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
 }
