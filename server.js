@@ -64,31 +64,13 @@ app.prepare().then(() => {
   // Store globally so API routes can access it
   global.io = io
 
-  // Handle connections
   io.on('connection', (socket) => {
-    if (dev) {
-      console.log('Client connected:', socket.id)
-    }
-
-    // Join a draft room
     socket.on('join-draft', (shareId) => {
       socket.join(`draft:${shareId}`)
-      if (dev) {
-        console.log(`Socket ${socket.id} joined draft:${shareId}`)
-      }
     })
 
     socket.on('leave-draft', (shareId) => {
       socket.leave(`draft:${shareId}`)
-      if (dev) {
-        console.log(`Socket ${socket.id} left draft:${shareId}`)
-      }
-    })
-
-    socket.on('disconnect', () => {
-      if (dev) {
-        console.log('Client disconnected:', socket.id)
-      }
     })
   })
 
