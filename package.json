@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node server.js",
-    "build": "node scripts/migrate-on-deploy.js && next build",
+    "build": "next build",
     "start": "NODE_ENV=production node server.js",
     "lint": "eslint .",
     "fetch-cards": "node scripts/fetchCards.js",
