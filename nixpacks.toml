@@ -1,5 +1,4 @@
-[build]
-builder = "nixpacks"
+provider = "node"
 
 [phases.setup]
 nixPkgs = ["nodejs_22"]
