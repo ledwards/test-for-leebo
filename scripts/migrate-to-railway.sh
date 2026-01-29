@@ -12,12 +12,22 @@ echo ""
 # Configuration - UPDATE THESE
 VERCEL_PROJECT="swupod"  # Your Vercel project name
 OLD_DB_URL=""  # Will prompt if not set
-NEW_DB_URL="postgresql://postgres:NfsyTRtIevoiZSRmRbTynQJmeyrNOzwa@shuttle.proxy.rlwy.net:27886/railway"
+NEW_DB_URL="postgresql://postgres:nXhQVupkqoxsoDEHPshxpLblDTQYDuDr@shinkansen.proxy.rlwy.net:35971/railway"
 
 # Check for required tools
 command -v vercel >/dev/null 2>&1 || { echo "Error: vercel CLI required. Install with: npm i -g vercel"; exit 1; }
-command -v pg_dump >/dev/null 2>&1 || { echo "Error: pg_dump required. Install PostgreSQL client tools."; exit 1; }
-command -v psql >/dev/null 2>&1 || { echo "Error: psql required. Install PostgreSQL client tools."; exit 1; }
+
+# Use PostgreSQL 17 if available (for newer Vercel/Railway DBs)
+if [ -x "/opt/homebrew/opt/postgresql@17/bin/pg_dump" ]; then
+  PG_DUMP="/opt/homebrew/opt/postgresql@17/bin/pg_dump"
+  PSQL="/opt/homebrew/opt/postgresql@17/bin/psql"
+  echo "Using PostgreSQL 17 tools"
+else
+  PG_DUMP="pg_dump"
+  PSQL="psql"
+  command -v pg_dump >/dev/null 2>&1 || { echo "Error: pg_dump required. Install PostgreSQL client tools."; exit 1; }
+  command -v psql >/dev/null 2>&1 || { echo "Error: psql required. Install PostgreSQL client tools."; exit 1; }
+fi
 
 echo "Step 1: What would you like to do?"
 echo "  1) Turn on maintenance mode (Vercel)"
@@ -72,7 +82,7 @@ case $choice in
 
     echo ""
     echo "Dumping from source database..."
-    pg_dump "$OLD_DB_URL" --no-owner --no-acl > "$BACKUP_FILE"
+    $PG_DUMP "$OLD_DB_URL" --no-owner --no-acl > "$BACKUP_FILE"
 
     echo "Backup saved to: $BACKUP_FILE"
     echo "Backup size: $(du -h "$BACKUP_FILE" | cut -f1)"
@@ -81,7 +91,7 @@ case $choice in
     read -p "Restore to Railway database? [y/N]: " confirm
     if [ "$confirm" == "y" ] || [ "$confirm" == "Y" ]; then
       echo "Restoring to Railway database..."
-      psql "$NEW_DB_URL" < "$BACKUP_FILE"
+      $PSQL "$NEW_DB_URL" < "$BACKUP_FILE"
       echo ""
       echo "✓ Database migration complete!"
     else
