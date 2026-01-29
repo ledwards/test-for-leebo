@@ -55,23 +55,29 @@ const handle = app.getRequestHandler()
 await runMigrations()
 
 app.prepare().then(() => {
-  const server = createServer((req, res) => {
-    // Let Socket.io handle its own paths
+  // Create server WITHOUT a request handler first
+  const server = createServer()
+
+  // Attach Socket.io BEFORE adding request handler
+  const io = new Server(server, {
+    cors: { origin: '*' },
+    path: '/socket.io/'
+  })
+
+  // Now add request handler for Next.js (non-socket.io requests)
+  server.on('request', (req, res) => {
     if (req.url?.startsWith('/socket.io')) {
+      console.log('[DEBUG] Socket.io request (letting engine handle):', req.method, req.url)
       return
     }
     handle(req, res)
-  })
-
-  // Socket.io setup
-  const io = new Server(server, {
-    cors: { origin: '*' }
   })
 
   // Store globally so API routes can access it
   global.io = io
 
   io.on('connection', (socket) => {
+    console.log('[DEBUG] Socket.io client connected:', socket.id)
     socket.on('join-draft', (shareId) => {
       socket.join(`draft:${shareId}`)
     })
