@@ -184,11 +184,24 @@ async function runMigrations() {
   }
 }
 
-// Only run if POSTGRES_URL is set (i.e., during Vercel deployment)
+// Only run if POSTGRES_URL is set (i.e., during deployment)
 if (process.env.POSTGRES_URL) {
+  // Check if this is a Railway internal URL during BUILD time (won't work)
+  // But allow it at RUNTIME (when called from server.js)
+  const dbUrl = process.env.POSTGRES_URL
+  const isRailwayInternal = dbUrl.includes('.railway.internal')
+  const isRuntime = process.env.RAILWAY_RUNTIME === 'true' || process.env.npm_lifecycle_event !== 'build'
+
+  if (isRailwayInternal && !isRuntime && process.argv[1]?.includes('migrate-on-deploy')) {
+    // This is being called during build with Railway internal URL - skip
+    console.log('⚠️  Railway internal database URL detected during build.')
+    console.log('   Internal URLs only work at runtime, not during build.')
+    console.log('   Skipping migrations during build - they will run at server startup.')
+    process.exit(0)
+  }
   runMigrations()
 } else {
   console.log('⚠️  POSTGRES_URL not set. Skipping migrations (this is normal for local development).')
-  console.log('   Migrations will run automatically during Vercel deployment.')
+  console.log('   Migrations will run automatically during deployment.')
   process.exit(0)
 }
