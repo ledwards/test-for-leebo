@@ -32,6 +32,7 @@ function LeaderDraftPhase({
   const [showPassing, setShowPassing] = useState(false)
   const [lastLeadersCount, setLastLeadersCount] = useState(0)
   const passingTimeoutRef = useRef(null)
+  const passingFromPackRef = useRef(null) // Track the first leader ID when we started passing
 
   // Load selection from localStorage on mount and when round changes
   useEffect(() => {
@@ -83,13 +84,30 @@ function LeaderDraftPhase({
     }
   }, [round, shareId])
 
-  // Manage "passing" state - show skeleton cards only when ALL players have picked
-  // (pickStatus becomes 'picked' after server processes all selections)
+  // Manage "passing" state - show skeleton cards when ALL players have picked
+  // Check public data (players array) for immediate feedback, don't wait for HTTP
   useEffect(() => {
-    const allPickedAndPassing = myPlayer?.pickStatus === 'picked'
+    // Use status from players array (WebSocket) - it's more up-to-date than myPlayer (HTTP)
+    const myPublicPlayer = players?.find(p => p.id === myPlayer?.id)
+    const myStatus = myPublicPlayer?.pickStatus || myPlayer?.pickStatus
 
-    if (allPickedAndPassing && leaders.length > 0) {
-      // Start showing passing state
+    const iPicked = myStatus === 'picked'
+    const iSelected = myStatus === 'selected'
+
+    // Check if all players are done (picked or selected)
+    const allPlayersDone = players?.length > 0 && players.every(p =>
+      p.pickStatus === 'picked' || p.pickStatus === 'selected'
+    )
+
+    // Get first leader ID to track pack identity
+    const firstLeaderId = leaders[0]?.instanceId || leaders[0]?.id || null
+
+    if ((iPicked || allPlayersDone) && leaders.length > 0) {
+      // Remember what pack we're passing FROM
+      if (!showPassing && firstLeaderId) {
+        passingFromPackRef.current = firstLeaderId
+      }
+      // Start showing passing state immediately when all players done
       setShowPassing(true)
       // Next round will have one fewer leader (the one we just picked)
       setLastLeadersCount(Math.max(0, leaders.length - 1))
@@ -98,11 +116,22 @@ function LeaderDraftPhase({
       if (passingTimeoutRef.current) {
         clearTimeout(passingTimeoutRef.current)
       }
-    } else if (!allPickedAndPassing && showPassing) {
-      // Pick completed, hide after brief delay to ensure smooth transition
-      passingTimeoutRef.current = setTimeout(() => {
-        setShowPassing(false)
-      }, 300)
+    } else if (myStatus === 'picking' && leaders.length > 0) {
+      // Only hide passing if we have a DIFFERENT pack than when we started passing
+      const packHasChanged = passingFromPackRef.current !== null &&
+        firstLeaderId !== passingFromPackRef.current
+
+      if (packHasChanged) {
+        // New leaders arrived, hide passing after brief delay
+        if (passingTimeoutRef.current) {
+          clearTimeout(passingTimeoutRef.current)
+        }
+        passingTimeoutRef.current = setTimeout(() => {
+          setShowPassing(false)
+          passingFromPackRef.current = null
+        }, 100)
+      }
+      // If pack hasn't changed, keep showing passing (waiting for new leaders)
     }
 
     return () => {
@@ -110,7 +139,7 @@ function LeaderDraftPhase({
         clearTimeout(passingTimeoutRef.current)
       }
     }
-  }, [myPlayer?.pickStatus, leaders.length, showPassing])
+  }, [myPlayer?.pickStatus, leaders, showPassing, players])
 
   const handleCardClick = (card) => {
     if (loading || !canSelect) return
@@ -170,6 +199,7 @@ function LeaderDraftPhase({
             isHost={isHost}
             onTogglePause={onTogglePause}
             draftState={draftState}
+            onTimerExpire={onTimerExpire}
           />
 
           <div className="drafted-leaders">
@@ -193,10 +223,10 @@ function LeaderDraftPhase({
             </div>
           </div>
 
-          {/* Selection confirmation banner */}
-          {selectedCardId && (() => {
+          {/* Selection confirmation banner - hide during passing transition */}
+          {selectedCardId && !showPassing && (() => {
             const selectedLeader = leaders.find(l => (l.instanceId || l.id) === selectedCardId)
-            if (!selectedLeader) return null
+            if (!selectedLeader || !selectedLeader.name) return null
             const firstAspect = selectedLeader.aspects?.[0]
             const aspectColor = firstAspect ? getSingleAspectColor(firstAspect) : NO_ASPECT_COLOR
             return (
@@ -209,13 +239,18 @@ function LeaderDraftPhase({
               >
                 <div className="selection-info">
                   <span className="selection-label">Selected:</span>
-                  <span className="selection-card-name" style={{ color: aspectColor }}>{selectedLeader.name}</span>
+                  <span className="selection-card-name" style={{ color: aspectColor }}>
+                    {selectedLeader.name || selectedLeader.title || 'Leader'}
+                  </span>
                   {selectedLeader.subtitle && (
                     <span className="selection-card-subtitle">{selectedLeader.subtitle}</span>
                   )}
                 </div>
                 {hasSelected ? (
-                  <div className="selection-status-text">Waiting for other players...</div>
+                  // Only show "Waiting" if there are players who aren't done yet
+                  players?.some(p => p.pickStatus !== 'picked' && p.pickStatus !== 'selected') ? (
+                    <div className="selection-status-text">Waiting for other players...</div>
+                  ) : null
                 ) : (
                   <button className="deselect-button" onClick={(e) => handleDeselect(e)} title="Deselect">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -231,7 +266,9 @@ function LeaderDraftPhase({
           <div className="available-leaders">
             <h3>
               {hasSelected
-                ? 'Waiting for other players...'
+                ? (players?.some(p => p.pickStatus !== 'picked' && p.pickStatus !== 'selected')
+                    ? 'Waiting for other players...'
+                    : 'Ready')
                 : canSelect
                   ? (round === 3 ? 'Select Your Final Leader' : 'Select a Leader')
                   : 'Waiting...'}

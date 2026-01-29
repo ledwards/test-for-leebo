@@ -7,7 +7,8 @@ import { loadDraft } from '@/src/utils/draftApi.js'
 /**
  * Hook for syncing draft state via WebSocket (Socket.io)
  *
- * Replaces useDraftSSE for Railway deployment where WebSockets work properly.
+ * WebSocket pushes public state changes instantly.
+ * User-specific data (myPlayer, currentPack, leaders) is fetched via HTTP.
  *
  * @param {string} shareId - Draft share ID
  * @param {Object} options - Options
@@ -24,24 +25,8 @@ export function useDraftSocket(shareId, { enabled = true } = {}) {
   const socketRef = useRef(null)
   const stateVersionRef = useRef(0)
 
-  // Fetch user-specific data (myPlayer) since broadcasts don't include it
-  const fetchMyPlayer = useCallback(async () => {
-    if (!shareId) return null
-    try {
-      const data = await loadDraft(shareId)
-      return {
-        myPlayer: data.myPlayer,
-        isHost: data.isHost,
-        isPlayer: data.isPlayer,
-      }
-    } catch (err) {
-      console.error('Error fetching myPlayer:', err)
-      return null
-    }
-  }, [shareId])
-
-  // Initial load
-  const loadInitial = useCallback(async (showLoading = true) => {
+  // Fetch full draft state including user-specific data via HTTP
+  const fetchDraft = useCallback(async (showLoading = true) => {
     if (!shareId) return
     if (showLoading) {
       setLoading(true)
@@ -63,10 +48,10 @@ export function useDraftSocket(shareId, { enabled = true } = {}) {
   useEffect(() => {
     if (!shareId || !enabled) return
 
-    // Load initial state
-    loadInitial()
+    // Initial load via HTTP
+    fetchDraft()
 
-    // Connect to Socket.io
+    // Connect to Socket.io for real-time notifications
     const socket = io()
     socketRef.current = socket
 
@@ -85,12 +70,13 @@ export function useDraftSocket(shareId, { enabled = true } = {}) {
       setError('Connection error')
     })
 
+    // When state changes, fetch fresh data via HTTP
     socket.on('state', async (data) => {
-      // Only update if version is newer
+      // Only fetch if version is newer
       if (data.stateVersion > stateVersionRef.current) {
         stateVersionRef.current = data.stateVersion
 
-        // Update public state immediately
+        // Update public state immediately for responsiveness
         setDraft(prev => ({
           ...prev,
           status: data.status,
@@ -109,10 +95,17 @@ export function useDraftSocket(shareId, { enabled = true } = {}) {
           pausedDurationSeconds: data.pausedDurationSeconds,
         }))
 
-        // Fetch user-specific data (myPlayer, current pack, etc.)
-        const userData = await fetchMyPlayer()
-        if (userData) {
-          setDraft(p => ({ ...p, ...userData }))
+        // Fetch user-specific data via HTTP (uses auth cookie)
+        try {
+          const fullData = await loadDraft(shareId)
+          setDraft(prev => ({
+            ...prev,
+            myPlayer: fullData.myPlayer,
+            isHost: fullData.isHost,
+            isPlayer: fullData.isPlayer,
+          }))
+        } catch (err) {
+          console.error('Error fetching user data:', err)
         }
       }
     })
@@ -125,12 +118,12 @@ export function useDraftSocket(shareId, { enabled = true } = {}) {
       socket.emit('leave-draft', shareId)
       socket.disconnect()
     }
-  }, [shareId, enabled, loadInitial, fetchMyPlayer])
+  }, [shareId, enabled, fetchDraft])
 
-  // Manual refresh (silent - no loading spinner)
+  // Manual refresh
   const refresh = useCallback(async () => {
-    await loadInitial(false)
-  }, [loadInitial])
+    await fetchDraft(false)
+  }, [fetchDraft])
 
   // Force reconnect
   const reconnect = useCallback(() => {

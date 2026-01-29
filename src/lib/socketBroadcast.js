@@ -2,12 +2,12 @@
  * Socket.io Broadcast Helper
  *
  * Broadcasts draft state updates to all connected clients via WebSocket.
- * Replaces the SSE-based broadcast system for Railway deployment.
+ * Sends PUBLIC data only - clients fetch their user-specific data via HTTP.
  */
 import { queryRow, queryRows } from '@/lib/db.js'
 
 /**
- * Broadcast draft state to all connected clients in a draft room
+ * Broadcast draft state to all connected clients in a draft room.
  * @param {string} shareId - Draft share ID
  */
 export async function broadcastDraftState(shareId) {
@@ -20,7 +20,7 @@ export async function broadcastDraftState(shareId) {
   try {
     const pod = await queryRow(
       `SELECT dp.id, dp.share_id, dp.status, dp.state_version, dp.draft_state,
-              dp.timed, dp.timer_enabled, dp.timer_seconds, dp.pick_timeout_seconds,
+              dp.host_id, dp.timed, dp.timer_enabled, dp.timer_seconds, dp.pick_timeout_seconds,
               dp.started_at, dp.completed_at, dp.pick_started_at,
               dp.paused, dp.paused_at, dp.paused_duration_seconds
        FROM draft_pods dp WHERE dp.share_id = $1`,
@@ -32,6 +32,7 @@ export async function broadcastDraftState(shareId) {
       return
     }
 
+    // Get all players (public info only)
     const players = await queryRows(
       `SELECT dpp.id, dpp.user_id, dpp.seat_number, dpp.pick_status, dpp.is_bot,
               dpp.leaders, dpp.drafted_leaders, dpp.drafted_cards,
@@ -49,7 +50,8 @@ export async function broadcastDraftState(shareId) {
 
     const isLeaderDraftPhase = draftState?.phase === 'leader_draft'
 
-    const formattedPlayers = players.map(p => {
+    // Build PUBLIC player data (visible to all)
+    const publicPlayers = players.map(p => {
       const draftedLeaders = p.drafted_leaders
         ? (typeof p.drafted_leaders === 'string' ? JSON.parse(p.drafted_leaders) : p.drafted_leaders)
         : []
@@ -65,6 +67,7 @@ export async function broadcastDraftState(shareId) {
         seatNumber: p.seat_number,
         pickStatus: p.pick_status,
         isBot: p.is_bot === true,
+        // During leader draft, show each player's leader pack (packs rotate anyway)
         leaderPack: isLeaderDraftPhase ? leadersPack.map(l => ({
           name: l.name,
           aspects: l.aspects || [],
@@ -84,11 +87,12 @@ export async function broadcastDraftState(shareId) {
       }
     })
 
+    // Broadcast public state to all clients in the room
     io.to(`draft:${shareId}`).emit('state', {
       stateVersion: pod.state_version,
       status: pod.status,
       draftState,
-      players: formattedPlayers,
+      players: publicPlayers,
       timed: pod.timed !== false,
       timerEnabled: pod.timer_enabled,
       timerSeconds: pod.timer_seconds,

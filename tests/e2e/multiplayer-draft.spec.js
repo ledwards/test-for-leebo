@@ -120,13 +120,30 @@ test.describe('Full 8-player draft', () => {
     for (let i = 1; i < NUM_PLAYERS; i++) {
       await pages[i].goto(`${BASE_URL}/draft/${shareId}`)
       await pages[i].waitForSelector('.draft-lobby', { timeout: 10000 })
-      await pages[i].waitForTimeout(300)
-      console.log(`  ✓ Player ${i + 1} joined`)
+      // Wait for auto-join to complete (player becomes a participant)
+      await pages[i].waitForTimeout(500)
+      console.log(`  ✓ Player ${i + 1} navigated`)
     }
 
-    await pages[0].waitForTimeout(1000)
+    // Wait for all players to actually join (auto-join is async)
+    console.log('  Waiting for all players to join...')
+    let attempts = 0
+    while (attempts < 60) {
+      const playerCountText = await pages[0].locator('.player-count').textContent().catch(() => '')
+      const match = playerCountText.match(/(\d+)\s*\/\s*(\d+)/)
+      if (match && parseInt(match[1]) >= NUM_PLAYERS) {
+        console.log(`  ✓ All ${NUM_PLAYERS} players joined`)
+        break
+      }
+      await pages[0].waitForTimeout(500)
+      attempts++
+      if (attempts % 10 === 0) {
+        console.log(`    Still waiting... (${playerCountText})`)
+      }
+    }
+
     const playerCountText = await pages[0].locator('.player-count').textContent()
-    console.log(`  Player count: ${playerCountText}`)
+    console.log(`  Final player count: ${playerCountText}`)
 
     // === STEP 3: Start draft ===
     console.log('\n--- STEP 3: Starting draft ---')
@@ -170,7 +187,7 @@ test.describe('Full 8-player draft', () => {
       for (let pick = 1; pick <= 14; pick++) {
         process.stdout.write(`    Pick ${pick}/14...`)
 
-        // Wait for all players to have cards
+        // Wait for all players to have cards ready to pick
         await waitForAllPlayersReady('.pack-grid .draftable-card')
 
         // All players select a card
@@ -178,7 +195,11 @@ test.describe('Full 8-player draft', () => {
 
         // Wait for pick to advance (unless last pick of last pack)
         if (!(pack === 3 && pick === 14)) {
-          await waitForPickAdvance(pack, pick)
+          // Wait for passing skeleton to confirm picks are registered
+          await waitForPassingSkeleton()
+
+          // Wait for new cards to appear (pack passed)
+          await waitForNewCardsAfterPassing('.pack-grid')
         }
 
         console.log(' ✓')
@@ -257,6 +278,40 @@ test.describe('Full 8-player draft', () => {
         // Ignore - player might be in transition
       }
     }))
+  }
+
+  // Helper: Wait for passing skeleton to show (indicates pick was registered)
+  async function waitForPassingSkeleton() {
+    const threshold = Math.ceil(NUM_PLAYERS * 0.75) // 75% of players should show skeleton
+    let attempts = 0
+    while (attempts < 30) {
+      const counts = await Promise.all(
+        pages.map(page =>
+          page.locator('.skeleton-card, .passing-message').count().catch(() => 0)
+        )
+      )
+      const showingCount = counts.filter(c => c > 0).length
+      if (showingCount >= threshold) return true
+      await pages[0].waitForTimeout(200)
+      attempts++
+    }
+    return false // Timeout, but don't throw - might be last pick
+  }
+
+  // Helper: Wait for new cards to appear after passing
+  async function waitForNewCardsAfterPassing(gridSelector) {
+    const threshold = Math.ceil(NUM_PLAYERS * 0.9) // 90% of players should have cards
+    let attempts = 0
+    while (attempts < 60) {
+      const counts = await Promise.all(
+        pages.map(page => page.locator(`${gridSelector} .draftable-card`).count().catch(() => 0))
+      )
+      const readyCount = counts.filter(c => c > 0).length
+      if (readyCount >= threshold) return
+      await pages[0].waitForTimeout(500)
+      attempts++
+    }
+    throw new Error(`Timeout waiting for new cards: ${gridSelector}`)
   }
 
   // Helper: Wait for leader round to advance

@@ -1,6 +1,9 @@
 // @ts-check
 import { test, expect } from '@playwright/test'
 import { checkLayoutIssues, waitForNetworkIdle, waitForCardsToLoad, shouldIgnoreError } from './helpers.js'
+import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.js'
+
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000'
 
 test.describe('Deck Builder', () => {
   // Store pool shareId for reuse across tests
@@ -158,9 +161,35 @@ test.describe('Deck Builder', () => {
 })
 
 test.describe('Deck Builder - Mobile', () => {
+  test.describe.configure({ mode: 'serial' })
   test.use({ viewport: { width: 375, height: 667 }, hasTouch: true })
 
-  test.beforeEach(async ({ page }) => {
+  const TEST_ID = `e2e_mobile_deck_${Date.now()}`
+  let testUser = null
+  let poolShareId = null
+
+  test.beforeEach(async ({ context, page }) => {
+    // Create test user if not already created
+    if (!testUser) {
+      testUser = await createTestUser('MobileDeckTester', TEST_ID)
+    }
+
+    // Set auth cookie for pool access
+    const urlObj = new URL(BASE_URL)
+    const cookieConfig = {
+      name: testUser.cookieName,
+      value: testUser.token,
+      httpOnly: true,
+      sameSite: 'Lax',
+    }
+    if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
+      cookieConfig.url = BASE_URL
+    } else {
+      cookieConfig.domain = urlObj.hostname
+      cookieConfig.path = '/'
+    }
+    await context.addCookies([cookieConfig])
+
     const errors = []
     page.on('console', msg => {
       if (msg.type() === 'error') {
@@ -178,16 +207,39 @@ test.describe('Deck Builder - Mobile', () => {
     page.errors = errors
   })
 
+  test.afterAll(async () => {
+    // Cleanup test users
+    try {
+      await cleanupTestUsers(TEST_ID)
+    } catch (e) {
+      console.error('Cleanup error:', e.message)
+    }
+    await closeDb()
+  })
+
   test('should display correctly on mobile', async ({ page }) => {
-    // Create a new pool
-    await page.goto('/sets')
-    await waitForNetworkIdle(page)
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    await page.locator('.set-card').first().click()
-    await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
-    const poolUrl = page.url()
-    const shareId = poolUrl.split('/pool/')[1]?.split('/')[0]
-    await page.goto(`/pool/${shareId}/deck`)
+    // Create pool if not already created
+    if (!poolShareId) {
+      await page.goto(`${BASE_URL}/sets`)
+      await waitForNetworkIdle(page)
+      await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
+      await page.locator('.set-card').first().click()
+
+      // Wait for pool page to load (URL changes via replaceState)
+      // The pool page shows cards, so wait for those
+      await page.waitForSelector('.card-image, .pool-card, .sealed-pod', { timeout: 30000 })
+      await page.waitForTimeout(1000) // Let replaceState complete
+      poolShareId = page.url().split('/pool/')[1]?.split('/')[0]?.split('?')[0]
+
+      // Fallback if URL extraction fails
+      if (!poolShareId || poolShareId.includes('pools')) {
+        // Still on /pools/new, try extracting from another source or wait more
+        await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 10000 })
+        poolShareId = page.url().split('/pool/')[1]?.split('/')[0]?.split('?')[0]
+      }
+    }
+
+    await page.goto(`${BASE_URL}/pool/${poolShareId}/deck`)
 
     // Wait for deck builder
     await expect(page.locator('.deck-builder, .card-grid').first()).toBeVisible({ timeout: 30000 })
@@ -197,8 +249,8 @@ test.describe('Deck Builder - Mobile', () => {
     const issues = await checkLayoutIssues(page)
     expect(issues).toHaveLength(0)
 
-    // Cards should be visible and reasonably sized
-    const card = page.locator('.card-image').first()
+    // Cards should be visible and reasonably sized (use canvas-card which is the actual class)
+    const card = page.locator('.canvas-card').first()
     await expect(card).toBeVisible()
 
     const box = await card.boundingBox()
@@ -208,16 +260,25 @@ test.describe('Deck Builder - Mobile', () => {
   })
 
   test('should not have hover effects interfering on mobile', async ({ page }) => {
-    // Create a new pool
-    await page.goto('/sets')
-    await waitForNetworkIdle(page)
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    await page.locator('.set-card').first().click()
-    await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
-    const poolUrl = page.url()
-    const shareId = poolUrl.split('/pool/')[1]?.split('/')[0]
-    await page.goto(`/pool/${shareId}/deck`)
+    // Create pool if not already created (in case first test is skipped)
+    if (!poolShareId) {
+      await page.goto(`${BASE_URL}/sets`)
+      await waitForNetworkIdle(page)
+      await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
+      await page.locator('.set-card').first().click()
 
+      // Wait for pool page to load
+      await page.waitForSelector('.card-image, .pool-card, .sealed-pod', { timeout: 30000 })
+      await page.waitForTimeout(1000)
+      poolShareId = page.url().split('/pool/')[1]?.split('/')[0]?.split('?')[0]
+
+      if (!poolShareId || poolShareId.includes('pools')) {
+        await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 10000 })
+        poolShareId = page.url().split('/pool/')[1]?.split('/')[0]?.split('?')[0]
+      }
+    }
+
+    await page.goto(`${BASE_URL}/pool/${poolShareId}/deck`)
     await waitForCardsToLoad(page)
 
     // Scroll down to avoid sticky header covering cards

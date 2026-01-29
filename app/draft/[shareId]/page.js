@@ -127,7 +127,7 @@ export default function DraftRoomPage({ params }) {
     setError(null)
     try {
       await startDraft(shareId)
-      await refresh()
+      // No need to refresh - WebSocket broadcast updates state
     } catch (err) {
       setError(err.message)
     } finally {
@@ -174,7 +174,7 @@ export default function DraftRoomPage({ params }) {
         const data = await response.json()
         throw new Error(data.message || 'Failed to add bot')
       }
-      await refresh()
+      // No need to refresh - WebSocket broadcast already updated the players list
     } catch (err) {
       setError(err.message)
     } finally {
@@ -188,7 +188,7 @@ export default function DraftRoomPage({ params }) {
     setError(null)
     try {
       await makePick(shareId, cardId)
-      await refresh()
+      // No need to refresh - WebSocket broadcast updates state
     } catch (err) {
       setError(err.message)
     } finally {
@@ -207,10 +207,7 @@ export default function DraftRoomPage({ params }) {
         await refresh()
         return
       }
-      // After selecting, refresh to catch state changes from bot processing
-      // SSE often doesn't work across Vercel instances, so we poll aggressively
-      setTimeout(() => refresh(), 200)
-      setTimeout(() => refresh(), 600)
+      // WebSocket broadcast handles state updates - no polling needed
     } catch (err) {
       setError(err.message)
     } finally {
@@ -292,6 +289,7 @@ export default function DraftRoomPage({ params }) {
       <div className="draft-page-bg">
         <div className="loading-container">
           <div className="loading"></div>
+          <p>Loading draft...</p>
         </div>
       </div>
     )

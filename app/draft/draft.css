@@ -1025,3 +1025,16 @@
     padding: 0.5rem;
   }
 }
+
+/* Skeleton loading styles */
+.skeleton-box {
+  background: linear-gradient(90deg, rgba(40, 40, 45, 1) 0%, rgba(60, 60, 65, 1) 50%, rgba(40, 40, 45, 1) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

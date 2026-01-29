@@ -28,6 +28,7 @@ app.prepare().then(() => {
       console.log('Client connected:', socket.id)
     }
 
+    // Join a draft room
     socket.on('join-draft', (shareId) => {
       socket.join(`draft:${shareId}`)
       if (dev) {

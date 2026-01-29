@@ -39,6 +39,7 @@ function PackDraftPhase({
   const [lastPackSize, setLastPackSize] = useState(0)
   const previewTimeoutRef = useRef(null)
   const passingTimeoutRef = useRef(null)
+  const passingFromPackRef = useRef(null) // Track the first card ID when we started passing
 
   const handleLeaderNameMouseEnter = (e, leader) => {
     // Disable hover preview on mobile
@@ -129,26 +130,74 @@ function PackDraftPhase({
     keysToCheck.forEach(key => localStorage.removeItem(key))
   }, [packNumber, pickInPack, shareId, storageKey])
 
-  // Manage "passing" state - show skeleton cards only when ALL players have picked
-  // (pickStatus becomes 'picked' after server processes all selections)
+  // Track the previous pick number to detect when packs should pass
+  const prevPickRef = useRef({ packNumber: 0, pickInPack: 0 })
+
+  // Manage "passing" state - show skeleton cards when transitioning between picks
+  // Show passing when: pickStatus is 'picked' OR when all players have picked (from public data)
   useEffect(() => {
-    const allPickedAndPassing = myPlayer?.pickStatus === 'picked'
+    // Use status from players array (WebSocket) - it's more up-to-date than myPlayer (HTTP)
+    const myPublicPlayer = players?.find(p => p.id === myPlayer?.id)
+    const myStatus = myPublicPlayer?.pickStatus || myPlayer?.pickStatus
 
-    if (allPickedAndPassing && currentPack.length > 0) {
-      // Start showing passing state
-      setShowPassing(true)
-      // Next pack will have one fewer card (the one we just picked)
-      setLastPackSize(Math.max(0, currentPack.length - 1))
+    const isPicked = myStatus === 'picked'
+    const hasSelected = myStatus === 'selected'
+    const hasNoCards = currentPack.length === 0
+    const pickChanged = prevPickRef.current.packNumber !== packNumber ||
+                        prevPickRef.current.pickInPack !== pickInPack
 
-      // Clear any existing timeout
-      if (passingTimeoutRef.current) {
-        clearTimeout(passingTimeoutRef.current)
+    // Check if all players are done (picked or selected)
+    const allPlayersDone = players?.length > 0 && players.every(p =>
+      p.pickStatus === 'picked' || p.pickStatus === 'selected'
+    )
+
+    // Update previous pick tracking
+    if (pickChanged && currentPack.length > 0) {
+      prevPickRef.current = { packNumber, pickInPack }
+    }
+
+    // Calculate expected next pack size
+    const calculateExpectedSize = () => {
+      if (currentPack.length > 0) {
+        return Math.max(0, currentPack.length - 1)
       }
-    } else if (!allPickedAndPassing && showPassing) {
-      // Pick completed, hide after brief delay to ensure smooth transition
-      passingTimeoutRef.current = setTimeout(() => {
-        setShowPassing(false)
-      }, 300)
+      return Math.max(0, (draft?.packSize || 14) - draftedCards.length % (draft?.packSize || 14) - 1)
+    }
+
+    // Get first card ID to track pack identity
+    const firstCardId = currentPack[0]?.instanceId || currentPack[0]?.id || null
+
+    // Show passing when:
+    // 1. I've picked and waiting for others
+    // 2. All players are done (picked or selected) - round about to advance
+    // 3. Waiting for pack data after pick advanced
+    if (isPicked || allPlayersDone) {
+      // Remember what pack we're passing FROM
+      if (!showPassing && firstCardId) {
+        passingFromPackRef.current = firstCardId
+      }
+      setShowPassing(true)
+      const expectedSize = calculateExpectedSize()
+      setLastPackSize(expectedSize > 0 ? expectedSize : lastPackSize)
+    } else if (hasNoCards && myStatus === 'picking') {
+      // Waiting for pack data after pick advanced, keep showing passing
+      setShowPassing(true)
+    } else if (currentPack.length > 0 && myStatus === 'picking') {
+      // Only hide passing if we have a DIFFERENT pack than when we started passing
+      const packHasChanged = passingFromPackRef.current !== null &&
+        firstCardId !== passingFromPackRef.current
+
+      if (packHasChanged) {
+        // New pack arrived, hide passing after brief delay
+        if (passingTimeoutRef.current) {
+          clearTimeout(passingTimeoutRef.current)
+        }
+        passingTimeoutRef.current = setTimeout(() => {
+          setShowPassing(false)
+          passingFromPackRef.current = null
+        }, 100)
+      }
+      // If pack hasn't changed, keep showing passing (waiting for new pack)
     }
 
     return () => {
@@ -156,7 +205,7 @@ function PackDraftPhase({
         clearTimeout(passingTimeoutRef.current)
       }
     }
-  }, [myPlayer?.pickStatus, currentPack.length, showPassing])
+  }, [myPlayer?.pickStatus, currentPack, packNumber, pickInPack, draft?.packSize, draftedCards.length, lastPackSize, players, showPassing])
 
   // Pack draft: pack 1 & 3 pass left, pack 2 passes right
   const passDirection = packNumber % 2 === 1 ? 'left' : 'right'
@@ -241,6 +290,7 @@ function PackDraftPhase({
             isHost={isHost}
             onTogglePause={onTogglePause}
             draftState={draftState}
+            onTimerExpire={onTimerExpire}
           />
 
           <div className="draft-info-header">
@@ -279,10 +329,10 @@ function PackDraftPhase({
             </div>
           </div>
 
-          {/* Selection confirmation banner */}
-          {selectedCardId && (() => {
+          {/* Selection confirmation banner - hide during passing transition */}
+          {selectedCardId && !showPassing && (() => {
             const selectedCard = currentPack.find(c => (c.instanceId || c.id) === selectedCardId)
-            if (!selectedCard) return null
+            if (!selectedCard || !selectedCard.name) return null
             const firstAspect = selectedCard.aspects?.[0]
             const aspectColor = firstAspect ? getSingleAspectColor(firstAspect) : NO_ASPECT_COLOR
             return (
@@ -295,13 +345,18 @@ function PackDraftPhase({
               >
                 <div className="selection-info">
                   <span className="selection-label">Selected:</span>
-                  <span className="selection-card-name" style={{ color: aspectColor }}>{selectedCard.name}</span>
+                  <span className="selection-card-name" style={{ color: aspectColor }}>
+                    {selectedCard.name || selectedCard.title || 'Card'}
+                  </span>
                   {selectedCard.subtitle && (
                     <span className="selection-card-subtitle">{selectedCard.subtitle}</span>
                   )}
                 </div>
                 {hasSelected ? (
-                  <div className="selection-status-text">Waiting for other players...</div>
+                  // Only show "Waiting" if there are players who aren't done yet
+                  players?.some(p => p.pickStatus !== 'picked' && p.pickStatus !== 'selected') ? (
+                    <div className="selection-status-text">Waiting for other players...</div>
+                  ) : null
                 ) : (
                   <button className="deselect-button" onClick={(e) => handleDeselect(e)} title="Deselect">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

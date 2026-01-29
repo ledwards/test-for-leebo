@@ -1,6 +1,7 @@
 // POST /api/draft/:shareId/dev/add-bots - Add bot players for testing (dev only)
 import { query, queryRow, queryRows } from '@/lib/db.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
+import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
 
 const BOT_CONFIGS = [
   { name: 'DraftBot Alpha', discordId: 'bot_alpha' },
@@ -111,6 +112,9 @@ export async function POST(request, { params }) {
        WHERE id = $2`,
       [botsToAdd, pod.id]
     )
+
+    // Broadcast update to all clients
+    await broadcastDraftState(shareId)
 
     return jsonResponse({
       message: `Added ${botsToAdd} bot(s)`,
