@@ -111,6 +111,7 @@ function LandingPage({ onSealedClick, onDraftClick }) {
               </svg>
               Join the Discord
             </a>
+            <p>For games, strategy, and feedback</p>
           </div>
         )}
       </div>

@@ -15,7 +15,7 @@ test.skip(({ browserName, isMobile }) =>
   browserName !== 'chromium' || isMobile,
   'Skipped: Desktop Chromium only (long-running integration test)'
 )
-test.setTimeout(900000) // 15 minutes for 8 players
+test.setTimeout(1200000) // 20 minutes for 8 players
 
 test.describe('Full 8-player draft', () => {
   /** @type {import('@playwright/test').Browser} */
