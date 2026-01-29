@@ -127,7 +127,8 @@ export default function DraftRoomPage({ params }) {
     setError(null)
     try {
       await startDraft(shareId)
-      // No need to refresh - WebSocket broadcast updates state
+      // Refresh to ensure state updates (WebSocket may not work in all environments)
+      await refresh()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -174,7 +175,9 @@ export default function DraftRoomPage({ params }) {
         const data = await response.json()
         throw new Error(data.message || 'Failed to add bot')
       }
-      // No need to refresh - WebSocket broadcast already updated the players list
+      // Refresh to get updated players list
+      // (WebSocket broadcast may not work in all deployment environments)
+      await refresh()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -188,7 +191,8 @@ export default function DraftRoomPage({ params }) {
     setError(null)
     try {
       await makePick(shareId, cardId)
-      // No need to refresh - WebSocket broadcast updates state
+      // Refresh to ensure state updates
+      await refresh()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -207,7 +211,8 @@ export default function DraftRoomPage({ params }) {
         await refresh()
         return
       }
-      // WebSocket broadcast handles state updates - no polling needed
+      // Refresh to ensure state updates
+      await refresh()
     } catch (err) {
       setError(err.message)
     } finally {
