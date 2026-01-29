@@ -1,5 +1,5 @@
-import '../src/styles/backgrounds.css'
-import '../src/components/Button.css'
+import '../../src/styles/backgrounds.css'
+import '../../src/components/Button.css'
 
 export default function MaintenancePage() {
   return (
