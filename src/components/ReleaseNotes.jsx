@@ -15,7 +15,9 @@ function ReleaseNotes() {
       .then(text => {
         // Remove everything after triple HR
         const tripleHrIndex = text.indexOf('---\n\n---\n\n---')
-        const contentToDisplay = tripleHrIndex !== -1 ? text.substring(0, tripleHrIndex) : text
+        let contentToDisplay = tripleHrIndex !== -1 ? text.substring(0, tripleHrIndex) : text
+        // Remove leading whitespace/newlines
+        contentToDisplay = contentToDisplay.trimStart()
         const html = parseMarkdownToHTML(contentToDisplay)
         setContent(html)
         setLoading(false)

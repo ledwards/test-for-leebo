@@ -90,10 +90,18 @@
   font-weight: 600;
 }
 
+.release-notes-content > :first-child {
+  margin-top: 0;
+}
+
+.release-notes-content > h1:first-child + * {
+  margin-top: 0;
+}
+
 .release-notes-content h3 {
   font-size: 1rem;
   margin: 16px 0 8px 0;
-  color: #4CAF50;
+  color: #9C27B0;
   font-weight: 600;
 }
 
@@ -119,7 +127,7 @@
   border-radius: 4px;
   font-family: 'Courier New', monospace;
   font-size: 0.85em;
-  color: #4CAF50;
+  color: #9C27B0;
 }
 
 .release-notes-content pre {

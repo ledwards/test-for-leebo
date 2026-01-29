@@ -54,6 +54,21 @@ async function main() {
     mkdirSync(publicDir, { recursive: true })
   }
 
+  // Copy release notes to public directory
+  const releaseNotesSource = join(projectRoot, 'RELEASE_NOTES.md')
+  const releaseNotesDest = join(publicDir, 'RELEASE_NOTES.md')
+
+  if (existsSync(releaseNotesSource)) {
+    try {
+      copyFileSync(releaseNotesSource, releaseNotesDest)
+      log('✅ Copied release notes to public directory', 'green')
+    } catch (error) {
+      log(`⚠️  Failed to copy release notes: ${error.message}`, 'yellow')
+    }
+  } else {
+    log('⚠️  Release notes file not found - skipping copy', 'yellow')
+  }
+
   // Copy QA results to public directory
   const qaResultsSource = join(projectRoot, 'src', 'qa', 'results.json')
   const qaResultsDest = join(publicDir, 'qa-results.json')

@@ -1,7 +1,9 @@
+'use client'
+
 import '../src/styles/backgrounds.css'
 import '../src/components/Button.css'
 
-export default function MaintenancePage() {
+export default function Error({ reset }) {
   return (
     <div className="page-background" style={{
       minHeight: '100vh',
@@ -19,8 +21,8 @@ export default function MaintenancePage() {
         marginBottom: '2rem',
       }}>
         <img
-          src="/failpurrgil.png"
-          alt="Maintenance"
+          src="/errorpurrgil.png"
+          alt="Error"
           style={{
             maxWidth: '600px',
             width: '100%',
@@ -40,16 +42,18 @@ export default function MaintenancePage() {
         }} />
       </div>
       <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>
-        Scheduled Maintenance
+        Something Went Wrong
       </h1>
       <p style={{ color: '#888', maxWidth: '400px', lineHeight: 1.6 }}>
-        We&apos;re upgrading our servers for better performance.
-        Be back in a few minutes!
+        An unexpected error occurred. Please try again.
       </p>
+      <button
+        onClick={() => reset()}
+        className="btn btn--primary btn--lg"
+        style={{ marginTop: '2rem' }}
+      >
+        Try Again
+      </button>
     </div>
   )
-}
-
-export const metadata = {
-  title: 'Maintenance - Protect the Pod',
 }
