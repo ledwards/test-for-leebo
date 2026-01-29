@@ -1,4 +1,5 @@
-// Custom server for Next.js with Socket.io
+// Custom server for Next.js with Socket.io - v2
+import 'dotenv/config'
 import { createServer } from 'http'
 import { spawn } from 'child_process'
 import next from 'next'
@@ -6,6 +7,8 @@ import { Server } from 'socket.io'
 
 const dev = process.env.NODE_ENV !== 'production'
 const port = process.env.PORT || 3000
+
+console.log('🚀 Starting custom server.js with Socket.io support')
 
 // Run migrations at startup (for Railway where build-time DB access doesn't work)
 async function runMigrations() {
