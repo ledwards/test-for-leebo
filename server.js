@@ -56,6 +56,10 @@ await runMigrations()
 
 app.prepare().then(() => {
   const server = createServer((req, res) => {
+    // Let Socket.io handle its own paths
+    if (req.url?.startsWith('/socket.io')) {
+      return
+    }
     handle(req, res)
   })
 
