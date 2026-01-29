@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/utils.js'
 import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft } from '@/src/utils/draftAdvance.js'
 import { processBotTurns } from '@/src/utils/botLogic.js'
-import { broadcastDraftState } from '@/src/lib/sseBroadcast.js'
+import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
 
 export async function POST(request, { params }) {
   try {

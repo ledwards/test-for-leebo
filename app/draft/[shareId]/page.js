@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../src/contexts/AuthContext'
-import { useDraftSSE } from '../../../src/hooks/useDraftSSE'
+import { useDraftSocket } from '../../../src/hooks/useDraftSocket'
 import { joinDraft, leaveDraft, startDraft, randomizeSeats, makePick, selectCard, updateSettings, togglePause } from '../../../src/utils/draftApi'
 import DraftLobby from '../../../src/components/DraftLobby'
 import LeaderDraftPhase from '../../../src/components/LeaderDraftPhase'
@@ -59,7 +59,7 @@ export default function DraftRoomPage({ params }) {
     myPlayer,
     draftState,
     status,
-  } = useDraftSSE(shareId, { enabled: !!shareId && isAuthenticated })
+  } = useDraftSocket(shareId, { enabled: !!shareId && isAuthenticated })
 
   // Redirect if draft was deleted
   useEffect(() => {
@@ -127,7 +127,7 @@ export default function DraftRoomPage({ params }) {
     setError(null)
     try {
       await startDraft(shareId)
-      await refresh()
+      // No need to refresh - WebSocket broadcast updates state
     } catch (err) {
       setError(err.message)
     } finally {
@@ -174,7 +174,7 @@ export default function DraftRoomPage({ params }) {
         const data = await response.json()
         throw new Error(data.message || 'Failed to add bot')
       }
-      await refresh()
+      // No need to refresh - WebSocket broadcast already updated the players list
     } catch (err) {
       setError(err.message)
     } finally {
@@ -188,7 +188,7 @@ export default function DraftRoomPage({ params }) {
     setError(null)
     try {
       await makePick(shareId, cardId)
-      await refresh()
+      // No need to refresh - WebSocket broadcast updates state
     } catch (err) {
       setError(err.message)
     } finally {
@@ -207,10 +207,7 @@ export default function DraftRoomPage({ params }) {
         await refresh()
         return
       }
-      // After selecting, refresh to catch state changes from bot processing
-      // SSE often doesn't work across Vercel instances, so we poll aggressively
-      setTimeout(() => refresh().catch(() => {}), 200)
-      setTimeout(() => refresh().catch(() => {}), 600)
+      // WebSocket broadcast handles state updates - no polling needed
     } catch (err) {
       setError(err.message)
     } finally {
@@ -272,18 +269,15 @@ export default function DraftRoomPage({ params }) {
   // Auth required - check before SSE loading since SSE is disabled when not authenticated
   if (!isAuthenticated) {
     // Redirect to Discord auth with return URL
-    const returnTo = encodeURIComponent(`/draft/${shareId}`)
+    const returnUrl = encodeURIComponent(`/draft/${shareId}`)
     return (
       <div className="draft-page-bg">
         <div className="login-required">
           <h2>Sign In Required</h2>
           <p>Please sign in to join this draft</p>
-          <button
-            className="discord-login-button"
-            onClick={() => window.location.href = `/api/auth/signin/discord?return_to=${returnTo}`}
-          >
+          <a href={`/api/auth/discord?returnUrl=${returnUrl}`} className="discord-login-button">
             Sign in with Discord
-          </button>
+          </a>
         </div>
       </div>
     )
@@ -295,6 +289,7 @@ export default function DraftRoomPage({ params }) {
       <div className="draft-page-bg">
         <div className="loading-container">
           <div className="loading"></div>
+          <p>Loading draft...</p>
         </div>
       </div>
     )

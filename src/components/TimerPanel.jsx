@@ -22,7 +22,7 @@ const PlayIcon = () => (
  * Shows either pick timeout or last player timer (whichever has less time remaining)
  * Both timers can be enabled/disabled independently
  */
-function TimerPanel({ draft, players = [], compact = false, isHost = false, onTogglePause, draftState = null }) {
+function TimerPanel({ draft, players = [], compact = false, isHost = false, onTogglePause, draftState = null, onTimerExpire }) {
   const [activeTimer, setActiveTimer] = useState('round') // 'round' or 'lastPlayer'
   const [optimisticPaused, setOptimisticPaused] = useState(null) // null means use draft.paused
 
@@ -158,6 +158,7 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
                   compact={compact}
                   paused={isPaused}
                   pausedDurationSeconds={0}
+                  onExpire={onTimerExpire}
                 />
               ) : (
                 <CountdownTimer
@@ -169,6 +170,7 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
                   compact={compact}
                   paused={isPaused}
                   pausedDurationSeconds={pausedDurationSeconds}
+                  onExpire={onTimerExpire}
                 />
               )}
               {isHost && onTogglePause && (

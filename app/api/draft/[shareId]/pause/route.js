@@ -3,7 +3,7 @@ import { query, queryRow } from '@/lib/db.js'
 import { requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
 import { processBotTurns } from '@/src/utils/botLogic.js'
-import { broadcastDraftState } from '@/src/lib/sseBroadcast.js'
+import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
 
 export async function POST(request, { params }) {
   try {

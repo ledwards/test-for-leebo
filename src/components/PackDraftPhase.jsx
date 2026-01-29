@@ -39,6 +39,7 @@ function PackDraftPhase({
   const [lastPackSize, setLastPackSize] = useState(0)
   const previewTimeoutRef = useRef(null)
   const passingTimeoutRef = useRef(null)
+  const passingFromPackRef = useRef(null) // Track the first card ID when we started passing
 
   const handleLeaderNameMouseEnter = (e, leader) => {
     // Disable hover preview on mobile
@@ -129,72 +130,82 @@ function PackDraftPhase({
     keysToCheck.forEach(key => localStorage.removeItem(key))
   }, [packNumber, pickInPack, shareId, storageKey])
 
-  // Track pickInPack to detect when new pack arrives
-  const prevPickInPackRef = useRef(pickInPack)
+  // Track the previous pick number to detect when packs should pass
+  const prevPickRef = useRef({ packNumber: 0, pickInPack: 0 })
 
-  // Check if all players have selected or picked (for showing passing state)
-  const allPlayersReady = players.length > 0 && players.every(p =>
-    p.pickStatus === 'selected' || p.pickStatus === 'picked'
-  )
-
-  // Manage "passing" state - show skeleton cards when ALL players have selected
-  // and the current player has also selected
+  // Manage "passing" state - show skeleton cards when transitioning between picks
+  // Show passing when: pickStatus is 'picked' OR when all players have picked (from public data)
   useEffect(() => {
-    // Only show passing state if current player has selected AND all players ready
-    if (allPlayersReady && hasSelected && currentPack.length > 0) {
-      // All players ready, show passing state
-      setShowPassing(true)
-      // Next pack will have one fewer card
-      setLastPackSize(Math.max(0, currentPack.length - 1))
+    // Use status from players array (WebSocket) - it's more up-to-date than myPlayer (HTTP)
+    const myPublicPlayer = players?.find(p => p.id === myPlayer?.id)
+    const myStatus = myPublicPlayer?.pickStatus || myPlayer?.pickStatus
 
-      // Clear any existing timeout
-      if (passingTimeoutRef.current) {
-        clearTimeout(passingTimeoutRef.current)
-      }
-    }
+    const isPicked = myStatus === 'picked'
+    const hasSelected = myStatus === 'selected'
+    const hasNoCards = currentPack.length === 0
+    const pickChanged = prevPickRef.current.packNumber !== packNumber ||
+                        prevPickRef.current.pickInPack !== pickInPack
 
-    return () => {
-      if (passingTimeoutRef.current) {
-        clearTimeout(passingTimeoutRef.current)
-      }
-    }
-  }, [players, currentPack.length, hasSelected])
-
-  // Reset passing state when pick/pack changes (new cards arrived)
-  // Also reset if we're no longer in "all selected" state
-  const prevPackRef = useRef(packNumber)
-  useEffect(() => {
-    const pickChanged = pickInPack !== prevPickInPackRef.current
-    const packChanged = packNumber !== prevPackRef.current
-
-    if (pickChanged || packChanged) {
-      prevPickInPackRef.current = pickInPack
-      prevPackRef.current = packNumber
-      // New cards arrived, hide passing state immediately
-      setShowPassing(false)
-      if (passingTimeoutRef.current) {
-        clearTimeout(passingTimeoutRef.current)
-        passingTimeoutRef.current = null
-      }
-    }
-
-    return () => {
-      if (passingTimeoutRef.current) {
-        clearTimeout(passingTimeoutRef.current)
-      }
-    }
-  }, [pickInPack, packNumber])
-
-  // Also reset passing if players are no longer all selected (pick was processed)
-  useEffect(() => {
-    const allSelected = players.length > 0 && players.every(p =>
-      p.pickStatus === 'selected' || p.pickStatus === 'picked'
+    // Check if all players are done (picked or selected)
+    const allPlayersDone = players?.length > 0 && players.every(p =>
+      p.pickStatus === 'picked' || p.pickStatus === 'selected'
     )
-    // If not all selected and we're showing passing, reset immediately
-    if (showPassing && !allSelected) {
-      setShowPassing(false)
+
+    // Update previous pick tracking
+    if (pickChanged && currentPack.length > 0) {
+      prevPickRef.current = { packNumber, pickInPack }
     }
-  }, [players, showPassing])
+
+    // Calculate expected next pack size
+    const calculateExpectedSize = () => {
+      if (currentPack.length > 0) {
+        return Math.max(0, currentPack.length - 1)
+      }
+      return Math.max(0, (draft?.packSize || 14) - draftedCards.length % (draft?.packSize || 14) - 1)
+    }
+
+    // Get first card ID to track pack identity
+    const firstCardId = currentPack[0]?.instanceId || currentPack[0]?.id || null
+
+    // Show passing when:
+    // 1. I've picked and waiting for others
+    // 2. All players are done (picked or selected) - round about to advance
+    // 3. Waiting for pack data after pick advanced
+    if (isPicked || allPlayersDone) {
+      // Remember what pack we're passing FROM
+      if (!showPassing && firstCardId) {
+        passingFromPackRef.current = firstCardId
+      }
+      setShowPassing(true)
+      const expectedSize = calculateExpectedSize()
+      setLastPackSize(expectedSize > 0 ? expectedSize : lastPackSize)
+    } else if (hasNoCards && myStatus === 'picking') {
+      // Waiting for pack data after pick advanced, keep showing passing
+      setShowPassing(true)
+    } else if (currentPack.length > 0 && myStatus === 'picking') {
+      // Only hide passing if we have a DIFFERENT pack than when we started passing
+      const packHasChanged = passingFromPackRef.current !== null &&
+        firstCardId !== passingFromPackRef.current
+
+      if (packHasChanged) {
+        // New pack arrived, hide passing after brief delay
+        if (passingTimeoutRef.current) {
+          clearTimeout(passingTimeoutRef.current)
+        }
+        passingTimeoutRef.current = setTimeout(() => {
+          setShowPassing(false)
+          passingFromPackRef.current = null
+        }, 100)
+      }
+      // If pack hasn't changed, keep showing passing (waiting for new pack)
+    }
+
+    return () => {
+      if (passingTimeoutRef.current) {
+        clearTimeout(passingTimeoutRef.current)
+      }
+    }
+  }, [myPlayer?.pickStatus, currentPack, packNumber, pickInPack, draft?.packSize, draftedCards.length, lastPackSize, players, showPassing])
 
   // Pack draft: pack 1 & 3 pass left, pack 2 passes right
   const passDirection = packNumber % 2 === 1 ? 'left' : 'right'
@@ -279,6 +290,7 @@ function PackDraftPhase({
             isHost={isHost}
             onTogglePause={onTogglePause}
             draftState={draftState}
+            onTimerExpire={onTimerExpire}
           />
 
           <div className="draft-info-header">
@@ -317,10 +329,10 @@ function PackDraftPhase({
             </div>
           </div>
 
-          {/* Selection confirmation banner */}
-          {selectedCardId && (() => {
+          {/* Selection confirmation banner - hide during passing transition */}
+          {selectedCardId && !showPassing && (() => {
             const selectedCard = currentPack.find(c => (c.instanceId || c.id) === selectedCardId)
-            if (!selectedCard) return null
+            if (!selectedCard || !selectedCard.name) return null
             const firstAspect = selectedCard.aspects?.[0]
             const aspectColor = firstAspect ? getSingleAspectColor(firstAspect) : NO_ASPECT_COLOR
             return (
@@ -333,15 +345,18 @@ function PackDraftPhase({
               >
                 <div className="selection-info">
                   <span className="selection-label">Selected:</span>
-                  <span className="selection-card-name" style={{ color: aspectColor }}>{selectedCard.name}</span>
+                  <span className="selection-card-name" style={{ color: aspectColor }}>
+                    {selectedCard.name || selectedCard.title || 'Card'}
+                  </span>
                   {selectedCard.subtitle && (
                     <span className="selection-card-subtitle">{selectedCard.subtitle}</span>
                   )}
                 </div>
-                {hasSelected && !allPlayersReady ? (
-                  <div className="selection-status-text">Waiting for other players...</div>
-                ) : hasSelected && allPlayersReady ? (
-                  <div className="selection-status-text">Passing {passDirection === 'left' ? 'Left' : 'Right'}...</div>
+                {hasSelected ? (
+                  // Only show "Waiting" if there are players who aren't done yet
+                  players?.some(p => p.pickStatus !== 'picked' && p.pickStatus !== 'selected') ? (
+                    <div className="selection-status-text">Waiting for other players...</div>
+                  ) : null
                 ) : (
                   <button className="deselect-button" onClick={(e) => handleDeselect(e)} title="Deselect">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -389,10 +404,8 @@ function PackDraftPhase({
               </div>
             ) : (
               <p className="no-cards">
-                {myPlayer?.pickStatus === 'picked' && !allPlayersReady
+                {myPlayer?.pickStatus === 'picked'
                   ? 'Waiting for other players...'
-                  : myPlayer?.pickStatus === 'picked' && allPlayersReady
-                  ? `Passing ${passDirection === 'left' ? 'Left' : 'Right'}...`
                   : 'No cards in pack'}
               </p>
             )}

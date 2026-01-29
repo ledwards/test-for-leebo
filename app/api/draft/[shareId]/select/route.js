@@ -7,7 +7,7 @@ import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/ut
 import { processAllStagedPicks } from '@/src/utils/draftAdvance.js'
 import { processBotTurns } from '@/src/utils/botLogic.js'
 import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout.js'
-import { broadcastDraftState } from '@/src/lib/sseBroadcast.js'
+import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
 
 export async function POST(request, { params }) {
   try {

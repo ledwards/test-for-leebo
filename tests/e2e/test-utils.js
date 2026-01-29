@@ -18,15 +18,22 @@ dotenv.config({ path: join(projectRoot, '.env') })
 const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'change-me-in-production'
 const COOKIE_NAME = 'swupod_session'
 
-// Database connection
+// Database connection - lazy initialized and safely reusable
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL
 if (!connectionString) {
   console.error('No DATABASE_URL or POSTGRES_URL found. Check .env or .env.local in:', projectRoot)
 }
 
-const pool = new pg.Pool({
-  connectionString,
-})
+let pool = null
+let poolEnded = false
+
+function getPool() {
+  if (poolEnded || !pool) {
+    pool = new pg.Pool({ connectionString })
+    poolEnded = false
+  }
+  return pool
+}
 
 /**
  * Create a test user directly in the database
@@ -38,7 +45,8 @@ export async function createTestUser(username, testId) {
   const uniqueId = `test_${testId}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 
   // Insert user into database
-  const result = await pool.query(
+  const db = getPool()
+  const result = await db.query(
     `INSERT INTO users (discord_id, username, email, avatar_url)
      VALUES ($1, $2, $3, $4)
      RETURNING *`,
@@ -76,24 +84,25 @@ export async function createTestUser(username, testId) {
  */
 export async function cleanupTestUsers(testId) {
   const pattern = `test_${testId}_%`
+  const db = getPool()
 
   // Delete in order due to foreign key constraints
-  await pool.query(
+  await db.query(
     `DELETE FROM draft_pod_players WHERE user_id IN (SELECT id FROM users WHERE discord_id LIKE $1)`,
     [pattern]
   )
 
-  await pool.query(
+  await db.query(
     `DELETE FROM draft_pods WHERE host_id IN (SELECT id FROM users WHERE discord_id LIKE $1)`,
     [pattern]
   )
 
-  await pool.query(
+  await db.query(
     `DELETE FROM card_pools WHERE user_id IN (SELECT id FROM users WHERE discord_id LIKE $1)`,
     [pattern]
   )
 
-  const result = await pool.query(
+  const result = await db.query(
     'DELETE FROM users WHERE discord_id LIKE $1 RETURNING id',
     [pattern]
   )
@@ -102,8 +111,12 @@ export async function cleanupTestUsers(testId) {
 }
 
 /**
- * Close database connection
+ * Close database connection (safe to call multiple times)
  */
 export async function closeDb() {
-  await pool.end()
+  if (pool && !poolEnded) {
+    poolEnded = true
+    await pool.end()
+    pool = null
+  }
 }
