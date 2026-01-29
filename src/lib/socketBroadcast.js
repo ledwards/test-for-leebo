@@ -13,7 +13,7 @@ import { queryRow, queryRows } from '@/lib/db.js'
 export async function broadcastDraftState(shareId) {
   const io = global.io
   if (!io) {
-    console.warn('Socket.io not initialized - broadcast skipped')
+    console.warn('[Broadcast] Socket.io not initialized - broadcast skipped')
     return
   }
 
