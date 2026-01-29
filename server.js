@@ -66,6 +66,12 @@ app.prepare().then(() => {
 
   // Now add request handler for Next.js (non-socket.io requests)
   server.on('request', (req, res) => {
+    // Health check endpoint
+    if (req.url === '/health') {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ ok: true, socketio: !!io }))
+      return
+    }
     if (req.url?.startsWith('/socket.io')) {
       console.log('[DEBUG] Socket.io request (letting engine handle):', req.method, req.url)
       return
