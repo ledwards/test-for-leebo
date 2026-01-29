@@ -1,8 +1,11 @@
 [build]
 builder = "nixpacks"
 
-[build.nixpacks]
+[phases.setup]
 nixPkgs = ["nodejs_22"]
 
-[deploy]
-startCommand = "npm start"
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"
