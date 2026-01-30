@@ -1,6 +1,6 @@
 # Release Notes
 
-## 01.29.2026
+## 01.30.2026
 
 ### 🎨 UI Features
 - Fancy pack opening animation that makes the app look like it's professional 😉
