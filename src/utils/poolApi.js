@@ -109,6 +109,34 @@ export async function deletePool(shareId) {
 }
 
 /**
+ * Claim an anonymous pool (set user_id to current user)
+ * @param {string} shareId - Share ID of the pool
+ * @returns {Promise<Object>} Claim result { claimed: boolean, alreadyOwned?: boolean }
+ */
+export async function claimPool(shareId) {
+  try {
+    const response = await fetch(`${API_BASE}/pools/${shareId}/claim`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || 'Failed to claim pool')
+    }
+
+    const data = await response.json()
+    return data.data
+  } catch (error) {
+    console.error('Failed to claim pool:', error)
+    throw error
+  }
+}
+
+/**
  * Fetch all pools for a user
  * @param {string} userId - User ID
  * @returns {Promise<Array>} Array of pool objects

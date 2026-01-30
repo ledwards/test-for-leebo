@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { loadPool, updatePool } from '../../../../../src/utils/poolApi'
+import { loadPool, updatePool, claimPool } from '../../../../../src/utils/poolApi'
 import { getPackArtUrl } from '../../../../../src/utils/packArt'
 import { getSetConfig } from '../../../../../src/utils/setConfigs'
 import { useAuth } from '../../../../../src/contexts/AuthContext'
@@ -22,16 +22,19 @@ function isVariantNumber(num) {
   return num >= 253
 }
 
-// Build a map of card name -> base card (the non-variant version)
+// Build a map of card name+type -> base card (the non-variant version)
+// Uses name+type as key to avoid mapping Units to Leaders with the same name
 function buildBaseCardMap(setCode) {
   const cards = getCachedCards(setCode)
   if (!cards) return new Map()
 
-  const nameToBaseCard = new Map()
+  const nameTypeToBaseCard = new Map()
 
   cards.forEach(card => {
-    const key = card.name
-    const existing = nameToBaseCard.get(key)
+    // Use name + type as key to distinguish Units from Leaders with same name
+    // e.g., "Emperor Palpatine" exists as both a Leader and a Unit
+    const key = `${card.name}|${card.type}`
+    const existing = nameTypeToBaseCard.get(key)
     const cardNum = getCardNumber(card.id)
     const existingNum = existing ? getCardNumber(existing.id) : Infinity
 
@@ -43,11 +46,11 @@ function buildBaseCardMap(setCode) {
     if (!existing ||
         (!cardIsVariant && existingIsVariant) ||
         (cardIsVariant === existingIsVariant && cardNum < existingNum)) {
-      nameToBaseCard.set(key, card)
+      nameTypeToBaseCard.set(key, card)
     }
   })
 
-  return nameToBaseCard
+  return nameTypeToBaseCard
 }
 
 // Convert card ID to standard format (dash to underscore, strip suffixes)
@@ -62,12 +65,13 @@ function normalizeId(id) {
 }
 
 // Convert card to base card ID for export
-// Looks up the base (non-variant) card by name and returns its normalized ID
+// Looks up the base (non-variant) card by name+type and returns its normalized ID
 function getBaseCardId(card, baseCardMap) {
   if (!card) return null
 
-  // Look up base card by name
-  const baseCard = baseCardMap?.get(card.name)
+  // Look up base card by name + type to find the correct base card
+  const key = `${card.name}|${card.type}`
+  const baseCard = baseCardMap?.get(key)
   if (baseCard) {
     return normalizeId(baseCard.id)
   }
@@ -184,6 +188,7 @@ export default function PlayPage({ params }) {
   const [deckImageModal, setDeckImageModal] = useState(null)
   const [generatingImage, setGeneratingImage] = useState(false)
   const [baseCardMap, setBaseCardMap] = useState(null)
+  const [claiming, setClaiming] = useState(false)
 
   useEffect(() => {
     async function getParams() {
@@ -240,6 +245,34 @@ export default function PlayPage({ params }) {
     }
     init()
   }, [pool?.setCode])
+
+  // Auto-claim anonymous pool when user logs in
+  useEffect(() => {
+    if (!user || !pool || !shareId) return
+    // Only claim if pool is anonymous (no owner)
+    if (pool.owner !== null) return
+
+    async function tryClaimPool() {
+      setClaiming(true)
+      try {
+        const result = await claimPool(shareId)
+        if (result.claimed) {
+          // Refresh pool data to get updated owner
+          const updatedPool = await loadPool(shareId)
+          setPool(updatedPool)
+          setMessage('This deck is now saved to your account!')
+          setMessageType('success')
+          setTimeout(() => { setMessage(null); setMessageType(null) }, 5000)
+        }
+      } catch (err) {
+        console.error('Failed to claim pool:', err)
+        // Don't show error - claiming is a nice-to-have
+      } finally {
+        setClaiming(false)
+      }
+    }
+    tryClaimPool()
+  }, [user, pool?.owner, shareId])
 
   const fetchOpponent = async (draftShareId) => {
     try {
@@ -993,6 +1026,33 @@ export default function PlayPage({ params }) {
           />
           <p className="play-pool-type">{poolTypeLabel}</p>
         </div>
+
+        {/* Login banner for logged-out users */}
+        {!user && (
+          <div className="login-banner">
+            <div className="login-banner-content">
+              <div className="login-banner-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <div className="login-banner-text">
+                <h3>Save Your Deck</h3>
+                <p>Login with Discord to permanently save this deck to your account. You'll be able to access it from any device and see it in your deck history.</p>
+              </div>
+              <a
+                href={`/api/auth/login?redirect=${encodeURIComponent(`/pool/${shareId}/deck/play`)}`}
+                className="login-banner-button"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                </svg>
+                Login with Discord
+              </a>
+            </div>
+          </div>
+        )}
 
         <div className="play-instructions">
           <h2>Ready to Play!</h2>
