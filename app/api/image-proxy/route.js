@@ -1,4 +1,6 @@
-// Image proxy to bypass CORS for deck image generation
+// GET /api/image-proxy?url=<encoded-url>
+// Proxies external images to avoid CORS issues when drawing to canvas
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const imageUrl = searchParams.get('url')
@@ -7,32 +9,49 @@ export async function GET(request) {
     return new Response('Missing url parameter', { status: 400 })
   }
 
-  // Only allow proxying from trusted image domains
-  const allowedDomains = ['cdn.swu-db.com', 'swudb.com']
+  // Only allow proxying from known card image CDNs for security
+  const allowedDomains = [
+    'cdn.swu-db.com',
+    'swudb.com',
+    'cdn.starwarsunlimited.com',
+  ]
+
+  let parsedUrl
   try {
-    const url = new URL(imageUrl)
-    if (!allowedDomains.some(domain => url.hostname.endsWith(domain))) {
-      return new Response('Domain not allowed', { status: 403 })
-    }
+    parsedUrl = new URL(imageUrl)
   } catch {
     return new Response('Invalid URL', { status: 400 })
   }
 
+  if (!allowedDomains.some(domain => parsedUrl.hostname.endsWith(domain))) {
+    return new Response('Domain not allowed', { status: 403 })
+  }
+
   try {
-    const response = await fetch(imageUrl)
+    const response = await fetch(imageUrl, {
+      headers: {
+        // Some CDNs require a user agent
+        'User-Agent': 'Mozilla/5.0 (compatible; ProtectThePod/1.0)',
+      },
+    })
+
     if (!response.ok) {
-      return new Response('Failed to fetch image', { status: response.status })
+      return new Response(`Failed to fetch image: ${response.status}`, { status: response.status })
     }
 
-    const blob = await response.blob()
-    return new Response(blob, {
+    const contentType = response.headers.get('content-type') || 'image/png'
+    const buffer = await response.arrayBuffer()
+
+    return new Response(buffer, {
+      status: 200,
       headers: {
-        'Content-Type': response.headers.get('Content-Type') || 'image/png',
-        'Cache-Control': 'public, max-age=86400',
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=86400', // Cache for 24 hours
         'Access-Control-Allow-Origin': '*',
       },
     })
   } catch (error) {
+    console.error('Image proxy error:', error)
     return new Response('Failed to fetch image', { status: 500 })
   }
 }

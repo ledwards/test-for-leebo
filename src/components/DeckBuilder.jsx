@@ -2803,28 +2803,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           // Try to fetch image as blob first to avoid CORS issues
           const loadImageViaBlob = async () => {
             try {
-              // Use local proxy on localhost, try direct fetch in production
-              let imageUrl = card.imageUrl
-              const isLocalhost = window.location.hostname === 'localhost'
+              // Always use our API proxy to avoid CORS issues
+              const imageUrl = `/api/image-proxy?url=${encodeURIComponent(card.imageUrl)}`
 
-              if (isLocalhost) {
-                // Use local API proxy on localhost to avoid CORS issues
-                imageUrl = `/api/image-proxy?url=${encodeURIComponent(card.imageUrl)}`
-              }
-
-              // First try direct fetch (or proxied fetch on localhost)
-              let response
-              try {
-                response = await fetch(imageUrl, { mode: 'cors' })
-              } catch (error) {
-                // If CORS fails in production, try using a CORS proxy
-                if (!isLocalhost) {
-                  imageUrl = `https://corsproxy.io/?${encodeURIComponent(card.imageUrl)}`
-                  response = await fetch(imageUrl, { mode: 'cors' })
-                } else {
-                  throw error
-                }
-              }
+              const response = await fetch(imageUrl, { mode: 'cors' })
 
               if (!response.ok) throw new Error('Failed to fetch')
               const blob = await response.blob()
@@ -2886,11 +2868,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           // Fallback: direct image load (may fail due to CORS)
           const loadImageDirect = () => {
             const img = new Image()
-            const isLocalhost = window.location.hostname === 'localhost'
-            // Use local API proxy on localhost
-            const imageUrl = isLocalhost
-              ? `/api/image-proxy?url=${encodeURIComponent(card.imageUrl)}`
-              : card.imageUrl
+            // Always use API proxy to avoid CORS issues
+            const imageUrl = `/api/image-proxy?url=${encodeURIComponent(card.imageUrl)}`
 
             const timeoutId = setTimeout(() => {
               console.warn(`Image load timeout for ${card.name}: ${imageUrl}`)
@@ -4652,7 +4631,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           }
 
           // Determine block class based on sort option
-          const blockTypeClass = deckSortOption === 'type' ? 'type-block' : deckSortOption === 'cost' ? 'cost-block' : ''
+          const blockTypeClass = deckSortOption === 'type' ? 'type-block' : deckSortOption === 'cost' ? 'cost-block' : 'aspect-block'
 
           return (
             <div className="blocks-deck-groups-row">

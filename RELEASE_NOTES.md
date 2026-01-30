@@ -8,6 +8,9 @@
 ### 🐛 Bug Fixes
 - Fixed missing aspect penalty on mobile
 - Fixes to a number of bugs related to users who are not logged in
+- More reliably save deck state during deckbuilder if you leave the page or refresh
+- Fix deck image export on Chrome
+- Fix bug that sometimes made a deck appear empty
 
 ## 01.29.2026
 Great news, with this update, I'm excited to announce the migration to Railway.app as our new hosting platform. This move enables a shift to a lightning-fast, robust realtime architecture based on socket.io, ensuring more reliable multiplayer experiences.

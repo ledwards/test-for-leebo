@@ -753,16 +753,9 @@ export default function PlayPage({ params }) {
 
         try {
           let img
-          // Try different approaches in order
-          // Use local proxy on localhost, external proxies in production
-          const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-          const corsProxies = isLocalhost ? [
+          // Always use our own API proxy to avoid CORS issues
+          const corsProxies = [
             `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`
-          ] : [
-            imageUrl, // Direct load (may work in production)
-            `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`,
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(imageUrl)}`,
-            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(imageUrl)}`
           ]
 
           for (const proxyUrl of corsProxies) {

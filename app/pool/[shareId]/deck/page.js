@@ -95,6 +95,23 @@ export default function DeckBuilderPage({ params }) {
     }
   }, [pool])
 
+  // Save pending state on page refresh/close using sendBeacon
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (pendingStateRef.current && pool?.shareId) {
+        // Use sendBeacon for reliable delivery during page unload
+        const data = JSON.stringify({
+          shareId: pool.shareId,
+          deckBuilderState: pendingStateRef.current
+        })
+        navigator.sendBeacon('/api/pools/save-state', data)
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [pool])
+
   // Always render DeckBuilder immediately - show UI structure even while loading
   // Cards will be empty initially and populate once pool data loads
   // For draft pools, use pool.cards (drafted cards including leaders) not pool.packs (original pack cards)
