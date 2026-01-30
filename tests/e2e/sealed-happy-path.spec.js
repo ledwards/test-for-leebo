@@ -65,8 +65,13 @@ test.describe('Sealed happy path', () => {
 
     page = await context.newPage()
     page.on('console', msg => {
+      const text = msg.text()
       if (msg.type() === 'error') {
-        console.log(`  [Error]:`, msg.text().slice(0, 80))
+        console.log(`  [Error]:`, text.slice(0, 300))
+      }
+      // Capture deck image debug logs - capture anything with export or deck
+      if (text.includes('export') || text.includes('Export') || text.includes('Deck') || text.includes('deck') || text.includes('Pool') || text.includes('State') || text.includes('===')) {
+        console.log(`  [Console ${msg.type()}]:`, text.slice(0, 300))
       }
     })
 
@@ -200,8 +205,9 @@ test.describe('Sealed happy path', () => {
     }
     console.log(`✓ Added ${cardsAdded} cards to deck`)
 
-    // Wait for UI to update
-    await page.waitForTimeout(1000)
+    // Wait for UI to update and debounced save to complete (debounce is 2 seconds + save time)
+    console.log('  Waiting for deck state to save...')
+    await page.waitForTimeout(3000)
 
     // === STEP 6: Verify deck is legal ===
     console.log('\n--- STEP 6: Verifying deck is legal ---')
@@ -259,8 +265,8 @@ test.describe('Sealed happy path', () => {
     await expect(downloadButton).toBeEnabled()
     console.log('✓ Download button is visible and enabled')
 
-    // === STEP 10: Verify Deck Image button exists ===
-    console.log('\n--- STEP 10: Verifying Deck Image button ---')
+    // === STEP 10: Test Deck Image generation ===
+    console.log('\n--- STEP 10: Testing Deck Image generation ---')
 
     // Note: Canvas-based image generation often fails in headless browsers due to
     // font loading and CORS restrictions. We verify the button exists and is enabled.
@@ -268,6 +274,38 @@ test.describe('Sealed happy path', () => {
     await expect(imageButton).toBeVisible({ timeout: 5000 })
     await expect(imageButton).toBeEnabled()
     console.log('✓ Deck Image button is visible and enabled')
+
+    // Actually click the button to test image generation
+    console.log('  Clicking Deck Image button...')
+    await imageButton.click()
+
+    // Wait for the modal to appear or an error message
+    console.log('  Waiting for image generation...')
+    await page.waitForTimeout(10000) // Give time for image generation
+
+    // Check for error message
+    const errorMsg = page.locator('.play-message.error')
+    const hasError = await errorMsg.isVisible().catch(() => false)
+    if (hasError) {
+      const errorText = await errorMsg.textContent()
+      console.log('  ⚠ Error message:', errorText)
+    }
+
+    // Check if modal appeared
+    const modal = page.locator('.deck-image-modal-overlay')
+    const modalImage = page.locator('.deck-image-modal-image')
+    const hasModal = await modal.isVisible().catch(() => false)
+    const hasImage = await modalImage.isVisible().catch(() => false)
+
+    if (hasModal && hasImage) {
+      console.log('✓ Deck Image modal appeared with image')
+      // Close the modal
+      await page.locator('.deck-image-modal-close').click()
+    } else {
+      console.log('  ⚠ Deck Image modal or image not visible')
+      console.log('  Modal visible:', hasModal)
+      console.log('  Image visible:', hasImage)
+    }
 
     // === Final Verification ===
     console.log('\n--- Final Verification ---')

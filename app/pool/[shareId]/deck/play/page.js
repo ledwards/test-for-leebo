@@ -397,7 +397,7 @@ export default function PlayPage({ params }) {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${pool?.setCode || 'deck'} ${pool?.poolType === 'draft' ? 'Draft' : 'Sealed'} Deck.json`
+    a.download = `[PTP ${pool?.poolType === 'draft' ? 'DRAFT' : 'SEALED'}] ${pool?.setCode || 'deck'} Deck.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -405,6 +405,9 @@ export default function PlayPage({ params }) {
   }
 
   const exportDeckImage = async () => {
+    console.log('=== exportDeckImage called ===')
+    console.log('Pool exists:', !!pool)
+    console.log('DeckBuilderState exists:', !!pool?.deckBuilderState)
     if (!pool?.deckBuilderState) {
       setMessage('No deck data found. Please build your deck first.')
       setMessageType('error')
@@ -413,14 +416,21 @@ export default function PlayPage({ params }) {
     }
 
     setGeneratingImage(true)
+    console.log('=== Starting image generation ===')
 
     try {
       const state = typeof pool.deckBuilderState === 'string'
         ? JSON.parse(pool.deckBuilderState)
         : pool.deckBuilderState
 
+      console.log('State parsed successfully')
+      console.log('cardPositions exists:', !!state.cardPositions)
+      console.log('activeLeader:', state.activeLeader)
+      console.log('activeBase:', state.activeBase)
+
       const { cardPositions, activeLeader, activeBase } = state
       if (!cardPositions || !activeLeader || !activeBase) {
+        console.log('Missing required state:', { hasPositions: !!cardPositions, hasLeader: !!activeLeader, hasBase: !!activeBase })
         setMessage('Please select a leader and base first.')
         setMessageType('error')
         setTimeout(() => { setMessage(null); setMessageType(null) }, 3000)
@@ -431,11 +441,24 @@ export default function PlayPage({ params }) {
       const leaderCard = cardPositions[activeLeader]?.card
       const baseCard = cardPositions[activeBase]?.card
 
+      console.log('Leader/base lookup done')
+      // Debug logging
+      console.log('=== Deck Image Export Debug ===')
+      console.log('Total positions:', Object.keys(cardPositions).length)
+      console.log('Active leader ID:', activeLeader)
+      console.log('Active base ID:', activeBase)
+      console.log('Leader card:', leaderCard?.name, 'imageUrl:', leaderCard?.imageUrl)
+      console.log('Base card:', baseCard?.name, 'imageUrl:', baseCard?.imageUrl)
+
       // Get deck cards only (no sideboard), sorted by default sort (aspect combo -> type -> cost -> name)
       const deckCards = Object.values(cardPositions)
         .filter(pos => pos.section === 'deck' && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
         .map(pos => pos.card)
         .sort(defaultSort)
+
+      console.log('Deck cards found:', deckCards.length)
+      console.log('First 3 deck cards:', deckCards.slice(0, 3).map(c => ({ name: c.name, imageUrl: c.imageUrl })))
+      console.log('Cards missing imageUrl:', deckCards.filter(c => !c.imageUrl).map(c => c.name))
 
       // Load Barlow font
       const barlowFont = new FontFace('Barlow', 'url(https://fonts.gstatic.com/s/barlow/v12/7cHpv4kjgoGqM7E_DMs5.woff2)')
@@ -476,71 +499,160 @@ export default function PlayPage({ params }) {
       const ctx = canvas.getContext('2d')
 
       // Fill base background
-      ctx.fillStyle = 'rgb(9, 9, 9)'
+      ctx.fillStyle = 'rgb(76, 77, 81)'
       ctx.fillRect(0, 0, width, totalHeight)
 
-      // Load and tile background pattern
-      try {
-        const response = await fetch('/background-images/bg-texture-crop.png')
-        const blob = await response.blob()
-        const dataUrl = await new Promise((resolve) => {
-          const reader = new FileReader()
-          reader.onloadend = () => resolve(reader.result)
-          reader.readAsDataURL(blob)
-        })
-
-        const bgImg = await new Promise((resolve) => {
-          const img = new Image()
-          img.onload = () => resolve(img)
-          img.onerror = () => resolve(null)
-          img.src = dataUrl
-        })
-
-        if (bgImg && bgImg.width > 0) {
-          // Tile the pattern across the canvas
-          for (let y = 0; y < totalHeight; y += bgImg.height) {
-            for (let x = 0; x < width; x += bgImg.width) {
-              ctx.drawImage(bgImg, x, y)
-            }
-          }
-          // Dark overlay to match website style
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
-          ctx.fillRect(0, 0, width, totalHeight)
+      // Load set art and texture pattern
+      const loadImage = async (url) => {
+        try {
+          const response = await fetch(url)
+          const blob = await response.blob()
+          const dataUrl = await new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => resolve(reader.result)
+            reader.readAsDataURL(blob)
+          })
+          return await new Promise((resolve) => {
+            const img = new Image()
+            img.onload = () => resolve(img)
+            img.onerror = () => resolve(null)
+            img.src = dataUrl
+          })
+        } catch {
+          return null
         }
-      } catch (err) {
-        console.error('Failed to load background pattern:', err)
       }
 
-      // Draw fade gradients on all four sides
-      const fadeSize = 200
+      // Load both images
+      const setArtUrl = pool?.setCode ? getPackArtUrl(pool.setCode) : null
+      const [setArtImg, bgImg] = await Promise.all([
+        setArtUrl ? loadImage(setArtUrl) : null,
+        loadImage('/background-images/bg-texture-crop.png')
+      ])
 
-      // Top fade
-      const topGrad = ctx.createLinearGradient(0, 0, 0, fadeSize)
-      topGrad.addColorStop(0, 'rgb(9, 9, 9)')
-      topGrad.addColorStop(1, 'rgba(9, 9, 9, 0)')
-      ctx.fillStyle = topGrad
-      ctx.fillRect(0, 0, width, fadeSize)
+      // Calculate set art height: natural height at canvas width, minus 80px crop
+      const cropAmount = 80
+      const topShift = 15 // shift image up, clipping top 15px
+      let setArtHeight = 300 // fallback
+      if (setArtImg && setArtImg.width > 0) {
+        // Natural height if image fills canvas width
+        const naturalHeight = Math.round(width / (setArtImg.width / setArtImg.height))
+        setArtHeight = naturalHeight - cropAmount
+      }
 
-      // Bottom fade
-      const bottomGrad = ctx.createLinearGradient(0, totalHeight - fadeSize, 0, totalHeight)
-      bottomGrad.addColorStop(0, 'rgba(9, 9, 9, 0)')
-      bottomGrad.addColorStop(1, 'rgb(9, 9, 9)')
-      ctx.fillStyle = bottomGrad
-      ctx.fillRect(0, totalHeight - fadeSize, width, fadeSize)
+      // Draw texture pattern starting at the crop point
+      if (bgImg && bgImg.width > 0) {
+        const scaledWidth = bgImg.width * 1.5
+        const scaledHeight = bgImg.height * 1.5
+        // Tile starting from where set art is cropped
+        for (let y = setArtHeight; y < totalHeight; y += scaledHeight) {
+          for (let x = 0; x < width; x += scaledWidth) {
+            ctx.drawImage(bgImg, x, y, scaledWidth, scaledHeight)
+          }
+        }
+        // Dark overlay on texture area (0.8 opacity)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
+        ctx.fillRect(0, setArtHeight, width, totalHeight - setArtHeight)
 
-      // Left fade
-      const leftGrad = ctx.createLinearGradient(0, 0, fadeSize, 0)
-      leftGrad.addColorStop(0, 'rgb(9, 9, 9)')
-      leftGrad.addColorStop(1, 'rgba(9, 9, 9, 0)')
-      ctx.fillStyle = leftGrad
-      ctx.fillRect(0, 0, fadeSize, totalHeight)
+        // Fade at top of texture (blends with set art bottom)
+        const textureFadeHeight = 150
+        const textureFadeGrad = ctx.createLinearGradient(0, setArtHeight, 0, setArtHeight + textureFadeHeight)
+        textureFadeGrad.addColorStop(0, 'rgb(9, 9, 9)')
+        textureFadeGrad.addColorStop(1, 'rgba(9, 9, 9, 0)')
+        ctx.fillStyle = textureFadeGrad
+        ctx.fillRect(0, setArtHeight, width, textureFadeHeight)
 
-      // Right fade
-      const rightGrad = ctx.createLinearGradient(width - fadeSize, 0, width, 0)
-      rightGrad.addColorStop(0, 'rgba(9, 9, 9, 0)')
-      rightGrad.addColorStop(1, 'rgb(9, 9, 9)')
-      ctx.fillStyle = rightGrad
-      ctx.fillRect(width - fadeSize, 0, fadeSize, totalHeight)
+        // Left fade on texture
+        const textureSideFadeWidth = 200
+        const textureLeftGrad = ctx.createLinearGradient(0, 0, textureSideFadeWidth, 0)
+        textureLeftGrad.addColorStop(0, 'rgb(9, 9, 9)')
+        textureLeftGrad.addColorStop(1, 'rgba(9, 9, 9, 0)')
+        ctx.fillStyle = textureLeftGrad
+        ctx.fillRect(0, setArtHeight, textureSideFadeWidth, totalHeight - setArtHeight)
+
+        // Right fade on texture
+        const textureRightGrad = ctx.createLinearGradient(width - textureSideFadeWidth, 0, width, 0)
+        textureRightGrad.addColorStop(0, 'rgba(9, 9, 9, 0)')
+        textureRightGrad.addColorStop(1, 'rgb(9, 9, 9)')
+        ctx.fillStyle = textureRightGrad
+        ctx.fillRect(width - textureSideFadeWidth, setArtHeight, textureSideFadeWidth, totalHeight - setArtHeight)
+
+        // Bottom fade on texture
+        const textureBottomFadeHeight = 200
+        const textureBottomGrad = ctx.createLinearGradient(0, totalHeight - textureBottomFadeHeight, 0, totalHeight)
+        textureBottomGrad.addColorStop(0, 'rgba(9, 9, 9, 0)')
+        textureBottomGrad.addColorStop(1, 'rgb(9, 9, 9)')
+        ctx.fillStyle = textureBottomGrad
+        ctx.fillRect(0, totalHeight - textureBottomFadeHeight, width, textureBottomFadeHeight)
+      }
+
+      // Draw set art at top (cropped - bottom 80px removed)
+      if (setArtImg && setArtImg.width > 0) {
+        // Fill set art area with dark first
+        ctx.fillStyle = 'rgb(9, 9, 9)'
+        ctx.fillRect(0, 0, width, setArtHeight)
+
+        // Draw set art at natural ratio, shifted up and cropped
+        const naturalHeight = setArtHeight + cropAmount + topShift
+        ctx.drawImage(setArtImg, 0, -topShift, width, naturalHeight)
+
+        // Dark overlay on set art (0.8 opacity) - extend 40px to fully cover image
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
+        ctx.fillRect(0, 0, width, setArtHeight + 100)
+
+        // Top fade on set art: rgb(9,9,9) at 0% -> transparent at ~18%
+        const topFadeEnd = Math.round(setArtHeight * 0.18)
+        const topGrad = ctx.createLinearGradient(0, 0, 0, topFadeEnd)
+        topGrad.addColorStop(0, 'rgb(9, 9, 9)')
+        topGrad.addColorStop(1, 'rgba(9, 9, 9, 0)')
+        ctx.fillStyle = topGrad
+        ctx.fillRect(0, 0, width, topFadeEnd)
+
+        // Bottom fade on set art ending at crop point
+        const bottomFadeHeight = 250
+        const bottomFadeStart = setArtHeight - bottomFadeHeight
+        const bottomGrad = ctx.createLinearGradient(0, bottomFadeStart, 0, setArtHeight)
+        bottomGrad.addColorStop(0, 'rgba(9, 9, 9, 0)')
+        bottomGrad.addColorStop(0.2, 'rgba(9, 9, 9, 0.2)')
+        bottomGrad.addColorStop(0.4, 'rgba(9, 9, 9, 0.5)')
+        bottomGrad.addColorStop(0.6, 'rgba(9, 9, 9, 0.8)')
+        bottomGrad.addColorStop(0.8, 'rgba(9, 9, 9, 0.95)')
+        bottomGrad.addColorStop(1, 'rgb(9, 9, 9)')
+        ctx.fillStyle = bottomGrad
+        ctx.fillRect(0, bottomFadeStart, width, bottomFadeHeight)
+
+        // Left fade on set art (extend to cover the full overlay area)
+        const sideFadeWidth = 200
+        const setArtWithOverlay = setArtHeight + 100
+        const leftGrad = ctx.createLinearGradient(0, 0, sideFadeWidth, 0)
+        leftGrad.addColorStop(0, 'rgb(9, 9, 9)')
+        leftGrad.addColorStop(1, 'rgba(9, 9, 9, 0)')
+        ctx.fillStyle = leftGrad
+        ctx.fillRect(0, 0, sideFadeWidth, setArtWithOverlay)
+
+        // Right fade on set art
+        const rightGrad = ctx.createLinearGradient(width - sideFadeWidth, 0, width, 0)
+        rightGrad.addColorStop(0, 'rgba(9, 9, 9, 0)')
+        rightGrad.addColorStop(1, 'rgb(9, 9, 9)')
+        ctx.fillStyle = rightGrad
+        ctx.fillRect(width - sideFadeWidth, 0, sideFadeWidth, setArtWithOverlay)
+      } else {
+        // No set art - just fill top with dark
+        ctx.fillStyle = 'rgb(9, 9, 9)'
+        ctx.fillRect(0, 0, width, setArtHeight)
+      }
+
+      // Bottom fade for entire image
+      const overallBottomFadeStart = Math.round(totalHeight * 0.78)
+      const overallBottomFadeEnd = Math.round(totalHeight * 0.93)
+      const overallBottomGrad = ctx.createLinearGradient(0, overallBottomFadeStart, 0, overallBottomFadeEnd)
+      overallBottomGrad.addColorStop(0, 'rgba(9, 9, 9, 0)')
+      overallBottomGrad.addColorStop(1, 'rgb(9, 9, 9)')
+      ctx.fillStyle = overallBottomGrad
+      ctx.fillRect(0, overallBottomFadeStart, width, overallBottomFadeEnd - overallBottomFadeStart)
+      ctx.fillStyle = 'rgb(9, 9, 9)'
+      ctx.fillRect(0, overallBottomFadeEnd, width, totalHeight - overallBottomFadeEnd)
+
 
       // Helper to draw rounded rect clip
       const roundedClip = (x, y, w, h, r) => {
@@ -557,7 +669,7 @@ export default function PlayPage({ params }) {
         ctx.closePath()
       }
 
-      // Helper to draw card with CORS proxy fallback and border radius
+      // Helper to draw card with multiple CORS proxy fallbacks and border radius
       const drawCard = async (card, x, y, w, h, borderRadius = cardBorderRadius) => {
         if (!card?.imageUrl) {
           ctx.save()
@@ -586,21 +698,66 @@ export default function PlayPage({ params }) {
           })
         }
 
+        // Try loading via fetch + blob URL (better CORS handling)
+        const tryLoadViaFetch = async (url) => {
+          const response = await fetch(url)
+          if (!response.ok) throw new Error(`HTTP ${response.status}`)
+          const blob = await response.blob()
+          const blobUrl = URL.createObjectURL(blob)
+          return new Promise((resolve, reject) => {
+            const img = new Image()
+            img.onload = () => {
+              URL.revokeObjectURL(blobUrl)
+              resolve(img)
+            }
+            img.onerror = () => {
+              URL.revokeObjectURL(blobUrl)
+              reject(new Error('Failed to load blob image'))
+            }
+            img.src = blobUrl
+          })
+        }
+
         try {
           let img
-          try {
-            img = await tryLoadImage(imageUrl)
-          } catch {
-            // Try CORS proxy as fallback
-            img = await tryLoadImage(`https://corsproxy.io/?${encodeURIComponent(imageUrl)}`)
+          // Try different approaches in order
+          // Use local proxy on localhost, external proxies in production
+          const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+          const corsProxies = isLocalhost ? [
+            `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`
+          ] : [
+            imageUrl, // Direct load (may work in production)
+            `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`,
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(imageUrl)}`,
+            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(imageUrl)}`
+          ]
+
+          for (const proxyUrl of corsProxies) {
+            try {
+              // Try image loading first
+              img = await tryLoadImage(proxyUrl)
+              break
+            } catch {
+              try {
+                // Try fetch approach for this URL
+                img = await tryLoadViaFetch(proxyUrl)
+                break
+              } catch {
+                // Continue to next proxy
+              }
+            }
           }
 
-          // Draw with rounded corners
-          ctx.save()
-          roundedClip(x, y, w, h, borderRadius)
-          ctx.clip()
-          ctx.drawImage(img, x, y, w, h)
-          ctx.restore()
+          if (img) {
+            // Draw with rounded corners
+            ctx.save()
+            roundedClip(x, y, w, h, borderRadius)
+            ctx.clip()
+            ctx.drawImage(img, x, y, w, h)
+            ctx.restore()
+          } else {
+            throw new Error('All image loading methods failed')
+          }
         } catch {
           ctx.save()
           roundedClip(x, y, w, h, borderRadius)
@@ -660,18 +817,25 @@ export default function PlayPage({ params }) {
       currentY += labelHeight
 
       // Draw deck cards
+      console.log('=== Starting to draw', deckCards.length, 'deck cards ===')
       let col = 0
       let row = 0
+      let cardsDrawn = 0
       for (const card of deckCards) {
         const x = padding + col * (cardWidth + spacing)
         const y = currentY + row * (cardHeight + spacing)
         await drawCard(card, x, y, cardWidth, cardHeight)
+        cardsDrawn++
+        if (cardsDrawn % 10 === 0) {
+          console.log(`Drawn ${cardsDrawn}/${deckCards.length} cards`)
+        }
         col++
         if (col >= cardsPerRow) {
           col = 0
           row++
         }
       }
+      console.log('=== Finished drawing all deck cards ===')
 
       // Draw footer
       const footerY = totalHeight - footerHeight - padding + 20
@@ -692,8 +856,11 @@ export default function PlayPage({ params }) {
       ctx.fillText(deckUrl, width / 2, footerY + 80)
 
       // Show image in modal
+      console.log('=== Drawing complete, creating blob ===')
       canvas.toBlob((blob) => {
+        console.log('=== Blob created:', blob?.size, 'bytes ===')
         const url = URL.createObjectURL(blob)
+        console.log('=== Blob URL created:', url, '===')
         setDeckImageModal(url)
         setGeneratingImage(false)
       }, 'image/png')
@@ -945,7 +1112,8 @@ export default function PlayPage({ params }) {
                   const a = document.createElement('a')
                   a.href = deckImageModal
                   const sanitizedName = poolName.replace(/[^a-z0-9]/gi, '_').toLowerCase()
-                  a.download = `${sanitizedName}_deck.png`
+                  const prefix = pool?.poolType === 'draft' ? 'ptp_draft' : 'ptp_sealed'
+                  a.download = `${prefix}_${sanitizedName}_deck.png`
                   document.body.appendChild(a)
                   a.click()
                   document.body.removeChild(a)

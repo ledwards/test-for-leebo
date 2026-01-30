@@ -3,6 +3,8 @@
 ## 01.29.2026
 Great news, with this update, I'm excited to announce the migration to Railway.app as our new hosting platform. This move enables a shift to a lightning-fast, robust realtime architecture based on socket.io, ensuring more reliable multiplayer experiences.
 
+We've also revamped the deckbuilder based on some community feedback, making it more intuitive and consistent across Sealed and Draft modes.
+
 After a few more UI updates, the next focus area will be data quality and improving pack generation even further.
 
 Additionally, we've got a Discord now: [https://discord.gg/u6fkdDzWqF](https://discord.gg/u6fkdDzWqF). Join to find games and give feedback on the app. See you there!
@@ -12,6 +14,8 @@ Additionally, we've got a Discord now: [https://discord.gg/u6fkdDzWqF](https://d
 - Robust socket.io-based realtime architecture
 
 ### 🎨 UI Features
+- Brand new deckbuilder design that is consistent between Sealed and Draft modes and better reflects how players construct limited decks.
+- Fancier deck images
 - Maintenance mode, 404, and 500 error pages using failpurrgils
 
 ## 01.28.2026

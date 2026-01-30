@@ -69,6 +69,18 @@ async function main() {
     log('⚠️  Release notes file not found - skipping copy', 'yellow')
   }
 
+  // Run QA tests to generate fresh results
+  log('Running QA tests to generate fresh results...', 'cyan')
+  try {
+    execSync('npm run qa', {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    })
+    log('✅ QA tests completed', 'green')
+  } catch (error) {
+    log(`⚠️  QA tests failed: ${error.message}`, 'yellow')
+  }
+
   // Copy QA results to public directory
   const qaResultsSource = join(projectRoot, 'src', 'qa', 'results.json')
   const qaResultsDest = join(publicDir, 'qa-results.json')

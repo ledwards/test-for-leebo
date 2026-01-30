@@ -127,7 +127,7 @@
   align-items: center;
   margin-top: 0;
   margin-bottom: 0.75rem;
-  padding: 1rem 1rem 1.25rem 1rem;
+  padding: 1rem;
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 6px;
@@ -700,6 +700,13 @@
     min-width: 300px;
     max-width: calc((100% - 2 * 0.75rem) / 3);
   }
+
+  /* Deck flat container is always full width */
+  .blocks-deck-row .deck-flat-container {
+    flex: 1 1 100%;
+    min-width: 100%;
+    max-width: 100%;
+  }
 }
 
 /* Cost blocks should span full width */
@@ -1119,29 +1126,6 @@
   box-shadow: 0 6px 16px rgba(33, 150, 243, 0.6);
 }
 
-.filter-button {
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 0.75rem;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  width: 44px;
-  height: 44px;
-}
-
-.filter-button:hover {
-  background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(33, 150, 243, 0.8);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.6);
-}
-
 .sort-button-icon {
   background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1165,15 +1149,41 @@
   box-shadow: 0 6px 16px rgba(33, 150, 243, 0.6);
 }
 
-/* Rainbow border for filter buttons - thin outline only */
-.filter-button,
+.filter-button {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  width: 44px;
+  height: 44px;
+}
+
+.filter-button:hover {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: rgba(33, 150, 243, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.6);
+}
+
+.filter-button.active {
+  background: rgba(33, 150, 243, 0.3);
+  border-color: rgba(33, 150, 243, 0.8);
+}
+
+/* Rainbow border for sort buttons - thin outline only */
 .sort-button-icon {
   position: relative;
   isolation: isolate;
   overflow: visible;
 }
 
-.filter-button::before,
 .sort-button-icon::before {
   content: '';
   position: absolute;
@@ -1199,7 +1209,6 @@
 }
 
 /* Inner mask to create thin border effect */
-.filter-button::after,
 .sort-button-icon::after {
   content: '';
   position: absolute;
@@ -1212,22 +1221,47 @@
   pointer-events: none;
 }
 
-.filter-button.active::before,
 .sort-button-icon.active::before {
   opacity: 1;
 }
 
-.filter-button.active::after,
 .sort-button-icon.active::after {
   opacity: 1;
 }
 
-.filter-button.active,
 .sort-button-icon.active {
   border-color: transparent;
   box-shadow: none;
 }
 
+/* Add All button - green glow */
+.add-all-button {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.add-all-button:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: rgba(0, 255, 0, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+}
+
+.add-all-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Remove All button - red glow */
 .remove-all-button {
   background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1241,11 +1275,17 @@
   backdrop-filter: blur(10px);
 }
 
-.remove-all-button:hover {
+.remove-all-button:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.85);
-  border-color: rgba(0, 255, 0, 0.8);
+  border-color: rgba(255, 0, 0, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
+}
+
+.remove-all-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .aspect-penalty-button {
@@ -1315,87 +1355,6 @@
   z-index: 1500;
 }
 
-.filter-drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 240px;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.95);
-  backdrop-filter: blur(10px);
-  border-left: 2px solid rgba(255, 255, 255, 0.2);
-  z-index: 2000;
-  padding: 1.5rem;
-  overflow-y: auto;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
-}
-
-.filter-drawer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.filter-drawer-header h2 {
-  margin: 0;
-  color: white;
-  font-size: 1.5rem;
-}
-
-.filter-drawer-header button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 2rem;
-  cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background 0.2s;
-}
-
-.filter-drawer-header button:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.filter-section {
-  margin-bottom: 2rem;
-}
-
-.filter-section h3 {
-  color: white;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.filter-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background 0.2s;
-  color: white;
-}
-
-.filter-checkbox:hover {
-  background: rgba(33, 150, 243, 0.2);
-}
-
-.filter-checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-}
-
 .sort-button {
   display: block;
   width: 100%;
@@ -1439,13 +1398,12 @@
   background: rgba(0, 0, 0, 0.5);
   border-radius: 12px;
   color: white;
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
 }
 
 .list-section {
   margin-bottom: 4rem;
-  max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
   width: 100%;
 }
 
@@ -1470,14 +1428,11 @@
 
 .list-table {
   width: 100%;
-  max-width: 1000px;
   table-layout: fixed;
   border-collapse: collapse;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 8px;
   overflow: hidden;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .list-table thead {
@@ -1853,7 +1808,6 @@
   }
 
   .view-toggle-button,
-  .filter-button,
   .sort-button-icon {
     width: 40px;
     height: 40px;
@@ -1863,30 +1817,6 @@
   /* Hide table view button on mobile */
   .view-toggle-button {
     display: none;
-  }
-
-  /* Filter drawer - 25% larger text and checkboxes */
-  .filter-drawer {
-    width: 280px;
-    padding: 1.25rem;
-  }
-
-  .filter-drawer-header h2 {
-    font-size: 1.75rem;
-  }
-
-  .filter-section h3 {
-    font-size: 1.4rem;
-  }
-
-  .filter-checkbox {
-    padding: 0.625rem;
-    font-size: 1.125rem;
-  }
-
-  .filter-checkbox input[type="checkbox"] {
-    width: 22px;
-    height: 22px;
   }
 
   .sort-button {
@@ -2175,4 +2105,152 @@
 .delete-confirm-delete:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ==================== Pool/Deck UI Refactor Styles ==================== */
+
+/* Inline sort controls - displayed next to section headers */
+.inline-sort-controls {
+  display: flex;
+  gap: 4px;
+  margin-left: 0.5rem;
+}
+
+.inline-sort-controls .sort-button-icon {
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.inline-sort-controls .sort-button-icon.active {
+  opacity: 1;
+}
+
+.inline-sort-controls .sort-button-icon:hover {
+  opacity: 0.8;
+}
+
+/* Pool section - grouped boxes layout */
+.blocks-pool-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* Pool blocks grow to fill available space in their row */
+.blocks-pool-row .card-block {
+  flex: 1 1 280px;
+  min-width: 280px;
+  max-width: 100%;
+}
+
+/* Mono-aspect blocks are always full width */
+.blocks-pool-row .pool-group-block.mono-aspect {
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 100%;
+}
+
+/* Pool group block styles */
+.pool-group-block {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.pool-group-block .card-block-header {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.card-block-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.5px;
+}
+
+/* Deck flat container - single box for all deck cards */
+/* Deck flat container - always full width */
+.deck-flat-container {
+  flex: 1 1 100%;
+  width: 100%;
+}
+
+.deck-flat-container .cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+/* Pool group blocks - mono-aspect blocks are full width */
+.blocks-pool-row .pool-group-block.mono-aspect {
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 100%;
+}
+
+/* Type blocks - always full width */
+.blocks-pool-row .pool-group-block.type-block {
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 100%;
+}
+
+/* Cost blocks - 2 per row on large screens using flex */
+.blocks-pool-row .pool-group-block.cost-block {
+  flex: 1 1 calc(50% - 0.375rem);
+  min-width: 280px;
+  max-width: calc(50% - 0.375rem);
+}
+
+/* Pool group block header - clickable for collapse/expand */
+.pool-group-block .card-block-header {
+  cursor: pointer;
+  user-select: none;
+}
+
+.pool-group-block .card-block-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+/* Collapsed blocks - just show header */
+.card-block.collapsed {
+  padding-bottom: 0.5rem;
+}
+
+.card-block.collapsed .card-block-header {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.card-block.collapsed .card-block-content {
+  display: none;
+}
+
+/* Mobile adjustments for Pool/Deck */
+@media (max-width: 768px) {
+  .blocks-pool-row .card-block {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .inline-sort-controls {
+    margin-left: 0.25rem;
+    gap: 2px;
+  }
+
+  .inline-sort-controls .sort-button-icon {
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+  }
 }
