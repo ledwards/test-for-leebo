@@ -2,10 +2,11 @@
 
 ## 01.30.2026
 
-### 🎨 UI Features
+### 🎉 New Features
 - Fancy pack opening animation that makes the app look like it's professional 😉
+- Mon Mothma ignores aspect penalty on Officials. Hera Syndulla (SOR) ignores aspect penalties on Spectres. Will have to consider how to handle optional aspect penalty ignoring leaders like Anakin Skywalker (LOF) and Hera Syndulla (LAW).
 
-### 🐛 Bug Fixes
+### 🐞 Bug Fixes
 - Fixed missing aspect penalty on mobile
 - Fixes to a number of bugs related to users who are not logged in
 - More reliably save deck state during deckbuilder if you leave the page or refresh
@@ -38,7 +39,7 @@ Additionally, we've got a Discord now: [https://discord.gg/u6fkdDzWqF](https://d
 ### 🦾 Infrastructure
 - Improved draft reliability with new real-time event-based architecture
 
-### 🐛 Bug Fixes
+### 🐞 Bug Fixes
 - Fixed player circle positioning on mobile devices
 - Fixed leader card clipping in sealed pools on mobile
 - Removed hover effects on touch devices for opponent leaders
@@ -86,7 +87,7 @@ Additionally, we've got a Discord now: [https://discord.gg/u6fkdDzWqF](https://d
 2. Use US date format (MM.DD.YYYY)
 3. Use emoji categories:
    - 🎉 New Features
-   - 🐛 Bug Fixes
+   - 🐞 Bug Fixes
    - 🎨 UI Improvements
    - ⚡ Performance
    - 🦾 Infrastructure
