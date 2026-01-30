@@ -1301,10 +1301,10 @@
   background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
-  padding: 0.35rem 0.6rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 500;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
@@ -1312,7 +1312,6 @@
   align-items: center;
   justify-content: center;
   white-space: nowrap;
-  height: 28px;
   line-height: 1;
   vertical-align: middle;
 }
@@ -1335,10 +1334,10 @@
   background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
-  padding: 0.35rem 0.6rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 500;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
@@ -1346,7 +1345,6 @@
   align-items: center;
   justify-content: center;
   white-space: nowrap;
-  height: 28px;
   line-height: 1;
   vertical-align: middle;
 }
@@ -2223,9 +2221,9 @@
   max-width: 100%;
 }
 
-/* Mono-aspect blocks are always full width */
+/* Mono-aspect blocks are always full width, force new row */
 .blocks-pool-row .pool-group-block.mono-aspect {
-  flex: 1 1 100%;
+  flex: 0 0 100%;
   width: 100%;
   max-width: 100%;
   min-width: 100%;
@@ -2263,9 +2261,9 @@
   justify-content: flex-start;
 }
 
-/* Pool group blocks - mono-aspect blocks are full width */
+/* Pool group blocks - mono-aspect blocks are full width, force new row */
 .blocks-pool-row .pool-group-block.mono-aspect {
-  flex: 1 1 100%;
+  flex: 0 0 100%;
   width: 100%;
   max-width: 100%;
   min-width: 100%;
@@ -2349,9 +2347,16 @@
   /* No background change on hover */
 }
 
-/* Mono-aspect blocks in deck - always full width */
+/* Aspect blocks in deck - fit 3 per row */
+.blocks-deck-groups-row .deck-group-block.aspect-block {
+  flex: 1 1 calc(33.33% - 0.5rem);
+  min-width: 250px;
+  max-width: calc(33.33% - 0.5rem);
+}
+
+/* Mono-aspect blocks in deck - always full width, force new row */
 .blocks-deck-groups-row .deck-group-block.mono-aspect {
-  flex: 1 1 100%;
+  flex: 0 0 100%;
   width: 100%;
   max-width: 100%;
   min-width: 100%;
