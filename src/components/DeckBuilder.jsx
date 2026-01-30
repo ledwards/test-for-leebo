@@ -4503,7 +4503,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{ position: 'relative', width: '28px', height: '28px' }}>
                     <img src="/icons/cost.png" alt="Cost" style={{ width: '28px', height: '28px' }} />
-                    <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'white', fontWeight: 'bold', fontSize: '14px', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>{costValue}</span>
+                    <span style={{ position: 'absolute', top: '50%', left: '50%', transform: `translate(-50%, -50%)${costValue === '8+' ? ' translateX(1px)' : ''}`, color: 'white', fontWeight: 'bold', fontSize: '14px', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>{costValue}</span>
                   </div>
                   <span>({count})</span>
                 </div>
@@ -5444,7 +5444,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <div style={{ position: 'relative', width: '28px', height: '28px' }}>
                       <img src="/icons/cost.png" alt="Cost" style={{ width: '28px', height: '28px' }} />
-                      <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'white', fontWeight: 'bold', fontSize: '14px', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>{costValue}</span>
+                      <span style={{ position: 'absolute', top: '50%', left: '50%', transform: `translate(-50%, -50%)${costValue === '8+' ? ' translateX(1px)' : ''}`, color: 'white', fontWeight: 'bold', fontSize: '14px', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>{costValue}</span>
                     </div>
                     <span>({count})</span>
                   </div>
