@@ -129,7 +129,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [inAspectFilter, setInAspectFilter] = useState(poolType !== 'draft')
   const [outAspectFilter, setOutAspectFilter] = useState(poolType !== 'draft')
   const [poolSortOption, setPoolSortOption] = useState('aspect') // Controls Pool grouping
-  const [deckSortOption, setDeckSortOption] = useState('default') // Controls Deck sorting and grouping (default = flat container, others = grouped blocks)
+  const [deckSortOption, setDeckSortOption] = useState('cost') // Controls Deck sorting and grouping (default = flat container, others = grouped blocks)
   const [deckGroupsExpanded, setDeckGroupsExpanded] = useState({}) // Track expanded state of deck group blocks
   const [deckFilterOpen, setDeckFilterOpen] = useState(false) // Filter modal for Deck section
   const [poolFilterOpen, setPoolFilterOpen] = useState(false) // Filter modal for Pool section
@@ -797,6 +797,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
       .map(pos => pos.card)
 
+    // Get leader and base for penalty calculation
+    const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
+    const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
+    const getEffectiveCost = (card) => {
+      const baseCost = card.cost || 0
+      const penalty = (showAspectPenalties && leaderCard && baseCard) ? calculateAspectPenalty(card, leaderCard, baseCard) : 0
+      return baseCost + penalty
+    }
+
     if (deckSortOption === 'aspect') {
       // Sort by aspect key directly
       return allCards.sort((a, b) => {
@@ -806,10 +815,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       })
     } else if (deckSortOption === 'cost') {
       // Sort by cost (will be grouped by cost segments in rendering)
-      return allCards.sort((a, b) => (a.cost || 0) - (b.cost || 0))
+      return allCards.sort((a, b) => getEffectiveCost(a) - getEffectiveCost(b))
     }
     return allCards
-  }, [cardPositions, deckSortOption, getAspectKey, getDefaultAspectSortKey])
+  }, [cardPositions, deckSortOption, getAspectKey, getDefaultAspectSortKey, showAspectPenalties, activeLeader, activeBase])
 
   // Group cards by base name (ignoring treatments like foil, hyperspace, showcase)
   // Returns an array of groups, where each group contains cards with the same base name
@@ -968,48 +977,49 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             setDeckSortOption(state.sortOption)
           }
 
-          // Restore active leader and base
-          if (state.activeLeader) {
-            setActiveLeader(state.activeLeader)
-          }
-          if (state.activeBase) {
-            setActiveBase(state.activeBase)
-          }
+        }
 
-          // Restore UI state
-          if (state.viewMode) {
-            setViewMode(state.viewMode)
-          }
-          if (state.leadersBasesExpanded !== undefined) {
-            setLeadersBasesExpanded(state.leadersBasesExpanded)
-          }
-          if (state.leadersExpanded !== undefined) {
-            setLeadersExpanded(state.leadersExpanded)
-          }
-          if (state.basesExpanded !== undefined) {
-            setBasesExpanded(state.basesExpanded)
-          }
-          if (state.deckExpanded !== undefined) {
-            setDeckExpanded(state.deckExpanded)
-          }
-          if (state.sideboardExpanded !== undefined) {
-            setSideboardExpanded(state.sideboardExpanded)
-          }
-          if (state.deckAspectSectionsExpanded) {
-            setDeckAspectSectionsExpanded(state.deckAspectSectionsExpanded)
-          }
-          if (state.deckCostSectionsExpanded) {
-            setDeckCostSectionsExpanded(state.deckCostSectionsExpanded)
-          }
-          if (state.deckGroupsExpanded) {
-            setDeckGroupsExpanded(state.deckGroupsExpanded)
-          }
-          if (state.poolGroupsExpanded) {
-            setPoolGroupsExpanded(state.poolGroupsExpanded)
-          }
-          if (state.showAspectPenalties !== undefined) {
-            setShowAspectPenalties(state.showAspectPenalties)
-          }
+        // Restore active leader and base (outside cardPositions check so it works even with empty positions)
+        if (state.activeLeader) {
+          setActiveLeader(state.activeLeader)
+        }
+        if (state.activeBase) {
+          setActiveBase(state.activeBase)
+        }
+
+        // Restore UI state (outside cardPositions check)
+        if (state.viewMode) {
+          setViewMode(state.viewMode)
+        }
+        if (state.leadersBasesExpanded !== undefined) {
+          setLeadersBasesExpanded(state.leadersBasesExpanded)
+        }
+        if (state.leadersExpanded !== undefined) {
+          setLeadersExpanded(state.leadersExpanded)
+        }
+        if (state.basesExpanded !== undefined) {
+          setBasesExpanded(state.basesExpanded)
+        }
+        if (state.deckExpanded !== undefined) {
+          setDeckExpanded(state.deckExpanded)
+        }
+        if (state.sideboardExpanded !== undefined) {
+          setSideboardExpanded(state.sideboardExpanded)
+        }
+        if (state.deckAspectSectionsExpanded) {
+          setDeckAspectSectionsExpanded(state.deckAspectSectionsExpanded)
+        }
+        if (state.deckCostSectionsExpanded) {
+          setDeckCostSectionsExpanded(state.deckCostSectionsExpanded)
+        }
+        if (state.deckGroupsExpanded) {
+          setDeckGroupsExpanded(state.deckGroupsExpanded)
+        }
+        if (state.poolGroupsExpanded) {
+          setPoolGroupsExpanded(state.poolGroupsExpanded)
+        }
+        if (state.showAspectPenalties !== undefined) {
+          setShowAspectPenalties(state.showAspectPenalties)
         }
       } catch (e) {
         console.error('Failed to restore deck builder state:', e)
@@ -1147,8 +1157,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // Initialize card positions in sections
   // Can initialize with just pool cards, then enhance when all set cards load
   useEffect(() => {
-    // Don't initialize if we have saved state to restore
-    if (savedState) return
+    // Don't initialize if we have saved state with card positions to restore
+    if (savedState) {
+      const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState
+      if (state.cardPositions && Object.keys(state.cardPositions).length > 0) {
+        return
+      }
+    }
 
     // Initialize immediately with pool cards if we have them
     // We only need allSetCards for the common bases, which can be added later
@@ -1748,9 +1763,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       let sideboardY = sideboardStartY
 
       // Helper function to sort cards based on a sort option
+      // Get leader and base for penalty calculation
+      const leaderCardSort = activeLeader && updated[activeLeader] ? updated[activeLeader].card : null
+      const baseCardSort = activeBase && updated[activeBase] ? updated[activeBase].card : null
+      const getEffectiveCost = (card) => {
+        const baseCost = card.cost || 0
+        const penalty = (showAspectPenalties && leaderCardSort && baseCardSort) ? calculateAspectPenalty(card, leaderCardSort, baseCardSort) : 0
+        return baseCost + penalty
+      }
       const sortCards = (cards, sortOpt) => {
         if (sortOpt === 'cost') {
-          return [...cards].sort((a, b) => (a.cost || 0) - (b.cost || 0))
+          return [...cards].sort((a, b) => getEffectiveCost(a) - getEffectiveCost(b))
         } else if (sortOpt === 'aspect') {
           // Sort by aspect key directly
           return [...cards].sort((a, b) => {
@@ -1771,7 +1794,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             const aOrder = getTypeOrder(a.type || '')
             const bOrder = getTypeOrder(b.type || '')
             if (aOrder !== bOrder) return aOrder - bOrder
-            return (a.cost || 0) - (b.cost || 0)
+            return getEffectiveCost(a) - getEffectiveCost(b)
           })
         }
         return cards
@@ -1793,10 +1816,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       if (sortOpt === 'cost') {
         // Vertical columns by cost
         const costGroups = {}
+        // Get leader and base for penalty calculation
+        const leaderCard = activeLeader && updated[activeLeader] ? updated[activeLeader].card : null
+        const baseCard = activeBase && updated[activeBase] ? updated[activeBase].card : null
           sortedCardIds.forEach(cardId => {
             const card = updated[cardId]?.card
             if (!card) return
-          const cost = card.cost || 0
+          const baseCost = card.cost || 0
+          const penalty = (showAspectPenalties && leaderCard && baseCard) ? calculateAspectPenalty(card, leaderCard, baseCard) : 0
+          const cost = baseCost + penalty
           if (!costGroups[cost]) costGroups[cost] = []
             costGroups[cost].push(cardId)
         })
@@ -1908,7 +1936,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     // Handle leaders and bases - they can't be dragged, only selected
     if (card.section === 'leaders-bases' && card.card.isLeader) {
       // Toggle selection - clicking same card deselects
-      setActiveLeader(cardId === activeLeader ? null : cardId)
+      const newLeader = cardId === activeLeader ? null : cardId
+      setActiveLeader(newLeader)
+      // Turn on aspect penalties if selecting a leader and sort by cost is active
+      if (newLeader && (poolSortOption === 'cost' || deckSortOption === 'cost')) {
+        setShowAspectPenalties(true)
+      }
       return
     }
 
@@ -3709,6 +3742,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                               onClick={(e) => {
                                 const newActiveLeader = activeLeader === cardId ? null : cardId
                                 setActiveLeader(newActiveLeader)
+                                if (newActiveLeader && (poolSortOption === 'cost' || deckSortOption === 'cost')) {
+                                  setShowAspectPenalties(true)
+                                }
                               }}
                               onMouseEnter={(e) => {
                                 setHoveredCard(cardId)
@@ -4267,6 +4303,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader && position.enabled !== false)
             .map(([cardId, position]) => ({ cardId, position }))
 
+          const leaderCardDeck = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
+          const baseCardDeck = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
+
           const getTypeOrder = (card) => {
             if (card.type === 'Unit') {
               if (card.arenas && card.arenas.includes('Ground')) return 1
@@ -4366,6 +4405,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           )}
                           <div className="card-badges">
                                                       </div>
+                          {showAspectPenalties && leaderCardDeck && baseCardDeck && (() => {
+                            const penalty = calculateAspectPenalty(card, leaderCardDeck, baseCardDeck)
+                            if (penalty > 0) {
+                              return (
+                                <div className="aspect-penalty-badge">
+                                  <div className="penalty-icon">
+                                    <img src="/icons/cost.png" alt="Cost" />
+                                    <span className="penalty-text">+{penalty}</span>
+                                  </div>
+                                </div>
+                              )
+                            }
+                            return null
+                          })()}
                         </div>
                       )
                     }))}
@@ -4377,9 +4430,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
           // Grouped blocks for aspect, cost, type
           // Helper to get group key based on sort option
+          const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
+          const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
           const getGroupKey = (card) => {
             if (deckSortOption === 'cost') {
-              const cost = card.cost !== null && card.cost !== undefined ? card.cost : 999
+              const baseCost = card.cost !== null && card.cost !== undefined ? card.cost : 999
+              const penalty = (showAspectPenalties && leaderCard && baseCard) ? calculateAspectPenalty(card, leaderCard, baseCard) : 0
+              const cost = baseCost + penalty
               if (cost >= 8) return '8+'
               return String(cost)
             } else if (deckSortOption === 'type') {
@@ -4723,6 +4780,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                               )}
                               <div className="card-badges">
                                                               </div>
+                              {showAspectPenalties && leaderCard && baseCard && (() => {
+                                const penalty = calculateAspectPenalty(card, leaderCard, baseCard)
+                                if (penalty > 0) {
+                                  return (
+                                    <div className="aspect-penalty-badge">
+                                      <div className="penalty-icon">
+                                        <img src="/icons/cost.png" alt="Cost" />
+                                        <span className="penalty-text">+{penalty}</span>
+                                      </div>
+                                    </div>
+                                  )
+                                }
+                                return null
+                              })()}
                             </div>
                           )
                         }))}
@@ -5166,6 +5237,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               return null
             }
 
+            const leaderCardPool = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
+            const baseCardPool = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
+
             const getTypeOrder = (card) => {
               if (card.type === 'Unit') {
                 if (card.arenas && card.arenas.includes('Ground')) return 1
@@ -5265,6 +5339,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                 )}
                                 <div className="card-badges">
                                                                   </div>
+                                {showAspectPenalties && leaderCardPool && baseCardPool && (() => {
+                                  const penalty = calculateAspectPenalty(card, leaderCardPool, baseCardPool)
+                                  if (penalty > 0) {
+                                    return (
+                                      <div className="aspect-penalty-badge">
+                                        <div className="penalty-icon">
+                                          <img src="/icons/cost.png" alt="Cost" />
+                                          <span className="penalty-text">+{penalty}</span>
+                                        </div>
+                                      </div>
+                                    )
+                                  }
+                                  return null
+                                })()}
                               </div>
                             )
                           }))}
@@ -5277,9 +5365,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             }
 
             // Helper to get group key based on sort option
+            const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
+            const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
             const getGroupKey = (card) => {
               if (poolSortOption === 'cost') {
-                const cost = card.cost !== null && card.cost !== undefined ? card.cost : 999
+                const baseCost = card.cost !== null && card.cost !== undefined ? card.cost : 999
+                const penalty = (showAspectPenalties && leaderCard && baseCard) ? calculateAspectPenalty(card, leaderCard, baseCard) : 0
+                const cost = baseCost + penalty
                 if (cost >= 8) return '8+'
                 return String(cost)
               } else if (poolSortOption === 'type') {
@@ -5550,7 +5642,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   const expanded = isGroupExpanded(groupKey)
 
                   // Determine block class based on sort option
-                  const blockTypeClass = poolSortOption === 'type' ? 'type-block' : poolSortOption === 'cost' ? 'cost-block' : ''
+                  const blockTypeClass = poolSortOption === 'type' ? 'type-block' : poolSortOption === 'cost' ? 'cost-block' : 'aspect-block'
 
                   // Get matching deck cards for this group
                   const matchingDeckCards = deckGroups[groupKey] || []
@@ -5670,6 +5762,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                 )}
                                 <div className="card-badges">
                                                                   </div>
+                                {showAspectPenalties && leaderCard && baseCard && (() => {
+                                  const penalty = calculateAspectPenalty(card, leaderCard, baseCard)
+                                  if (penalty > 0) {
+                                    return (
+                                      <div className="aspect-penalty-badge">
+                                        <div className="penalty-icon">
+                                          <img src="/icons/cost.png" alt="Cost" />
+                                          <span className="penalty-text">+{penalty}</span>
+                                        </div>
+                                      </div>
+                                    )
+                                  }
+                                  return null
+                                })()}
                               </div>
                             )
                           }))}
@@ -5766,6 +5872,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                               onChange={(e) => {
                                 if (e.target.checked) {
                                   setActiveLeader(cardId)
+                                  if (poolSortOption === 'cost' || deckSortOption === 'cost') {
+                                    setShowAspectPenalties(true)
+                                  }
                                 } else {
                                   setActiveLeader(null)
                                 }
