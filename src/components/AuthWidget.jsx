@@ -112,9 +112,11 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
     if (showOnlyWhenLoggedIn) {
       return null
     }
+    // Build login URL with redirect back to current page
+    const loginUrl = `/api/auth/login?redirect=${encodeURIComponent(pathname || '/')}`
     return (
       <div className="auth-widget">
-        <button className="auth-widget-login-button" onClick={signIn} title="Login with Discord">
+        <a href={loginUrl} className="auth-widget-login-button" title="Login with Discord">
           <svg
             width="24"
             height="24"
@@ -127,7 +129,7 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
               fill="currentColor"
             />
           </svg>
-        </button>
+        </a>
       </div>
     )
   }

@@ -154,7 +154,6 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     const { shareId } = await params
-    const session = requireAuth(request)
     const body = await parseBody(request)
 
     // Check ownership - only select needed columns (avoid loading large JSONB)
@@ -167,8 +166,14 @@ export async function PUT(request, { params }) {
       return errorResponse('Pool not found', 404)
     }
 
-    if (pool.user_id !== session.id) {
-      return errorResponse('Unauthorized', 403)
+    // Authorization logic:
+    // - Anonymous pools (user_id is null) can be edited by anyone
+    // - Owned pools require the owner to be authenticated
+    if (pool.user_id !== null) {
+      const session = requireAuth(request)
+      if (pool.user_id !== session.id) {
+        return errorResponse('Unauthorized', 403)
+      }
     }
 
     // Update pool

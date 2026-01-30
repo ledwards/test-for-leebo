@@ -2435,16 +2435,19 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     return num >= 253
   }, [])
 
-  // Build a map of card name -> base card (the non-variant version)
+  // Build a map of card name+type -> base card (the non-variant version)
+  // Uses name+type as key to avoid mapping Units to Leaders with the same name
   const buildBaseCardMap = useCallback(() => {
     const cards = getCachedCards(setCode)
     if (!cards) return new Map()
 
-    const nameToBaseCard = new Map()
+    const nameTypeToBaseCard = new Map()
 
     cards.forEach(card => {
-      const key = card.name
-      const existing = nameToBaseCard.get(key)
+      // Use name + type as key to distinguish Units from Leaders with same name
+      // e.g., "Emperor Palpatine" exists as both a Leader and a Unit
+      const key = `${card.name}|${card.type}`
+      const existing = nameTypeToBaseCard.get(key)
       const cardNum = getCardNumber(card.id)
       const existingNum = existing ? getCardNumber(existing.id) : Infinity
 
@@ -2456,11 +2459,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       if (!existing ||
           (!cardIsVariant && existingIsVariant) ||
           (cardIsVariant === existingIsVariant && cardNum < existingNum)) {
-        nameToBaseCard.set(key, card)
+        nameTypeToBaseCard.set(key, card)
       }
     })
 
-    return nameToBaseCard
+    return nameTypeToBaseCard
   }, [setCode, getCardNumber, isVariantNumber])
 
   // Convert card ID to standard format (dash to underscore, strip suffixes)
@@ -2475,12 +2478,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   }, [])
 
   // Convert card to base card ID for export
-  // Looks up the base (non-variant) card by name and returns its normalized ID
+  // Looks up the base (non-variant) card by name+type and returns its normalized ID
   const getBaseCardId = useCallback((card) => {
     if (!card) return null
 
     const baseCardMap = buildBaseCardMap()
-    const baseCard = baseCardMap?.get(card.name)
+    // Use name + type as key to find the correct base card
+    const key = `${card.name}|${card.type}`
+    const baseCard = baseCardMap?.get(key)
     if (baseCard) {
       return normalizeId(baseCard.id)
     }

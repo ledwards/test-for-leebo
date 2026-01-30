@@ -111,6 +111,74 @@
   letter-spacing: 0.05em;
 }
 
+/* Login banner for logged-out users */
+.login-banner {
+  background: linear-gradient(135deg, rgba(88, 101, 242, 0.2) 0%, rgba(88, 101, 242, 0.1) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(88, 101, 242, 0.5);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.login-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.login-banner-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(88, 101, 242, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #5865F2;
+}
+
+.login-banner-text {
+  flex: 1;
+}
+
+.login-banner-text h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.login-banner-text p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.login-banner-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Barlow', sans-serif;
+  background: #5865F2;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.login-banner-button:hover {
+  background: #4752c4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+}
+
 .play-instructions {
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
@@ -507,6 +575,30 @@
   .play-content {
     padding: 0;
     padding-top: 0.5rem;
+  }
+
+  .login-banner {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .login-banner-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .login-banner-text h3 {
+    font-size: 1rem;
+  }
+
+  .login-banner-text p {
+    font-size: 0.85rem;
+  }
+
+  .login-banner-button {
+    width: 100%;
+    justify-content: center;
   }
 
   .play-header {
