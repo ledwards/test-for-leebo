@@ -5,6 +5,10 @@
 ### 🎨 UI Features
 - Fancy pack opening animation that makes the app look like it's professional 😉
 
+### 🐛 Bug Fixes
+- Fixed missing aspect penalty on mobile
+- Fixes to a number of bugs related to users who are not logged in
+
 ## 01.29.2026
 Great news, with this update, I'm excited to announce the migration to Railway.app as our new hosting platform. This move enables a shift to a lightning-fast, robust realtime architecture based on socket.io, ensuring more reliable multiplayer experiences.
 
@@ -88,3 +92,5 @@ Additionally, we've got a Discord now: [https://discord.gg/u6fkdDzWqF](https://d
    - 🔧 Maintenance
    - 📦 Pack/Data Changes
 4. Keep entries concise and user-friendly
+
+Run node scripts/postbuild.js to update the release notes on website.
