@@ -4180,55 +4180,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </>
               )})()}
             </div>
-            {(() => {
-              const deckCardCount = Object.values(cardPositions)
-                .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length
-              const poolCardCount = Object.values(cardPositions)
-                .filter(pos => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader).length
-              const isDeckEmpty = deckCardCount === 0
-              const isPoolEmpty = poolCardCount === 0
-
-              return (
-                <>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      const poolCards = Object.entries(cardPositions)
-                        .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
-                      setCardPositions(prev => {
-                        const updated = { ...prev }
-                        poolCards.forEach(([cardId]) => {
-                          updated[cardId] = { ...updated[cardId], section: 'deck', enabled: true }
-                        })
-                        return updated
-                      })
-                    }}
-                    className="add-all-button"
-                    disabled={isPoolEmpty}
-                  >
-                    +All
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      const deckCards = Object.entries(cardPositions)
-                        .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader && position.enabled !== false)
-                      setCardPositions(prev => {
-                        const updated = { ...prev }
-                        deckCards.forEach(([cardId]) => {
-                          updated[cardId] = { ...updated[cardId], section: 'sideboard', enabled: false }
-                        })
-                        return updated
-                      })
-                    }}
-                    className="remove-all-button"
-                    disabled={isDeckEmpty}
-                  >
-                    -All
-                  </button>
-                </>
-              )
-            })()}
             {deckSortOption === 'cost' && (
               activeLeader && activeBase ? (
                 <button
@@ -4253,6 +4204,55 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </button>
               )
             )}
+            {(() => {
+              const deckCardCount = Object.values(cardPositions)
+                .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length
+              const poolCardCount = Object.values(cardPositions)
+                .filter(pos => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader).length
+              const isDeckEmpty = deckCardCount === 0
+              const isPoolEmpty = poolCardCount === 0
+
+              return (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      const deckCards = Object.entries(cardPositions)
+                        .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader && position.enabled !== false)
+                      setCardPositions(prev => {
+                        const updated = { ...prev }
+                        deckCards.forEach(([cardId]) => {
+                          updated[cardId] = { ...updated[cardId], section: 'sideboard', enabled: false }
+                        })
+                        return updated
+                      })
+                    }}
+                    className="remove-all-button"
+                    disabled={isDeckEmpty}
+                  >
+                    Add All to Pool
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      const poolCards = Object.entries(cardPositions)
+                        .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
+                      setCardPositions(prev => {
+                        const updated = { ...prev }
+                        poolCards.forEach(([cardId]) => {
+                          updated[cardId] = { ...updated[cardId], section: 'deck', enabled: true }
+                        })
+                        return updated
+                      })
+                    }}
+                    className="add-all-button"
+                    disabled={isPoolEmpty}
+                  >
+                    Add All to Deck
+                  </button>
+                </>
+              )
+            })()}
           </div>
 
           {/* Deck Blocks Row */}
@@ -4378,7 +4378,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           const getGroupKey = (card) => {
             if (deckSortOption === 'cost') {
               const cost = card.cost !== null && card.cost !== undefined ? card.cost : 999
-              if (cost >= 6) return '6+'
+              if (cost >= 8) return '8+'
               return String(cost)
             } else if (deckSortOption === 'type') {
               if (card.type === 'Unit') {
@@ -4439,7 +4439,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           // Helper to render group header with icons
           const renderDeckGroupHeader = (key, count) => {
             if (deckSortOption === 'cost') {
-              const costValue = key === '6+' ? '6+' : key
+              const costValue = key === '8+' ? '8+' : key
               return (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{ position: 'relative', width: '28px', height: '28px' }}>
@@ -4522,11 +4522,22 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             groups[key].push({ cardId, position })
           })
 
+          // Also group pool cards to determine +All availability
+          const poolCardsAll = Object.entries(cardPositions)
+            .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
+            .map(([cardId, position]) => ({ cardId, position }))
+          const poolGroups = {}
+          poolCardsAll.forEach(({ cardId, position }) => {
+            const key = getGroupKey(position.card)
+            if (!poolGroups[key]) poolGroups[key] = []
+            poolGroups[key].push({ cardId, position })
+          })
+
           // Sort group keys
           const sortedKeys = Object.keys(groups).sort((a, b) => {
             if (deckSortOption === 'cost') {
-              const costA = a === '6+' ? 6 : parseInt(a, 10)
-              const costB = b === '6+' ? 6 : parseInt(b, 10)
+              const costA = a === '8+' ? 8 : parseInt(a, 10)
+              const costB = b === '8+' ? 8 : parseInt(b, 10)
               return costA - costB
             } else if (deckSortOption === 'type') {
               const order = { 'Ground Units': 1, 'Space Units': 2, 'Units': 1.5, 'Upgrades': 3, 'Events': 4, 'Other': 5 }
@@ -4592,14 +4603,59 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 const expanded = isDeckGroupExpanded(groupKey)
                 const monoAspect = isDeckMonoAspect(groupKey)
 
+                // Get matching pool cards for this group
+                const matchingPoolCards = poolGroups[groupKey] || []
+                // +All enabled if there are pool cards to add
+                const hasPoolCardsToAdd = matchingPoolCards.length > 0
+                // -All enabled if there are deck cards to remove
+                const hasDeckCardsToRemove = groupCards.length > 0
+
                 return (
                   <div key={groupKey} className={`card-block deck-group-block ${monoAspect ? 'mono-aspect' : ''} ${blockTypeClass} ${!expanded ? 'collapsed' : ''}`}>
                     <div
                       className="card-block-header"
-                      onClick={() => toggleDeckGroupExpanded(groupKey)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     >
-                      <span style={{ marginRight: '0.5rem', fontSize: '0.8rem' }}>{expanded ? '▼' : '▶'}</span>
-                      {renderDeckGroupHeader(groupKey, groupCards.length)}
+                      <span
+                        style={{ marginRight: '0.25rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                        onClick={() => toggleDeckGroupExpanded(groupKey)}
+                      >{expanded ? '▼' : '▶'}</span>
+                      <span style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => toggleDeckGroupExpanded(groupKey)}>
+                        {renderDeckGroupHeader(groupKey, groupCards.length)}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setCardPositions(prev => {
+                            const updated = { ...prev }
+                            groupCards.forEach(({ cardId }) => {
+                              updated[cardId] = { ...updated[cardId], section: 'sideboard', enabled: false }
+                            })
+                            return updated
+                          })
+                        }}
+                        className="remove-all-button"
+                        disabled={!hasDeckCardsToRemove}
+                      >
+                        Add All to Pool
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          // Add matching pool cards to deck
+                          setCardPositions(prev => {
+                            const updated = { ...prev }
+                            matchingPoolCards.forEach(({ cardId }) => {
+                              updated[cardId] = { ...updated[cardId], section: 'deck', enabled: true }
+                            })
+                            return updated
+                          })
+                        }}
+                        className="add-all-button"
+                        disabled={!hasPoolCardsToAdd}
+                      >
+                        Add All to Deck
+                      </button>
                     </div>
                     {expanded && <div className="card-block-content">
                       <div className="cards-grid">
@@ -4751,31 +4807,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </svg>
               </button>
             </div>
-            {/* Aspect Penalties button for Pool - only when sorted by cost */}
-            {poolSortOption === 'cost' && (
-              activeLeader && activeBase ? (
-                <button
-                  className={showAspectPenalties ? "aspect-penalty-button-active" : "aspect-penalty-button"}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowAspectPenalties(!showAspectPenalties)
-                  }}
-                >
-                  {showAspectPenalties ? 'Hide Aspect Penalties' : 'Include Aspect Penalties'}
-                </button>
-              ) : (
-                <button
-                  className="aspect-penalty-warning-button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    // Scroll to top to select leader and base
-                    window.scrollTo({ top: 0, behavior: 'smooth' })
-                  }}
-                >
-                  Select a leader and base to include aspect penalties
-                </button>
-              )
-            )}
             {/* Filter button for Pool */}
             <div style={{ position: 'relative' }}>
               <button
@@ -5046,6 +5077,31 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </>
               )})()}
             </div>
+            {/* Aspect Penalties button for Pool - only when sorted by cost */}
+            {poolSortOption === 'cost' && (
+              activeLeader && activeBase ? (
+                <button
+                  className={showAspectPenalties ? "aspect-penalty-button-active" : "aspect-penalty-button"}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowAspectPenalties(!showAspectPenalties)
+                  }}
+                >
+                  {showAspectPenalties ? 'Hide Aspect Penalties' : 'Include Aspect Penalties'}
+                </button>
+              ) : (
+                <button
+                  className="aspect-penalty-warning-button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    // Scroll to top to select leader and base
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }}
+                >
+                  Select a leader and base to include aspect penalties
+                </button>
+              )
+            )}
             {(() => {
               const deckCardCount = Object.values(cardPositions)
                 .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length
@@ -5059,26 +5115,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      // Pool +All: Add cards TO the pool (from deck)
-                      const deckCards = Object.entries(cardPositions)
-                        .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader && position.enabled !== false)
-                      setCardPositions(prev => {
-                        const updated = { ...prev }
-                        deckCards.forEach(([cardId]) => {
-                          updated[cardId] = { ...updated[cardId], section: 'sideboard', enabled: false }
-                        })
-                        return updated
-                      })
-                    }}
-                    className="add-all-button"
-                    disabled={isDeckEmpty}
-                  >
-                    +All
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // Pool -All: Remove cards FROM the pool (to deck)
+                      // Add all pool cards to deck
                       const poolCards = Object.entries(cardPositions)
                         .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
                       setCardPositions(prev => {
@@ -5089,10 +5126,29 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         return updated
                       })
                     }}
-                    className="remove-all-button"
+                    className="add-all-button"
                     disabled={isPoolEmpty}
                   >
-                    -All
+                    Add All to Deck
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      // Add all deck cards to pool
+                      const deckCards = Object.entries(cardPositions)
+                        .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader && position.enabled !== false)
+                      setCardPositions(prev => {
+                        const updated = { ...prev }
+                        deckCards.forEach(([cardId]) => {
+                          updated[cardId] = { ...updated[cardId], section: 'sideboard', enabled: false }
+                        })
+                        return updated
+                      })
+                    }}
+                    className="remove-all-button"
+                    disabled={isDeckEmpty}
+                  >
+                    Add All to Pool
                   </button>
                 </>
               )
@@ -5224,7 +5280,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             const getGroupKey = (card) => {
               if (poolSortOption === 'cost') {
                 const cost = card.cost !== null && card.cost !== undefined ? card.cost : 999
-                if (cost >= 6) return '6+'
+                if (cost >= 8) return '8+'
                 return String(cost)
               } else if (poolSortOption === 'type') {
                 if (card.type === 'Unit') {
@@ -5291,7 +5347,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             const renderGroupHeader = (key, count) => {
               if (poolSortOption === 'cost') {
                 // Cost icon with number
-                const costValue = key === '6+' ? '6+' : key
+                const costValue = key === '8+' ? '8+' : key
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <div style={{ position: 'relative', width: '28px', height: '28px' }}>
@@ -5392,6 +5448,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               groups[key].push({ cardId, position })
             })
 
+            // Also group deck cards to determine -All availability (remove from deck to pool)
+            const deckCardsAll = Object.entries(cardPositions)
+              .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader && position.enabled !== false)
+              .map(([cardId, position]) => ({ cardId, position }))
+            const deckGroups = {}
+            deckCardsAll.forEach(({ cardId, position }) => {
+              const key = getGroupKey(position.card)
+              if (!deckGroups[key]) deckGroups[key] = []
+              deckGroups[key].push({ cardId, position })
+            })
+
             // Sort group keys
             const sortedKeys = Object.keys(groups).sort((a, b) => {
               if (poolSortOption === 'cost') {
@@ -5485,14 +5552,60 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   // Determine block class based on sort option
                   const blockTypeClass = poolSortOption === 'type' ? 'type-block' : poolSortOption === 'cost' ? 'cost-block' : ''
 
+                  // Get matching deck cards for this group
+                  const matchingDeckCards = deckGroups[groupKey] || []
+                  // +All (add to deck): enabled if there are pool cards to move
+                  const hasPoolCardsToMove = groupCards.length > 0
+                  // -All (remove from deck to pool): enabled if there are matching deck cards
+                  const hasDeckCardsToRemove = matchingDeckCards.length > 0
+
                   return (
                     <div key={groupKey} className={`card-block pool-group-block ${monoAspect ? 'mono-aspect' : ''} ${blockTypeClass} ${!expanded ? 'collapsed' : ''}`}>
                       <div
                         className="card-block-header"
-                        onClick={() => toggleGroupExpanded(groupKey)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                       >
-                        <span style={{ marginRight: '0.5rem', fontSize: '0.8rem' }}>{expanded ? '▼' : '▶'}</span>
-                        {renderGroupHeader(groupKey, groupCards.length)}
+                        <span
+                          style={{ marginRight: '0.25rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                          onClick={() => toggleGroupExpanded(groupKey)}
+                        >{expanded ? '▼' : '▶'}</span>
+                        <span style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => toggleGroupExpanded(groupKey)}>
+                          {renderGroupHeader(groupKey, groupCards.length)}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            // Move pool cards to deck
+                            setCardPositions(prev => {
+                              const updated = { ...prev }
+                              groupCards.forEach(({ cardId }) => {
+                                updated[cardId] = { ...updated[cardId], section: 'deck', enabled: true }
+                              })
+                              return updated
+                            })
+                          }}
+                          className="add-all-button"
+                          disabled={!hasPoolCardsToMove}
+                        >
+                          Add All to Deck
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            // Move matching deck cards to pool
+                            setCardPositions(prev => {
+                              const updated = { ...prev }
+                              matchingDeckCards.forEach(({ cardId }) => {
+                                updated[cardId] = { ...updated[cardId], section: 'sideboard', enabled: false }
+                              })
+                              return updated
+                            })
+                          }}
+                          className="remove-all-button"
+                          disabled={!hasDeckCardsToRemove}
+                        >
+                          Add All to Pool
+                        </button>
                       </div>
                       {expanded && <div className="card-block-content">
                         <div className="cards-grid">
@@ -5864,7 +5977,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     Deck ({deckCardPositions.length})
                   </h3>
                   {deckCardPositions.length > 0 && (() => {
-                    if (sortOption === 'cost') {
+                    if (deckSortOption === 'cost') {
                         // Group by cost segments: 1, 2, 3, 4, 5, 6, 7, 8+
                         const costSegments = [1, 2, 3, 4, 5, 6, 7, '8+']
                         const groupedByCost = {}

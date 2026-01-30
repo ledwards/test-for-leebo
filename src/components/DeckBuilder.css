@@ -1239,13 +1239,20 @@
   background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
-  padding: 0.5rem 0.75rem;
+  padding: 0.35rem 0.6rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 500;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  height: 28px;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .add-all-button:hover:not(:disabled) {
@@ -1266,13 +1273,20 @@
   background: rgba(0, 0, 0, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
-  padding: 0.5rem 0.75rem;
+  padding: 0.35rem 0.6rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 500;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  height: 28px;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .remove-all-button:hover:not(:disabled) {
@@ -2217,8 +2231,7 @@
 }
 
 .pool-group-block .card-block-header:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  /* No background change on hover */
 }
 
 /* Collapsed blocks - just show header */
@@ -2264,8 +2277,7 @@
 }
 
 .deck-group-block .card-block-header:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  /* No background change on hover */
 }
 
 /* Mono-aspect blocks in deck - always full width */
