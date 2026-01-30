@@ -455,8 +455,37 @@
 }
 
 .card-item.showcase {
-  border-color: #FF9800 !important;
-  box-shadow: 0 0 15px rgba(255, 152, 0, 0.7);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-item.showcase::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    transparent 0%,
+    rgba(255, 0, 0, 0.35) 15%,
+    rgba(255, 127, 0, 0.4) 25%,
+    rgba(255, 255, 0, 0.45) 35%,
+    rgba(0, 255, 0, 0.45) 45%,
+    rgba(0, 0, 255, 0.45) 55%,
+    rgba(75, 0, 130, 0.4) 65%,
+    rgba(148, 0, 211, 0.35) 75%,
+    transparent 85%,
+    transparent 100%
+  );
+  background-size: 200% 200%;
+  mix-blend-mode: overlay;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 2;
+  animation: foil-shimmer 6s ease-in-out infinite;
+  filter: blur(10px);
 }
 
 .card-image {
@@ -545,10 +574,6 @@
   color: white;
 }
 
-.showcase-badge {
-  background: rgba(255, 152, 0, 0.8);
-  color: #000;
-}
 
 .loading,
 .error {

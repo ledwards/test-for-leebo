@@ -447,7 +447,6 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                     </div>
                   )}
                   <div className="card-badges">
-                    {card.isShowcase && <span className="badge showcase-badge">Showcase</span>}
                   </div>
                 </div>
               ))}
@@ -505,12 +504,12 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
               // Show both front (horizontal) and back (vertical) side by side for leaders
               <>
                 {/* Front - horizontal */}
-                <div className={card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : ''} style={{
+                <div className={(card.isFoil && !card.isLeader) || card.isShowcase ? 'card-preview-foil' : ''} style={{
                   width: '504px',
                   height: '360px',
                   overflow: 'hidden',
                   borderRadius: borderRadius,
-                  boxShadow: (card.isFoil && (!card.isLeader || card.isShowcase)) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  boxShadow: ((card.isFoil && !card.isLeader) || card.isShowcase) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
                   alignSelf: 'center', // Vertically center the front side
                   position: 'relative',
@@ -548,12 +547,12 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                   )}
                 </div>
                 {/* Back - vertical */}
-                <div className={card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : ''} style={{
+                <div className={(card.isFoil && !card.isLeader) || card.isShowcase ? 'card-preview-foil' : ''} style={{
                   width: '360px',
                   height: '504px',
                   overflow: 'hidden',
                   borderRadius: borderRadius,
-                  boxShadow: (card.isFoil && (!card.isLeader || card.isShowcase)) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
+                  boxShadow: ((card.isFoil && !card.isLeader) || card.isShowcase) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
                   position: 'relative',
                 }}>
@@ -592,12 +591,12 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
               </>
             ) : (
               // Single card (non-leader, base, or leader without back)
-              <div className={card.isFoil && (!card.isLeader || card.isShowcase) ? 'card-preview-foil' : ''} style={{
+              <div className={(card.isFoil && !card.isLeader) || card.isShowcase ? 'card-preview-foil' : ''} style={{
                 width: `${previewWidth}px`,
                 height: `${previewHeight}px`,
                 overflow: 'hidden',
                 borderRadius: borderRadius,
-                boxShadow: card.isFoil && (!card.isLeader || card.isShowcase) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
+                boxShadow: ((card.isFoil && !card.isLeader) || card.isShowcase) ? '0 0 15px rgba(255, 255, 255, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.8)',
                 border: '2px solid rgba(255, 255, 255, 0.3)',
                 position: 'relative',
               }}>

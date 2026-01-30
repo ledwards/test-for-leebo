@@ -1,6 +1,11 @@
 # Release Notes
 
 ## 01.29.2026
+
+### 🎨 UI Features
+- Fancy pack opening animation that makes the app look like it's professional 😉
+
+## 01.29.2026
 Great news, with this update, I'm excited to announce the migration to Railway.app as our new hosting platform. This move enables a shift to a lightning-fast, robust realtime architecture based on socket.io, ensuring more reliable multiplayer experiences.
 
 We've also revamped the deckbuilder based on some community feedback, making it more intuitive and consistent across Sealed and Draft modes.
