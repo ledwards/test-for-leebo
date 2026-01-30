@@ -31,11 +31,39 @@ const PACK_ART_URLS = {
 }
 
 /**
- * Get pack art URL for a set code
+ * Booster pack image URLs (the actual pack, not background art)
+ * Used for pack opening animation
+ */
+const PACK_IMAGE_URLS = {
+  // Spark of Rebellion - Set 1
+  SOR: '/pack-images/sor-pack.png',
+  // Shadows of the Galaxy - Set 2
+  SHD: '/pack-images/shd-pack.png',
+  // Twilight of the Republic - Set 3
+  TWI: '/pack-images/twi-pack.png',
+  // Jump to Lightspeed - Set 4
+  JTL: '/pack-images/jtl-pack.png',
+  // Legends of the Force - Set 5
+  LOF: '/pack-images/lof-pack.png',
+  // Secrets of Power - Set 6
+  SEC: '/pack-images/sec-pack.png',
+}
+
+/**
+ * Get pack art URL for a set code (background key art)
  * Returns the URL if available, or null if not set
  */
 export function getPackArtUrl(setCode) {
   return PACK_ART_URLS[setCode] || null
+}
+
+/**
+ * Get booster pack image URL for a set code (the actual pack)
+ * Used for pack opening animation
+ * Returns the URL if available, or a default pack image
+ */
+export function getPackImageUrl(setCode) {
+  return PACK_IMAGE_URLS[setCode] || '/pack-images/default-pack.png'
 }
 
 /**
