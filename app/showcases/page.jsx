@@ -155,8 +155,8 @@ export default function ShowcasesPage() {
     const velocityX = e.clientX - lastPosRef.current.x
     lastPosRef.current = { x: e.clientX, y: e.clientY }
 
-    // Apply rotation based on horizontal velocity (clamped to reasonable range)
-    const newRotation = Math.max(-15, Math.min(15, velocityX * 0.8))
+    // Apply rotation based on horizontal velocity (clamped to subtle range)
+    const newRotation = Math.max(-8, Math.min(8, velocityX * 0.3))
     setDragRotation(newRotation)
 
     const containerWidth = window.innerWidth
@@ -220,8 +220,8 @@ export default function ShowcasesPage() {
     const velocityX = touch.clientX - lastPosRef.current.x
     lastPosRef.current = { x: touch.clientX, y: touch.clientY }
 
-    // Apply rotation based on horizontal velocity (clamped to reasonable range)
-    const newRotation = Math.max(-15, Math.min(15, velocityX * 0.8))
+    // Apply rotation based on horizontal velocity (clamped to subtle range)
+    const newRotation = Math.max(-8, Math.min(8, velocityX * 0.3))
     setDragRotation(newRotation)
 
     const containerWidth = window.innerWidth
