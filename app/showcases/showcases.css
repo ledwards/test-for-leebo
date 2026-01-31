@@ -183,25 +183,26 @@
   border-radius: 15px;
 }
 
-/* Front image: zoomed to fill container */
+/* Front image: sized to fit container */
 .showcase-card-front .showcase-card-image {
+  width: 294px;
+  height: 210px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Back image: rotate 90deg CCW, cover container */
+.showcase-card-back .showcase-card-image {
   width: 100%;
   height: 100%;
   position: absolute;
   top: 0;
   left: 0;
   object-fit: cover;
-  pointer-events: none;
-}
-
-/* Back image: rotate 90deg CCW to fit container */
-.showcase-card-back .showcase-card-image {
-  width: 294px;
-  height: 210px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg);
+  transform: rotate(-90deg);
   pointer-events: none;
 }
 
