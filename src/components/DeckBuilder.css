@@ -1823,6 +1823,11 @@
     margin-right: 0;
   }
 
+  /* Hide aspect text labels on mobile, keep icons and count */
+  .aspect-text-label {
+    display: none;
+  }
+
   /* All blocks full width on mobile */
   .blocks-container {
     display: flex;

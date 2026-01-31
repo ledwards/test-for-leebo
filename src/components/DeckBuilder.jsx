@@ -4526,7 +4526,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               return (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   {aspectIcons.length > 0 && <div style={{ display: 'flex', gap: '2px' }}>{aspectIcons}</div>}
-                  <span>{displayName} ({count})</span>
+                  <span><span className="aspect-text-label">{displayName}</span> ({count})</span>
                 </div>
               )
             }
