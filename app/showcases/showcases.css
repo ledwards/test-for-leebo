@@ -281,3 +281,84 @@
     height: 24px;
   }
 }
+
+/* Share button */
+.showcases-share-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid white;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.showcases-share-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.showcases-share-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Export container for PNG generation */
+.showcases-export-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1200px;
+  min-height: 800px;
+  padding: 40px;
+  background-color: rgb(76, 77, 81);
+  background-image:
+    linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%),
+    linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url("/background-images/bg-texture-crop.png");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 150% auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat-y;
+  z-index: -9999;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.showcases-export-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  padding: 20px;
+}
+
+.showcase-export-card {
+  position: relative;
+  width: 220px;
+  height: 157px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.showcase-export-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.showcases-export-url {
+  text-align: center;
+  color: white;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 30px 0;
+  letter-spacing: 1px;
+}

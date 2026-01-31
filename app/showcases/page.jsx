@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import html2canvas from 'html2canvas'
 import { useAuth } from '../../src/contexts/AuthContext'
 import { initializeCardCache, getCachedCards } from '../../src/utils/cardCache'
 import { getAspectColor } from '../../src/utils/aspectColors'
@@ -20,8 +21,10 @@ export default function ShowcasesPage() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [hasDragged, setHasDragged] = useState(false)
   const [dragRotation, setDragRotation] = useState(0)
+  const [isExporting, setIsExporting] = useState(false)
   const lastPosRef = useRef({ x: 0, y: 0 })
   const containerRef = useRef(null)
+  const exportRef = useRef(null)
 
   // Redirect if not logged in
   useEffect(() => {
@@ -293,7 +296,54 @@ export default function ShowcasesPage() {
     return {
       frontImage: card?.imageUrl || `https://swudb.com/images/cards/${leader.setCode}/${String(leader.cardId).padStart(3, '0')}.png`,
       backImage: card?.backImageUrl || card?.imageUrl || `https://swudb.com/images/cards/${leader.setCode}/${String(leader.cardId).padStart(3, '0')}.png`,
-      aspectColor
+      aspectColor,
+      aspects: card?.aspects || []
+    }
+  }
+
+  // Sort showcases for export: set number ASC, villain before hero, alphabetical
+  const setOrder = { 'SOR': 1, 'SHD': 2, 'TWI': 3, 'JTL': 4, 'LOF': 5, 'SEC': 6 }
+  const sortedShowcases = [...showcases].sort((a, b) => {
+    // Set number ASC
+    const setA = setOrder[a.setCode] || 99
+    const setB = setOrder[b.setCode] || 99
+    if (setA !== setB) return setA - setB
+
+    // Villain before hero (check aspects)
+    const cardA = cardsData[a.cardId]
+    const cardB = cardsData[b.cardId]
+    const isVillainA = cardA?.aspects?.includes('Villainy') ? 0 : 1
+    const isVillainB = cardB?.aspects?.includes('Villainy') ? 0 : 1
+    if (isVillainA !== isVillainB) return isVillainA - isVillainB
+
+    // Alphabetical
+    return (a.cardName || '').localeCompare(b.cardName || '')
+  })
+
+  // Export to PNG
+  const handleExport = async () => {
+    setIsExporting(true)
+
+    // Wait for render
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    try {
+      const canvas = await html2canvas(exportRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      })
+
+      // Download the image
+      const link = document.createElement('a')
+      link.download = 'showcase-collection.png'
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    } catch (error) {
+      console.error('Export failed:', error)
+    } finally {
+      setIsExporting(false)
     }
   }
 
@@ -308,6 +358,13 @@ export default function ShowcasesPage() {
         </svg>
         <span>Showcase Collection</span>
         <span className="showcases-count">{showcases.length}/{totalLeaders}</span>
+        <button className="showcases-share-button" onClick={handleExport} title="Share">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <polyline points="16 6 12 2 8 6"/>
+            <line x1="12" y1="2" x2="12" y2="15"/>
+          </svg>
+        </button>
       </div>
 
       {showcases.map((leader) => {
@@ -360,6 +417,29 @@ export default function ShowcasesPage() {
           </div>
         )
       })}
+
+      {/* Export overlay - hidden, used for PNG generation */}
+      {isExporting && (
+        <div className="showcases-export-container" ref={exportRef}>
+          <div className="showcases-export-grid">
+            {sortedShowcases.map((leader) => {
+              const cardData = getCardData(leader)
+              return (
+                <div key={leader.id} className="showcase-export-card">
+                  <img
+                    src={cardData.frontImage}
+                    alt={leader.cardName}
+                    className="showcase-export-image"
+                    crossOrigin="anonymous"
+                  />
+                  <div className="showcase-foil-effect"></div>
+                </div>
+              )
+            })}
+          </div>
+          <div className="showcases-export-url">https://www.protectthepod.com</div>
+        </div>
+      )}
     </div>
   )
 }
