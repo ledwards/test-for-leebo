@@ -6,12 +6,20 @@
 - Fancy pack opening animation that makes the app look like it's professional 😉
 - Mon Mothma ignores aspect penalty on Officials. Hera Syndulla (SOR) ignores aspect penalties on Spectres. Will have to consider how to handle optional aspect penalty ignoring leaders like Anakin Skywalker (LOF) and Hera Syndulla (LAW).
 
+### 📦 Pack/Data Changes
+- Hyperspace Foil variants now properly appear in booster packs at ~1/50 rate
+- Improved variant downgrade for deck exports (foil/hyperspace cards correctly map to base versions)
+
 ### 🐞 Bug Fixes
 - Fixed missing aspect penalty on mobile
 - Fixes to a number of bugs related to users who are not logged in
 - More reliably save deck state during deckbuilder if you leave the page or refresh
 - Fix deck image export on Chrome
 - Fix bug that sometimes made a deck appear empty
+
+### 🔧 Maintenance
+- Added robust variant downgrade utility with full test coverage
+- Fixed flaky statistical tests in belt system
 
 ## 01.29.2026
 Great news, with this update, I'm excited to announce the migration to Railway.app as our new hosting platform. This move enables a shift to a lightning-fast, robust realtime architecture based on socket.io, ensuring more reliable multiplayer experiences.

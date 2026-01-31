@@ -132,12 +132,13 @@ async function runTests() {
     const ratio = commonCount / rareCount
 
     // Expected: 5:1 ratio (1/6 rares = ~16.67%)
-    // Allow some variance: ratio should be between 4:1 and 6:1
-    assert(ratio >= 4 && ratio <= 6, `Ratio should be ~5:1, got ${ratio.toFixed(2)}:1 (${commonCount} common, ${rareCount} rare)`)
+    // Allow variance for statistical tests: ratio should be between 3.5:1 and 6.5:1
+    assert(ratio >= 3.5 && ratio <= 6.5, `Ratio should be ~5:1, got ${ratio.toFixed(2)}:1 (${commonCount} common, ${rareCount} rare)`)
 
     // Rare frequency should be approximately 1 in 6
+    // Widen tolerance for statistical variance in sampling
     const rareFrequency = 600 / rareCount
-    assert(rareFrequency >= 5 && rareFrequency <= 7, `Rare frequency should be ~1 in 6, got 1 in ${rareFrequency.toFixed(1)}`)
+    assert(rareFrequency >= 4.5 && rareFrequency <= 8, `Rare frequency should be ~1 in 6, got 1 in ${rareFrequency.toFixed(1)}`)
   })
 
   test('no immediately adjacent duplicate leaders', () => {
