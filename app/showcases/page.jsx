@@ -446,6 +446,16 @@ export default function ShowcasesPage() {
       {/* Export overlay - hidden, used for PNG generation */}
       {isExporting && (
         <div className="showcases-export-container" ref={exportRef}>
+          <div className="showcases-export-header">
+            <svg className="shooting-star-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M12 2L9 9l-7 1 5 5-1.5 7L12 18l6.5 4L17 15l5-5-7-1-3-7z" fill="currentColor" opacity="0.3"/>
+              <path d="M12 2L9 9l-7 1 5 5-1.5 7L12 18l6.5 4L17 15l5-5-7-1-3-7z"/>
+              <line x1="2" y1="2" x2="6" y2="6" strokeLinecap="round"/>
+              <line x1="4" y1="1" x2="5" y2="3" strokeLinecap="round"/>
+            </svg>
+            <span>{user.username} Showcase Collection</span>
+            <span className="showcases-count">{showcases.length}/{totalLeaders}</span>
+          </div>
           <div className="showcases-export-grid">
             {sortedShowcases.map((leader) => {
               const cardData = getCardData(leader)
