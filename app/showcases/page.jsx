@@ -379,7 +379,7 @@ export default function ShowcasesPage() {
           <line x1="2" y1="2" x2="6" y2="6" strokeLinecap="round"/>
           <line x1="4" y1="1" x2="5" y2="3" strokeLinecap="round"/>
         </svg>
-        <span>Showcase Collection</span>
+        <span className="showcases-title-text">Showcase Collection</span>
         <span className="showcases-count">{showcases.length}/{totalLeaders}</span>
         <button className="showcases-share-button" onClick={handleExport} title="Export as Image">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
