@@ -40,10 +40,12 @@ function findHyperspaceVariant(card, setCode) {
   const allCards = getCachedCards(setCode)
 
   // Find a card with the same name but Hyperspace variantType
+  // Must also match type to avoid Leader/Unit confusion (e.g., "Leia Organa" exists as both)
   const hsVariant = allCards.find(c =>
     c.name === card.name &&
     c.variantType === 'Hyperspace' &&
-    c.rarity === card.rarity // Same rarity (Common leaders stay Common, etc.)
+    c.rarity === card.rarity && // Same rarity (Common leaders stay Common, etc.)
+    c.type === card.type // Same type to avoid Leader/Unit confusion
   )
 
   if (hsVariant) {
@@ -61,9 +63,11 @@ function findShowcaseVariant(card, setCode) {
 
   const allCards = getCachedCards(setCode)
 
+  // Must also match type to avoid Leader/Unit confusion
   const showcaseVariant = allCards.find(c =>
     c.name === card.name &&
-    c.variantType === 'Showcase'
+    c.variantType === 'Showcase' &&
+    c.type === card.type
   )
 
   if (showcaseVariant) {

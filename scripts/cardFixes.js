@@ -86,22 +86,25 @@ export const batchFixes = [
  * These run after individual and batch fixes
  */
 export const customTransforms = [
-  // Filter out Prestige and Event Exclusive variants - we don't want these in our data
+  // Filter to only keep variants we need for sealed/draft
+  // Exclude promo variants (PQ, SS, Prerelease, Weekly Play) which share IDs with Normal cards
+  // but have different content, causing lookup bugs
   {
-    name: 'Remove Prestige and Event Exclusive variants',
+    name: 'Keep only draft-relevant variants',
     transform: (cards) => {
-      // This transform filters the array, so it returns a new array
-      // Filter out all Prestige variants and Event Exclusive (various naming patterns)
+      const allowedVariants = new Set([
+        'Normal',
+        'Hyperspace',
+        'Foil',
+        'Hyperspace Foil',
+        'Showcase'
+      ])
       return cards.filter(card => {
         const vt = card.variantType || ''
-        // Filter out Prestige variants (Prestige, Standard Prestige, Foil Prestige, Serialized Prestige, etc.)
-        if (vt.includes('Prestige')) return false
-        // Filter out Event Exclusive
-        if (vt === 'Event Exclusive') return false
-        return true
+        return allowedVariants.has(vt)
       })
     },
-    isArrayTransform: true // Flag to indicate this transforms the whole array
+    isArrayTransform: true
   },
 
   // Filter out Token types - we don't need these in the deck builder

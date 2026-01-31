@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-01-31T05:49:16.479Z",
+  "timestamp": "2026-01-31T06:34:07.284Z",
   "totalFixes": 2,
   "byType": {
     "individual": 0,
@@ -10,8 +10,8 @@
   "fixes": [
     {
       "type": "custom",
-      "transform": "Remove Prestige and Event Exclusive variants",
-      "cardsRemoved": 376
+      "transform": "Keep only draft-relevant variants",
+      "cardsRemoved": 479
     },
     {
       "type": "custom",
