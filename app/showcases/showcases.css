@@ -119,6 +119,17 @@
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+.showcases-count:hover {
+  border-color: transparent;
+  background-image: linear-gradient(black, black), linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 400% 400%;
+  animation: rainbow-border 3s linear infinite;
 }
 
 /* Showcase Card */
@@ -317,6 +328,12 @@
 .showcases-share-button:hover {
   background: rgba(255, 255, 255, 0.1);
   transform: scale(1.05);
+  border-color: transparent;
+  background-image: linear-gradient(black, black), linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 400% 400%;
+  animation: rainbow-border 3s linear infinite;
 }
 
 .showcases-share-button svg {
