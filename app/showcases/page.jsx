@@ -22,6 +22,7 @@ export default function ShowcasesPage() {
   const [hasDragged, setHasDragged] = useState(false)
   const [dragRotation, setDragRotation] = useState(0)
   const [isExporting, setIsExporting] = useState(false)
+  const [imageModalUrl, setImageModalUrl] = useState(null)
   const lastPosRef = useRef({ x: 0, y: 0 })
   const containerRef = useRef(null)
   const exportRef = useRef(null)
@@ -338,16 +339,35 @@ export default function ShowcasesPage() {
         allowTaint: true
       })
 
-      // Download the image
-      const link = document.createElement('a')
-      link.download = 'showcase-collection.png'
-      link.href = canvas.toDataURL('image/png')
-      link.click()
+      // Show image in modal
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob)
+        setImageModalUrl(url)
+      }, 'image/png')
     } catch (error) {
       console.error('Export failed:', error)
     } finally {
       setIsExporting(false)
     }
+  }
+
+  // Download the image from modal
+  const handleDownload = () => {
+    if (!imageModalUrl) return
+    const link = document.createElement('a')
+    link.download = 'showcase-collection.png'
+    link.href = imageModalUrl
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  // Close modal and cleanup
+  const closeImageModal = () => {
+    if (imageModalUrl) {
+      URL.revokeObjectURL(imageModalUrl)
+    }
+    setImageModalUrl(null)
   }
 
   return (
@@ -362,10 +382,12 @@ export default function ShowcasesPage() {
         <span>Showcase Collection</span>
         <span className="showcases-count">{showcases.length}/{totalLeaders}</span>
         <button className="showcases-share-button" onClick={handleExport} title="Share">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-            <polyline points="16 6 12 2 8 6"/>
-            <line x1="12" y1="2" x2="12" y2="15"/>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
           </svg>
         </button>
       </div>
@@ -441,6 +463,27 @@ export default function ShowcasesPage() {
             })}
           </div>
           <div className="showcases-export-url">https://www.protectthepod.com</div>
+        </div>
+      )}
+
+      {/* Image modal */}
+      {imageModalUrl && (
+        <div className="showcase-image-modal-overlay" onClick={closeImageModal}>
+          <div className="showcase-image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="showcase-image-modal-close" onClick={closeImageModal}>
+              ×
+            </button>
+            <img
+              src={imageModalUrl}
+              alt="Showcase Collection"
+              className="showcase-image-modal-image"
+            />
+            <div className="showcase-image-modal-actions">
+              <button className="showcase-image-modal-download" onClick={handleDownload}>
+                Download
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
