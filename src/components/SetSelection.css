@@ -30,13 +30,10 @@
   grid-auto-flow: row;
 }
 
-/* When too small for 3 columns, switch to 1 column - much smaller threshold */
-@media (max-width: 500px) {
+/* Single column on mobile - JS handles reverse sort order (SEC first, SOR last) */
+@media (max-width: 900px) {
   .sets-grid {
     grid-template-columns: 1fr;
-    /* Reverse order for single column - newest (SEC) on top, oldest (SOR) on bottom */
-    display: flex;
-    flex-direction: column-reverse;
   }
 }
 
@@ -171,7 +168,6 @@
   }
 
   .sets-grid {
-    grid-template-columns: 1fr;
     gap: 1.25rem;
   }
 
