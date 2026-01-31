@@ -6,6 +6,7 @@ import { buildBaseCardMap as buildBaseCardMapUtil, getBaseCardId as getBaseCardI
 import { fetchSetCards } from '../utils/api'
 import { useAuth } from '../contexts/AuthContext'
 import { getAspectColor } from '../utils/aspectColors'
+import { jsonParse } from '../utils/json'
 import CostIcon from './CostIcon'
 import Modal from './Modal'
 import Button from './Button'
@@ -58,10 +59,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // Get pool name from saved state if available, otherwise use initial prop
   const getInitialPoolName = () => {
     if (savedState) {
-      try {
-        const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState
-        if (state.poolName) return state.poolName
-      } catch (e) {}
+      const state = jsonParse(savedState)
+      if (state?.poolName) return state.poolName
     }
     return initialPoolName
   }
@@ -71,12 +70,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // This ensures we pick up changes made elsewhere (like the play page)
   useEffect(() => {
     if (savedState) {
-      try {
-        const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState
-        if (state.poolName && state.poolName !== currentPoolName) {
-          setCurrentPoolName(state.poolName)
-        }
-      } catch (e) {}
+      const state = jsonParse(savedState)
+      if (state?.poolName && state.poolName !== currentPoolName) {
+        setCurrentPoolName(state.poolName)
+      }
     } else if (!currentPoolName && initialPoolName) {
       setCurrentPoolName(initialPoolName)
     }
@@ -914,7 +911,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     if (Object.keys(cardPositions).length === 0 && savedState) {
       try {
         // Load deck state from database (savedState prop)
-        const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState
+        const state = jsonParse(savedState)
 
         // Check localStorage for more recent deck/sideboard state (backup for debounced database save)
         let localDeckCardIds = null
@@ -1219,7 +1216,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   useEffect(() => {
     // Don't initialize if we have saved state with card positions to restore
     if (savedState) {
-      const state = typeof savedState === 'string' ? JSON.parse(savedState) : savedState
+      const state = jsonParse(savedState)
       if (state.cardPositions && Object.keys(state.cardPositions).length > 0) {
         return
       }

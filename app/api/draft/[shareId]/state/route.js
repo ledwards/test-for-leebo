@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
 import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout.js'
 import { processBotTurns } from '@/src/utils/botLogic.js'
+import { jsonParse } from '@/src/utils/json.js'
 
 export async function GET(request, { params }) {
   try {
@@ -102,23 +103,15 @@ export async function GET(request, { params }) {
     )
 
     // Parse draft state
-    const draftState = typeof pod.draft_state === 'string'
-      ? JSON.parse(pod.draft_state)
-      : pod.draft_state || {}
+    const draftState = jsonParse(pod.draft_state, {})
 
     // Check if we're in leader draft phase (show leader packs to all)
     const isLeaderDraftPhase = draftState?.phase === 'leader_draft'
 
     // Format players
     const formattedPlayers = players.map(p => {
-      const draftedLeaders = p.drafted_leaders
-        ? (typeof p.drafted_leaders === 'string' ? JSON.parse(p.drafted_leaders) : p.drafted_leaders)
-        : []
-
-      // Parse leaders pack (for leader draft phase visibility)
-      const leadersPack = p.leaders
-        ? (typeof p.leaders === 'string' ? JSON.parse(p.leaders) : p.leaders)
-        : []
+      const draftedLeaders = jsonParse(p.drafted_leaders, [])
+      const leadersPack = jsonParse(p.leaders, [])
 
       return {
         id: p.id,
@@ -134,9 +127,7 @@ export async function GET(request, { params }) {
           imageUrl: l.imageUrl,
           backImageUrl: l.backImageUrl,
         })) : null,
-        draftedCardsCount: p.drafted_cards
-          ? (typeof p.drafted_cards === 'string' ? JSON.parse(p.drafted_cards) : p.drafted_cards).length
-          : 0,
+        draftedCardsCount: jsonParse(p.drafted_cards, []).length,
         draftedLeadersCount: draftedLeaders.length,
         // Include leader info for all players (for tooltips)
         draftedLeaders: draftedLeaders.map(l => ({
@@ -158,18 +149,10 @@ export async function GET(request, { params }) {
           seatNumber: player.seat_number,
           pickStatus: player.pick_status,
           selectedCardId: player.selected_card_id || null,
-          currentPack: typeof player.current_pack === 'string'
-            ? JSON.parse(player.current_pack)
-            : player.current_pack,
-          draftedCards: typeof player.drafted_cards === 'string'
-            ? JSON.parse(player.drafted_cards)
-            : player.drafted_cards || [],
-          leaders: typeof player.leaders === 'string'
-            ? JSON.parse(player.leaders)
-            : player.leaders || [],
-          draftedLeaders: typeof player.drafted_leaders === 'string'
-            ? JSON.parse(player.drafted_leaders)
-            : player.drafted_leaders || [],
+          currentPack: jsonParse(player.current_pack),
+          draftedCards: jsonParse(player.drafted_cards, []),
+          leaders: jsonParse(player.leaders, []),
+          draftedLeaders: jsonParse(player.drafted_leaders, []),
         }
       }
     }

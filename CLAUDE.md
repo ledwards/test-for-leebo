@@ -133,3 +133,26 @@ Discord OAuth via `lib/auth.js`. JWT tokens in cookies. User context via `src/co
 ## Testing Notes
 
 Tests use Node's built-in test runner (no Jest). Run individual test files directly with `node`. Statistical QA tests validate pack distribution across 600 packs.
+
+## Architecture & Refactoring
+
+**IMPORTANT: Read before making structural changes.**
+
+See `docs/ARCHITECTURE.md` for the target layered architecture:
+- **Components** (`src/components/`) - Pure presentation, no business logic
+- **Hooks** (`src/hooks/`) - State management, compose services
+- **Services** (`src/services/`) - Pure business logic, fully testable
+- **Repositories** (`src/repositories/`) - Data access layer
+
+See `docs/REFACTORING_PLAN.md` for the active refactoring initiative.
+
+### Key Principles
+1. **Test Before Refactor**: Always write characterization tests before changing existing code
+2. **Services are Pure**: No React, no side effects, no I/O in services
+3. **Components Don't Calculate**: Move calculations to services, call via hooks
+4. **Small Files**: Components <300 lines, services <200 lines
+
+### When Adding New Features
+1. Business logic → `src/services/` (with tests)
+2. State management → `src/hooks/`
+3. UI → `src/components/` (receives data via props/hooks)

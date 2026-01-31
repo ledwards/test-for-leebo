@@ -9,6 +9,7 @@ import { useAuth } from '../../../../../src/contexts/AuthContext'
 import EditableTitle from '../../../../../src/components/EditableTitle'
 import { getCachedCards, initializeCardCache } from '../../../../../src/utils/cardCache'
 import { buildBaseCardMap, getBaseCardId } from '../../../../../src/utils/variantDowngrade'
+import { jsonParse } from '../../../../../src/utils/json'
 import '../../../../../src/App.css'
 import './play.css'
 
@@ -250,9 +251,7 @@ export default function PlayPage({ params }) {
   const getDeckData = () => {
     if (!pool?.deckBuilderState) return null
 
-    const state = typeof pool.deckBuilderState === 'string'
-      ? JSON.parse(pool.deckBuilderState)
-      : pool.deckBuilderState
+    const state = jsonParse(pool.deckBuilderState)
 
     const { cardPositions, activeLeader, activeBase } = state
     if (!cardPositions || !activeLeader || !activeBase) return null
@@ -384,9 +383,7 @@ export default function PlayPage({ params }) {
     console.log('=== Starting image generation ===')
 
     try {
-      const state = typeof pool.deckBuilderState === 'string'
-        ? JSON.parse(pool.deckBuilderState)
-        : pool.deckBuilderState
+      const state = jsonParse(pool.deckBuilderState)
 
       console.log('State parsed successfully')
       console.log('cardPositions exists:', !!state.cardPositions)
@@ -901,10 +898,8 @@ export default function PlayPage({ params }) {
   // Get pool name from deckBuilderState first, then fall back to pool.name
   const getPoolName = () => {
     if (pool?.deckBuilderState) {
-      const state = typeof pool.deckBuilderState === 'string'
-        ? JSON.parse(pool.deckBuilderState)
-        : pool.deckBuilderState
-      if (state.poolName) return state.poolName
+      const state = jsonParse(pool.deckBuilderState)
+      if (state?.poolName) return state.poolName
     }
     return pool?.name || `${setConfig?.setName || pool?.setCode} Deck`
   }
@@ -914,9 +909,7 @@ export default function PlayPage({ params }) {
     if (!shareId) return
     try {
       // Get current deckBuilderState and update poolName in it
-      const currentState = pool?.deckBuilderState
-        ? (typeof pool.deckBuilderState === 'string' ? JSON.parse(pool.deckBuilderState) : pool.deckBuilderState)
-        : {}
+      const currentState = jsonParse(pool?.deckBuilderState, {})
       const updatedState = { ...currentState, poolName: newName }
 
       await updatePool(shareId, { deckBuilderState: updatedState })
