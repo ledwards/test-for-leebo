@@ -194,14 +194,14 @@
   pointer-events: none;
 }
 
-/* Back image: portrait dims (will be rotated -90deg by flip animation) */
+/* Back image: portrait dims with rotation */
 .showcase-card-back .showcase-card-image {
   width: 210px;
   height: 294px;
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) rotate(90deg);
   pointer-events: none;
 }
 
