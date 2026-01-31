@@ -88,7 +88,9 @@
 }
 
 .showcases-count {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: black;
+  color: white;
+  border: 1px solid white;
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
