@@ -45,6 +45,7 @@ export default function ShowcasesPage() {
             cardMap[card.id] = card
           })
         })
+        console.log('Built cardMap with', Object.keys(cardMap).length, 'cards. Sample:', cardMap['1479']?.name, cardMap['1624']?.name)
         setCardsData(cardMap)
 
         const response = await fetch(`/api/users/${user.id}/showcase-leaders`)
@@ -258,6 +259,7 @@ export default function ShowcasesPage() {
   // Get card data including image URLs and aspect color
   const getCardData = (leader) => {
     const card = cardsData[leader.cardId]
+    console.log('getCardData:', { leaderId: leader.id, cardId: leader.cardId, card: card?.name, hasBack: !!card?.backImageUrl })
     const aspectColor = card ? getAspectColor(card) : '#ffd700'
     return {
       frontImage: card?.imageUrl || `https://swudb.com/images/cards/${leader.setCode}/${String(leader.cardId).padStart(3, '0')}.png`,
