@@ -11,6 +11,7 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [mostRecentSealed, setMostRecentSealed] = useState(null)
   const [currentDraft, setCurrentDraft] = useState(null)
+  const [hasShowcases, setHasShowcases] = useState(false)
   const [loadingData, setLoadingData] = useState(false)
   const drawerRef = useRef(null)
   const router = useRouter()
@@ -49,9 +50,12 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
 
       Promise.all([
         fetchUserPools(user.id),
-        fetch('/api/draft/history', { credentials: 'include' }).then(r => r.json())
+        fetch('/api/draft/history', { credentials: 'include' }).then(r => r.json()),
+        fetch(`/api/users/${user.id}/showcase-leaders?limit=1`).then(r => r.ok ? r.json() : { total: 0 })
       ])
-        .then(([poolsData, draftData]) => {
+        .then(([poolsData, draftData, showcaseData]) => {
+          // Check if user has any showcase leaders
+          setHasShowcases((showcaseData?.total || 0) > 0)
           // Find most recent sealed pool (not draft type)
           const sealedPools = (poolsData || [])
             .filter(p => p.poolType !== 'draft')
@@ -270,6 +274,25 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
               )}
 
               <div className="auth-widget-drawer-divider"></div>
+
+              {hasShowcases && (
+                <a
+                  href="/showcases"
+                  className="auth-widget-drawer-menu-item auth-widget-showcases-item"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    router.push('/showcases')
+                    setDrawerOpen(false)
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2L9 9l-7 1 5 5-1.5 7L12 18l6.5 4L17 15l5-5-7-1-3-7z" fill="currentColor" opacity="0.3"/>
+                    <path d="M12 2L9 9l-7 1 5 5-1.5 7L12 18l6.5 4L17 15l5-5-7-1-3-7z"/>
+                    <line x1="2" y1="2" x2="5" y2="5" strokeLinecap="round"/>
+                  </svg>
+                  Showcases
+                </a>
+              )}
 
               <a
                 href="/history"

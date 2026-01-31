@@ -1,0 +1,326 @@
+'use client'
+
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../../src/contexts/AuthContext'
+import { initializeCardCache, getCachedCards } from '../../src/utils/cardCache'
+import './showcases.css'
+
+export default function ShowcasesPage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+  const [showcases, setShowcases] = useState([])
+  const [cardsData, setCardsData] = useState({})
+  const [loadingShowcases, setLoadingShowcases] = useState(true)
+  const [cardPositions, setCardPositions] = useState({})
+  const [flippedCards, setFlippedCards] = useState({})
+  const [draggingCard, setDraggingCard] = useState(null)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const containerRef = useRef(null)
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/')
+    }
+  }, [user, loading, router])
+
+  // Fetch showcase leaders and card data
+  useEffect(() => {
+    if (!user) return
+
+    const fetchShowcases = async () => {
+      try {
+        // Initialize card cache to get image URLs
+        await initializeCardCache()
+
+        // Build a map of card id -> card data for all sets
+        const cardMap = {}
+        const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
+        sets.forEach(setCode => {
+          const cards = getCachedCards(setCode) || []
+          cards.forEach(card => {
+            cardMap[card.id] = card
+          })
+        })
+        setCardsData(cardMap)
+
+        const response = await fetch(`/api/users/${user.id}/showcase-leaders`)
+        if (response.ok) {
+          const data = await response.json()
+          setShowcases(data.showcaseLeaders || [])
+
+          // Initialize random positions for each card
+          const positions = {}
+          const containerWidth = window.innerWidth
+          const containerHeight = window.innerHeight
+          const cardWidth = 280
+          const cardHeight = 392
+          const padding = 50
+
+          data.showcaseLeaders?.forEach((leader, index) => {
+            // Spread cards across the viewport with some randomness
+            const gridCols = Math.ceil(Math.sqrt(data.showcaseLeaders.length))
+            const gridRows = Math.ceil(data.showcaseLeaders.length / gridCols)
+            const cellWidth = (containerWidth - padding * 2) / gridCols
+            const cellHeight = (containerHeight - padding * 2) / gridRows
+
+            const col = index % gridCols
+            const row = Math.floor(index / gridCols)
+
+            // Base position in grid cell with random offset
+            const baseX = padding + col * cellWidth + (cellWidth - cardWidth) / 2
+            const baseY = padding + row * cellHeight + (cellHeight - cardHeight) / 2
+
+            // Add random offset and rotation
+            const randomX = (Math.random() - 0.5) * cellWidth * 0.5
+            const randomY = (Math.random() - 0.5) * cellHeight * 0.3
+            const rotation = (Math.random() - 0.5) * 20 // -10 to 10 degrees
+
+            positions[leader.id] = {
+              x: Math.max(padding, Math.min(containerWidth - cardWidth - padding, baseX + randomX)),
+              y: Math.max(padding, Math.min(containerHeight - cardHeight - padding, baseY + randomY)),
+              rotation,
+              zIndex: index + 1
+            }
+          })
+          setCardPositions(positions)
+        }
+      } catch (error) {
+        console.error('Failed to fetch showcases:', error)
+      } finally {
+        setLoadingShowcases(false)
+      }
+    }
+
+    fetchShowcases()
+  }, [user])
+
+  // Handle card flip
+  const handleCardClick = useCallback((cardId, e) => {
+    // Don't flip if we were dragging
+    if (e.defaultPrevented) return
+
+    setFlippedCards(prev => ({
+      ...prev,
+      [cardId]: !prev[cardId]
+    }))
+  }, [])
+
+  // Drag handlers
+  const handleMouseDown = useCallback((cardId, e) => {
+    e.preventDefault()
+    const card = e.currentTarget
+    const rect = card.getBoundingClientRect()
+
+    setDraggingCard(cardId)
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    })
+
+    // Bring card to front
+    setCardPositions(prev => {
+      const maxZ = Math.max(...Object.values(prev).map(p => p.zIndex || 0))
+      return {
+        ...prev,
+        [cardId]: {
+          ...prev[cardId],
+          zIndex: maxZ + 1
+        }
+      }
+    })
+  }, [])
+
+  const handleMouseMove = useCallback((e) => {
+    if (!draggingCard) return
+
+    const containerWidth = window.innerWidth
+    const containerHeight = window.innerHeight
+    const cardWidth = 280
+    const cardHeight = 392
+
+    setCardPositions(prev => ({
+      ...prev,
+      [draggingCard]: {
+        ...prev[draggingCard],
+        x: Math.max(0, Math.min(containerWidth - cardWidth, e.clientX - dragOffset.x)),
+        y: Math.max(0, Math.min(containerHeight - cardHeight, e.clientY - dragOffset.y))
+      }
+    }))
+  }, [draggingCard, dragOffset])
+
+  const handleMouseUp = useCallback((e) => {
+    if (draggingCard) {
+      e.preventDefault()
+    }
+    setDraggingCard(null)
+  }, [draggingCard])
+
+  // Touch handlers for mobile
+  const handleTouchStart = useCallback((cardId, e) => {
+    const touch = e.touches[0]
+    const card = e.currentTarget
+    const rect = card.getBoundingClientRect()
+
+    setDraggingCard(cardId)
+    setDragOffset({
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top
+    })
+
+    setCardPositions(prev => {
+      const maxZ = Math.max(...Object.values(prev).map(p => p.zIndex || 0))
+      return {
+        ...prev,
+        [cardId]: {
+          ...prev[cardId],
+          zIndex: maxZ + 1
+        }
+      }
+    })
+  }, [])
+
+  const handleTouchMove = useCallback((e) => {
+    if (!draggingCard) return
+
+    const touch = e.touches[0]
+    const containerWidth = window.innerWidth
+    const containerHeight = window.innerHeight
+    const cardWidth = 280
+    const cardHeight = 392
+
+    setCardPositions(prev => ({
+      ...prev,
+      [draggingCard]: {
+        ...prev[draggingCard],
+        x: Math.max(0, Math.min(containerWidth - cardWidth, touch.clientX - dragOffset.x)),
+        y: Math.max(0, Math.min(containerHeight - cardHeight, touch.clientY - dragOffset.y))
+      }
+    }))
+  }, [draggingCard, dragOffset])
+
+  const handleTouchEnd = useCallback(() => {
+    setDraggingCard(null)
+  }, [])
+
+  // Global mouse/touch listeners
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    window.addEventListener('touchmove', handleTouchMove)
+    window.addEventListener('touchend', handleTouchEnd)
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd])
+
+  if (loading || loadingShowcases) {
+    return (
+      <div className="showcases-page">
+        <div className="showcases-loading">Loading your showcases...</div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
+
+  if (showcases.length === 0) {
+    return (
+      <div className="showcases-page">
+        <div className="showcases-empty">
+          <h2>No Showcase Leaders Yet</h2>
+          <p>Open packs to find rare Showcase Leaders!</p>
+          <p className="showcases-hint">Showcase leaders appear in approximately 1 in 288 packs.</p>
+          <button className="showcases-back-button" onClick={() => router.push('/sets')}>
+            Open Packs
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Get card image URL from cards data
+  const getCardImageUrl = (leader) => {
+    const card = cardsData[leader.cardId]
+    if (card?.imageUrl) {
+      return card.imageUrl
+    }
+    // Fallback to swudb pattern
+    return `https://swudb.com/images/cards/${leader.setCode}/${String(leader.cardId).padStart(3, '0')}.png`
+  }
+
+  return (
+    <div className="showcases-page" ref={containerRef}>
+      <button className="showcases-home-button" onClick={() => router.push('/')}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </button>
+
+      <div className="showcases-title">
+        <svg className="shooting-star-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M12 2L9 9l-7 1 5 5-1.5 7L12 18l6.5 4L17 15l5-5-7-1-3-7z" fill="currentColor" opacity="0.3"/>
+          <path d="M12 2L9 9l-7 1 5 5-1.5 7L12 18l6.5 4L17 15l5-5-7-1-3-7z"/>
+          <line x1="2" y1="2" x2="6" y2="6" strokeLinecap="round"/>
+          <line x1="4" y1="1" x2="5" y2="3" strokeLinecap="round"/>
+        </svg>
+        <span>Showcase Collection</span>
+        <span className="showcases-count">{showcases.length}</span>
+      </div>
+
+      {showcases.map((leader) => {
+        const pos = cardPositions[leader.id] || { x: 100, y: 100, rotation: 0, zIndex: 1 }
+        const isFlipped = flippedCards[leader.id]
+        const isDragging = draggingCard === leader.id
+
+        return (
+          <div
+            key={leader.id}
+            className={`showcase-card ${isFlipped ? 'flipped' : ''} ${isDragging ? 'dragging' : ''}`}
+            style={{
+              left: pos.x,
+              top: pos.y,
+              zIndex: pos.zIndex,
+              transform: `rotate(${pos.rotation}deg)`,
+              cursor: isDragging ? 'grabbing' : 'grab'
+            }}
+            onMouseDown={(e) => handleMouseDown(leader.id, e)}
+            onTouchStart={(e) => handleTouchStart(leader.id, e)}
+            onClick={(e) => !isDragging && handleCardClick(leader.id, e)}
+          >
+            <div className="showcase-card-inner">
+              <div className="showcase-card-front">
+                <div className="showcase-card-image-container">
+                  <img
+                    src={getCardImageUrl(leader)}
+                    alt={`${leader.cardName}${leader.cardSubtitle ? ` - ${leader.cardSubtitle}` : ''}`}
+                    className="showcase-card-image"
+                    draggable={false}
+                  />
+                  <div className="showcase-foil-effect"></div>
+                </div>
+              </div>
+              <div className="showcase-card-back">
+                <div className="showcase-card-back-content">
+                  <div className="showcase-card-name">{leader.cardName}</div>
+                  {leader.cardSubtitle && (
+                    <div className="showcase-card-subtitle">{leader.cardSubtitle}</div>
+                  )}
+                  <div className="showcase-card-set">{leader.setCode}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
