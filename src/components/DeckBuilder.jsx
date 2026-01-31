@@ -3710,7 +3710,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             {/* Inline sort controls for Deck */}
             <div className="inline-sort-controls" style={{ display: 'flex', gap: '4px', marginLeft: '0.5rem' }}>
               <Button
-                variant="toggle"
+                variant="toggle" glowColor="blue"
                 active={deckSortOption === 'default'}
                 className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setDeckSortOption('default'); }}
@@ -3722,7 +3722,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </svg>
               </Button>
               <Button
-                variant="toggle"
+                variant="toggle" glowColor="blue"
                 active={deckSortOption === 'aspect'}
                 className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setDeckSortOption('aspect'); }}
@@ -3732,7 +3732,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <img src="/icons/heroism.png" alt="Aspect" style={{ width: '20px', height: '20px', display: 'block' }} />
               </Button>
               <Button
-                variant="toggle"
+                variant="toggle" glowColor="blue"
                 active={deckSortOption === 'cost'}
                 className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setDeckSortOption('cost'); }}
@@ -3745,7 +3745,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </div>
               </Button>
               <Button
-                variant="toggle"
+                variant="toggle" glowColor="blue"
                 active={deckSortOption === 'type'}
                 className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setDeckSortOption('type'); }}
@@ -3763,7 +3763,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             {/* Filter button for Deck */}
             <div style={{ position: 'relative' }}>
               <Button
-                variant="toggle"
+                variant="toggle" glowColor="blue"
                 active={deckFilterOpen}
                 className="filter-button"
                 onClick={(e) => { e.stopPropagation(); setDeckFilterOpen(!deckFilterOpen); setPoolFilterOpen(false); }}
@@ -4036,7 +4036,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               activeLeader && activeBase ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                   <Button
-                    variant="toggle"
+                    variant="toggle" glowColor="blue"
+                    size="xs"
                     active={showAspectPenalties}
                     className={showAspectPenalties ? "aspect-penalty-button-active" : "aspect-penalty-button"}
                     onClick={(e) => {
@@ -4061,8 +4062,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </div>
               ) : (
                 <Button
-                  variant="secondary"
-                  className="aspect-penalty-warning-button"
+                  variant="warning"
+                  size="xs"
                   onClick={(e) => {
                     e.stopPropagation()
                     // Scroll to top to select leader and base
@@ -4085,7 +4086,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <>
                   <Button
                     variant="danger"
-                    textOnly
+                    size="xs"
                     onClick={(e) => {
                       e.stopPropagation()
                       const deckCards = Object.entries(cardPositions)
@@ -4101,11 +4102,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     className="remove-all-button"
                     disabled={isDeckEmpty}
                   >
-                    <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
+                    - All
                   </Button>
                   <Button
                     variant="primary"
-                    textOnly
+                    size="xs"
                     onClick={(e) => {
                       e.stopPropagation()
                       const poolCards = Object.entries(cardPositions)
@@ -4121,7 +4122,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     className="add-all-button"
                     disabled={isPoolEmpty}
                   >
-                    <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
+                    + All
                   </Button>
                 </>
               )
@@ -4339,6 +4340,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     <img src="/icons/cost.png" alt="Cost" style={{ width: '28px', height: '28px' }} />
                     <span style={{ position: 'absolute', top: '50%', left: '50%', transform: `translate(-50%, -50%)${costValue === '8+' ? ' translateX(1px)' : ''}`, color: 'white', fontWeight: 'bold', fontSize: '14px', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>{costValue}</span>
                   </div>
+                  <span className="desktop-text">{costValue === '8+' ? <>8<sup>+</sup>-cost</> : `${costValue}-cost`}</span>
                   <span>({count})</span>
                 </div>
               )
@@ -4518,7 +4520,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       </span>
                       <Button
                         variant="danger"
-                        textOnly
+                        size="xs"
                         onClick={(e) => {
                           e.stopPropagation()
                           setCardPositions(prev => {
@@ -4532,11 +4534,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         className="remove-all-button"
                         disabled={!hasDeckCardsToRemove}
                       >
-                        <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
+                        - All
                       </Button>
                       <Button
                         variant="primary"
-                        textOnly
+                        size="xs"
                         onClick={(e) => {
                           e.stopPropagation()
                           // Add matching pool cards to deck
@@ -4551,7 +4553,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         className="add-all-button"
                         disabled={!hasPoolCardsToAdd}
                       >
-                        <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
+                        + All
                       </Button>
                     </div>
                     {expanded && <div className="card-block-content">
@@ -4675,7 +4677,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             {/* Inline sort controls for Pool */}
             <div className="inline-sort-controls" style={{ display: 'flex', gap: '4px', marginLeft: '0.5rem' }}>
               <Button
-                variant="toggle"
+                variant="toggle" glowColor="blue"
                 active={poolSortOption === 'default'}
                 className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setPoolSortOption('default'); }}
@@ -4687,7 +4689,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </svg>
               </Button>
               <Button
-                variant="toggle"
+                variant="toggle" glowColor="blue"
                 active={poolSortOption === 'aspect'}
                 className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setPoolSortOption('aspect'); }}
@@ -4697,7 +4699,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <img src="/icons/heroism.png" alt="Aspect" style={{ width: '20px', height: '20px', display: 'block' }} />
               </Button>
               <Button
-                variant="toggle"
+                variant="toggle" glowColor="blue"
                 active={poolSortOption === 'cost'}
                 className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setPoolSortOption('cost'); }}
@@ -4710,7 +4712,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </div>
               </Button>
               <Button
-                variant="toggle"
+                variant="toggle" glowColor="blue"
                 active={poolSortOption === 'type'}
                 className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setPoolSortOption('type'); }}
@@ -4728,7 +4730,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             {/* Filter button for Pool */}
             <div style={{ position: 'relative' }}>
               <Button
-                variant="toggle"
+                variant="toggle" glowColor="blue"
                 active={poolFilterOpen}
                 className="filter-button"
                 onClick={(e) => { e.stopPropagation(); setPoolFilterOpen(!poolFilterOpen); setDeckFilterOpen(false); }}
@@ -5002,7 +5004,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               activeLeader && activeBase ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                   <Button
-                    variant="toggle"
+                    variant="toggle" glowColor="blue"
+                    size="xs"
                     active={showAspectPenalties}
                     className={showAspectPenalties ? "aspect-penalty-button-active" : "aspect-penalty-button"}
                     onClick={(e) => {
@@ -5027,8 +5030,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </div>
               ) : (
                 <Button
-                  variant="secondary"
-                  className="aspect-penalty-warning-button"
+                  variant="warning"
+                  size="xs"
                   onClick={(e) => {
                     e.stopPropagation()
                     // Scroll to top to select leader and base
@@ -5051,7 +5054,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <>
                   <Button
                     variant="primary"
-                    textOnly
+                    size="xs"
                     onClick={(e) => {
                       e.stopPropagation()
                       // Add all pool cards to deck
@@ -5068,11 +5071,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     className="add-all-button"
                     disabled={isPoolEmpty}
                   >
-                    <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
+                    + All
                   </Button>
                   <Button
                     variant="danger"
-                    textOnly
+                    size="xs"
                     onClick={(e) => {
                       e.stopPropagation()
                       // Add all deck cards to pool
@@ -5089,7 +5092,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     className="remove-all-button"
                     disabled={isDeckEmpty}
                   >
-                    <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
+                    - All
                   </Button>
                 </>
               )
@@ -5315,6 +5318,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       <img src="/icons/cost.png" alt="Cost" style={{ width: '28px', height: '28px' }} />
                       <span style={{ position: 'absolute', top: '50%', left: '50%', transform: `translate(-50%, -50%)${costValue === '8+' ? ' translateX(1px)' : ''}`, color: 'white', fontWeight: 'bold', fontSize: '14px', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>{costValue}</span>
                     </div>
+                    <span className="desktop-text">{costValue === '8+' ? <>8<sup>+</sup>-cost</> : `${costValue}-cost`}</span>
                     <span>({count})</span>
                   </div>
                 )
@@ -5535,7 +5539,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         </span>
                         <Button
                           variant="primary"
-                          textOnly
+                          size="xs"
                           onClick={(e) => {
                             e.stopPropagation()
                             // Move pool cards to deck
@@ -5550,11 +5554,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           className="add-all-button"
                           disabled={!hasPoolCardsToMove}
                         >
-                          <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
+                          + All
                         </Button>
                         <Button
                           variant="danger"
-                          textOnly
+                          size="xs"
                           onClick={(e) => {
                             e.stopPropagation()
                             // Move matching deck cards to pool
@@ -5569,7 +5573,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           className="remove-all-button"
                           disabled={!hasDeckCardsToRemove}
                         >
-                          <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
+                          - All
                         </Button>
                       </div>
                       {expanded && <div className="card-block-content">

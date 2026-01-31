@@ -226,8 +226,8 @@ test.describe('Deck Builder - Mobile', () => {
       await page.locator('.set-card').first().click()
 
       // Wait for pool page to load (URL changes via replaceState)
-      // The pool page shows cards, so wait for those
-      await page.waitForSelector('.card-image, .pool-card, .sealed-pod', { timeout: 30000 })
+      // Handle pack opening animation if present, then wait for cards
+      await waitForCardsToLoad(page)
       await page.waitForTimeout(1000) // Let replaceState complete
       poolShareId = page.url().split('/pool/')[1]?.split('/')[0]?.split('?')[0]
 
@@ -267,8 +267,8 @@ test.describe('Deck Builder - Mobile', () => {
       await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
       await page.locator('.set-card').first().click()
 
-      // Wait for pool page to load
-      await page.waitForSelector('.card-image, .pool-card, .sealed-pod', { timeout: 30000 })
+      // Wait for pool page to load (handle pack opening animation)
+      await waitForCardsToLoad(page)
       await page.waitForTimeout(1000)
       poolShareId = page.url().split('/pool/')[1]?.split('/')[0]?.split('?')[0]
 
