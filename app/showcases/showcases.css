@@ -110,6 +110,23 @@
 
 .shooting-star-icon {
   color: white;
+  transition: filter 0.2s ease;
+  cursor: default;
+}
+
+.shooting-star-icon:hover {
+  animation: rainbow-glow 2s linear infinite;
+}
+
+@keyframes rainbow-glow {
+  0% { filter: drop-shadow(0 0 6px #ff0000); }
+  14% { filter: drop-shadow(0 0 6px #ff7f00); }
+  28% { filter: drop-shadow(0 0 6px #ffff00); }
+  42% { filter: drop-shadow(0 0 6px #00ff00); }
+  57% { filter: drop-shadow(0 0 6px #0000ff); }
+  71% { filter: drop-shadow(0 0 6px #4b0082); }
+  85% { filter: drop-shadow(0 0 6px #9400d3); }
+  100% { filter: drop-shadow(0 0 6px #ff0000); }
 }
 
 .showcases-count {
