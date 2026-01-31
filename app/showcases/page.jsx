@@ -37,21 +37,21 @@ export default function ShowcasesPage() {
         // Initialize card cache to get image URLs
         await initializeCardCache()
 
-        // Build a map of card id -> card data for all sets and count leaders
+        // Build a map of card id -> card data for all sets and count showcase leaders
         const cardMap = {}
-        let leaderCount = 0
+        let showcaseLeaderCount = 0
         const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
         sets.forEach(setCode => {
           const cards = getCachedCards(setCode) || []
           cards.forEach(card => {
             cardMap[card.id] = card
-            if (card.type === 'Leader') {
-              leaderCount++
+            if (card.isLeader && card.variantType === 'Showcase') {
+              showcaseLeaderCount++
             }
           })
         })
         setCardsData(cardMap)
-        setTotalLeaders(leaderCount)
+        setTotalLeaders(showcaseLeaderCount)
 
         const response = await fetch(`/api/users/${user.id}/showcase-leaders`)
         if (response.ok) {
