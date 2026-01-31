@@ -9,11 +9,12 @@
 ### 🎨 UI Improvements
 - Mobile: Overhauled pack opening with carousel layout and cards that fit on screen
 - Mobile: Deckbuilder redesigned with full-width blocks and streamlined controls
+- Pack opening animation now skippable at request of Teddy
 
-### 📦 Pack/Data Changes
-- Card data now sourced from swuapi.com, derived directly from the official starwarsunlimited.com - the only canonical source
+### 💽 Data Changes
 - Hyperspace Foil variants now properly appear in booster packs at ~1/50 rate
 - Improved variant downgrade for deck exports (foil/hyperspace cards correctly map to base versions)
+- Not pleased with data quality I was getting from third party sources, so I made my own api that directly sources starwarsunlimited.com, launched that too, and am consuming it here now. This should also help with adding LAW as soon as possible.
 
 ### 🐞 Bug Fixes
 - Fixed missing aspect penalty on mobile
@@ -107,7 +108,8 @@ Additionally, we've got a Discord now: [https://discord.gg/u6fkdDzWqF](https://d
    - 🔒 Security
    - 📝 Documentation
    - 🔧 Maintenance
-   - 📦 Pack/Data Changes
+   - 📦 Pack Changes
+   - 💽 Data Changes
 4. Keep entries concise and user-friendly
 
-Run node scripts/postbuild.js to update the release notes on website.
+Run `node scripts/postbuild.js` to update the release notes on website.
