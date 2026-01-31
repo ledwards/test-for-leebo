@@ -121,8 +121,8 @@
 /* Showcase Card */
 .showcase-card {
   position: absolute;
-  width: 280px;
-  height: 392px; /* 2.5:3.5 aspect ratio */
+  width: 210px;   /* 25% smaller */
+  height: 294px;  /* 25% smaller */
   perspective: 1000px;
   user-select: none;
   touch-action: none;
@@ -154,11 +154,12 @@
   width: 100%;
   height: 100%;
   backface-visibility: hidden;
-  border-radius: 20px;
+  border-radius: 15px;  /* Smaller radius for smaller card */
   overflow: hidden;
   box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.5),
-    0 0 30px rgba(255, 215, 0, 0.3);
+    0 8px 30px rgba(0, 0, 0, 0.5),
+    0 0 25px color-mix(in srgb, var(--aspect-color, #ffd700) 50%, transparent),
+    0 0 50px color-mix(in srgb, var(--aspect-color, #ffd700) 30%, transparent);
 }
 
 .showcase-card-front {
@@ -166,11 +167,8 @@
 }
 
 .showcase-card-back {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: #1a1a1a;
   transform: rotateY(180deg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .showcase-card-image-container {
@@ -178,7 +176,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: 15px;
 }
 
 .showcase-card-image {
@@ -187,7 +185,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg);
+  transform: translate(-50%, -50%) rotate(90deg);  /* Rotate 90deg CW */
   pointer-events: none;
 }
 
@@ -219,50 +217,17 @@
   pointer-events: none;
   animation: foil-shimmer 4s linear infinite;
   filter: blur(12px);
-  border-radius: 20px;
+  border-radius: 15px;
 }
 
-/* Card Back Content */
-.showcase-card-back-content {
-  text-align: center;
-  padding: 20px;
-  color: white;
-}
 
-.showcase-card-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.showcase-card-subtitle {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 16px;
-  font-style: italic;
-}
-
-.showcase-card-set {
-  display: inline-block;
-  padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-/* Hover glow effect */
-.showcase-card:hover .showcase-card-front {
+/* Hover glow effect - uses aspect color */
+.showcase-card:hover .showcase-card-front,
+.showcase-card:hover .showcase-card-back {
   box-shadow:
-    0 15px 50px rgba(0, 0, 0, 0.6),
-    0 0 50px rgba(255, 215, 0, 0.5),
-    0 0 100px rgba(255, 215, 0, 0.2);
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    0 0 40px color-mix(in srgb, var(--aspect-color, #ffd700) 60%, transparent),
+    0 0 80px color-mix(in srgb, var(--aspect-color, #ffd700) 35%, transparent);
 }
 
 /* Mobile adjustments */
@@ -272,21 +237,21 @@
   }
 
   .showcase-card {
-    width: 200px;
-    height: 280px;
+    width: 160px;  /* 25% smaller than desktop */
+    height: 224px;
   }
 
   .showcase-card-image-container {
-    border-radius: 14px;
+    border-radius: 12px;
   }
 
   .showcase-card-front,
   .showcase-card-back {
-    border-radius: 14px;
+    border-radius: 12px;
   }
 
   .showcase-foil-effect {
-    border-radius: 14px;
+    border-radius: 12px;
     filter: blur(8px);
   }
 
