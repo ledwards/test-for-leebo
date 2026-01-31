@@ -1,7 +1,8 @@
 /**
  * HyperfoilBelt
  *
- * Same as FoilBelt but uses Hyperspace variant cards.
+ * Provides Hyperspace Foil cards for the foil slot upgrade.
+ * Uses cards with variantType === 'Hyperspace Foil'.
  * In Sets 4-6, Special rarity uses same rate as Rare (6x).
  */
 
@@ -52,9 +53,9 @@ export class HyperfoilBelt {
       this.rarityQuantities.Special = 6
     }
 
-    // Filter to Hyperspace variant non-leader, non-base cards
+    // Filter to Hyperspace Foil variant non-leader, non-base cards
     this.fillingPool = cards.filter(c =>
-      c.variantType === 'Hyperspace' &&
+      c.variantType === 'Hyperspace Foil' &&
       !c.isLeader &&
       !c.isBase &&
       (includeSpecial || c.rarity !== 'Special')

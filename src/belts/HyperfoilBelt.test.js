@@ -39,10 +39,10 @@ async function runTests() {
   console.log('\x1b[1m\x1b[35m💫 HyperfoilBelt Tests\x1b[0m')
   console.log('\x1b[35m' + '='.repeat(40) + '\x1b[0m')
 
-  test('initializes with Hyperspace variant cards', () => {
+  test('initializes with Hyperspace Foil variant cards', () => {
     const belt = new HyperfoilBelt('SOR')
     assert(belt.fillingPool.length > 0, 'Filling pool should not be empty')
-    assert(belt.fillingPool.every(c => c.variantType === 'Hyperspace'), 'All cards should be Hyperspace variant')
+    assert(belt.fillingPool.every(c => c.variantType === 'Hyperspace Foil'), 'All cards should be Hyperspace Foil variant')
     assert(belt.fillingPool.every(c => !c.isLeader && !c.isBase), 'No leaders or bases')
   })
 
@@ -52,7 +52,7 @@ async function runTests() {
     assert(card !== null, 'next() should return a card')
     assert(card.isFoil === true, 'Returned card should be marked as foil')
     assert(card.isHyperspace === true, 'Returned card should be marked as hyperspace')
-    assert(card.variantType === 'Hyperspace', 'Returned card should be Hyperspace variant')
+    assert(card.variantType === 'Hyperspace Foil', 'Returned card should be Hyperspace Foil variant')
   })
 
   test('next() removes card from hopper', () => {
