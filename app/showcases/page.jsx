@@ -26,6 +26,12 @@ export default function ShowcasesPage() {
   const containerRef = useRef(null)
   const exportRef = useRef(null)
 
+  // Get card dimensions based on screen width
+  const getCardDimensions = useCallback(() => {
+    const isMobile = window.innerWidth <= 768
+    return isMobile ? { width: 220, height: 157 } : { width: 294, height: 210 }
+  }, [])
+
   // Redirect if not logged in
   useEffect(() => {
     if (!loading && !user) {
@@ -68,8 +74,7 @@ export default function ShowcasesPage() {
           const positions = {}
           const containerWidth = window.innerWidth
           const containerHeight = window.innerHeight
-          const cardWidth = 294  // landscape
-          const cardHeight = 210
+          const { width: cardWidth, height: cardHeight } = getCardDimensions()
           const padding = 50
 
           leaders.forEach((leader, index) => {
@@ -164,8 +169,7 @@ export default function ShowcasesPage() {
 
     const containerWidth = window.innerWidth
     const containerHeight = window.innerHeight
-    const cardWidth = 294
-    const cardHeight = 210
+    const { width: cardWidth, height: cardHeight } = getCardDimensions()
 
     setCardPositions(prev => ({
       ...prev,
@@ -175,7 +179,7 @@ export default function ShowcasesPage() {
         y: Math.max(0, Math.min(containerHeight - cardHeight, e.clientY - dragOffset.y))
       }
     }))
-  }, [draggingCard, dragOffset])
+  }, [draggingCard, dragOffset, getCardDimensions])
 
   const handleMouseUp = useCallback((e) => {
     if (draggingCard) {
@@ -229,8 +233,7 @@ export default function ShowcasesPage() {
 
     const containerWidth = window.innerWidth
     const containerHeight = window.innerHeight
-    const cardWidth = 294
-    const cardHeight = 210
+    const { width: cardWidth, height: cardHeight } = getCardDimensions()
 
     setCardPositions(prev => ({
       ...prev,
@@ -240,7 +243,7 @@ export default function ShowcasesPage() {
         y: Math.max(0, Math.min(containerHeight - cardHeight, touch.clientY - dragOffset.y))
       }
     }))
-  }, [draggingCard, dragOffset])
+  }, [draggingCard, dragOffset, getCardDimensions])
 
   const handleTouchEnd = useCallback(() => {
     setDraggingCard(null)
