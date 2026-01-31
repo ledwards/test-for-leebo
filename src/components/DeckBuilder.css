@@ -1874,29 +1874,23 @@
     max-width: 100% !important;
   }
 
-  /* 2 cards per row on mobile */
+  /* 2 cards per row on mobile using flexbox */
   .cards-grid {
-    grid-template-columns: repeat(2, 48%);
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.4rem;
-    justify-content: center;
+    justify-content: space-between;
   }
 
-  .cards-grid .canvas-card {
-    width: 100%;
-    max-width: 100%;
-    border-radius: 8px;
-  }
-
-  /* Leaders/bases - landscape orientation */
+  .cards-grid .canvas-card,
   .cards-grid .canvas-card.leader,
   .cards-grid .canvas-card.base {
-    width: 100%;
-    max-width: 100%;
-    aspect-ratio: 3.5 / 2.5;
+    width: 48%;
+    max-width: 48%;
+    flex: 0 0 48%;
   }
 
   .canvas-card {
-    width: 100%;
     border-radius: 8px;
   }
 
