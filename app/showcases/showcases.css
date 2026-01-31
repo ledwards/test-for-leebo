@@ -480,7 +480,7 @@
   max-height: calc(95vh - 100px);
   object-fit: contain;
   display: block;
-  padding: 12px;
+  padding: 2px;
   box-sizing: border-box;
 }
 
