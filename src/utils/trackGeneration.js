@@ -43,6 +43,7 @@ function determineSlotType(card, context = {}) {
  * @param {string} options.sourceShareId - Share ID
  * @param {string} options.slotType - Optional: override slot type determination
  * @param {number} options.packIndex - Optional: index of the pack within the pool (0-based)
+ * @param {string} options.userId - Optional: UUID of the user who generated the card
  */
 export async function trackCardGeneration(card, options) {
   const {
@@ -51,7 +52,8 @@ export async function trackCardGeneration(card, options) {
     sourceId,
     sourceShareId,
     slotType = null,
-    packIndex = null
+    packIndex = null,
+    userId = null
   } = options
 
   try {
@@ -74,8 +76,9 @@ export async function trackCardGeneration(card, options) {
         source_type,
         source_id,
         source_share_id,
-        pack_index
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+        pack_index,
+        user_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
       [
         card.id,
         card.set,
@@ -94,7 +97,8 @@ export async function trackCardGeneration(card, options) {
         sourceType,
         sourceId,
         sourceShareId,
-        packIndex
+        packIndex,
+        userId
       ]
     )
   } catch (error) {
@@ -124,6 +128,7 @@ export async function trackPackGeneration(cards, options) {
  * Use this when generating many packs at once (e.g., sealed pools, draft start)
  *
  * @param {Array} records - Array of {card, options} objects
+ * @param {string} options.userId - Optional: UUID of the user who generated the cards
  */
 export async function trackBulkGenerations(records) {
   if (!records || records.length === 0) return
@@ -134,13 +139,13 @@ export async function trackBulkGenerations(records) {
 
     records.forEach((record, index) => {
       const { card, options } = record
-      const baseIndex = index * 18
+      const baseIndex = index * 19
 
       placeholders.push(
         `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5}, ` +
         `$${baseIndex + 6}, $${baseIndex + 7}, $${baseIndex + 8}, $${baseIndex + 9}, $${baseIndex + 10}, ` +
         `$${baseIndex + 11}, $${baseIndex + 12}, $${baseIndex + 13}, $${baseIndex + 14}, $${baseIndex + 15}, ` +
-        `$${baseIndex + 16}, $${baseIndex + 17}, $${baseIndex + 18})`
+        `$${baseIndex + 16}, $${baseIndex + 17}, $${baseIndex + 18}, $${baseIndex + 19})`
       )
 
       values.push(
@@ -161,7 +166,8 @@ export async function trackBulkGenerations(records) {
         options.sourceType,
         options.sourceId,
         options.sourceShareId,
-        options.packIndex ?? null
+        options.packIndex ?? null,
+        options.userId ?? null
       )
     })
 
@@ -169,7 +175,7 @@ export async function trackBulkGenerations(records) {
       `INSERT INTO card_generations (
         card_id, set_code, card_name, card_subtitle, card_type, rarity, aspects,
         treatment, variant_type, is_foil, is_hyperspace, is_showcase,
-        pack_type, slot_type, source_type, source_id, source_share_id, pack_index
+        pack_type, slot_type, source_type, source_id, source_share_id, pack_index, user_id
       ) VALUES ${placeholders.join(', ')}`,
       values
     )
