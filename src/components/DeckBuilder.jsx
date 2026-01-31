@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { getAspectColor } from '../utils/aspectColors'
 import CostIcon from './CostIcon'
 import Modal from './Modal'
+import Button from './Button'
 import { updatePool, savePool, deletePool } from '../utils/poolApi'
 import { getPackArtUrl } from '../utils/packArt'
 import EditableTitle from './EditableTitle'
@@ -3089,7 +3090,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         <div className={`header-buttons ${isInfoBarSticky ? 'hidden' : ''}`}>
           {/* Clone button first for non-owners */}
           {!isOwner && (
-            <button
+            <Button
+              variant="secondary"
               className="export-button"
               onClick={async () => {
                 if (!isAuthenticated) {
@@ -3134,7 +3136,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <path d="M20 8v6M23 11h-6"></path>
               </svg>
               <span>{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
-            </button>
+            </Button>
           )}
           {/* Play button */}
           {shareId && (() => {
@@ -3142,7 +3144,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length
             const isDeckLegal = activeLeader && activeBase && deckCardCount >= 30
             return (
-              <button
+              <Button
+                variant="primary"
                 className={`export-button ready-to-play-button ${!isDeckLegal ? 'disabled' : ''}`}
                 onClick={() => {
                   if (isDeckLegal) {
@@ -3155,12 +3158,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
                 <span>{isDeckLegal ? 'Ready to Play' : 'Finish Deckbuilding to Play'}</span>
-              </button>
+              </Button>
             )
           })()}
           {/* Clone button between Play and Share for owners */}
           {isOwner && (
-            <button
+            <Button
+              variant="secondary"
               className="export-button"
               onClick={async () => {
                 if (!isAuthenticated) {
@@ -3205,10 +3209,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <path d="M20 8v6M23 11h-6"></path>
               </svg>
               <span>Clone</span>
-            </button>
+            </Button>
           )}
           {shareId && (
-            <button
+            <Button
+              variant="secondary"
               className="export-button"
               onClick={async () => {
                 try {
@@ -3234,7 +3239,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
               </svg>
               <span>Copy Share URL</span>
-            </button>
+            </Button>
           )}
         </div>
         {errorMessage && (
@@ -3476,7 +3481,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           <div className="header-buttons-in-nav">
             {/* Clone button first for non-owners */}
             {!isOwner && (
-              <button
+              <Button
+                variant="icon"
                 className="export-button-icon"
                 onClick={async () => {
                   if (!isAuthenticated) {
@@ -3521,7 +3527,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <path d="M20 8v6M23 11h-6"></path>
                 </svg>
                 <span className="button-tooltip">{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
-              </button>
+              </Button>
             )}
             {/* Play button */}
             {shareId && (() => {
@@ -3529,7 +3535,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length
               const isDeckLegal = activeLeader && activeBase && deckCardCount >= 30
               return (
-                <button
+                <Button
+                  variant="primary"
                   className={`export-button-icon ready-to-play-icon ${!isDeckLegal ? 'disabled' : ''}`}
                   onClick={() => {
                     if (isDeckLegal) {
@@ -3542,12 +3549,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                   </svg>
                   <span className="button-tooltip tooltip-below">{isDeckLegal ? 'Ready to Play' : 'Create Deck to Continue'}</span>
-                </button>
+                </Button>
               )
             })()}
             {/* Clone button between Play and Share for owners */}
             {isOwner && (
-              <button
+              <Button
+                variant="icon"
                 className="export-button-icon"
                 onClick={async () => {
                   if (!isAuthenticated) {
@@ -3592,11 +3600,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <path d="M20 8v6M23 11h-6"></path>
                 </svg>
                 <span className="button-tooltip">Clone</span>
-              </button>
+              </Button>
             )}
             {/* Share button */}
             {shareId && (
-              <button
+              <Button
+                variant="icon"
                 className="export-button-icon"
                 onClick={async () => {
                   try {
@@ -3622,14 +3631,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                 </svg>
                 <span className="button-tooltip tooltip-below">Copy Share URL</span>
-              </button>
+              </Button>
             )}
           </div>
         )}
       </div>
 
       <div className="view-controls">
-        <button
+        <Button
+          variant="icon"
           className="view-toggle-button"
           onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
           onMouseEnter={(e) => showNavTooltip(viewMode === 'grid' ? 'Table View' : 'Playmat View', e)}
@@ -3650,7 +3660,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               <path d="M12 12H18V18H12V12Z" stroke="currentColor" strokeWidth="2" fill="none"/>
             </svg>
           )}
-        </button>
+        </Button>
       </div>
 
       {/* Grid View */}
@@ -3886,8 +3896,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length})</span>
             {/* Inline sort controls for Deck */}
             <div className="inline-sort-controls" style={{ display: 'flex', gap: '4px', marginLeft: '0.5rem' }}>
-              <button
-                className={`sort-button-icon ${deckSortOption === 'default' ? 'active' : ''}`}
+              <Button
+                variant="toggle"
+                active={deckSortOption === 'default'}
+                className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setDeckSortOption('default'); }}
                 title="Default (single container)"
                 style={{ opacity: deckSortOption === 'default' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
@@ -3895,17 +3907,21 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="3" width="18" height="18" rx="2" />
                 </svg>
-              </button>
-              <button
-                className={`sort-button-icon ${deckSortOption === 'aspect' ? 'active' : ''}`}
+              </Button>
+              <Button
+                variant="toggle"
+                active={deckSortOption === 'aspect'}
+                className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setDeckSortOption('aspect'); }}
                 title="Group by Aspect"
                 style={{ opacity: deckSortOption === 'aspect' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
               >
                 <img src="/icons/heroism.png" alt="Aspect" style={{ width: '20px', height: '20px', display: 'block' }} />
-              </button>
-              <button
-                className={`sort-button-icon ${deckSortOption === 'cost' ? 'active' : ''}`}
+              </Button>
+              <Button
+                variant="toggle"
+                active={deckSortOption === 'cost'}
+                className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setDeckSortOption('cost'); }}
                 title="Group by Cost"
                 style={{ opacity: deckSortOption === 'cost' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
@@ -3914,9 +3930,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <img src="/icons/cost.png" alt="Cost" style={{ width: '20px', height: '20px', display: 'block' }} />
                   <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'white', fontWeight: 'bold', fontSize: '11px', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>3</span>
                 </div>
-              </button>
-              <button
-                className={`sort-button-icon ${deckSortOption === 'type' ? 'active' : ''}`}
+              </Button>
+              <Button
+                variant="toggle"
+                active={deckSortOption === 'type'}
+                className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setDeckSortOption('type'); }}
                 title="Group by Type"
                 style={{ opacity: deckSortOption === 'type' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
@@ -3927,12 +3945,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <rect x="3" y="14" width="7" height="7" rx="1" />
                   <rect x="14" y="14" width="7" height="7" rx="1" />
                 </svg>
-              </button>
+              </Button>
             </div>
             {/* Filter button for Deck */}
             <div style={{ position: 'relative' }}>
-              <button
-                className={`filter-button ${deckFilterOpen ? 'active' : ''}`}
+              <Button
+                variant="toggle"
+                active={deckFilterOpen}
+                className="filter-button"
                 onClick={(e) => { e.stopPropagation(); setDeckFilterOpen(!deckFilterOpen); setPoolFilterOpen(false); }}
                 title="Filter by Aspect"
                 style={{ width: '28px', height: '28px', padding: '4px' }}
@@ -3940,7 +3960,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M3 5H17M5 10H15M7 15H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-              </button>
+              </Button>
               {deckFilterOpen && (() => {
                 const deckCardCountForHeader = Object.values(cardPositions)
                   .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length
@@ -4202,7 +4222,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             {deckSortOption === 'cost' && (
               activeLeader && activeBase ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <button
+                  <Button
+                    variant="toggle"
+                    active={showAspectPenalties}
                     className={showAspectPenalties ? "aspect-penalty-button-active" : "aspect-penalty-button"}
                     onClick={(e) => {
                       e.stopPropagation()
@@ -4210,7 +4232,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     }}
                   >
                     <span className="desktop-text">{showAspectPenalties ? 'Hide Aspect Penalties' : 'Include Aspect Penalties'}</span><span className="mobile-text">Aspect Penalties</span>
-                  </button>
+                  </Button>
                   {showAspectPenalties && (() => {
                     const leaderCard = cardPositions[activeLeader]?.card
                     const abilityDesc = getLeaderAspectAbilityDescription(leaderCard)
@@ -4225,7 +4247,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   })()}
                 </div>
               ) : (
-                <button
+                <Button
+                  variant="secondary"
                   className="aspect-penalty-warning-button"
                   onClick={(e) => {
                     e.stopPropagation()
@@ -4234,7 +4257,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   }}
                 >
                   Select a leader and base to include aspect penalties
-                </button>
+                </Button>
               )
             )}
             {(() => {
@@ -4247,7 +4270,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
               return (
                 <>
-                  <button
+                  <Button
+                    variant="danger"
+                    textOnly
                     onClick={(e) => {
                       e.stopPropagation()
                       const deckCards = Object.entries(cardPositions)
@@ -4264,8 +4289,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     disabled={isDeckEmpty}
                   >
                     <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="primary"
+                    textOnly
                     onClick={(e) => {
                       e.stopPropagation()
                       const poolCards = Object.entries(cardPositions)
@@ -4282,7 +4309,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     disabled={isPoolEmpty}
                   >
                     <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
-                  </button>
+                  </Button>
                 </>
               )
             })()}
@@ -4676,7 +4703,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       <span style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => toggleDeckGroupExpanded(groupKey)}>
                         {renderDeckGroupHeader(groupKey, groupCards.length)}
                       </span>
-                      <button
+                      <Button
+                        variant="danger"
+                        textOnly
                         onClick={(e) => {
                           e.stopPropagation()
                           setCardPositions(prev => {
@@ -4691,8 +4720,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         disabled={!hasDeckCardsToRemove}
                       >
                         <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="primary"
+                        textOnly
                         onClick={(e) => {
                           e.stopPropagation()
                           // Add matching pool cards to deck
@@ -4708,7 +4739,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         disabled={!hasPoolCardsToAdd}
                       >
                         <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
-                      </button>
+                      </Button>
                     </div>
                     {expanded && <div className="card-block-content">
                       <div className="cards-grid">
@@ -4830,8 +4861,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               .length})</span>
             {/* Inline sort controls for Pool */}
             <div className="inline-sort-controls" style={{ display: 'flex', gap: '4px', marginLeft: '0.5rem' }}>
-              <button
-                className={`sort-button-icon ${poolSortOption === 'default' ? 'active' : ''}`}
+              <Button
+                variant="toggle"
+                active={poolSortOption === 'default'}
+                className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setPoolSortOption('default'); }}
                 title="Default (single container)"
                 style={{ opacity: poolSortOption === 'default' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
@@ -4839,17 +4872,21 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="3" width="18" height="18" rx="2" />
                 </svg>
-              </button>
-              <button
-                className={`sort-button-icon ${poolSortOption === 'aspect' ? 'active' : ''}`}
+              </Button>
+              <Button
+                variant="toggle"
+                active={poolSortOption === 'aspect'}
+                className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setPoolSortOption('aspect'); }}
                 title="Group by Aspect"
                 style={{ opacity: poolSortOption === 'aspect' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
               >
                 <img src="/icons/heroism.png" alt="Aspect" style={{ width: '20px', height: '20px', display: 'block' }} />
-              </button>
-              <button
-                className={`sort-button-icon ${poolSortOption === 'cost' ? 'active' : ''}`}
+              </Button>
+              <Button
+                variant="toggle"
+                active={poolSortOption === 'cost'}
+                className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setPoolSortOption('cost'); }}
                 title="Group by Cost"
                 style={{ opacity: poolSortOption === 'cost' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
@@ -4858,9 +4895,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <img src="/icons/cost.png" alt="Cost" style={{ width: '20px', height: '20px', display: 'block' }} />
                   <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'white', fontWeight: 'bold', fontSize: '11px', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>3</span>
                 </div>
-              </button>
-              <button
-                className={`sort-button-icon ${poolSortOption === 'type' ? 'active' : ''}`}
+              </Button>
+              <Button
+                variant="toggle"
+                active={poolSortOption === 'type'}
+                className="sort-button-icon"
                 onClick={(e) => { e.stopPropagation(); setPoolSortOption('type'); }}
                 title="Group by Type"
                 style={{ opacity: poolSortOption === 'type' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
@@ -4871,12 +4910,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   <rect x="3" y="14" width="7" height="7" rx="1" />
                   <rect x="14" y="14" width="7" height="7" rx="1" />
                 </svg>
-              </button>
+              </Button>
             </div>
             {/* Filter button for Pool */}
             <div style={{ position: 'relative' }}>
-              <button
-                className={`filter-button ${poolFilterOpen ? 'active' : ''}`}
+              <Button
+                variant="toggle"
+                active={poolFilterOpen}
+                className="filter-button"
                 onClick={(e) => { e.stopPropagation(); setPoolFilterOpen(!poolFilterOpen); setDeckFilterOpen(false); }}
                 title="Filter by Aspect"
                 style={{ width: '28px', height: '28px', padding: '4px' }}
@@ -4884,7 +4925,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M3 5H17M5 10H15M7 15H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-              </button>
+              </Button>
               {poolFilterOpen && (() => {
                 const poolCardCountForHeader = Object.values(cardPositions)
                   .filter(pos => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader).length
@@ -5147,7 +5188,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             {poolSortOption === 'cost' && (
               activeLeader && activeBase ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <button
+                  <Button
+                    variant="toggle"
+                    active={showAspectPenalties}
                     className={showAspectPenalties ? "aspect-penalty-button-active" : "aspect-penalty-button"}
                     onClick={(e) => {
                       e.stopPropagation()
@@ -5155,7 +5198,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     }}
                   >
                     <span className="desktop-text">{showAspectPenalties ? 'Hide Aspect Penalties' : 'Include Aspect Penalties'}</span><span className="mobile-text">Aspect Penalties</span>
-                  </button>
+                  </Button>
                   {showAspectPenalties && (() => {
                     const leaderCard = cardPositions[activeLeader]?.card
                     const abilityDesc = getLeaderAspectAbilityDescription(leaderCard)
@@ -5170,7 +5213,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   })()}
                 </div>
               ) : (
-                <button
+                <Button
+                  variant="secondary"
                   className="aspect-penalty-warning-button"
                   onClick={(e) => {
                     e.stopPropagation()
@@ -5179,7 +5223,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   }}
                 >
                   Select a leader and base to include aspect penalties
-                </button>
+                </Button>
               )
             )}
             {(() => {
@@ -5192,7 +5236,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
               return (
                 <>
-                  <button
+                  <Button
+                    variant="primary"
+                    textOnly
                     onClick={(e) => {
                       e.stopPropagation()
                       // Add all pool cards to deck
@@ -5210,8 +5256,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     disabled={isPoolEmpty}
                   >
                     <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="danger"
+                    textOnly
                     onClick={(e) => {
                       e.stopPropagation()
                       // Add all deck cards to pool
@@ -5229,7 +5277,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     disabled={isDeckEmpty}
                   >
                     <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
-                  </button>
+                  </Button>
                 </>
               )
             })()}
@@ -5672,7 +5720,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         <span style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => toggleGroupExpanded(groupKey)}>
                           {renderGroupHeader(groupKey, groupCards.length)}
                         </span>
-                        <button
+                        <Button
+                          variant="primary"
+                          textOnly
                           onClick={(e) => {
                             e.stopPropagation()
                             // Move pool cards to deck
@@ -5688,8 +5738,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           disabled={!hasPoolCardsToMove}
                         >
                           <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="danger"
+                          textOnly
                           onClick={(e) => {
                             e.stopPropagation()
                             // Move matching deck cards to pool
@@ -5705,7 +5757,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           disabled={!hasDeckCardsToRemove}
                         >
                           <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
-                        </button>
+                        </Button>
                       </div>
                       {expanded && <div className="card-block-content">
                         <div className="cards-grid">
@@ -6870,7 +6922,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           setDeckImageModal(null)
         }}>
           <div className="deck-image-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button
+            <Button
+              variant="icon"
+              size="sm"
               className="deck-image-modal-close"
               onClick={() => {
                 URL.revokeObjectURL(deckImageModal)
@@ -6878,14 +6932,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               }}
             >
               ×
-            </button>
+            </Button>
             <img
               src={deckImageModal}
               alt="Deck Export"
               className="deck-image-modal-image"
             />
             <div className="deck-image-modal-actions">
-              <button
+              <Button
+                variant="primary"
                 className="deck-image-modal-download"
                 onClick={() => {
                   const a = document.createElement('a')
@@ -6914,7 +6969,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 }}
               >
                 Download Image
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -6924,7 +6979,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       {shareId && isOwner && (
         <div className="delete-deck-section">
           <hr className="delete-deck-divider" />
-          <button
+          <Button
+            variant="danger"
             className="delete-deck-button"
             onClick={() => setShowDeleteConfirm(true)}
           >
@@ -6935,7 +6991,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               <line x1="14" y1="11" x2="14" y2="17"></line>
             </svg>
             Delete Deck
-          </button>
+          </Button>
         </div>
       )}
 
@@ -6950,15 +7006,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           <p>Are you sure you want to delete this deck? This action cannot be undone.</p>
         </Modal.Body>
         <Modal.Actions>
-          <button
-            className="modal-btn-cancel"
+          <Button
+            variant="secondary"
             onClick={() => setShowDeleteConfirm(false)}
             disabled={isDeleting}
           >
             Cancel
-          </button>
-          <button
-            className="modal-btn-danger"
+          </Button>
+          <Button
+            variant="danger"
             onClick={async () => {
               setIsDeleting(true)
               try {
@@ -6975,7 +7031,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             disabled={isDeleting}
           >
             {isDeleting ? 'Deleting...' : 'Delete'}
-          </button>
+          </Button>
         </Modal.Actions>
       </Modal>
       </div>
