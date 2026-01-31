@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas'
 import { useAuth } from '../../src/contexts/AuthContext'
 import { initializeCardCache, getCachedCards } from '../../src/utils/cardCache'
 import { getAspectColor } from '../../src/utils/aspectColors'
+import Button from '../../src/components/Button'
 import './showcases.css'
 
 export default function ShowcasesPage() {
@@ -285,9 +286,9 @@ export default function ShowcasesPage() {
           <h2>No Showcase Leaders Yet</h2>
           <p>Play Sealed to find rare Showcase Leaders!</p>
           <p className="showcases-hint">Showcase leaders appear in approximately 1 in 288 packs.</p>
-          <button className="showcases-back-button" onClick={() => router.push('/sets')}>
+          <Button variant="primary" className="showcases-back-button" onClick={() => router.push('/sets')}>
             Play Sealed
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -480,18 +481,18 @@ export default function ShowcasesPage() {
       {imageModalUrl && (
         <div className="showcase-image-modal-overlay" onClick={closeImageModal}>
           <div className="showcase-image-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="showcase-image-modal-close" onClick={closeImageModal}>
+            <Button variant="icon" size="sm" className="showcase-image-modal-close" onClick={closeImageModal}>
               ×
-            </button>
+            </Button>
             <img
               src={imageModalUrl}
               alt="Showcase Collection"
               className="showcase-image-modal-image"
             />
             <div className="showcase-image-modal-actions">
-              <button className="showcase-image-modal-download" onClick={handleDownload}>
+              <Button variant="primary" className="showcase-image-modal-download" onClick={handleDownload}>
                 Download
-              </button>
+              </Button>
             </div>
           </div>
         </div>

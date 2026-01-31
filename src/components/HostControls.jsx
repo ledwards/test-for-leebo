@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Button from './Button'
 import './HostControls.css'
 
 const CopyIcon = () => (
@@ -145,36 +146,39 @@ function HostControls({
           </span>
         </div>
         <div className="controls-row secondary-controls">
-          <button
-            className="control-button secondary"
+          <Button
+            variant="secondary"
+            className="control-button"
             onClick={onRandomize}
             disabled={randomizing || playerCount < 2}
           >
             <DiceIcon />
             <span>{randomizing ? 'Randomizing...' : 'Randomize Seats'}</span>
-          </button>
+          </Button>
 
-          <button
-            className="control-button secondary"
+          <Button
+            variant="secondary"
+            className="control-button"
             onClick={onAddBot}
             disabled={addingBot || !canAddBot}
           >
             <RobotIcon />
             <span>{addingBot ? 'Adding...' : 'Add Bot'}</span>
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className="controls-section">
 
         <div className="controls-row primary-controls">
-          <button
-            className="control-button primary"
+          <Button
+            variant="primary"
+            className="control-button"
             onClick={onStart}
             disabled={startingDraft || !canStart}
           >
             {startingDraft ? 'Starting...' : 'Start Draft'}
-          </button>
+          </Button>
         </div>
 
         {!canStart && (
@@ -189,14 +193,15 @@ function HostControls({
 
         {showCancelButton && (
           <div className="controls-row cancel-controls">
-            <button
-              className="control-button cancel"
+            <Button
+              variant="danger"
+              className="control-button"
               onClick={() => setShowCancelConfirm(true)}
               disabled={isCancelling}
             >
               <XIcon />
               <span>Cancel Draft</span>
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -208,20 +213,20 @@ function HostControls({
             <h2>Cancel Draft?</h2>
             <p>Are you sure you want to cancel this draft? All players will be redirected and this action cannot be undone.</p>
             <div className="cancel-confirm-buttons">
-              <button
-                className="cancel-confirm-back"
+              <Button
+                variant="secondary"
                 onClick={() => setShowCancelConfirm(false)}
                 disabled={isCancelling}
               >
                 Go Back
-              </button>
-              <button
-                className="cancel-confirm-delete"
+              </Button>
+              <Button
+                variant="danger"
                 onClick={handleCancelDraft}
                 disabled={isCancelling}
               >
                 {isCancelling ? 'Cancelling...' : 'Cancel Draft'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

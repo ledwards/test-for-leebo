@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import PlayerCircle from './PlayerCircle'
 import HostControls from './HostControls'
+import Button from './Button'
 import './DraftLobby.css'
 
 const CopyIcon = () => (
@@ -59,10 +60,10 @@ function DraftLobby({
           {shareId && (
             <div className="share-url-section">
               <span className="share-label">Share URL:</span>
-              <button className="copy-url-button" onClick={handleCopyShareUrl}>
+              <Button variant="secondary" size="sm" className="copy-url-button" onClick={handleCopyShareUrl}>
                 <CopyIcon />
                 <span>{copied ? 'Copied!' : 'Copy Link'}</span>
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -87,12 +88,13 @@ function DraftLobby({
           {isPlayer && !isHost && (
             <div className="player-actions">
               <p className="waiting-message">Waiting for host to start the draft...</p>
-              <button
+              <Button
+                variant="danger"
                 className="leave-button"
                 onClick={onLeave}
               >
                 Leave Draft
-              </button>
+              </Button>
             </div>
           )}
 

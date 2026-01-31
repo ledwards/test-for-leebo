@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import './DraftReviewModal.css'
 import TimerPanel from './TimerPanel'
+import Button from './Button'
 
 function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, packSize = 14, draft, players = [], isHost = false, onTogglePause, onTimerExpire }) {
   const [sortMode, setSortMode] = useState('pick') // 'pick', 'cost', 'type', 'aspect'
@@ -256,30 +257,34 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
         <div className="review-controls">
           <div className="review-controls-left">
             <h3 className="review-controls-heading">Group By</h3>
-            <button
-              className={`sort-button ${sortMode === 'pick' ? 'active' : ''}`}
+            <Button
+              variant="toggle"
+              active={sortMode === 'pick'}
               onClick={() => { setSortMode('pick'); setGroupMode('none'); }}
             >
               Pick Order
-            </button>
-            <button
-              className={`sort-button ${groupMode === 'cost' ? 'active' : ''}`}
+            </Button>
+            <Button
+              variant="toggle"
+              active={groupMode === 'cost'}
               onClick={() => { setSortMode('cost'); setGroupMode('cost'); }}
             >
               Cost
-            </button>
-            <button
-              className={`sort-button ${groupMode === 'type' ? 'active' : ''}`}
+            </Button>
+            <Button
+              variant="toggle"
+              active={groupMode === 'type'}
               onClick={() => { setSortMode('type'); setGroupMode('type'); }}
             >
               Type
-            </button>
-            <button
-              className={`sort-button ${groupMode === 'aspect' ? 'active' : ''}`}
+            </Button>
+            <Button
+              variant="toggle"
+              active={groupMode === 'aspect'}
               onClick={() => { setSortMode('aspect'); setGroupMode('aspect'); }}
             >
               Aspect
-            </button>
+            </Button>
           </div>
           <div className="review-controls-center">
             {draft && players && (
@@ -287,7 +292,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
             )}
           </div>
           <div className="review-controls-right">
-            <button className="modal-close" onClick={onClose}>×</button>
+            <Button variant="icon" size="sm" className="modal-close" onClick={onClose}>×</Button>
           </div>
         </div>
 

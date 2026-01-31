@@ -7,6 +7,7 @@ import DeckBuilder from './components/DeckBuilder'
 import TermsOfService from './components/TermsOfService'
 import PrivacyPolicy from './components/PrivacyPolicy'
 import Modal from './components/Modal'
+import Button from './components/Button'
 import { initializeCardCache } from './utils/cardCache'
 
 function App() {
@@ -145,12 +146,12 @@ function App() {
           <p>Going back will lose your current sealed pod and regenerate a new one. Are you sure you want to continue?</p>
         </Modal.Body>
         <Modal.Actions>
-          <button className="modal-btn-danger" onClick={handleConfirmBack}>
+          <Button variant="danger" onClick={handleConfirmBack}>
             Yes, Go Back
-          </button>
-          <button className="modal-btn-cancel" onClick={handleCancelBack}>
+          </Button>
+          <Button variant="secondary" onClick={handleCancelBack}>
             Cancel
-          </button>
+          </Button>
         </Modal.Actions>
       </Modal>
       {view === 'landing' && (

@@ -62,6 +62,60 @@ Custom Next.js server with Socket.io for multiplayer draft synchronization. Draf
 - `app/showcases/` - Showcase collection gallery
 - `src/components/` - React components (DeckBuilder, SealedPod, LeaderDraftPhase, etc.)
 
+## UI Components & Style Guide
+
+**IMPORTANT: Always use the style guide for UI work unless explicitly instructed otherwise.**
+
+Read `docs/STYLE_GUIDE.md` before creating or modifying UI components. Key rules:
+
+### Button Component (ALWAYS USE)
+Use `src/components/Button.jsx` for all buttons:
+```jsx
+import Button from '@/src/components/Button'
+
+// Primary CTA (green glow)
+<Button variant="primary">Save</Button>
+
+// Secondary/Cancel
+<Button variant="secondary">Cancel</Button>
+
+// Danger/Delete (red glow)
+<Button variant="danger">Delete</Button>
+
+// Back navigation
+<Button variant="back">Go Back</Button>
+
+// Icon-only (close buttons)
+<Button variant="icon" size="sm">&times;</Button>
+
+// Toggle (sort/filter)
+<Button variant="toggle" active={isActive}>Option</Button>
+
+// Text-only (no background)
+<Button variant="primary" textOnly>Add All</Button>
+```
+
+### Modal Component
+Use `src/components/Modal.jsx` for dialogs with `<Modal.Body>` and `<Modal.Actions>`.
+
+### TimerButton Component
+Use `src/components/TimerButton.jsx` for pause/play timer controls.
+
+### Design Tokens
+- Dark backgrounds: `rgba(0, 0, 0, 0.7)`
+- Borders: `rgba(255, 255, 255, 0.3)`
+- Primary glow: green, Danger glow: red, Interactive glow: blue
+- Font: Barlow, weights 400/600/700
+- Hover lift: `translateY(-2px)`
+
+### Exceptions (Keep Custom)
+These have unique designs - do NOT replace with Button:
+- Landing page mode buttons (large card-like CTAs)
+- Deselect button (card overlay)
+- Editable title pencil
+- Auth widget avatar
+- Showcase share icon
+
 ## Key Patterns
 
 ### Card Variant Types

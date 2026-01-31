@@ -46,37 +46,6 @@
   font-weight: bold;
 }
 
-/* Pause button */
-.pause-button {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  transition: all 0.2s ease;
-}
-
-.pause-button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-.pause-button.resume {
-  background: rgba(255, 193, 7, 0.2);
-  border-color: #FFC107;
-  color: #FFC107;
-}
-
-.pause-button.resume:hover {
-  background: rgba(255, 193, 7, 0.3);
-}
-
 /* Paused display - now a clickable button */
 .paused-display-button {
   display: flex;
@@ -176,12 +145,6 @@
   .timer-panel.compact .timer-value {
     font-size: 2rem;
     line-height: 2rem;
-  }
-
-  .pause-button {
-    margin-top: 3px;
-    font-size: 0.65rem;
-    padding: 3px 6px;
   }
 
   .paused-text {

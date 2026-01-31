@@ -1,7 +1,7 @@
 'use client'
 
 import '../src/styles/backgrounds.css'
-import '../src/components/Button.css'
+import Button from '../src/components/Button'
 
 export default function Error({ reset }) {
   return (
@@ -47,13 +47,14 @@ export default function Error({ reset }) {
       <p style={{ color: '#888', maxWidth: '400px', lineHeight: 1.6 }}>
         An unexpected error occurred. Please try again.
       </p>
-      <button
+      <Button
+        variant="primary"
+        size="lg"
         onClick={() => reset()}
-        className="btn btn--primary btn--lg"
         style={{ marginTop: '2rem' }}
       >
         Try Again
-      </button>
+      </Button>
     </div>
   )
 }

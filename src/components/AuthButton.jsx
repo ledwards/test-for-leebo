@@ -1,6 +1,7 @@
 // Authentication button component
 import { useAuth } from '../contexts/AuthContext'
 import './AuthButton.css'
+import Button from './Button'
 
 export default function AuthButton() {
   const { user, loading, signIn, signOut } = useAuth()
@@ -22,18 +23,18 @@ export default function AuthButton() {
           )}
           <span className="username">{user.username || user.email}</span>
         </span>
-        <button onClick={signOut} className="sign-out-button">
+        <Button variant="secondary" size="sm" onClick={signOut} className="sign-out-button">
           Sign Out
-        </button>
+        </Button>
       </div>
     )
   }
 
   return (
     <div className="auth-button">
-      <button onClick={signIn} className="sign-in-button">
+      <Button variant="discord" onClick={signIn} className="sign-in-button">
         Sign in with Discord
-      </button>
+      </Button>
     </div>
   )
 }
