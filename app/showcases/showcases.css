@@ -185,7 +185,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(90deg);  /* Rotate 90deg CW */
+  transform: translate(-50%, -50%);  /* No rotation - landscape image fits in portrait container */
   pointer-events: none;
 }
 

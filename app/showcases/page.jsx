@@ -17,6 +17,7 @@ export default function ShowcasesPage() {
   const [flippedCards, setFlippedCards] = useState({})
   const [draggingCard, setDraggingCard] = useState(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [hasDragged, setHasDragged] = useState(false)
   const containerRef = useRef(null)
 
   // Redirect if not logged in
@@ -101,13 +102,13 @@ export default function ShowcasesPage() {
   // Handle card flip
   const handleCardClick = useCallback((cardId, e) => {
     // Don't flip if we were dragging
-    if (e.defaultPrevented) return
+    if (hasDragged) return
 
     setFlippedCards(prev => ({
       ...prev,
       [cardId]: !prev[cardId]
     }))
-  }, [])
+  }, [hasDragged])
 
   // Drag handlers
   const handleMouseDown = useCallback((cardId, e) => {
@@ -116,6 +117,7 @@ export default function ShowcasesPage() {
     const rect = card.getBoundingClientRect()
 
     setDraggingCard(cardId)
+    setHasDragged(false)
     setDragOffset({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
@@ -136,6 +138,8 @@ export default function ShowcasesPage() {
 
   const handleMouseMove = useCallback((e) => {
     if (!draggingCard) return
+
+    setHasDragged(true)
 
     const containerWidth = window.innerWidth
     const containerHeight = window.innerHeight
@@ -166,6 +170,7 @@ export default function ShowcasesPage() {
     const rect = card.getBoundingClientRect()
 
     setDraggingCard(cardId)
+    setHasDragged(false)
     setDragOffset({
       x: touch.clientX - rect.left,
       y: touch.clientY - rect.top
@@ -185,6 +190,8 @@ export default function ShowcasesPage() {
 
   const handleTouchMove = useCallback((e) => {
     if (!draggingCard) return
+
+    setHasDragged(true)
 
     const touch = e.touches[0]
     const containerWidth = window.innerWidth
