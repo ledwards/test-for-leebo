@@ -3978,7 +3978,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   }} onClick={(e) => e.stopPropagation()}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '0.5rem' }}>
                       <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Show in Deck ({deckCardCountForHeader})</span>
-                      <button onClick={() => setDeckFilterOpen(false)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.25rem', cursor: 'pointer', padding: '0 0.25rem' }}>×</button>
+                      <Button variant="icon" size="sm" onClick={() => setDeckFilterOpen(false)}>×</Button>
                     </div>
                     {/* In Aspect / Out of Aspect - only show when leader and base selected */}
                     {activeLeader && activeBase && (() => {
@@ -4943,7 +4943,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   }} onClick={(e) => e.stopPropagation()}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '0.5rem' }}>
                       <span style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Show in Pool ({poolCardCountForHeader})</span>
-                      <button onClick={() => setPoolFilterOpen(false)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.25rem', cursor: 'pointer', padding: '0 0.25rem' }}>×</button>
+                      <Button variant="icon" size="sm" onClick={() => setPoolFilterOpen(false)}>×</Button>
                     </div>
                     {/* In Aspect / Out of Aspect - only show when leader and base selected */}
                     {activeLeader && activeBase && (() => {
