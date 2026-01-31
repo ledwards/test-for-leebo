@@ -4209,7 +4209,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       setShowAspectPenalties(!showAspectPenalties)
                     }}
                   >
-                    {showAspectPenalties ? 'Hide Aspect Penalties' : 'Include Aspect Penalties'}
+                    <span className="desktop-text">{showAspectPenalties ? 'Hide Aspect Penalties' : 'Include Aspect Penalties'}</span><span className="mobile-text">Aspect Penalties</span>
                   </button>
                   {showAspectPenalties && (() => {
                     const leaderCard = cardPositions[activeLeader]?.card
@@ -4263,7 +4263,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     className="remove-all-button"
                     disabled={isDeckEmpty}
                   >
-                    Add All to Pool
+                    <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
                   </button>
                   <button
                     onClick={(e) => {
@@ -4281,7 +4281,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     className="add-all-button"
                     disabled={isPoolEmpty}
                   >
-                    Add All to Deck
+                    <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
                   </button>
                 </>
               )
@@ -4690,7 +4690,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         className="remove-all-button"
                         disabled={!hasDeckCardsToRemove}
                       >
-                        Add All to Pool
+                        <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
                       </button>
                       <button
                         onClick={(e) => {
@@ -4707,7 +4707,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         className="add-all-button"
                         disabled={!hasPoolCardsToAdd}
                       >
-                        Add All to Deck
+                        <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
                       </button>
                     </div>
                     {expanded && <div className="card-block-content">
@@ -5154,7 +5154,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       setShowAspectPenalties(!showAspectPenalties)
                     }}
                   >
-                    {showAspectPenalties ? 'Hide Aspect Penalties' : 'Include Aspect Penalties'}
+                    <span className="desktop-text">{showAspectPenalties ? 'Hide Aspect Penalties' : 'Include Aspect Penalties'}</span><span className="mobile-text">Aspect Penalties</span>
                   </button>
                   {showAspectPenalties && (() => {
                     const leaderCard = cardPositions[activeLeader]?.card
@@ -5209,7 +5209,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     className="add-all-button"
                     disabled={isPoolEmpty}
                   >
-                    Add All to Deck
+                    <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
                   </button>
                   <button
                     onClick={(e) => {
@@ -5228,7 +5228,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     className="remove-all-button"
                     disabled={isDeckEmpty}
                   >
-                    Add All to Pool
+                    <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
                   </button>
                 </>
               )
@@ -5687,7 +5687,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           className="add-all-button"
                           disabled={!hasPoolCardsToMove}
                         >
-                          Add All to Deck
+                          <span className="desktop-text">Add All to Deck</span><span className="mobile-text">+ All</span>
                         </button>
                         <button
                           onClick={(e) => {
@@ -5704,7 +5704,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           className="remove-all-button"
                           disabled={!hasDeckCardsToRemove}
                         >
-                          Add All to Pool
+                          <span className="desktop-text">Add All to Pool</span><span className="mobile-text">- All</span>
                         </button>
                       </div>
                       {expanded && <div className="card-block-content">
