@@ -253,8 +253,8 @@
   }
 
   .showcase-card {
-    width: 160px;  /* 25% smaller than desktop */
-    height: 224px;
+    width: 220px;  /* landscape, scaled down */
+    height: 157px;
   }
 
   .showcase-card-image-container {
@@ -264,6 +264,12 @@
   .showcase-card-front,
   .showcase-card-back {
     border-radius: 12px;
+  }
+
+  /* Mobile back image dimensions */
+  .showcase-card-back .showcase-card-image {
+    width: 157px;
+    height: 220px;
   }
 
   .showcase-foil-effect {
@@ -279,6 +285,14 @@
   .showcases-title svg {
     width: 24px;
     height: 24px;
+  }
+
+  .showcases-share-button {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    border-radius: 50%;
   }
 }
 
