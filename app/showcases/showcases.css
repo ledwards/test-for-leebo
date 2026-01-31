@@ -88,12 +88,26 @@
 }
 
 .showcases-count {
+  position: relative;
   background: black;
   color: white;
-  border: 1px solid white;
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
+}
+
+.showcases-count::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 22px;
+  background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000);
+  background-size: 400% 400%;
+  z-index: -1;
+  animation: rainbow-border 3s linear infinite;
 }
 
 /* Showcase Card */
