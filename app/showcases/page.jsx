@@ -12,6 +12,7 @@ export default function ShowcasesPage() {
   const router = useRouter()
   const [showcases, setShowcases] = useState([])
   const [cardsData, setCardsData] = useState({})
+  const [totalLeaders, setTotalLeaders] = useState(0)
   const [loadingShowcases, setLoadingShowcases] = useState(true)
   const [cardPositions, setCardPositions] = useState({})
   const [flippedCards, setFlippedCards] = useState({})
@@ -36,16 +37,21 @@ export default function ShowcasesPage() {
         // Initialize card cache to get image URLs
         await initializeCardCache()
 
-        // Build a map of card id -> card data for all sets
+        // Build a map of card id -> card data for all sets and count leaders
         const cardMap = {}
+        let leaderCount = 0
         const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
         sets.forEach(setCode => {
           const cards = getCachedCards(setCode) || []
           cards.forEach(card => {
             cardMap[card.id] = card
+            if (card.type === 'Leader') {
+              leaderCount++
+            }
           })
         })
         setCardsData(cardMap)
+        setTotalLeaders(leaderCount)
 
         const response = await fetch(`/api/users/${user.id}/showcase-leaders`)
         if (response.ok) {
@@ -276,7 +282,7 @@ export default function ShowcasesPage() {
           <line x1="4" y1="1" x2="5" y2="3" strokeLinecap="round"/>
         </svg>
         <span>Showcase Collection</span>
-        <span className="showcases-count">{showcases.length}</span>
+        <span className="showcases-count">{showcases.length}/{totalLeaders}</span>
       </div>
 
       {showcases.map((leader) => {
