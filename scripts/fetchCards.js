@@ -48,10 +48,12 @@ async function fetchAllCardsFromAPI() {
  * Transform API card data to our card schema
  */
 function transformCard(apiCard) {
-  // Convert id from SET_NUMBER to SET-NUMBER format
   const setCode = apiCard.setCode || ''
   const cardNumber = apiCard.cardNumber || ''
-  const id = `${setCode}-${cardNumber}`
+  // Use strapiId as unique identifier (setCode-cardNumber is NOT unique across variants)
+  const id = String(apiCard.strapiId)
+  // Keep cardId for display purposes (e.g., "SOR-11")
+  const cardId = `${setCode}-${cardNumber}`
 
   // Normalize arena to array (API uses singular 'arena')
   let arenas = []
@@ -78,6 +80,7 @@ function transformCard(apiCard) {
 
   return {
     id,
+    cardId,
     name: apiCard.name || '',
     subtitle: apiCard.subtitle || null,
     set: setCode,
