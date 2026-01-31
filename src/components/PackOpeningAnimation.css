@@ -375,7 +375,8 @@
 }
 
 .open-all-button,
-.continue-button {
+.continue-button,
+.skip-button {
   padding: 12px 32px;
   font-size: 1.1rem;
   font-weight: 600;
@@ -389,7 +390,8 @@
 }
 
 .open-all-button:hover,
-.continue-button:hover {
+.continue-button:hover,
+.skip-button:hover {
   background: #000;
   border-color: rgba(0, 255, 0, 0.8);
   box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
@@ -397,8 +399,18 @@
 }
 
 .open-all-button:active,
-.continue-button:active {
+.continue-button:active,
+.skip-button:active {
   transform: translateY(0);
+}
+
+/* Skip button in upper right */
+.skip-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 400;
+  padding: 10px 20px;
 }
 
 /* Click anywhere to continue cursor */
@@ -435,7 +447,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 140px;
+  bottom: 180px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -508,9 +520,16 @@
   }
 
   .open-all-button,
-  .continue-button {
+  .continue-button,
+  .skip-button {
     padding: 10px 24px;
     font-size: 1rem;
+  }
+
+  .skip-button {
+    top: 15px;
+    right: 15px;
+    padding: 8px 16px;
   }
 
   /* Adjust button position on mobile */

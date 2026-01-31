@@ -93,14 +93,14 @@ export default function PackOpeningAnimation({
     // Track clicked pack immediately
     setClickedPacks(prev => [...prev, packIndex])
 
-    // Hide pack after 1s delay and advance carousel on mobile
+    // Hide pack after delay (faster on mobile) and advance carousel on mobile
     setTimeout(() => {
       setOpenedPacks(prev => [...prev, packIndex])
       // On mobile, advance to next pack in carousel
       if (isMobile && packIndex < packCount - 1) {
         setCurrentPackIndex(packIndex + 1)
       }
-    }, 1000)
+    }, isMobile ? 600 : 1000)
 
     // Check if this is the last pack
     if (clickedPacks.length + 1 === packCount) {
@@ -158,7 +158,7 @@ export default function PackOpeningAnimation({
       // Row 3: 5 cards
       // Row 4: 4 cards
       const rowGap = 8
-      const cardsStartY = 20
+      const cardsStartY = 60
 
       // Row 1: Leaders/bases
       const row1Width = 2 * leaderWidth + cardGap
@@ -370,6 +370,14 @@ export default function PackOpeningAnimation({
       ref={containerRef}
       onClick={handleContainerClick}
     >
+      {/* Skip button in upper right */}
+      <button
+        className="skip-button"
+        onClick={handleContinue}
+      >
+        &gt;&gt;
+      </button>
+
       {/* Open All / Continue button above pack counter */}
       <div className="open-all-container" style={{ bottom: '110px' }}>
         <button
