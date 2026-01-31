@@ -1,17 +1,22 @@
 {
-  "timestamp": "2026-01-28T00:14:24.003Z",
-  "totalFixes": 1,
+  "timestamp": "2026-01-31T05:49:16.479Z",
+  "totalFixes": 2,
   "byType": {
     "individual": 0,
     "batch": 0,
-    "custom": 1
+    "custom": 2
   },
   "byField": {},
   "fixes": [
     {
       "type": "custom",
-      "transform": "Remove Prestige variants",
-      "cardsRemoved": 125
+      "transform": "Remove Prestige and Event Exclusive variants",
+      "cardsRemoved": 376
+    },
+    {
+      "type": "custom",
+      "transform": "Remove Token cards",
+      "cardsRemoved": 34
     }
   ]
 }

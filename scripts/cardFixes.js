@@ -86,15 +86,36 @@ export const batchFixes = [
  * These run after individual and batch fixes
  */
 export const customTransforms = [
-  // Filter out Prestige variants - we don't want these in our data
+  // Filter out Prestige and Event Exclusive variants - we don't want these in our data
   {
-    name: 'Remove Prestige variants',
+    name: 'Remove Prestige and Event Exclusive variants',
     transform: (cards) => {
       // This transform filters the array, so it returns a new array
-      // Filter out all Prestige variants (Prestige, Prestige Foil, Prestige Serialized, etc.)
-      return cards.filter(card => !card.variantType?.startsWith('Prestige'))
+      // Filter out all Prestige variants and Event Exclusive (various naming patterns)
+      return cards.filter(card => {
+        const vt = card.variantType || ''
+        // Filter out Prestige variants (Prestige, Standard Prestige, Foil Prestige, Serialized Prestige, etc.)
+        if (vt.includes('Prestige')) return false
+        // Filter out Event Exclusive
+        if (vt === 'Event Exclusive') return false
+        return true
+      })
     },
     isArrayTransform: true // Flag to indicate this transforms the whole array
+  },
+
+  // Filter out Token types - we don't need these in the deck builder
+  {
+    name: 'Remove Token cards',
+    transform: (cards) => {
+      return cards.filter(card => {
+        const type = card.type || ''
+        // Filter out Token Unit, Token Upgrade, and Force Token
+        if (type.includes('Token')) return false
+        return true
+      })
+    },
+    isArrayTransform: true
   },
 
   // Ensure all boolean fields are explicitly true or false, never undefined

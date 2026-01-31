@@ -4,6 +4,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'cdn.starwarsunlimited.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'cdn.swu-db.com',
         pathname: '/images/**',
       },
