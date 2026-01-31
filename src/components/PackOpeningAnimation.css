@@ -430,10 +430,75 @@
   }
 }
 
+/* Mobile carousel */
+.packs-carousel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 140px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 250;
+  perspective: 800px;
+}
+
+.pack-item-mobile {
+  position: absolute;
+  width: 100px;
+  height: 140px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  /* Carousel positioning based on offset (--abs-offset is absolute value from JS) */
+  transform: translateX(calc(var(--offset) * 90px))
+             scale(calc(1 - var(--abs-offset) * 0.15))
+             rotateY(calc(var(--offset) * -15deg));
+  opacity: calc(1 - var(--abs-offset) * 0.3);
+  z-index: calc(10 - var(--abs-offset));
+}
+
+.pack-item-mobile.active {
+  transform: translateX(0) scale(1.1) rotateY(0deg);
+  opacity: 1;
+  z-index: 20;
+}
+
+.pack-item-mobile.fading {
+  animation: pack-fade-out 0.5s ease 0.5s forwards !important;
+}
+
+.pack-wrapper-mobile {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.pack-item-mobile .pack-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.pack-item-mobile .pack-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .pack-opening-container {
     background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 300% auto;
+  }
+
+  /* Hide desktop packs row on mobile */
+  .packs-row {
+    display: none;
   }
 
   .pack-wrapper,
@@ -446,6 +511,33 @@
   .continue-button {
     padding: 10px 24px;
     font-size: 1rem;
+  }
+
+  /* Adjust button position on mobile */
+  .open-all-container {
+    bottom: 60px !important;
+  }
+
+  .pack-counter {
+    bottom: 20px;
+    font-size: 1.5rem;
+  }
+
+  /* Flying cards - smaller on mobile */
+  .flying-card {
+    /* Card sizes are set via CSS variables from JS */
+  }
+
+  /* Card preview disabled on mobile */
+  .card-preview-overlay {
+    display: none;
+  }
+}
+
+/* Hide carousel on desktop */
+@media (min-width: 769px) {
+  .packs-carousel {
+    display: none;
   }
 }
 
