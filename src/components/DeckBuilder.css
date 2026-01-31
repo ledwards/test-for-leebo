@@ -1820,7 +1820,6 @@
   .deck-info-bar .header-buttons-in-nav {
     width: 100%;
     justify-content: center;
-    order: 2;
   }
 
   /* Hide separators (|) on mobile */
@@ -1828,17 +1827,9 @@
     display: none;
   }
 
-  /* Deck counts below buttons on mobile */
-  .deck-info-bar .deck-counts-info {
-    order: 3;
+  .deck-info-bar.sticky .deck-counts-info {
     margin-left: 0;
     margin-right: 0;
-    justify-content: center;
-    width: 100%;
-  }
-
-  .deck-info-bar .selected-cards-info {
-    order: 1;
   }
 
   /* Hide aspect text labels on mobile, keep icons and count */
