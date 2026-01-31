@@ -21,7 +21,7 @@
     "test:quiet": "node scripts/run-tests-quiet.js",
     "test:summary": "bash scripts/run-tests.sh",
     "test:belts": "node src/belts/BaseBelt.test.js && node src/belts/CommonBelt.test.js && node src/belts/FoilBelt.test.js && node src/belts/HyperfoilBelt.test.js && node src/belts/HyperspaceBelts.test.js && node src/belts/LeaderBelt.test.js && node src/belts/RareLegendaryBelt.test.js && node src/belts/ShowcaseLeaderBelt.test.js && node src/belts/UncommonBelt.test.js",
-    "test:utils": "node src/utils/boosterPack.test.js",
+    "test:utils": "node src/utils/boosterPack.test.js && node src/utils/variantDowngrade.test.js",
     "test:draft": "node src/utils/draftLogic.test.js",
     "test:fixes": "node src/utils/cardFixes.test.js",
     "test:data": "node src/data/cards.test.js; node src/data/cardCounts.test.js",

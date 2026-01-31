@@ -8,77 +8,9 @@ import { getSetConfig } from '../../../../../src/utils/setConfigs'
 import { useAuth } from '../../../../../src/contexts/AuthContext'
 import EditableTitle from '../../../../../src/components/EditableTitle'
 import { getCachedCards, initializeCardCache } from '../../../../../src/utils/cardCache'
+import { buildBaseCardMap, getBaseCardId } from '../../../../../src/utils/variantDowngrade'
 import '../../../../../src/App.css'
 import './play.css'
-
-// Extract the card number from an ID like "SEC-246" or "SEC_1002"
-function getCardNumber(id) {
-  const match = id?.match(/(\d+)/)
-  return match ? parseInt(match[1], 10) : Infinity
-}
-
-// Check if a card ID is a variant (Hyperspace 1000+, Showcase 253+, etc.)
-function isVariantNumber(num) {
-  return num >= 253
-}
-
-// Build a map of card name+type -> base card (the non-variant version)
-// Uses name+type as key to avoid mapping Units to Leaders with the same name
-function buildBaseCardMap(setCode) {
-  const cards = getCachedCards(setCode)
-  if (!cards) return new Map()
-
-  const nameTypeToBaseCard = new Map()
-
-  cards.forEach(card => {
-    // Use name + type as key to distinguish Units from Leaders with same name
-    // e.g., "Emperor Palpatine" exists as both a Leader and a Unit
-    const key = `${card.name}|${card.type}`
-    const existing = nameTypeToBaseCard.get(key)
-    const cardNum = getCardNumber(card.id)
-    const existingNum = existing ? getCardNumber(existing.id) : Infinity
-
-    // Prefer non-variant cards (number < 253) over variant cards
-    // If both same type, prefer lower number
-    const cardIsVariant = isVariantNumber(cardNum)
-    const existingIsVariant = isVariantNumber(existingNum)
-
-    if (!existing ||
-        (!cardIsVariant && existingIsVariant) ||
-        (cardIsVariant === existingIsVariant && cardNum < existingNum)) {
-      nameTypeToBaseCard.set(key, card)
-    }
-  })
-
-  return nameTypeToBaseCard
-}
-
-// Convert card ID to standard format (dash to underscore, strip suffixes)
-function normalizeId(id) {
-  if (!id) return id
-  let baseId = id.replace(/-/g, '_')
-  baseId = baseId.replace(/_Foil$/, '')
-  baseId = baseId.replace(/_Hyperspace$/, '')
-  baseId = baseId.replace(/_HyperFoil$/, '')
-  baseId = baseId.replace(/_Showcase$/, '')
-  return baseId
-}
-
-// Convert card to base card ID for export
-// Looks up the base (non-variant) card by name+type and returns its normalized ID
-function getBaseCardId(card, baseCardMap) {
-  if (!card) return null
-
-  // Look up base card by name + type to find the correct base card
-  const key = `${card.name}|${card.type}`
-  const baseCard = baseCardMap?.get(key)
-  if (baseCard) {
-    return normalizeId(baseCard.id)
-  }
-
-  // Fallback: just normalize the card's own ID
-  return normalizeId(card.id)
-}
 
 // Get default aspect sort key for a card
 function getDefaultAspectSortKey(card) {
