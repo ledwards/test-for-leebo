@@ -642,27 +642,27 @@
     aspect-ratio: 3.5 / 2.5;
   }
 
+  /* Mobile sealed mode: leaders/bases container same portrait dims as other cards */
   .sealed-mode .card-item.leader,
   .sealed-mode .card-item.base {
     width: 45%;
     max-width: 45%;
     flex: 0 0 45%;
-    aspect-ratio: 3.5 / 2.5;
+    aspect-ratio: 2.5 / 3.5;
     overflow: hidden;
     position: relative;
   }
 
-  /* Leaders/bases rotated 90deg CCW on mobile to show landscape */
+  /* Rotate landscape image 90deg CCW to fit in portrait container */
   .sealed-mode .card-item.leader .card-image,
   .sealed-mode .card-item.base .card-image {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: auto;
-    height: 140%;
+    width: 140%;
+    height: auto;
     transform: translate(-50%, -50%) rotate(-90deg);
     transform-origin: center;
-    object-fit: contain;
   }
 
   .sealed-mode .card-item.leader .card-placeholder,
@@ -670,11 +670,10 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: auto;
-    height: 140%;
+    width: 140%;
+    height: auto;
     transform: translate(-50%, -50%) rotate(-90deg);
     transform-origin: center;
-    aspect-ratio: 2.5 / 3.5;
   }
 
   /* Disable hover zoom effect on mobile */
