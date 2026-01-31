@@ -32,10 +32,10 @@ export async function GET(request, { params }) {
         variant_type,
         source_type,
         source_share_id,
-        created_at
+        generated_at
        FROM card_generations
        ${whereClause}
-       ORDER BY created_at DESC
+       ORDER BY generated_at DESC
        LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
       [...queryParams, limit, offset]
     )
@@ -64,7 +64,7 @@ export async function GET(request, { params }) {
         variantType: leader.variant_type,
         sourceType: leader.source_type,
         sourceShareId: leader.source_share_id,
-        createdAt: leader.created_at
+        generatedAt: leader.generated_at
       })),
       total,
       uniqueCount,
