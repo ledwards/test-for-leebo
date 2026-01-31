@@ -1068,6 +1068,56 @@ async function runTests() {
   })
 
   console.log('')
+  console.log('Hyperspace Foil Variant Tests')
+  console.log('=============================')
+
+  test('Hyperspace Foil variants appear at ~1/50 rate (foilToHyperfoil upgrade)', () => {
+    // Hyperspace Foil cards should appear when a foil gets upgraded to hyperfoil.
+    // The upgrade rate is 1/50 per pack (defined in packConstants.js as foilToHyperfoil).
+    // When this happens, the foil slot should contain a card with variantType === 'Hyperspace Foil'
+    clearBeltCache()
+
+    const packCount = 1000
+    let hyperspaceFoilFound = 0
+    const examples = []
+
+    for (let i = 0; i < packCount; i++) {
+      const pack = generateBoosterPack(cards, 'SOR')
+
+      for (const card of pack.cards) {
+        if (card.variantType === 'Hyperspace Foil') {
+          hyperspaceFoilFound++
+          if (examples.length < 5) {
+            examples.push(`Pack ${i + 1}: "${card.name}"`)
+          }
+        }
+      }
+    }
+
+    // Expected: 1/50 = 2% of packs should have a Hyperspace Foil
+    const expectedRate = 1 / 50  // 0.02
+    const expectedCount = packCount * expectedRate  // 20
+    const observedRate = hyperspaceFoilFound / packCount
+
+    console.log(`\x1b[36m   Hyperspace Foil cards found: ${hyperspaceFoilFound} in ${packCount} packs\x1b[0m`)
+    console.log(`\x1b[36m   Expected: ~${expectedCount} (${(expectedRate * 100).toFixed(1)}% rate)\x1b[0m`)
+    console.log(`\x1b[36m   Observed: ${(observedRate * 100).toFixed(1)}% rate\x1b[0m`)
+
+    if (examples.length > 0) {
+      console.log(`\x1b[36m   Examples: ${examples.join('; ')}\x1b[0m`)
+    }
+
+    // Should find at least some Hyperspace Foils (with 1000 packs at 1/50, expect ~20)
+    // Use a conservative threshold of 5 to account for variance
+    assert(
+      hyperspaceFoilFound >= 5,
+      `Hyperspace Foil variants should appear at ~1/50 rate. ` +
+      `Expected ~${expectedCount} in ${packCount} packs, but found only ${hyperspaceFoilFound}. ` +
+      `The foilToHyperfoil upgrade should use variantType === 'Hyperspace Foil' cards.`
+    )
+  })
+
+  console.log('')
   console.log('\x1b[35m======================\x1b[0m')
   console.log(`\x1b[32m✅ Tests passed: ${passed}\x1b[0m`)
   if (failed > 0) {

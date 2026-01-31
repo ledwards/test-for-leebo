@@ -301,12 +301,11 @@ function applyUpgradePass(pack, setCode) {
     if (upgraded) pack.cards[rareIndex] = upgraded
   }
 
-  // 4. Foil upgrade to Hyperfoil - find HS version of THIS foil
+  // 4. Foil upgrade to Hyperfoil - replace with a Hyperspace Foil card from belt
   if (foilIndex >= 0 && probs.foilToHyperfoil && shouldUpgrade(probs.foilToHyperfoil)) {
-    const currentFoil = pack.cards[foilIndex]
-    const upgraded = findHyperspaceVariant(currentFoil, setCode)
+    const hyperfoilBelt = getHyperfoilBelt(setCode)
+    const upgraded = hyperfoilBelt.next()
     if (upgraded) {
-      upgraded.isFoil = true // Preserve foil status
       pack.cards[foilIndex] = upgraded
     }
   }
