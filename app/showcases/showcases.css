@@ -323,11 +323,11 @@
   height: 16px;
 }
 
-/* Export container for PNG generation */
+/* Export container for PNG generation - positioned off-screen but visible for capture */
 .showcases-export-container {
   position: fixed;
   top: 0;
-  left: 0;
+  left: -9999px;
   width: 1200px;
   min-height: 800px;
   padding: 40px;
@@ -339,8 +339,6 @@
     url("/background-images/bg-texture-crop.png");
   background-size: 100% 100%, 100% 100%, 100% 100%, 150% auto;
   background-repeat: no-repeat, no-repeat, no-repeat, repeat-y;
-  z-index: -9999;
-  opacity: 0;
   pointer-events: none;
 }
 
@@ -394,16 +392,39 @@
 }
 
 .showcase-image-modal-content {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
+  position: relative;
   max-width: 95vw;
   max-height: 95vh;
-  position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-radius: 14px;
+}
+
+.showcase-image-modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 14px;
+  background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000);
+  background-size: 400% 400%;
+  z-index: -2;
+  animation: rainbow-border 3s linear infinite;
+}
+
+.showcase-image-modal-content::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  z-index: -1;
 }
 
 .showcase-image-modal-close {
