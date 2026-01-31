@@ -11,6 +11,10 @@ import {
   calculateAspectPenalty,
   getLeaderAbilityDescription as getLeaderAspectAbilityDescription,
 } from '../services/cards/aspectPenalties'
+import {
+  getAspectSortKey,
+  compareByAspectTypeCostName,
+} from '../services/cards/cardSorting'
 import CostIcon from './CostIcon'
 import Modal from './Modal'
 import Button from './Button'
@@ -526,85 +530,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     return true
   }, [aspectFilters, activeLeader, activeBase, cardPositions, inAspectFilter, outAspectFilter])
 
-  // Get aspect combination key for default sorting
-  // EXACT ORDER (DO NOT CHANGE):
-  // VIG VILL, VIG HERO, VIG VIG, VIG
-  // COMM VILL, COMM HERO, COMM COMM, COMM
-  // AGG VILL, AGG HERO, AGG AGG, AGG
-  // CUNN VILL, CUNN HERO, CUNN CUNN, CUNN
-  // VILL, HERO, NEUTRAL
-  const getDefaultAspectSortKey = useCallback((card) => {
-    const aspects = card.aspects || []
-    if (aspects.length === 0) return 'E_99_Neutral'
-
-    const hasVillainy = aspects.includes('Villainy')
-    const hasHeroism = aspects.includes('Heroism')
-    const primaryAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning']
-    const primaryAspect = aspects.find(a => primaryAspects.includes(a))
-
-    // Primary aspect order: Vigilance=1, Command=2, Aggression=3, Cunning=4
-    const primaryOrder = {
-      'Vigilance': '1',
-      'Command': '2',
-      'Aggression': '3',
-      'Cunning': '4'
-    }
-
-    // Single aspect
-    if (aspects.length === 1) {
-      const aspect = aspects[0]
-      if (aspect === 'Villainy') return 'E_01_Villainy'
-      if (aspect === 'Heroism') return 'E_02_Heroism'
-      // Single primary aspect - comes after all combinations for that primary
-      return `${primaryOrder[aspect] || '9'}_04_${aspect}`
-    }
-
-    // Two aspects
-    if (aspects.length === 2) {
-      if (primaryAspect) {
-        const prefix = primaryOrder[primaryAspect] || '9'
-
-        // Check if it's double primary (e.g., Vigilance Vigilance)
-        const primaryCount = aspects.filter(a => a === primaryAspect).length
-        if (hasVillainy) {
-          // Primary + Villainy - comes first (01)
-          return `${prefix}_01_${primaryAspect}_Villainy`
-        } else if (hasHeroism) {
-          // Primary + Heroism - comes second (02)
-          return `${prefix}_02_${primaryAspect}_Heroism`
-        } else if (primaryCount === 2) {
-          // Double primary (e.g., Vig Vig) - comes third (03)
-          return `${prefix}_03_${primaryAspect}_${primaryAspect}`
-        }
-      } else {
-        // Villainy + Heroism (no primary) - treat as Villainy only
-        return 'E_01_Villainy_Heroism'
-      }
-    }
-
-    // More than 2 aspects - use first primary aspect
-    if (primaryAspect) {
-      const prefix = primaryOrder[primaryAspect] || '9'
-      // Sort aspects with Villainy first, then Heroism, then others
-      const sortedAspects = [...aspects].sort((a, b) => {
-        if (a === 'Villainy') return -1
-        if (b === 'Villainy') return 1
-        if (a === 'Heroism') return -1
-        if (b === 'Heroism') return 1
-        return a.localeCompare(b)
-      })
-      // Use 01 if has Villainy, 02 if has Heroism, else 05
-      let subOrder = '05'
-      if (hasVillainy) subOrder = '01'
-      else if (hasHeroism) subOrder = '02'
-      return `${prefix}_${subOrder}_${sortedAspects.join('_')}`
-    }
-
-    // No primary aspect found - check for Villainy or Heroism
-    if (hasVillainy) return 'E_01_Villainy_Multi'
-    if (hasHeroism) return 'E_02_Heroism_Multi'
-    return 'E_99_Neutral'
-  }, [])
+  // Use imported getAspectSortKey from cardSorting service
+  const getDefaultAspectSortKey = useCallback(getAspectSortKey, [])
 
   // Get aspect combination grouping key and display name for deck sections
   const getAspectCombinationKey = useCallback((card) => {
@@ -2370,36 +2297,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   }
 
   // Default sort function: aspect combinations, then type, then cost
-  const defaultSort = (a, b) => {
-    // First: sort by aspect combination
-    const aspectKeyA = getDefaultAspectSortKey(a)
-    const aspectKeyB = getDefaultAspectSortKey(b)
-    const aspectCompare = aspectKeyA.localeCompare(aspectKeyB)
-    if (aspectCompare !== 0) return aspectCompare
-
-    // Second: sort by type (Unit, then Upgrade, then Event)
-    // Handle both "Unit" and "Ground Unit"/"Space Unit" types
-    const getTypeOrder = (type) => {
-      if (type === 'Unit' || type === 'Ground Unit') return 1
-      if (type === 'Space Unit') return 2
-      if (type === 'Upgrade') return 3
-      if (type === 'Event') return 4
-      return 99
-    }
-    const aOrder = getTypeOrder(a.type || '')
-    const bOrder = getTypeOrder(b.type || '')
-    if (aOrder !== bOrder) return aOrder - bOrder
-
-    // Third: sort by cost (low to high)
-    const costA = a.cost !== null && a.cost !== undefined ? a.cost : 999
-    const costB = b.cost !== null && b.cost !== undefined ? b.cost : 999
-    if (costA !== costB) return costA - costB
-
-    // Fourth: sort alphabetically (a before b down to z)
-    const nameA = (a.name || '').toLowerCase()
-    const nameB = (b.name || '').toLowerCase()
-    return nameA.localeCompare(nameB)
-  }
+  // Use imported compareByAspectTypeCostName from cardSorting service
+  const defaultSort = compareByAspectTypeCostName
 
   const sortTableData = (a, b, field, direction) => {
     let aVal, bVal
