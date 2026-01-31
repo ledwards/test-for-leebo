@@ -1,4 +1,4 @@
-// Script to fetch all cards from swu-db.com API and populate cards.json
+// Script to fetch all cards from swuapi.com API and populate cards.json
 // Automatically runs post-processing to apply fixes
 
 import fs from 'fs'
@@ -9,7 +9,7 @@ import { execSync } from 'child_process'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const API_BASE = 'https://api.swu-db.com'
+const API_URL = 'https://api.swuapi.com/export/all'
 const SETS = [
   { code: 'SOR', name: 'Spark of Rebellion' },
   { code: 'SHD', name: 'Shadows of the Galaxy' },
@@ -19,24 +19,27 @@ const SETS = [
   { code: 'SEC', name: 'Secrets of Power' },
 ]
 
+// Set codes we want to include
+const VALID_SET_CODES = new Set(SETS.map(s => s.code))
+
 /**
- * Fetch all cards for a set using the set endpoint
+ * Fetch all cards from the export endpoint
  */
-async function fetchSetCardsFromAPI(setCode) {
-  const url = `${API_BASE}/cards/${setCode.toLowerCase()}?format=json`
+async function fetchAllCardsFromAPI() {
+  console.log(`Fetching all cards from ${API_URL}...`)
 
   try {
-    const response = await fetch(url)
+    const response = await fetch(API_URL)
     if (response.ok) {
       const data = await response.json()
-      // API returns { total_cards, data: [...] }
-      return data.data || []
+      // API returns { cards: [...] }
+      return data.cards || []
     } else {
-      console.warn(`Error fetching set ${setCode}: ${response.status}`)
+      console.error(`Error fetching cards: ${response.status}`)
       return []
     }
   } catch (error) {
-    console.warn(`Error fetching set ${setCode}:`, error.message)
+    console.error(`Error fetching cards:`, error.message)
     return []
   }
 }
@@ -45,77 +48,88 @@ async function fetchSetCardsFromAPI(setCode) {
  * Transform API card data to our card schema
  */
 function transformCard(apiCard) {
+  // Convert id from SET_NUMBER to SET-NUMBER format
+  const setCode = apiCard.setCode || ''
+  const cardNumber = apiCard.cardNumber || ''
+  const id = `${setCode}-${cardNumber}`
+
+  // Normalize arena to array (API uses singular 'arena')
+  let arenas = []
+  if (apiCard.arena) {
+    arenas = Array.isArray(apiCard.arena) ? apiCard.arena : [apiCard.arena]
+  }
+
+  // Normalize variantType - map API values to our expected values
+  let variantType = apiCard.variantType || 'Normal'
+  // Map swuapi.com variant types to our expected values
+  const variantTypeMap = {
+    'Standard': 'Normal',
+    'Standard Foil': 'Foil',
+    // 'Hyperspace' stays as is
+    // 'Hyperspace Foil' stays as is
+    // 'Showcase' stays as is
+  }
+  if (variantTypeMap[variantType]) {
+    variantType = variantTypeMap[variantType]
+  }
+
+  // Determine isFoil based on variantType (not the hasFoil flag which indicates if foil exists)
+  const isFoil = variantType === 'Foil' || variantType === 'Hyperspace Foil'
+
   return {
-    id: `${apiCard.Set}-${apiCard.Number}`,
-    name: apiCard.Name,
-    subtitle: apiCard.Subtitle || null,
-    set: apiCard.Set,
-    number: apiCard.Number,
-    rarity: apiCard.Rarity,
-    type: apiCard.Type,
-    aspects: apiCard.Aspects || [],
-    traits: apiCard.Traits || [],
-    arenas: apiCard.Arenas || [],
-    cost: apiCard.Cost ? parseInt(apiCard.Cost) : null,
-    power: apiCard.Power ? parseInt(apiCard.Power) : null,
-    hp: apiCard.HP ? parseInt(apiCard.HP) : null,
-    frontText: apiCard.FrontText || null,
-    backText: apiCard.BackText || null,
-    epicAction: apiCard.EpicAction || null,
-    keywords: apiCard.Keywords || [],
-    artist: apiCard.Artist || null,
-    unique: apiCard.Unique || false,
-    doubleSided: apiCard.DoubleSided || false,
-    variantType: apiCard.VariantType || 'Normal',
-    marketPrice: apiCard.MarketPrice ? parseFloat(apiCard.MarketPrice) : null,
-    lowPrice: apiCard.LowPrice ? parseFloat(apiCard.LowPrice) : null,
-    isLeader: apiCard.Type === 'Leader',
-    isBase: apiCard.Type === 'Base',
-    isFoil: false,
-    isHyperspace: false,
-    isShowcase: false,
-    imageUrl: apiCard.FrontArt || null,
-    backImageUrl: apiCard.BackArt || null,
+    id,
+    name: apiCard.name || '',
+    subtitle: apiCard.subtitle || null,
+    set: setCode,
+    number: cardNumber,
+    rarity: apiCard.rarity || 'Common',
+    type: apiCard.type || '',
+    aspects: apiCard.aspects || [],
+    traits: apiCard.traits || [],
+    arenas,
+    cost: apiCard.cost !== null && apiCard.cost !== undefined ? parseInt(apiCard.cost) : null,
+    power: apiCard.power !== null && apiCard.power !== undefined ? parseInt(apiCard.power) : null,
+    hp: apiCard.hp !== null && apiCard.hp !== undefined ? parseInt(apiCard.hp) : null,
+    frontText: apiCard.text || null,
+    backText: apiCard.backText || null,
+    epicAction: apiCard.epicAction || null,
+    keywords: apiCard.keywords || [],
+    artist: apiCard.artist || null,
+    unique: apiCard.isUnique || false,
+    doubleSided: !!(apiCard.backImageUrl),
+    variantType,
+    marketPrice: null, // Not available in swuapi.com
+    lowPrice: null, // Not available in swuapi.com
+    isLeader: apiCard.isLeader || false,
+    isBase: apiCard.isBase || false,
+    isFoil,
+    isHyperspace: variantType === 'Hyperspace' || variantType === 'Hyperspace Foil',
+    isShowcase: variantType === 'Showcase',
+    imageUrl: apiCard.frontImageUrl || null,
+    backImageUrl: apiCard.backImageUrl || null,
   }
-}
-
-/**
- * Fetch all cards for a set
- */
-async function fetchSetCards(setCode) {
-  console.log(`\nFetching cards for ${setCode}...`)
-
-  const apiCards = await fetchSetCardsFromAPI(setCode)
-
-  if (apiCards.length === 0) {
-    console.warn(`  No cards found for ${setCode}`)
-    return []
-  }
-
-  // Transform all cards
-  const cards = apiCards.map(card => transformCard(card))
-
-  console.log(`  ✓ Fetched ${cards.length} cards from ${setCode}`)
-  return cards
 }
 
 /**
  * Main function
  */
 async function main() {
-  console.log('Starting card data fetch from swu-db.com API...')
-  console.log(`Sets to fetch: ${SETS.map(s => s.code).join(', ')}`)
+  console.log('Starting card data fetch from swuapi.com API...')
+  console.log(`Sets to include: ${SETS.map(s => s.code).join(', ')}`)
 
-  const allCards = []
+  const apiCards = await fetchAllCardsFromAPI()
 
-  for (const set of SETS) {
-    try {
-      const cards = await fetchSetCards(set.code)
-      allCards.push(...cards)
-    } catch (error) {
-      console.error(`Error fetching ${set.code}:`, error)
-    }
+  if (apiCards.length === 0) {
+    console.error('No cards fetched from API!')
+    process.exit(1)
   }
+
+  console.log(`\n✓ Fetched ${apiCards.length} total cards from API`)
+
+  // Filter to only our desired sets and transform
+  const allCards = apiCards
+    .filter(card => VALID_SET_CODES.has(card.setCode))
+    .map(card => transformCard(card))
 
   console.log(`\n✓ Total cards fetched: ${allCards.length}`)
 
@@ -125,7 +139,7 @@ async function main() {
     metadata: {
       version: '1.0.0',
       lastUpdated: new Date().toISOString().split('T')[0],
-      description: 'Star Wars: Unlimited card database fetched from swu-db.com API',
+      description: 'Star Wars: Unlimited card database fetched from swuapi.com API',
       totalCards: allCards.length,
       sets: SETS.map(s => ({
         code: s.code,

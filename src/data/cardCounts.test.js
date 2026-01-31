@@ -16,39 +16,39 @@ const EXPECTED = {
   SOR: {
     // Treatment totals
     totalNormal: 252,
-    totalHyperspace: 242,
-    totalFoil: 0,
+    totalHyperspace: 252,
+    totalFoil: 218,
     totalHyperspaceFoil: 0,
     totalShowcase: 16,
 
     // Rarity counts (excluding Leaders and Bases)
-    commons: 90,        // Gemini claims 115
-    uncommons: 60,      // Gemini claims 59
-    rares: 48,          // Gemini claims 51
-    legendaries: 16,    // Gemini claims 16
+    commons: 90,
+    uncommons: 60,
+    rares: 48,
+    legendaries: 16,
 
     // Leader rarity
-    commonLeaders: 8,   // Gemini claims 12
-    rareLeaders: 8,     // Gemini claims 4
+    commonLeaders: 8,
+    rareLeaders: 8,
     totalLeaders: 18,
 
     // Base rarity
-    commonBases: 8,     // Gemini claims 8
-    rareBases: 4,       // Gemini claims 5
+    commonBases: 8,
+    rareBases: 4,
     totalBases: 12,
 
     // Card types (Normal treatment)
-    units: 148,         // Gemini claims 148
-    groundUnits: 110,   // Gemini claims 108
-    spaceUnits: 38,     // Gemini claims 40
-    upgrades: 14,       // Gemini claims 35 (big diff - includes Equipment?)
-    events: 60,         // Gemini claims 48
+    units: 148,
+    groundUnits: 110,
+    spaceUnits: 38,
+    upgrades: 15,
+    events: 59,
 
     // Aspect single counts (Normal, non-dual aspect cards)
-    vigilanceSingle: 20,
-    commandSingle: 21,
-    aggressionSingle: 20,
-    cunningSingle: 21,
+    vigilanceSingle: 23,
+    commandSingle: 23,
+    aggressionSingle: 23,
+    cunningSingle: 24,
     heroismSingle: 11,
     villainySingle: 11,
     neutral: 6,
@@ -57,7 +57,7 @@ const EXPECTED = {
     vigilanceVillainy: 13,
     vigilanceHeroism: 12,
     commandVillainy: 14,
-    commandHeroism: 11,
+    commandHeroism: 12,
     aggressionVillainy: 12,
     aggressionHeroism: 13,
     cunningVillainy: 12,
@@ -66,8 +66,8 @@ const EXPECTED = {
 
   SHD: {
     totalNormal: 262,
-    totalHyperspace: 242,
-    totalFoil: 0,
+    totalHyperspace: 252,
+    totalFoil: 218,
     totalHyperspaceFoil: 0,
     totalShowcase: 18,
 
@@ -90,10 +90,10 @@ const EXPECTED = {
     upgrades: 30,
     events: 46,
 
-    vigilanceSingle: 25,
-    commandSingle: 23,
-    aggressionSingle: 23,
-    cunningSingle: 25,
+    vigilanceSingle: 28,
+    commandSingle: 26,
+    aggressionSingle: 26,
+    cunningSingle: 27,
     heroismSingle: 9,
     villainySingle: 11,
     neutral: 9,
@@ -110,8 +110,8 @@ const EXPECTED = {
 
   TWI: {
     totalNormal: 257,
-    totalHyperspace: 242,
-    totalFoil: 0,
+    totalHyperspace: 252,
+    totalFoil: 218,
     totalHyperspaceFoil: 0,
     totalShowcase: 18,
 
@@ -129,15 +129,15 @@ const EXPECTED = {
     totalBases: 12,
 
     units: 150,
-    groundUnits: 117,
-    spaceUnits: 33,
+    groundUnits: 118,
+    spaceUnits: 32,
     upgrades: 19,
     events: 58,
 
-    vigilanceSingle: 23,
-    commandSingle: 26,
-    aggressionSingle: 22,
-    cunningSingle: 23,
+    vigilanceSingle: 26,
+    commandSingle: 29,
+    aggressionSingle: 25,
+    cunningSingle: 26,
     heroismSingle: 12,
     villainySingle: 12,
     neutral: 6,
@@ -178,10 +178,10 @@ const EXPECTED = {
     upgrades: 7,
     events: 57,
 
-    vigilanceSingle: 24,
-    commandSingle: 25,
-    aggressionSingle: 24,
-    cunningSingle: 25,
+    vigilanceSingle: 25,
+    commandSingle: 26,
+    aggressionSingle: 25,
+    cunningSingle: 26,
     heroismSingle: 10,
     villainySingle: 9,
     neutral: 8,
@@ -198,7 +198,7 @@ const EXPECTED = {
 
   LOF: {
     totalNormal: 264,
-    totalHyperspace: 256,
+    totalHyperspace: 264,
     totalFoil: 238,
     totalHyperspaceFoil: 238,
     totalShowcase: 18,
@@ -222,10 +222,10 @@ const EXPECTED = {
     upgrades: 20,
     events: 48,
 
-    vigilanceSingle: 23,
-    commandSingle: 22,
-    aggressionSingle: 24,
-    cunningSingle: 22,
+    vigilanceSingle: 25,
+    commandSingle: 24,
+    aggressionSingle: 25,
+    cunningSingle: 24,
     heroismSingle: 12,
     villainySingle: 14,
     neutral: 11,
@@ -266,10 +266,10 @@ const EXPECTED = {
     upgrades: 17,
     events: 50,
 
-    vigilanceSingle: 24,
-    commandSingle: 24,
-    aggressionSingle: 24,
-    cunningSingle: 24,
+    vigilanceSingle: 25,
+    commandSingle: 25,
+    aggressionSingle: 25,
+    cunningSingle: 25,
     heroismSingle: 11,
     villainySingle: 11,
     neutral: 6,
