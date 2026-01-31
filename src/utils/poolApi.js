@@ -1,5 +1,10 @@
-// API client for card pool operations
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api'
+/**
+ * Pool API Client
+ *
+ * API client for card pool operations.
+ * Uses httpClient for standardized request handling.
+ */
+import { httpClient } from '../repositories/httpClient.js'
 
 /**
  * Save a card pool to the database
@@ -13,22 +18,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api'
  */
 export async function savePool(poolData) {
   try {
-    const response = await fetch(`${API_BASE}/pools`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(poolData),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to save pool')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.post('/pools', poolData)
   } catch (error) {
     console.error('Failed to save pool:', error)
     throw error
@@ -42,17 +32,7 @@ export async function savePool(poolData) {
  */
 export async function loadPool(shareId) {
   try {
-    const response = await fetch(`${API_BASE}/pools/${shareId}`, {
-      credentials: 'include',
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to load pool')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.get(`/pools/${shareId}`)
   } catch (error) {
     console.error('Failed to load pool:', error)
     throw error
@@ -67,22 +47,7 @@ export async function loadPool(shareId) {
  */
 export async function updatePool(shareId, updates) {
   try {
-    const response = await fetch(`${API_BASE}/pools/${shareId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(updates),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to update pool')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.put(`/pools/${shareId}`, updates)
   } catch (error) {
     console.error('Failed to update pool:', error)
     throw error
@@ -96,12 +61,8 @@ export async function updatePool(shareId, updates) {
  */
 export async function deletePool(shareId) {
   try {
-    const response = await fetch(`${API_BASE}/pools/${shareId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-
-    return response.ok
+    await httpClient.delete(`/pools/${shareId}`)
+    return true
   } catch (error) {
     console.error('Failed to delete pool:', error)
     return false
@@ -115,21 +76,7 @@ export async function deletePool(shareId) {
  */
 export async function claimPool(shareId) {
   try {
-    const response = await fetch(`${API_BASE}/pools/${shareId}/claim`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to claim pool')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.post(`/pools/${shareId}/claim`)
   } catch (error) {
     console.error('Failed to claim pool:', error)
     throw error
@@ -143,19 +90,9 @@ export async function claimPool(shareId) {
  */
 export async function fetchUserPools(userId) {
   try {
-    const response = await fetch(`${API_BASE}/pools/user/${userId}`, {
-      credentials: 'include',
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to fetch user pools')
-    }
-
-    const data = await response.json()
-    // API returns { data: { pools: [...], total, limit, offset } } or { pools: [...] }
-    const pools = data.data?.pools || data.pools || []
-    return pools
+    const data = await httpClient.get(`/pools/user/${userId}`)
+    // API returns { pools: [...], total, limit, offset } or just pools array
+    return data?.pools || data || []
   } catch (error) {
     console.error('Failed to fetch user pools:', error)
     throw error

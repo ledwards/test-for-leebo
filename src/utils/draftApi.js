@@ -1,5 +1,10 @@
-// API client for draft pod operations
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api'
+/**
+ * Draft API Client
+ *
+ * API client for draft pod operations.
+ * Uses httpClient for standardized request handling.
+ */
+import { httpClient, HttpError } from '../repositories/httpClient.js'
 
 /**
  * Create a new draft pod
@@ -12,25 +17,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api'
  */
 export async function createDraft(setCode, settings = {}) {
   try {
-    const response = await fetch(`${API_BASE}/draft`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        setCode,
-        ...settings,
-      }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to create draft')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.post('/draft', { setCode, ...settings })
   } catch (error) {
     console.error('Failed to create draft:', error)
     throw error
@@ -47,17 +34,7 @@ export async function loadDraft(shareId) {
     throw new Error('Invalid shareId')
   }
   try {
-    const response = await fetch(`${API_BASE}/draft/${shareId}`, {
-      credentials: 'include',
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to load draft')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.get(`/draft/${shareId}`)
   } catch (error) {
     console.error('Failed to load draft:', error)
     throw error
@@ -71,18 +48,7 @@ export async function loadDraft(shareId) {
  */
 export async function joinDraft(shareId) {
   try {
-    const response = await fetch(`${API_BASE}/draft/${shareId}/join`, {
-      method: 'POST',
-      credentials: 'include',
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to join draft')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.post(`/draft/${shareId}/join`)
   } catch (error) {
     console.error('Failed to join draft:', error)
     throw error
@@ -96,18 +62,7 @@ export async function joinDraft(shareId) {
  */
 export async function leaveDraft(shareId) {
   try {
-    const response = await fetch(`${API_BASE}/draft/${shareId}/leave`, {
-      method: 'POST',
-      credentials: 'include',
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to leave draft')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.post(`/draft/${shareId}/leave`)
   } catch (error) {
     console.error('Failed to leave draft:', error)
     throw error
@@ -121,18 +76,7 @@ export async function leaveDraft(shareId) {
  */
 export async function startDraft(shareId) {
   try {
-    const response = await fetch(`${API_BASE}/draft/${shareId}/start`, {
-      method: 'POST',
-      credentials: 'include',
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to start draft')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.post(`/draft/${shareId}/start`)
   } catch (error) {
     console.error('Failed to start draft:', error)
     throw error
@@ -146,18 +90,7 @@ export async function startDraft(shareId) {
  */
 export async function randomizeSeats(shareId) {
   try {
-    const response = await fetch(`${API_BASE}/draft/${shareId}/randomize`, {
-      method: 'POST',
-      credentials: 'include',
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to randomize seats')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.post(`/draft/${shareId}/randomize`)
   } catch (error) {
     console.error('Failed to randomize seats:', error)
     throw error
@@ -172,22 +105,7 @@ export async function randomizeSeats(shareId) {
  */
 export async function updateSettings(shareId, settings) {
   try {
-    const response = await fetch(`${API_BASE}/draft/${shareId}/settings`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(settings),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to update settings')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.patch(`/draft/${shareId}/settings`, settings)
   } catch (error) {
     console.error('Failed to update settings:', error)
     throw error
@@ -202,20 +120,7 @@ export async function updateSettings(shareId, settings) {
  */
 export async function pollState(shareId, sinceVersion = 0) {
   try {
-    const response = await fetch(
-      `${API_BASE}/draft/${shareId}/state?sinceVersion=${sinceVersion}`,
-      {
-        credentials: 'include',
-      }
-    )
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to poll state')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.get(`/draft/${shareId}/state?sinceVersion=${sinceVersion}`)
   } catch (error) {
     // Don't log "Draft not found" - it's expected when drafts are cancelled
     if (!error.message?.includes('Draft not found')) {
@@ -237,27 +142,12 @@ export async function selectCard(shareId, cardId) {
     throw new Error('Invalid shareId')
   }
   try {
-    const response = await fetch(`${API_BASE}/draft/${shareId}/select`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({ cardId }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      // Return special object for 409 (state changed) - caller should refresh
-      if (response.status === 409) {
-        return { stateChanged: true, message: error.message }
-      }
-      throw new Error(error.message || 'Failed to select card')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.post(`/draft/${shareId}/select`, { cardId })
   } catch (error) {
+    // Return special object for 409 (state changed) - caller should refresh
+    if (error instanceof HttpError && error.status === 409) {
+      return { stateChanged: true, message: error.message }
+    }
     console.error('Failed to select card:', error)
     throw error
   }
@@ -271,22 +161,7 @@ export async function selectCard(shareId, cardId) {
  */
 export async function makePick(shareId, cardId) {
   try {
-    const response = await fetch(`${API_BASE}/draft/${shareId}/pick`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({ cardId }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to make pick')
-    }
-
-    const data = await response.json()
-    return data.data
+    return await httpClient.post(`/draft/${shareId}/pick`, { cardId })
   } catch (error) {
     console.error('Failed to make pick:', error)
     throw error
@@ -300,18 +175,8 @@ export async function makePick(shareId, cardId) {
  */
 export async function togglePause(shareId) {
   try {
-    const response = await fetch(`${API_BASE}/draft/${shareId}/pause`, {
-      method: 'POST',
-      credentials: 'include',
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to toggle pause')
-    }
-
-    const data = await response.json()
-    return data
+    // This endpoint returns full response, not just data.data
+    return await httpClient.post(`/draft/${shareId}/pause`, undefined, { extractData: false })
   } catch (error) {
     console.error('Failed to toggle pause:', error)
     throw error
@@ -325,12 +190,8 @@ export async function togglePause(shareId) {
  */
 export async function deleteDraft(shareId) {
   try {
-    const response = await fetch(`${API_BASE}/draft/${shareId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-
-    return response.ok
+    await httpClient.delete(`/draft/${shareId}`)
+    return true
   } catch (error) {
     console.error('Failed to delete draft:', error)
     return false
