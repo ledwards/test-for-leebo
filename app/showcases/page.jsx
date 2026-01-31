@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../src/contexts/AuthContext'
 import { initializeCardCache, getCachedCards } from '../../src/utils/cardCache'
+import { getAspectColor } from '../../src/utils/aspectColors'
 import './showcases.css'
 
 export default function ShowcasesPage() {
@@ -55,8 +56,8 @@ export default function ShowcasesPage() {
           const positions = {}
           const containerWidth = window.innerWidth
           const containerHeight = window.innerHeight
-          const cardWidth = 280
-          const cardHeight = 392
+          const cardWidth = 210  // 25% smaller (280 * 0.75)
+          const cardHeight = 294 // 25% smaller (392 * 0.75)
           const padding = 50
 
           leaders.forEach((leader, index) => {
@@ -138,8 +139,8 @@ export default function ShowcasesPage() {
 
     const containerWidth = window.innerWidth
     const containerHeight = window.innerHeight
-    const cardWidth = 280
-    const cardHeight = 392
+    const cardWidth = 210
+    const cardHeight = 294
 
     setCardPositions(prev => ({
       ...prev,
@@ -188,8 +189,8 @@ export default function ShowcasesPage() {
     const touch = e.touches[0]
     const containerWidth = window.innerWidth
     const containerHeight = window.innerHeight
-    const cardWidth = 280
-    const cardHeight = 392
+    const cardWidth = 210
+    const cardHeight = 294
 
     setCardPositions(prev => ({
       ...prev,
@@ -247,14 +248,15 @@ export default function ShowcasesPage() {
     )
   }
 
-  // Get card image URL from cards data
-  const getCardImageUrl = (leader) => {
+  // Get card data including image URLs and aspect color
+  const getCardData = (leader) => {
     const card = cardsData[leader.cardId]
-    if (card?.imageUrl) {
-      return card.imageUrl
+    const aspectColor = card ? getAspectColor(card) : '#ffd700'
+    return {
+      frontImage: card?.imageUrl || `https://swudb.com/images/cards/${leader.setCode}/${String(leader.cardId).padStart(3, '0')}.png`,
+      backImage: card?.backImageUrl || card?.imageUrl || `https://swudb.com/images/cards/${leader.setCode}/${String(leader.cardId).padStart(3, '0')}.png`,
+      aspectColor
     }
-    // Fallback to swudb pattern
-    return `https://swudb.com/images/cards/${leader.setCode}/${String(leader.cardId).padStart(3, '0')}.png`
   }
 
   return (
@@ -281,6 +283,7 @@ export default function ShowcasesPage() {
         const pos = cardPositions[leader.id] || { x: 100, y: 100, rotation: 0, zIndex: 1 }
         const isFlipped = flippedCards[leader.id]
         const isDragging = draggingCard === leader.id
+        const cardData = getCardData(leader)
 
         return (
           <div
@@ -291,7 +294,8 @@ export default function ShowcasesPage() {
               top: pos.y,
               zIndex: pos.zIndex,
               transform: `rotate(${pos.rotation}deg)`,
-              cursor: isDragging ? 'grabbing' : 'grab'
+              cursor: isDragging ? 'grabbing' : 'grab',
+              '--aspect-color': cardData.aspectColor
             }}
             onMouseDown={(e) => handleMouseDown(leader.id, e)}
             onTouchStart={(e) => handleTouchStart(leader.id, e)}
@@ -301,7 +305,7 @@ export default function ShowcasesPage() {
               <div className="showcase-card-front">
                 <div className="showcase-card-image-container">
                   <img
-                    src={getCardImageUrl(leader)}
+                    src={cardData.frontImage}
                     alt={`${leader.cardName}${leader.cardSubtitle ? ` - ${leader.cardSubtitle}` : ''}`}
                     className="showcase-card-image"
                     draggable={false}
@@ -310,12 +314,14 @@ export default function ShowcasesPage() {
                 </div>
               </div>
               <div className="showcase-card-back">
-                <div className="showcase-card-back-content">
-                  <div className="showcase-card-name">{leader.cardName}</div>
-                  {leader.cardSubtitle && (
-                    <div className="showcase-card-subtitle">{leader.cardSubtitle}</div>
-                  )}
-                  <div className="showcase-card-set">{leader.setCode}</div>
+                <div className="showcase-card-image-container">
+                  <img
+                    src={cardData.backImage}
+                    alt={`${leader.cardName} - Deployed`}
+                    className="showcase-card-image"
+                    draggable={false}
+                  />
+                  <div className="showcase-foil-effect"></div>
                 </div>
               </div>
             </div>
