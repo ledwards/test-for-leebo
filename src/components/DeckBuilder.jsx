@@ -7,6 +7,10 @@ import { fetchSetCards } from '../utils/api'
 import { useAuth } from '../contexts/AuthContext'
 import { getAspectColor } from '../utils/aspectColors'
 import { jsonParse } from '../utils/json'
+import {
+  calculateAspectPenalty,
+  getLeaderAbilityDescription as getLeaderAspectAbilityDescription,
+} from '../services/cards/aspectPenalties'
 import CostIcon from './CostIcon'
 import Modal from './Modal'
 import Button from './Button'
@@ -160,93 +164,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [showAspectPenalties, setShowAspectPenalties] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-
-  // Leader abilities that ignore aspect penalties
-  // Each entry: { check: (card, leaderCard) => boolean, description: string }
-  const leaderAspectPenaltyAbilities = {
-    // SOR Hera Syndulla - ignores penalty on SPECTRE cards
-    'Hera Syndulla': {
-      check: (card, leaderCard) => {
-        // Only applies to SOR Hera
-        if (!leaderCard.set || leaderCard.set !== 'SOR') return false
-        // Check if card has SPECTRE trait
-        const traits = card.traits || []
-        return traits.some(t => t.toUpperCase() === 'SPECTRE')
-      },
-      description: 'Ignores aspect penalty on Spectre cards'
-    },
-    // SEC Mon Mothma - ignores penalty on non-Villainy Official units
-    'Mon Mothma': {
-      check: (card, leaderCard) => {
-        // Only applies to SEC Mon Mothma
-        if (!leaderCard.set || leaderCard.set !== 'SEC') return false
-        // Must be a unit
-        if (card.type !== 'Unit') return false
-        // Check if card has OFFICIAL trait
-        const traits = card.traits || []
-        const hasOfficial = traits.some(t => t.toUpperCase() === 'OFFICIAL')
-        if (!hasOfficial) return false
-        // Must NOT have Villainy aspect
-        const aspects = card.aspects || []
-        const hasVillainy = aspects.includes('Villainy')
-        return !hasVillainy
-      },
-      description: 'Ignores aspect penalty on non-Villainy Official units'
-    }
-  }
-
-  // Check if leader ignores aspect penalty for a specific card
-  const leaderIgnoresAspectPenalty = (card, leaderCard) => {
-    if (!leaderCard || !leaderCard.name) return false
-    const ability = leaderAspectPenaltyAbilities[leaderCard.name]
-    if (!ability) return false
-    return ability.check(card, leaderCard)
-  }
-
-  // Get leader's aspect penalty ability description (if any)
-  const getLeaderAspectAbilityDescription = (leaderCard) => {
-    if (!leaderCard || !leaderCard.name) return null
-    const ability = leaderAspectPenaltyAbilities[leaderCard.name]
-    if (!ability) return null
-    // Check if this leader's set matches the ability
-    if (leaderCard.name === 'Hera Syndulla' && leaderCard.set !== 'SOR') return null
-    if (leaderCard.name === 'Mon Mothma' && leaderCard.set !== 'SEC') return null
-    return ability.description
-  }
-
-  // Function to get aspect color name
-  // Calculate aspect penalty for a card
-  const calculateAspectPenalty = (card, leaderCard, baseCard) => {
-    if (!leaderCard || !baseCard || !card.aspects || card.aspects.length === 0) {
-      return 0
-    }
-
-    // Check if leader ignores aspect penalty for this card
-    if (leaderIgnoresAspectPenalty(card, leaderCard)) {
-      return 0
-    }
-
-    // Get my aspects (leader + base) - count each instance
-    const myAspects = [
-      ...(leaderCard.aspects || []),
-      ...(baseCard.aspects || [])
-    ]
-
-    // Get card's aspects - count each instance
-    const cardAspects = [...(card.aspects || [])]
-
-    // Subtract my aspects from card's aspects (one-for-one)
-    const remainingAspects = [...cardAspects]
-    for (const myAspect of myAspects) {
-      const index = remainingAspects.indexOf(myAspect)
-      if (index !== -1) {
-        remainingAspects.splice(index, 1)
-      }
-    }
-
-    // Each remaining aspect (out of aspect) adds +2 to cost
-    return remainingAspects.length * 2
-  }
 
   const getAspectColorName = (card) => {
     const aspectColorMap = {
