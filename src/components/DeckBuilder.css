@@ -12,6 +12,15 @@
   position: relative;
 }
 
+/* Desktop: show full button text, hide mobile short text */
+.desktop-text {
+  display: inline;
+}
+
+.mobile-text {
+  display: none;
+}
+
 .deck-builder .set-art-header {
   position: absolute;
   top: 0;
@@ -1825,6 +1834,20 @@
 
   /* Hide aspect text labels on mobile, keep icons and count */
   .aspect-text-label {
+    display: none;
+  }
+
+  /* Mobile button text - show short versions */
+  .desktop-text {
+    display: none;
+  }
+
+  .mobile-text {
+    display: inline;
+  }
+
+  /* Hide the "select leader and base" warning button on mobile */
+  .aspect-penalty-warning-button {
     display: none;
   }
 
