@@ -343,47 +343,20 @@
   pointer-events: none;
 }
 
-/* Export header */
+/* Export header - no rainbow border */
 .showcases-export-header {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   padding: 20px 24px;
-  margin: 0 auto 20px;
-  background: black;
-  border-radius: 30px;
+  margin: 0 auto 10px;
+  background: transparent;
   color: white;
   font-family: 'Barlow', sans-serif;
   font-weight: 600;
   font-size: 1.4rem;
   width: fit-content;
-  position: relative;
-}
-
-.showcases-export-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 30px;
-  background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000);
-  background-size: 400% 400%;
-  z-index: -2;
-}
-
-.showcases-export-header::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  right: 2px;
-  bottom: 2px;
-  border-radius: 28px;
-  background: black;
-  z-index: -1;
 }
 
 .showcases-export-header .shooting-star-icon {

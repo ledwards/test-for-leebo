@@ -459,6 +459,7 @@ export default function ShowcasesPage() {
             <span>{user.username} Showcase Collection</span>
             <span className="showcases-count">{showcases.length}/{totalLeaders}</span>
           </div>
+          <div className="showcases-export-url">https://www.protectthepod.com</div>
           <div className="showcases-export-grid">
             {sortedShowcases.map((leader) => {
               const cardData = getCardData(leader)
@@ -475,7 +476,6 @@ export default function ShowcasesPage() {
               )
             })}
           </div>
-          <div className="showcases-export-url">https://www.protectthepod.com</div>
         </div>
       )}
 
