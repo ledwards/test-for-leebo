@@ -45,7 +45,6 @@ export default function ShowcasesPage() {
             cardMap[card.id] = card
           })
         })
-        console.log('Built cardMap with', Object.keys(cardMap).length, 'cards. Sample:', cardMap['1479']?.name, cardMap['1624']?.name)
         setCardsData(cardMap)
 
         const response = await fetch(`/api/users/${user.id}/showcase-leaders`)
@@ -259,7 +258,6 @@ export default function ShowcasesPage() {
   // Get card data including image URLs and aspect color
   const getCardData = (leader) => {
     const card = cardsData[leader.cardId]
-    console.log('getCardData:', { leaderId: leader.id, cardId: leader.cardId, card: card?.name, hasBack: !!card?.backImageUrl })
     const aspectColor = card ? getAspectColor(card) : '#ffd700'
     return {
       frontImage: card?.imageUrl || `https://swudb.com/images/cards/${leader.setCode}/${String(leader.cardId).padStart(3, '0')}.png`,
@@ -270,13 +268,6 @@ export default function ShowcasesPage() {
 
   return (
     <div className="showcases-page" ref={containerRef}>
-      <button className="showcases-home-button" onClick={() => router.push('/')}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-          <polyline points="9 22 9 12 15 12 15 22"></polyline>
-        </svg>
-      </button>
-
       <div className="showcases-title">
         <svg className="shooting-star-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M12 2L9 9l-7 1 5 5-1.5 7L12 18l6.5 4L17 15l5-5-7-1-3-7z" fill="currentColor" opacity="0.3"/>

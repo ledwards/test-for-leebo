@@ -55,7 +55,8 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
       ])
         .then(([poolsData, draftData, showcaseData]) => {
           // Check if user has any showcase leaders
-          setHasShowcases((showcaseData?.total || 0) > 0)
+          const showcaseTotal = showcaseData?.data?.total || showcaseData?.total || 0
+          setHasShowcases(showcaseTotal > 0)
           // Find most recent sealed pool (not draft type)
           const sealedPools = (poolsData || [])
             .filter(p => p.poolType !== 'draft')
