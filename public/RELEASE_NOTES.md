@@ -1,5 +1,24 @@
 # Release Notes
 
+## 01.31.2026
+
+### 🎉 New Features
+- **Showcase Collection Gallery**: New `/showcases` page to view all your pulled Showcase Leaders in a beautiful interactive display
+  - Cards scattered on a textured playmat background with aspect-colored glows
+  - Drag cards around the canvas with physics-based tilt effect
+  - Click to flip cards and see the deployed unit side
+  - Foil shimmer effect with staggered animations
+  - Rainbow-bordered header with hover effects on all elements
+- **Export to PNG**: Generate a shareable image of your showcase collection
+  - Sorted display: by set, villain before hero, then alphabetical
+  - Includes username, collection count, and protectthepod.com URL
+  - Rainbow-bordered modal with download button
+- **Showcases in User Menu**: Quick access to your collection from the dropdown (only visible if you have showcases)
+
+### 🎨 UI Improvements
+- Interactive hover effects throughout the showcase page with rainbow glows
+- Responsive design for mobile devices with appropriate card sizing
+
 ## 01.30.2026
 
 ### 🎉 New Features

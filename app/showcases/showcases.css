@@ -129,6 +129,27 @@
   100% { filter: drop-shadow(0 0 6px #ff0000); }
 }
 
+.showcases-title-text {
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+.showcases-title-text:hover {
+  text-shadow: 0 0 8px currentColor;
+  animation: rainbow-text-glow 2s linear infinite;
+}
+
+@keyframes rainbow-text-glow {
+  0% { text-shadow: 0 0 8px #ff0000; }
+  14% { text-shadow: 0 0 8px #ff7f00; }
+  28% { text-shadow: 0 0 8px #ffff00; }
+  42% { text-shadow: 0 0 8px #00ff00; }
+  57% { text-shadow: 0 0 8px #0000ff; }
+  71% { text-shadow: 0 0 8px #4b0082; }
+  85% { text-shadow: 0 0 8px #9400d3; }
+  100% { text-shadow: 0 0 8px #ff0000; }
+}
+
 .showcases-count {
   background: black;
   color: white;
