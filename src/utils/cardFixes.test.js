@@ -94,9 +94,10 @@ function testEmptyData() {
 function testArrayFormat() {
   console.log('\n[Test 3] Handle array format')
 
+  // Include variantType so cards aren't filtered by custom transforms
   const arrayData = [
-    { id: 'TEST-001', name: 'Test 1', set: 'TEST' },
-    { id: 'TEST-002', name: 'Test 2', set: 'TEST' },
+    { id: 'TEST-001', name: 'Test 1', set: 'TEST', type: 'Unit', variantType: 'Normal' },
+    { id: 'TEST-002', name: 'Test 2', set: 'TEST', type: 'Unit', variantType: 'Normal' },
   ]
 
   const result = applyCardFixes(arrayData)
@@ -175,9 +176,10 @@ function testFixStats() {
 function testNoMutation() {
   console.log('\n[Test 6] Original data is not mutated')
 
+  // Include variantType so card isn't filtered by custom transforms
   const originalData = {
     cards: [
-      { id: 'TEST-001', name: 'Test Card', set: 'TEST', value: 100 }
+      { id: 'TEST-001', name: 'Test Card', set: 'TEST', type: 'Unit', variantType: 'Normal', value: 100 }
     ],
     metadata: { version: '1.0.0' }
   }

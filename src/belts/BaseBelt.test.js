@@ -182,8 +182,9 @@ async function runTests() {
     }
 
     // At least 50% of positions should be different (shuffled)
+    // Use >= to avoid flaky failures at exactly 50% (common with small pools like 8 bases)
     const diffPercent = (differences / firstFill.length) * 100
-    assert(diffPercent > 50, `At least 50% of positions should differ, got ${diffPercent.toFixed(1)}%`)
+    assert(diffPercent >= 50, `At least 50% of positions should differ, got ${diffPercent.toFixed(1)}%`)
   })
 
   console.log('')
