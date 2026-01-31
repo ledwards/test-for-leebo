@@ -5,7 +5,8 @@ This document audits all UI components that deviate from the standard `Button` c
 ## Standard Button Reference
 
 The standard `Button` component provides:
-- **Variants**: `primary` (green glow), `secondary` (default), `danger`/`back` (red glow), `interactive` (blue glow), `ghost`, `discord`
+- **Variants**: `primary` (green glow), `secondary` (default), `danger`/`back` (red glow), `interactive` (blue glow), `discord`, `icon`, `toggle`
+- **Note**: `ghost` variant has been **removed** - use `secondary` instead (nearest match with similar subtle styling)
 - **Sizes**: `sm`, `md`, `lg`
 - **Consistent styling**: Black translucent background (`rgba(0,0,0,0.7)`), white text, colored glow on hover, `translateY(-2px)` lift effect
 
@@ -23,6 +24,7 @@ The standard `Button` component provides:
 | `modal-close` | Transparent, × icon | `variant="ghost"` + icon | Replace |
 
 **Decision needed**: Replace with Button component? (Lines: App.jsx:148-151, Modal.jsx:67)
+YES
 
 ---
 
@@ -39,6 +41,7 @@ The standard `Button` component provides:
 **Decision needed**:
 - `rejoin-button` (line 58): Replace with `<Button variant="primary">`?
 - `landing-login-button` (lines 75, 95): Replace with `<Button variant="discord">`?
+- YES ALL
 
 ---
 
@@ -55,7 +58,7 @@ The standard `Button` component provides:
 **Decision needed**:
 - `sign-in-button` (line 34): Replace with `<Button variant="discord">`?
 - `sign-out-button` (line 25): Replace with `<Button variant="ghost">`?
-
+YES ALL
 ---
 
 ### Category D: DeckBuilder Buttons (18 custom patterns)
@@ -100,6 +103,7 @@ The standard `Button` component provides:
 2. Gradually replace with existing variants where possible
 3. Keep custom for complex interactive states
 
+DO OPT 1 for icon and toggle. text-primaru and text-danger should be special cases of primary and danger where we can insert the custom behavior via param
 ---
 
 ### Category E: Timer/Control Buttons
@@ -113,8 +117,10 @@ The standard `Button` component provides:
 | `control-button cancel` | HostControls:193 | Cancel action | `variant="danger"` |
 
 **Decision needed**:
-- HostControls buttons (lines 149-218): Replace with Button component?
+- HostControls buttons (lines 149-218): Replace with Button component? YES
 - Timer pause button: Keep custom for animation states?
+- 
+Timer button should be its own component used twice on this page
 
 ---
 
@@ -129,8 +135,8 @@ The standard `Button` component provides:
 | `leave-button` | DraftLobby:91 | Leave draft | `variant="danger"` |
 
 **Decision needed**:
-- `review-button`, `copy-url-button`, `leave-button`: Replace with Button?
-- `deselect-button`: Keep custom (overlays card)?
+- `review-button`, `copy-url-button`, `leave-button`: Replace with Button? YES ALL
+- `deselect-button`: Keep custom (overlays card)? YES
 
 ---
 
@@ -153,6 +159,7 @@ The standard `Button` component provides:
 | `build-deck-button` | 327 | Main CTA | `<Button variant="primary">` |
 
 **Decision needed**: Both can likely be replaced with standard Button.
+YES
 
 ---
 
@@ -163,7 +170,7 @@ The standard `Button` component provides:
 |-------|-------|-------------|----------------|
 | Plain `<button>` | 103 | "Go Back" | `<Button variant="back">` |
 
-**Decision needed**: Direct replacement candidate.
+**Decision needed**: Direct replacement candidate. YES
 
 ---
 
@@ -177,6 +184,7 @@ The standard `Button` component provides:
 | `open-all-button` | 384 | Open remaining packs | `variant="secondary"` |
 
 **Decision needed**: Replace with Button component?
+YES ALL
 
 ---
 

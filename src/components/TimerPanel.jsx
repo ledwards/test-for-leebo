@@ -2,20 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import CountdownTimer from './CountdownTimer'
+import TimerButton from './TimerButton'
 import './TimerPanel.css'
-
-const PauseIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="6" y="4" width="4" height="16"></rect>
-    <rect x="14" y="4" width="4" height="16"></rect>
-  </svg>
-)
-
-const PlayIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-  </svg>
-)
 
 /**
  * Timer panel shown during active drafting
@@ -141,9 +129,7 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
                 <span className="timer-value paused-value">PAUSED</span>
               </div>
               {isHost && onTogglePause && (
-                <button className="pause-button resume" onClick={handleTogglePause}>
-                  <PlayIcon />
-                </button>
+                <TimerButton isPaused={true} onClick={handleTogglePause} />
               )}
             </>
           ) : (
@@ -174,9 +160,7 @@ function TimerPanel({ draft, players = [], compact = false, isHost = false, onTo
                 />
               )}
               {isHost && onTogglePause && (
-                <button className="pause-button" onClick={handleTogglePause}>
-                  <PauseIcon />
-                </button>
+                <TimerButton isPaused={false} onClick={handleTogglePause} />
               )}
             </>
           )}

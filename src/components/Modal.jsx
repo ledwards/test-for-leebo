@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react'
 import './Modal.css'
+import Button from './Button'
 
 /**
  * Reusable Modal Component
@@ -64,13 +65,15 @@ export function Modal({
         onClick={(e) => e.stopPropagation()}
       >
         {showCloseButton && (
-          <button
+          <Button
+            variant="icon"
+            size="sm"
             className="modal-close"
             onClick={onClose}
             aria-label="Close modal"
           >
             &times;
-          </button>
+          </Button>
         )}
         {title && (
           <h2 className={`modal-title ${variant === 'danger' ? 'modal-title--danger' : ''}`}>

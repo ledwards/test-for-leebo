@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Button from './Button'
 import './ReleaseNotes.css'
 
 function ReleaseNotes() {
@@ -75,13 +76,15 @@ function ReleaseNotes() {
       <div className="release-notes">
         <div className="release-notes-header">
           <h2>📝 Release Notes</h2>
-          <button
+          <Button
+            variant="icon"
+            size="sm"
             className="release-notes-close"
             onClick={() => setIsVisible(false)}
             aria-label="Close release notes"
           >
             ×
-          </button>
+          </Button>
         </div>
         <div className="release-notes-content">
           <p>Loading...</p>
@@ -94,13 +97,15 @@ function ReleaseNotes() {
     <div className="release-notes">
       <div className="release-notes-header">
         <h2>📝 Release Notes</h2>
-        <button
+        <Button
+          variant="icon"
+          size="sm"
           className="release-notes-close"
           onClick={() => setIsVisible(false)}
           aria-label="Close release notes"
         >
           ×
-        </button>
+        </Button>
       </div>
       <div
         className="release-notes-content"

@@ -5,6 +5,7 @@ import PlayerCircle from './PlayerCircle'
 import DraftableCard from './DraftableCard'
 import TimerPanel from './TimerPanel'
 import DraftReviewModal from './DraftReviewModal'
+import Button from './Button'
 import { getSingleAspectColor, NO_ASPECT_COLOR } from '../utils/aspectColors'
 import './PackDraftPhase.css'
 
@@ -322,10 +323,10 @@ function PackDraftPhase({
                 <span className="info-label">Cards:</span>
                 <span className="info-value">{draftedCards.length}/{(draft?.packSize || 14) * 3}</span>
               </span>
-              <button className="review-button" onClick={() => setShowReviewModal(true)}>
+              <Button variant="secondary" size="sm" className="review-button" onClick={() => setShowReviewModal(true)}>
                 <ReviewIcon />
                 <span>Your Cards</span>
-              </button>
+              </Button>
             </div>
           </div>
 

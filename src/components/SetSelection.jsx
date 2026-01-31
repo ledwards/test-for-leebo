@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './SetSelection.css'
 import { fetchSets } from '../utils/api'
+import Button from './Button'
 
 function SetSelection({ onSetSelect, onBack }) {
   const [sets, setSets] = useState([])
@@ -100,7 +101,7 @@ function SetSelection({ onSetSelect, onBack }) {
     return (
       <div className="set-selection">
         <div className="error">Error: {error}</div>
-        <button onClick={onBack}>Go Back</button>
+        <Button variant="back" onClick={onBack}>Go Back</Button>
       </div>
     )
   }

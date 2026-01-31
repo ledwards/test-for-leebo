@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { getSetConfig } from '../utils/setConfigs'
 import { getPackArtUrl } from '../utils/packArt'
 import EditableTitle from './EditableTitle'
+import Button from './Button'
 
 
 // Helper function to get set name from set code
@@ -280,7 +281,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
 }`}
             </pre>
           </div>
-          <button onClick={onBack}>Go Back</button>
+          <Button variant="back" onClick={onBack}>Go Back</Button>
         </div>
       </div>
     )
@@ -323,7 +324,8 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
         )}
         {saving && <p className="saving-indicator"></p>}
         {packs.length > 0 && (
-          <button
+          <Button
+            variant="primary"
             className="build-deck-button"
             onClick={() => {
               const allCards = packs.flatMap(pack => pack.cards)
@@ -336,7 +338,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
             }}
           >
             Build Deck
-          </button>
+          </Button>
         )}
       </div>
 

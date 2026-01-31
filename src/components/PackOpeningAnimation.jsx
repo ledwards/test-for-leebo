@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Button from './Button'
 import './PackOpeningAnimation.css'
 
 export default function PackOpeningAnimation({
@@ -371,21 +372,24 @@ export default function PackOpeningAnimation({
       onClick={handleContainerClick}
     >
       {/* Skip button in upper right */}
-      <button
+      <Button
+        variant="secondary"
+        size="sm"
         className="skip-button"
         onClick={handleContinue}
       >
         &gt;&gt;
-      </button>
+      </Button>
 
       {/* Open All / Continue button above pack counter */}
       <div className="open-all-container" style={{ bottom: '110px' }}>
-        <button
+        <Button
+          variant={allPacksOpened ? 'primary' : 'secondary'}
           className={allPacksOpened ? 'continue-button' : 'open-all-button'}
           onClick={allPacksOpened ? handleContinue : openAllPacks}
         >
           {allPacksOpened ? 'Continue' : 'Open All'}
-        </button>
+        </Button>
       </div>
 
       {/* Packs - carousel on mobile, row on desktop */}

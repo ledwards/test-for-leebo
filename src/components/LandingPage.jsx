@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 import ReleaseNotes from './ReleaseNotes'
+import Button from './Button'
 import './LandingPage.css'
 
 function LandingPage({ onSealedClick, onDraftClick }) {
@@ -54,12 +55,14 @@ function LandingPage({ onSealedClick, onDraftClick }) {
         {activeDraft && (
           <div className="active-draft-banner">
             <span>You have an active Draft Pod.</span>
-            <button
+            <Button
+              variant="primary"
+              size="sm"
               className="rejoin-button"
               onClick={() => router.push(`/draft/${activeDraft.shareId}`)}
             >
               Rejoin?
-            </button>
+            </Button>
           </div>
         )}
         <div className="mode-selection">
@@ -72,7 +75,7 @@ function LandingPage({ onSealedClick, onDraftClick }) {
         </div>
         {!loading && !user && (
           <div className="landing-login">
-            <button className="landing-login-button" onClick={signIn}>
+            <Button variant="discord" className="landing-login-button" onClick={signIn}>
               <svg
                 width="20"
                 height="20"
@@ -86,13 +89,13 @@ function LandingPage({ onSealedClick, onDraftClick }) {
                 />
               </svg>
               Login with Discord
-            </button>
+            </Button>
           </div>
         )}
         {!loading && user && (
           <div className="landing-login">
             <a
-              className="landing-login-button"
+              className="btn btn--discord landing-login-button"
               href="https://discord.gg/sHrwzGqRvg"
               target="_blank"
               rel="noopener noreferrer"
