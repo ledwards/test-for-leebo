@@ -1823,6 +1823,29 @@
     margin-right: 0;
   }
 
+  /* All blocks full width on mobile */
+  .blocks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .blocks-deck-row,
+  .blocks-empty-row,
+  .blocks-pool-row,
+  .blocks-deck-groups-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .card-block {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+  }
+
   /* 2 cards per row on mobile */
   .cards-grid {
     grid-template-columns: repeat(2, 48%);
