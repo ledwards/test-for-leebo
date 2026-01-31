@@ -156,25 +156,25 @@
   border-radius: 15px;
 }
 
-/* Front image: no rotation, show in portrait container */
+/* Front image: no clipping, fit within container */
 .showcase-card-front .showcase-card-image {
-  width: auto;
-  height: 140%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
-/* Back image: no rotation, show full image */
-.showcase-card-back .showcase-card-image {
   width: 100%;
   height: 100%;
   position: absolute;
   top: 0;
   left: 0;
   object-fit: contain;
+  pointer-events: none;
+}
+
+/* Back image: rotate 90deg CCW */
+.showcase-card-back .showcase-card-image {
+  width: auto;
+  height: 140%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
   pointer-events: none;
 }
 
