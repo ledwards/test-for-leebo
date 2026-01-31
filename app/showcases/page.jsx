@@ -469,7 +469,6 @@ export default function ShowcasesPage() {
                     className="showcase-export-image"
                     crossOrigin="anonymous"
                   />
-                  <div className="showcase-foil-effect"></div>
                 </div>
               )
             })}
