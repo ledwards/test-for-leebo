@@ -9,6 +9,7 @@ import { query, queryRow, queryRows } from '@/lib/db.js'
 import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft, processAllStagedPicks } from './draftAdvance.js'
 import { getBehavior } from '@/src/bots/behaviors/index.js'
 import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
+import { jsonParse } from './json.js'
 
 // Cache behavior instances per bot to maintain state across picks
 const botBehaviors = new Map()
@@ -29,9 +30,7 @@ export async function triggerBotPicks(podId) {
     return false
   }
 
-  const draftState = typeof pod.draft_state === 'string'
-    ? JSON.parse(pod.draft_state)
-    : pod.draft_state || {}
+  const draftState = jsonParse(pod.draft_state, {})
 
   // Get all bot players who need to pick
   const botsNeedingPicks = await queryRows(
@@ -104,9 +103,7 @@ export function clearBotBehaviors() {
  * @returns {boolean} - Whether a selection was made
  */
 async function makeBotLeaderPick(bot, draftState) {
-  const leaders = typeof bot.leaders === 'string'
-    ? JSON.parse(bot.leaders)
-    : bot.leaders || []
+  const leaders = jsonParse(bot.leaders, [])
 
   if (leaders.length === 0) {
     console.error('[BOT] Bot', bot.id, 'has no leaders to pick from! leaders:', bot.leaders)
@@ -114,9 +111,7 @@ async function makeBotLeaderPick(bot, draftState) {
   }
 
   // Get bot's drafted leaders for context
-  const draftedLeaders = typeof bot.drafted_leaders === 'string'
-    ? JSON.parse(bot.drafted_leaders)
-    : bot.drafted_leaders || []
+  const draftedLeaders = jsonParse(bot.drafted_leaders, [])
 
   // Use behavior to select leader
   const behavior = getBotBehavior(bot.id)
@@ -152,7 +147,7 @@ async function makeBotLeaderPick(bot, draftState) {
   if (remainingPickers.length === 1) {
     // One player left - set lastPlayerStartedAt if not already set
     const pod = await queryRow('SELECT draft_state FROM draft_pods WHERE id = $1', [bot.draft_pod_id])
-    const currentState = typeof pod.draft_state === 'string' ? JSON.parse(pod.draft_state) : pod.draft_state || {}
+    const currentState = jsonParse(pod.draft_state, {})
 
     if (!currentState.lastPlayerStartedAt) {
       currentState.lastPlayerStartedAt = new Date().toISOString()
@@ -183,9 +178,7 @@ async function makeBotLeaderPick(bot, draftState) {
  * @returns {boolean} - Whether a selection was made
  */
 async function makeBotCardPick(bot, draftState) {
-  const currentPack = typeof bot.current_pack === 'string'
-    ? JSON.parse(bot.current_pack)
-    : bot.current_pack || []
+  const currentPack = jsonParse(bot.current_pack, [])
 
   if (currentPack.length === 0) {
     console.error('[BOT] Bot', bot.id, 'has no cards to pick from! current_pack:', bot.current_pack)
@@ -193,13 +186,8 @@ async function makeBotCardPick(bot, draftState) {
   }
 
   // Get bot's drafted cards and leaders for context
-  const draftedCards = typeof bot.drafted_cards === 'string'
-    ? JSON.parse(bot.drafted_cards)
-    : bot.drafted_cards || []
-
-  const draftedLeaders = typeof bot.drafted_leaders === 'string'
-    ? JSON.parse(bot.drafted_leaders)
-    : bot.drafted_leaders || []
+  const draftedCards = jsonParse(bot.drafted_cards, [])
+  const draftedLeaders = jsonParse(bot.drafted_leaders, [])
 
   // Use behavior to select card
   const behavior = getBotBehavior(bot.id)
@@ -237,7 +225,7 @@ async function makeBotCardPick(bot, draftState) {
   if (remainingPickers.length === 1) {
     // One player left - set lastPlayerStartedAt if not already set
     const pod = await queryRow('SELECT draft_state FROM draft_pods WHERE id = $1', [bot.draft_pod_id])
-    const currentState = typeof pod.draft_state === 'string' ? JSON.parse(pod.draft_state) : pod.draft_state || {}
+    const currentState = jsonParse(pod.draft_state, {})
 
     if (!currentState.lastPlayerStartedAt) {
       currentState.lastPlayerStartedAt = new Date().toISOString()
@@ -318,9 +306,7 @@ export async function processBotTurns(podId) {
       // Note: We still process bot turns while paused - pause only affects timers, not turn advancement
       // This allows the draft to continue if all players have selected while paused
 
-      const draftState = typeof pod.draft_state === 'string'
-        ? JSON.parse(pod.draft_state)
-        : pod.draft_state || {}
+      const draftState = jsonParse(pod.draft_state, {})
 
       // Check if all players have selected (using new staged pick system)
       const players = await queryRows(

@@ -5,6 +5,7 @@ import { getSession, requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
 import { getPackArtUrl } from '@/src/utils/packArt.js'
 import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout.js'
+import { jsonParse } from '@/src/utils/json.js'
 
 export async function GET(request, { params }) {
   try {
@@ -75,27 +76,16 @@ export async function GET(request, { params }) {
     }
 
     // Parse JSON fields
-    const draftState = typeof pod.draft_state === 'string'
-      ? JSON.parse(pod.draft_state)
-      : pod.draft_state || {}
-
-    const settings = typeof pod.settings === 'string'
-      ? JSON.parse(pod.settings)
-      : pod.settings || {}
+    const draftState = jsonParse(pod.draft_state, {})
+    const settings = jsonParse(pod.settings, {})
 
     // Check if we're in leader draft phase (show leader packs to all)
     const isLeaderDraftPhase = draftState?.phase === 'leader_draft'
 
     // Format players for response
     const formattedPlayers = players.map(p => {
-      const draftedLeaders = p.drafted_leaders
-        ? (typeof p.drafted_leaders === 'string' ? JSON.parse(p.drafted_leaders) : p.drafted_leaders)
-        : []
-
-      // Parse leaders pack (for leader draft phase visibility)
-      const leadersPack = p.leaders
-        ? (typeof p.leaders === 'string' ? JSON.parse(p.leaders) : p.leaders)
-        : []
+      const draftedLeaders = jsonParse(p.drafted_leaders, [])
+      const leadersPack = jsonParse(p.leaders, [])
 
       return {
         id: p.id,
@@ -107,7 +97,7 @@ export async function GET(request, { params }) {
         isBot: p.is_bot === true,
         // Only include pack info for current user
         currentPack: session && p.user_id === session.id
-          ? (typeof p.current_pack === 'string' ? JSON.parse(p.current_pack) : p.current_pack)
+          ? jsonParse(p.current_pack)
           : null,
         // During leader draft, show each player's leader pack to all (packs rotate anyway)
         leaderPack: isLeaderDraftPhase ? leadersPack.map(l => ({
@@ -116,9 +106,7 @@ export async function GET(request, { params }) {
           imageUrl: l.imageUrl,
           backImageUrl: l.backImageUrl,
         })) : null,
-        draftedCardsCount: p.drafted_cards
-          ? (typeof p.drafted_cards === 'string' ? JSON.parse(p.drafted_cards) : p.drafted_cards).length
-          : 0,
+        draftedCardsCount: jsonParse(p.drafted_cards, []).length,
         draftedLeadersCount: draftedLeaders.length,
         // Include leader info for all players (for tooltips)
         draftedLeaders: draftedLeaders.map(l => ({
@@ -159,18 +147,10 @@ export async function GET(request, { params }) {
         seatNumber: myPlayer.seat_number,
         pickStatus: myPlayer.pick_status,
         selectedCardId: myPlayer.selected_card_id || null,
-        currentPack: typeof myPlayer.current_pack === 'string'
-          ? JSON.parse(myPlayer.current_pack)
-          : myPlayer.current_pack,
-        draftedCards: typeof myPlayer.drafted_cards === 'string'
-          ? JSON.parse(myPlayer.drafted_cards)
-          : myPlayer.drafted_cards || [],
-        leaders: typeof myPlayer.leaders === 'string'
-          ? JSON.parse(myPlayer.leaders)
-          : myPlayer.leaders || [],
-        draftedLeaders: typeof myPlayer.drafted_leaders === 'string'
-          ? JSON.parse(myPlayer.drafted_leaders)
-          : myPlayer.drafted_leaders || [],
+        currentPack: jsonParse(myPlayer.current_pack),
+        draftedCards: jsonParse(myPlayer.drafted_cards, []),
+        leaders: jsonParse(myPlayer.leaders, []),
+        draftedLeaders: jsonParse(myPlayer.drafted_leaders, []),
       } : null,
       startedAt: pod.started_at,
       completedAt: pod.completed_at,

@@ -4,6 +4,7 @@
 import { queryRow, query } from '@/lib/db.js'
 import { getSession, requireAuth } from '@/lib/auth.js'
 import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/utils.js'
+import { jsonParse } from '@/src/utils/json.js'
 
 export async function GET(request, { params }) {
   try {
@@ -105,17 +106,9 @@ export async function GET(request, { params }) {
     // For GET, allow access to any pool by shareId
 
     // Parse JSON fields from database
-    let cards = null
-    let packs = null
-    let deckBuilderState = null
-
-    try {
-      cards = typeof pool.cards === 'string' ? JSON.parse(pool.cards) : pool.cards
-      packs = pool.packs ? (typeof pool.packs === 'string' ? JSON.parse(pool.packs) : pool.packs) : null
-      deckBuilderState = pool.deck_builder_state ? (typeof pool.deck_builder_state === 'string' ? JSON.parse(pool.deck_builder_state) : pool.deck_builder_state) : null
-    } catch (parseError) {
-      console.error('Error parsing pool JSON fields:', parseError)
-    }
+    const cards = jsonParse(pool.cards)
+    const packs = jsonParse(pool.packs)
+    const deckBuilderState = jsonParse(pool.deck_builder_state)
 
     // Generate name: prefer deckBuilderState.poolName, then pool.name column, then generate default
     let name = deckBuilderState?.poolName || pool.name
@@ -194,9 +187,7 @@ export async function PUT(request, { params }) {
     let deckBuilderStateToSave = body.deckBuilderState
     if (body.poolName !== undefined) {
       // Merge poolName into existing or provided deckBuilderState
-      const existingState = pool.deck_builder_state
-        ? (typeof pool.deck_builder_state === 'string' ? JSON.parse(pool.deck_builder_state) : pool.deck_builder_state)
-        : {}
+      const existingState = jsonParse(pool.deck_builder_state, {})
       const newState = deckBuilderStateToSave || existingState
       deckBuilderStateToSave = { ...newState, poolName: body.poolName }
     }

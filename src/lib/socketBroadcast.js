@@ -5,6 +5,7 @@
  * Sends PUBLIC data only - clients fetch their user-specific data via HTTP.
  */
 import { queryRow, queryRows } from '@/lib/db.js'
+import { jsonParse } from '@/src/utils/json.js'
 
 /**
  * Broadcast draft state to all connected clients in a draft room.
@@ -44,20 +45,13 @@ export async function broadcastDraftState(shareId) {
       [pod.id]
     )
 
-    const draftState = typeof pod.draft_state === 'string'
-      ? JSON.parse(pod.draft_state)
-      : pod.draft_state || {}
-
+    const draftState = jsonParse(pod.draft_state, {})
     const isLeaderDraftPhase = draftState?.phase === 'leader_draft'
 
     // Build PUBLIC player data (visible to all)
     const publicPlayers = players.map(p => {
-      const draftedLeaders = p.drafted_leaders
-        ? (typeof p.drafted_leaders === 'string' ? JSON.parse(p.drafted_leaders) : p.drafted_leaders)
-        : []
-      const leadersPack = p.leaders
-        ? (typeof p.leaders === 'string' ? JSON.parse(p.leaders) : p.leaders)
-        : []
+      const draftedLeaders = jsonParse(p.drafted_leaders, [])
+      const leadersPack = jsonParse(p.leaders, [])
 
       return {
         id: p.id,
@@ -74,9 +68,7 @@ export async function broadcastDraftState(shareId) {
           imageUrl: l.imageUrl,
           backImageUrl: l.backImageUrl,
         })) : null,
-        draftedCardsCount: p.drafted_cards
-          ? (typeof p.drafted_cards === 'string' ? JSON.parse(p.drafted_cards) : p.drafted_cards).length
-          : 0,
+        draftedCardsCount: jsonParse(p.drafted_cards, []).length,
         draftedLeadersCount: draftedLeaders.length,
         draftedLeaders: draftedLeaders.map(l => ({
           name: l.name,
