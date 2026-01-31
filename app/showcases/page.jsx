@@ -63,8 +63,8 @@ export default function ShowcasesPage() {
           const positions = {}
           const containerWidth = window.innerWidth
           const containerHeight = window.innerHeight
-          const cardWidth = 210  // 25% smaller (280 * 0.75)
-          const cardHeight = 294 // 25% smaller (392 * 0.75)
+          const cardWidth = 294  // landscape
+          const cardHeight = 210
           const padding = 50
 
           leaders.forEach((leader, index) => {
@@ -149,8 +149,8 @@ export default function ShowcasesPage() {
 
     const containerWidth = window.innerWidth
     const containerHeight = window.innerHeight
-    const cardWidth = 210
-    const cardHeight = 294
+    const cardWidth = 294
+    const cardHeight = 210
 
     setCardPositions(prev => ({
       ...prev,
@@ -202,8 +202,8 @@ export default function ShowcasesPage() {
     const touch = e.touches[0]
     const containerWidth = window.innerWidth
     const containerHeight = window.innerHeight
-    const cardWidth = 210
-    const cardHeight = 294
+    const cardWidth = 294
+    const cardHeight = 210
 
     setCardPositions(prev => ({
       ...prev,
