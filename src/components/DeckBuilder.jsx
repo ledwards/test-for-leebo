@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import './DeckBuilder.css'
 import './AspectIcons.css'
 import { getCachedCards, isCacheInitialized, initializeCardCache } from '../utils/cardCache'
+import { buildBaseCardMap as buildBaseCardMapUtil, getBaseCardId as getBaseCardIdUtil } from '../utils/variantDowngrade'
 import { fetchSetCards } from '../utils/api'
 import { useAuth } from '../contexts/AuthContext'
 import { getAspectColor } from '../utils/aspectColors'
@@ -2516,74 +2517,16 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   }
 
   // Extract the card number from an ID like "SEC-246" or "SEC_1002"
-  const getCardNumber = useCallback((id) => {
-    const match = id?.match(/(\d+)/)
-    return match ? parseInt(match[1], 10) : Infinity
-  }, [])
+  // Build base card map for the current set (memoized)
+  // Uses the robust utility that filters by variantType === 'Normal'
+  const baseCardMap = useMemo(() => {
+    return buildBaseCardMapUtil(setCode)
+  }, [setCode])
 
-  // Check if a card ID number is a variant (Hyperspace 1000+, Showcase 253+, etc.)
-  const isVariantNumber = useCallback((num) => {
-    return num >= 253
-  }, [])
-
-  // Build a map of card name+type -> base card (the non-variant version)
-  // Uses name+type as key to avoid mapping Units to Leaders with the same name
-  const buildBaseCardMap = useCallback(() => {
-    const cards = getCachedCards(setCode)
-    if (!cards) return new Map()
-
-    const nameTypeToBaseCard = new Map()
-
-    cards.forEach(card => {
-      // Use name + type as key to distinguish Units from Leaders with same name
-      // e.g., "Emperor Palpatine" exists as both a Leader and a Unit
-      const key = `${card.name}|${card.type}`
-      const existing = nameTypeToBaseCard.get(key)
-      const cardNum = getCardNumber(card.id)
-      const existingNum = existing ? getCardNumber(existing.id) : Infinity
-
-      // Prefer non-variant cards (number < 253) over variant cards
-      // If both same type, prefer lower number
-      const cardIsVariant = isVariantNumber(cardNum)
-      const existingIsVariant = isVariantNumber(existingNum)
-
-      if (!existing ||
-          (!cardIsVariant && existingIsVariant) ||
-          (cardIsVariant === existingIsVariant && cardNum < existingNum)) {
-        nameTypeToBaseCard.set(key, card)
-      }
-    })
-
-    return nameTypeToBaseCard
-  }, [setCode, getCardNumber, isVariantNumber])
-
-  // Convert card ID to standard format (dash to underscore, strip suffixes)
-  const normalizeId = useCallback((id) => {
-    if (!id) return id
-    let baseId = id.replace(/-/g, '_')
-    baseId = baseId.replace(/_Foil$/, '')
-    baseId = baseId.replace(/_Hyperspace$/, '')
-    baseId = baseId.replace(/_HyperFoil$/, '')
-    baseId = baseId.replace(/_Showcase$/, '')
-    return baseId
-  }, [])
-
-  // Convert card to base card ID for export
-  // Looks up the base (non-variant) card by name+type and returns its normalized ID
+  // Get base card ID for export (converts variants to Normal equivalent)
   const getBaseCardId = useCallback((card) => {
-    if (!card) return null
-
-    const baseCardMap = buildBaseCardMap()
-    // Use name + type as key to find the correct base card
-    const key = `${card.name}|${card.type}`
-    const baseCard = baseCardMap?.get(key)
-    if (baseCard) {
-      return normalizeId(baseCard.id)
-    }
-
-    // Fallback: just normalize the card's own ID
-    return normalizeId(card.id)
-  }, [buildBaseCardMap, normalizeId])
+    return getBaseCardIdUtil(card, baseCardMap)
+  }, [baseCardMap])
 
   // Convert card ID from hyphen format (SOR-015) to underscore format (SOR_015)
   // Note: This simple conversion is only used internally - for export, use getBaseCardId
