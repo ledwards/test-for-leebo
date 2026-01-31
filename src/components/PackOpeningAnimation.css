@@ -477,7 +477,7 @@
 }
 
 .pack-item-mobile.fading {
-  animation: pack-fade-out 0.5s ease 0.5s forwards !important;
+  animation: pack-fade-out 0.5s ease 0s forwards !important;
 }
 
 .pack-wrapper-mobile {
