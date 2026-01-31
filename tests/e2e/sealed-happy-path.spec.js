@@ -1,6 +1,7 @@
 // @ts-check
 import { test, expect, chromium } from '@playwright/test'
 import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.js'
+import { waitForCardsToLoad } from './helpers.js'
 
 /**
  * Full Sealed Happy Path E2E test
@@ -115,8 +116,8 @@ test.describe('Sealed happy path', () => {
     // === STEP 3: View pool cards ===
     console.log('\n--- STEP 3: Viewing pool cards ---')
 
-    // Wait for cards to load
-    await page.waitForSelector('.card-image, .pool-card', { timeout: 30000 })
+    // Wait for cards to load (handles pack opening animation if present)
+    await waitForCardsToLoad(page)
     await page.waitForTimeout(2000) // Let all cards render
 
     const cardCount = await page.locator('.card-image, .pool-card').count()

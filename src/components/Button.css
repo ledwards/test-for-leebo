@@ -37,6 +37,13 @@ a.btn:active {
 }
 
 /* Size variants */
+.btn--xs {
+  height: 28px;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
 .btn--sm {
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
@@ -108,6 +115,21 @@ a.btn:active {
   border-color: rgba(33, 150, 243, 0.8);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(33, 150, 243, 0.6);
+}
+
+/* Variant: Warning (red "disabled" look - for action required states) */
+.btn--warning {
+  background: rgba(100, 0, 0, 0.3);
+  border: 1px solid rgba(255, 0, 0, 0.6);
+  color: rgba(255, 200, 200, 1);
+  opacity: 0.85;
+  cursor: default;
+}
+
+.btn--warning:hover {
+  /* No hover effects - looks disabled */
+  transform: none;
+  box-shadow: none;
 }
 
 /* Variant: Discord */
@@ -213,8 +235,28 @@ a.btn:active {
   text-shadow: 0 0 8px rgba(255, 100, 100, 0.5);
 }
 
+/* Custom glow color (set via glowColor prop) */
+.btn--custom-glow {
+  --glow-r: 33;
+  --glow-g: 150;
+  --glow-b: 243;
+}
+
+.btn--custom-glow:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.6);
+}
+
 /* Mobile adjustments */
 @media (max-width: 768px) {
+  .btn--xs {
+    height: 26px;
+    padding: 0 0.4rem;
+    font-size: 0.7rem;
+  }
+
   .btn--sm {
     padding: 0.4rem 0.8rem;
     font-size: 0.85rem;

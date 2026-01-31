@@ -188,9 +188,42 @@ export async function mockAuth(page, user = { id: 'test-user-123', username: 'Te
 
 /**
  * Wait for cards to load on the page
+ * Handles pack opening animation by clicking skip button if present
  * @param {import('@playwright/test').Page} page
  */
 export async function waitForCardsToLoad(page) {
+  // Give page a moment to render
+  await page.waitForTimeout(500)
+
+  // Try to skip pack opening animation if present (multiple attempts for reliability)
+  for (let attempt = 0; attempt < 3; attempt++) {
+    // Check for skip button or Open All button (indicators of pack opening animation)
+    const skipButton = page.locator('.skip-button, button:has-text(">>")').first()
+    const openAllButton = page.locator('button:has-text("Open All")').first()
+
+    const skipVisible = await skipButton.isVisible().catch(() => false)
+    const openAllVisible = await openAllButton.isVisible().catch(() => false)
+
+    if (skipVisible || openAllVisible) {
+      // Pack opening animation is showing - click skip button
+      if (skipVisible) {
+        await skipButton.click()
+        // Wait for animation transition
+        await page.waitForTimeout(800)
+      } else if (openAllVisible) {
+        // If skip not visible but Open All is, we might be on mobile - look for skip again
+        const mobileSkip = page.locator('button').filter({ hasText: '>>' }).first()
+        if (await mobileSkip.isVisible().catch(() => false)) {
+          await mobileSkip.click()
+          await page.waitForTimeout(800)
+        }
+      }
+    } else {
+      // No animation detected, break out of retry loop
+      break
+    }
+  }
+
   // Wait for card images or card placeholders to appear
   await page.waitForSelector('.card-image, .card-placeholder, .set-card', { timeout: 30000 })
 }
