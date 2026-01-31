@@ -7,11 +7,11 @@
 - Mon Mothma ignores aspect penalty on Officials. Hera Syndulla (SOR) ignores aspect penalties on Spectres. Will have to consider how to handle optional aspect penalty ignoring leaders like Anakin Skywalker (LOF) and Hera Syndulla (LAW).
 
 ### 🎨 UI Improvements
-- Mobile: Set selector now shows newest sets first (SEC at top, SOR at bottom)
-- Mobile: Pack opening redesigned as a carousel - tap the active pack to open it
-- Mobile: Cards from opened packs now fit on screen (leader/base at top, 14 cards in 3 rows below)
+- Mobile: Overhauled pack opening with carousel layout and cards that fit on screen
+- Mobile: Deckbuilder redesigned with full-width blocks and streamlined controls
 
 ### 📦 Pack/Data Changes
+- Card data now sourced from swuapi.com, derived directly from the official starwarsunlimited.com - the only canonical source
 - Hyperspace Foil variants now properly appear in booster packs at ~1/50 rate
 - Improved variant downgrade for deck exports (foil/hyperspace cards correctly map to base versions)
 
