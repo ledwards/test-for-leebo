@@ -362,6 +362,29 @@ export default function ShowcasesPage() {
     document.body.removeChild(link)
   }
 
+  // Share the image using Web Share API
+  const handleShare = async () => {
+    if (!imageModalUrl) return
+    try {
+      const response = await fetch(imageModalUrl)
+      const blob = await response.blob()
+      const file = new File([blob], 'showcase-collection.png', { type: 'image/png' })
+
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'My Showcase Collection',
+          text: 'Check out my Showcase Collection on Protect the Pod!'
+        })
+      } else {
+        // Fallback: copy image URL or download
+        handleDownload()
+      }
+    } catch (error) {
+      console.error('Share failed:', error)
+    }
+  }
+
   // Close modal and cleanup
   const closeImageModal = () => {
     if (imageModalUrl) {
@@ -494,6 +517,15 @@ export default function ShowcasesPage() {
             <div className="showcase-image-modal-actions">
               <button className="showcase-image-modal-download" onClick={handleDownload}>
                 Download
+              </button>
+              <button className="showcase-image-modal-share" onClick={handleShare} title="Share">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="18" cy="5" r="3"/>
+                  <circle cx="6" cy="12" r="3"/>
+                  <circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
               </button>
             </div>
           </div>
