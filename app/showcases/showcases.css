@@ -232,6 +232,7 @@
   opacity: 0.9;
   pointer-events: none;
   animation: foil-shimmer 4s linear infinite;
+  animation-delay: var(--animation-delay, 0s);
   filter: blur(12px);
   border-radius: 15px;
 }

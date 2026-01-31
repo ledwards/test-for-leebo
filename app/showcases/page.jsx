@@ -398,6 +398,8 @@ export default function ShowcasesPage() {
         const isDragging = draggingCard === leader.id
         const cardData = getCardData(leader)
         const currentRotation = isDragging ? pos.rotation + dragRotation : pos.rotation
+        // Stagger animation by random delay (consistent per card using id as seed)
+        const animationDelay = ((leader.id * 137) % 1000) / 1000
 
         return (
           <div
@@ -409,7 +411,8 @@ export default function ShowcasesPage() {
               zIndex: pos.zIndex,
               transform: `rotate(${currentRotation}deg)`,
               cursor: isDragging ? 'grabbing' : 'grab',
-              '--aspect-color': cardData.aspectColor
+              '--aspect-color': cardData.aspectColor,
+              '--animation-delay': `${animationDelay}s`
             }}
             onMouseDown={(e) => handleMouseDown(leader.id, e)}
             onTouchStart={(e) => handleTouchStart(leader.id, e)}
