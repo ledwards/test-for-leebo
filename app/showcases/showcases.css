@@ -183,24 +183,25 @@
   border-radius: 15px;
 }
 
-/* Front image: landscape dims with rotation */
+/* Front image: landscape dims, no rotation */
 .showcase-card-front .showcase-card-image {
   width: 294px;
   height: 210px;
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg);
+  transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
-/* Back image: portrait dims to fill container */
+/* Back image: portrait dims with rotation */
 .showcase-card-back .showcase-card-image {
   width: 100%;
   height: 100%;
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
   object-fit: cover;
   pointer-events: none;
 }
