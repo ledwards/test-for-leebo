@@ -136,7 +136,7 @@
 }
 
 .showcase-card:not(.dragging) {
-  transition: transform 0.1s ease;
+  transition: transform 0.3s ease-out;
 }
 
 .showcase-card-inner {

@@ -19,6 +19,8 @@ export default function ShowcasesPage() {
   const [draggingCard, setDraggingCard] = useState(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [hasDragged, setHasDragged] = useState(false)
+  const [dragRotation, setDragRotation] = useState(0)
+  const lastPosRef = useRef({ x: 0, y: 0 })
   const containerRef = useRef(null)
 
   // Redirect if not logged in
@@ -124,10 +126,12 @@ export default function ShowcasesPage() {
 
     setDraggingCard(cardId)
     setHasDragged(false)
+    setDragRotation(0)
     setDragOffset({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
     })
+    lastPosRef.current = { x: e.clientX, y: e.clientY }
 
     // Bring card to front
     setCardPositions(prev => {
@@ -146,6 +150,14 @@ export default function ShowcasesPage() {
     if (!draggingCard) return
 
     setHasDragged(true)
+
+    // Calculate velocity for rotation effect
+    const velocityX = e.clientX - lastPosRef.current.x
+    lastPosRef.current = { x: e.clientX, y: e.clientY }
+
+    // Apply rotation based on horizontal velocity (clamped to reasonable range)
+    const newRotation = Math.max(-15, Math.min(15, velocityX * 0.8))
+    setDragRotation(newRotation)
 
     const containerWidth = window.innerWidth
     const containerHeight = window.innerHeight
@@ -167,6 +179,7 @@ export default function ShowcasesPage() {
       e.preventDefault()
     }
     setDraggingCard(null)
+    setDragRotation(0)
   }, [draggingCard])
 
   // Touch handlers for mobile
@@ -177,10 +190,12 @@ export default function ShowcasesPage() {
 
     setDraggingCard(cardId)
     setHasDragged(false)
+    setDragRotation(0)
     setDragOffset({
       x: touch.clientX - rect.left,
       y: touch.clientY - rect.top
     })
+    lastPosRef.current = { x: touch.clientX, y: touch.clientY }
 
     setCardPositions(prev => {
       const maxZ = Math.max(...Object.values(prev).map(p => p.zIndex || 0))
@@ -200,6 +215,15 @@ export default function ShowcasesPage() {
     setHasDragged(true)
 
     const touch = e.touches[0]
+
+    // Calculate velocity for rotation effect
+    const velocityX = touch.clientX - lastPosRef.current.x
+    lastPosRef.current = { x: touch.clientX, y: touch.clientY }
+
+    // Apply rotation based on horizontal velocity (clamped to reasonable range)
+    const newRotation = Math.max(-15, Math.min(15, velocityX * 0.8))
+    setDragRotation(newRotation)
+
     const containerWidth = window.innerWidth
     const containerHeight = window.innerHeight
     const cardWidth = 294
@@ -217,6 +241,7 @@ export default function ShowcasesPage() {
 
   const handleTouchEnd = useCallback(() => {
     setDraggingCard(null)
+    setDragRotation(0)
   }, [])
 
   // Global mouse/touch listeners
@@ -290,6 +315,7 @@ export default function ShowcasesPage() {
         const isFlipped = flippedCards[leader.id]
         const isDragging = draggingCard === leader.id
         const cardData = getCardData(leader)
+        const currentRotation = isDragging ? pos.rotation + dragRotation : pos.rotation
 
         return (
           <div
@@ -299,7 +325,7 @@ export default function ShowcasesPage() {
               left: pos.x,
               top: pos.y,
               zIndex: pos.zIndex,
-              transform: `rotate(${pos.rotation}deg)`,
+              transform: `rotate(${currentRotation}deg)`,
               cursor: isDragging ? 'grabbing' : 'grab',
               '--aspect-color': cardData.aspectColor
             }}
