@@ -311,7 +311,7 @@ export default function ShowcasesPage() {
               <div className="showcase-card-front">
                 <div className="showcase-card-image-container">
                   <img
-                    src={cardData.frontImage}
+                    src={cardData.backImage}
                     alt={`${leader.cardName}${leader.cardSubtitle ? ` - ${leader.cardSubtitle}` : ''}`}
                     className="showcase-card-image"
                     draggable={false}
@@ -322,7 +322,7 @@ export default function ShowcasesPage() {
               <div className="showcase-card-back">
                 <div className="showcase-card-image-container">
                   <img
-                    src={cardData.backImage}
+                    src={cardData.frontImage}
                     alt={`${leader.cardName} - Deployed`}
                     className="showcase-card-image"
                     draggable={false}
