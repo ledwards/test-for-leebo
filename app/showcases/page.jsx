@@ -47,8 +47,9 @@ export default function ShowcasesPage() {
 
         const response = await fetch(`/api/users/${user.id}/showcase-leaders`)
         if (response.ok) {
-          const data = await response.json()
-          setShowcases(data.showcaseLeaders || [])
+          const result = await response.json()
+          const leaders = result.data?.showcaseLeaders || result.showcaseLeaders || []
+          setShowcases(leaders)
 
           // Initialize random positions for each card
           const positions = {}
@@ -58,10 +59,10 @@ export default function ShowcasesPage() {
           const cardHeight = 392
           const padding = 50
 
-          data.showcaseLeaders?.forEach((leader, index) => {
+          leaders.forEach((leader, index) => {
             // Spread cards across the viewport with some randomness
-            const gridCols = Math.ceil(Math.sqrt(data.showcaseLeaders.length))
-            const gridRows = Math.ceil(data.showcaseLeaders.length / gridCols)
+            const gridCols = Math.ceil(Math.sqrt(leaders.length))
+            const gridRows = Math.ceil(leaders.length / gridCols)
             const cellWidth = (containerWidth - padding * 2) / gridCols
             const cellHeight = (containerHeight - padding * 2) / gridRows
 
@@ -236,10 +237,10 @@ export default function ShowcasesPage() {
       <div className="showcases-page">
         <div className="showcases-empty">
           <h2>No Showcase Leaders Yet</h2>
-          <p>Open packs to find rare Showcase Leaders!</p>
+          <p>Play Sealed to find rare Showcase Leaders!</p>
           <p className="showcases-hint">Showcase leaders appear in approximately 1 in 288 packs.</p>
           <button className="showcases-back-button" onClick={() => router.push('/sets')}>
-            Open Packs
+            Play Sealed
           </button>
         </div>
       </div>
