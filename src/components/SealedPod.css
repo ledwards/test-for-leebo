@@ -298,9 +298,11 @@
   aspect-ratio: 3.5 / 2.5;
 }
 
+/* Sealed mode: leaders and bases use same dimensions as regular cards (portrait) */
 .sealed-mode .card-item.leader,
 .sealed-mode .card-item.base {
   width: 120px;
+  aspect-ratio: 2.5 / 3.5;
 }
 
 
@@ -366,16 +368,11 @@
   aspect-ratio: 3.5 / 2.5;
 }
 
-/* Rotate leaders and bases images 90 degrees CCW in sealed mode */
+/* Sealed mode: leaders and bases use normal portrait display (no rotation) */
 .sealed-mode .card-item.leader .card-placeholder,
 .sealed-mode .card-item.base .card-placeholder {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  height: 120px;
-  width: auto;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  transform-origin: center;
+  width: 100%;
+  height: 100%;
 }
 
 .card-item.foil {
@@ -510,16 +507,12 @@
   object-fit: cover;
 }
 
-/* Rotate leaders and bases actual images 90 degrees CCW in sealed mode */
+/* Sealed mode: leaders and bases use normal portrait display (no rotation) */
 .sealed-mode .card-item.leader .card-image,
 .sealed-mode .card-item.base .card-image {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  height: 120px;
-  width: auto;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  transform-origin: center;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .card-placeholder {
@@ -642,39 +635,26 @@
     aspect-ratio: 3.5 / 2.5;
   }
 
+  /* Sealed mode: leaders and bases same as regular cards (portrait, no rotation) */
   .sealed-mode .card-item.leader,
   .sealed-mode .card-item.base {
     width: 45%;
     max-width: 45%;
     flex: 0 0 45%;
-    aspect-ratio: 3.5 / 2.5;
-    overflow: hidden;
-    position: relative;
+    aspect-ratio: 2.5 / 3.5;
   }
 
-  /* Leaders/bases rotated 90deg CCW on mobile to show landscape */
   .sealed-mode .card-item.leader .card-image,
   .sealed-mode .card-item.base .card-image {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: auto;
-    height: 140%;
-    transform: translate(-50%, -50%) rotate(-90deg);
-    transform-origin: center;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .sealed-mode .card-item.leader .card-placeholder,
   .sealed-mode .card-item.base .card-placeholder {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: auto;
-    height: 140%;
-    transform: translate(-50%, -50%) rotate(-90deg);
-    transform-origin: center;
-    aspect-ratio: 2.5 / 3.5;
+    width: 100%;
+    height: 100%;
   }
 
   /* Disable hover zoom effect on mobile */
