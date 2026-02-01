@@ -104,7 +104,12 @@
 
 #### LOW PRIORITY (Polish)
 
-8. **Unit tests for components** (~4+ hours)
+8. ~~**Unit tests for components**~~ ✓ COMPLETE
+   - cardSort.test.js (42 tests)
+   - aspectCombinations.test.js (22 tests)
+   - useTooltip.test.js (2 tests)
+   - useCardPreview.test.js (2 tests)
+   - Added test:hooks npm script
 9. **Final cleanup and dead code removal** (~2 hours)
 10. **Replace remaining List View table headers with ListTableHeader** (~2 hours)
 
