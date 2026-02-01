@@ -9,6 +9,7 @@
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
 import { SectionHeader } from './SectionHeader'
 import { GroupHeader } from './GroupHeader'
+import { CardGrid } from './CardGrid'
 import Button from '../Button'
 import { sortGroupKeys, createGetGroupKey, createDefaultSortFn, createGroupCardSortFn } from '../../utils/cardSort'
 import { calculateAspectPenalty } from '../../services/cards/aspectPenalties'
@@ -80,9 +81,11 @@ export function DeckSection({
       return (
         <div className="card-block deck-flat-container" style={{ width: '100%' }}>
           <div className="card-block-content">
-            <div className="cards-grid">
-              {groupedCards.map(group => renderCardStack(group, createCardRenderer(leaderCard, baseCard, { showDisabled: true })))}
-            </div>
+            <CardGrid
+              groups={groupedCards}
+              renderCardStack={renderCardStack}
+              renderCard={createCardRenderer(leaderCard, baseCard, { showDisabled: true })}
+            />
           </div>
         </div>
       )
@@ -164,9 +167,11 @@ export function DeckSection({
                 </Button>
               </div>
               {expanded && <div className="card-block-content">
-                <div className="cards-grid">
-                  {groupedByName.map(group => renderCardStack(group, createCardRenderer(leaderCard, baseCard, { showDisabled: true })))}
-                </div>
+                <CardGrid
+                  groups={groupedByName}
+                  renderCardStack={renderCardStack}
+                  renderCard={createCardRenderer(leaderCard, baseCard, { showDisabled: true })}
+                />
               </div>}
             </div>
           )
