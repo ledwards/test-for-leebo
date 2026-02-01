@@ -3,14 +3,17 @@
 ## 02.01.2026
 
 ### 📦 Pack Generation
-- **Seam-aware belt refill**: Belt now refills when it has exactly `drawSize` cards left, using the remaining cards to inform the first segment of the new boot. This guarantees 100% aspect coverage even across belt refill boundaries.
-- Removed `ensureAspectCoverage` post-hoc fix in favor of proper belt construction (manufacturing principle)
+- **Incorporated results from data collection efforts**: Thanks to the Discord community for their contributions, we now fill the common slots in booster packs in a way much more closely resembling physical packs.
+- **Improved belt refill**: Updated the way belts refill themselves from printer sheets to ensure constraints across the "seams". End result is 100% compliance with collation rules such as distance between duplicates and aspect diversity.
 
 ### 🔧 Maintenance
 - Added comprehensive QA tests for seam-aware belt behavior
-- Documentation audit: moved planning docs to `plans/`, deleted obsolete duplicates, updated docs with seam-aware refill documentation
+- Documentation audit: Improved documentation for code generation agents
 
-## 01.31.2026
+### 🤖 AI Players
+- Added list of most powerful cards in the SEC limited format based on great videos by wooooo and Thorkk. Drafting bots will favor these powerful cards in their aspects.
+
+- ## 01.31.2026
 
 ### 🎉 New Features
 - **Easter egg**: If you can find it...
@@ -125,6 +128,7 @@ Additionally, we've got a Discord now: [https://discord.gg/u6fkdDzWqF](https://d
    - 🔧 Maintenance
    - 📦 Pack Changes
    - 💽 Data Changes
+   - 🤖 AI Players
 4. Keep entries concise and user-friendly
 
 Run `node scripts/postbuild.js` to update the release notes on website.
