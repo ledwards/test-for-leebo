@@ -37,6 +37,7 @@ import { getCardTypeOrder, getTypeStringOrder, sortGroupKeys, createGetGroupKey,
 import { getRarityColor } from '../utils/aspectColors'
 import { useDeckExport } from '../hooks/useDeckExport'
 import { useDragAndDrop } from '../hooks/useDragAndDrop'
+import { useCardPreview } from '../hooks/useCardPreview'
 import {
   getAspectCombinationKey as getAspectCombinationKeyUtil,
   getAspectCombinationDisplayName as getAspectCombinationDisplayNameUtil,
@@ -247,13 +248,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
   }, [leaderCard, baseCard, shareId, poolCreatedAt, updatePoolName])
   const [deckImageModal, setDeckImageModal] = useState(null) // URL for deck image modal
-  const [hoveredCardPreview, setHoveredCardPreview] = useState(null) // { card, x, y } for enlarged preview
+  // Card preview handled by useCardPreview hook
   const [tooltip, setTooltip] = useState({ show: false, text: '', x: 0, y: 0 })
   const tooltipTimeoutRef = useRef(null)
   const longPressTimeoutRef = useRef(null)
   const modalHoverTimeoutRef = useRef(null)
-  const previewTimeoutRef = useRef(null)
-  const previewHideTimeoutRef = useRef(null)
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
   const infoBarRef = useRef(null)
@@ -282,34 +281,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     canvasRef,
   })
 
-  // Clear preview on visibility change (tab switch) or scroll
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        setHoveredCardPreview(null)
-        if (previewTimeoutRef.current) {
-          clearTimeout(previewTimeoutRef.current)
-          previewTimeoutRef.current = null
-        }
-      }
-    }
-
-    const handleScroll = () => {
-      setHoveredCardPreview(null)
-      if (previewTimeoutRef.current) {
-        clearTimeout(previewTimeoutRef.current)
-        previewTimeoutRef.current = null
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('scroll', handleScroll, true)
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('scroll', handleScroll, true)
-    }
-  }, [])
+  // Card preview handling
+  const {
+    hoveredCardPreview,
+    handleCardMouseEnter,
+    handleCardMouseLeave,
+    handlePreviewMouseEnter,
+    handlePreviewMouseLeave,
+  } = useCardPreview()
 
   // Tooltip handlers
   const showTooltip = (text, event) => {
@@ -370,114 +349,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       clearTimeout(longPressTimeoutRef.current)
       longPressTimeoutRef.current = null
     }
-  }
-
-  // Enlarged preview hover handlers
-  const handleCardMouseEnter = (card, event) => {
-    if (!event) return
-
-    // DISABLE enlarged preview on mobile/touch devices
-    if (window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
-      return
-    }
-
-    // Clear any existing show timeout
-    if (previewTimeoutRef.current) {
-      clearTimeout(previewTimeoutRef.current)
-    }
-    // Cancel any pending hide timeout
-    if (previewHideTimeoutRef.current) {
-      clearTimeout(previewHideTimeoutRef.current)
-      previewHideTimeoutRef.current = null
-    }
-
-    // Capture the rect immediately (before timeout)
-    const rect = event.currentTarget.getBoundingClientRect()
-
-    // Set timeout to show preview after hovering
-    previewTimeoutRef.current = setTimeout(() => {
-      // Position the preview near the card (to the right, or left if too close to right edge)
-      let previewX = rect.right + 20
-      const previewY = rect.top
-
-      // Calculate preview dimensions based on card type
-      // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
-      // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
-      // Leaders with back: front horizontal (504x360) + back vertical (360x504) side by side
-      const isHorizontal = card.isLeader || card.isBase
-      const hasBackImage = card.backImageUrl && card.isLeader
-      let previewWidth, previewHeight
-      if (hasBackImage) {
-        // Leader with back: side by side (horizontal front + vertical back)
-        previewWidth = 504 + 360 + 20 // 504px front + 360px back + 20px gap
-        previewHeight = 504 // Max height (vertical back is 504px)
-      } else {
-        previewWidth = isHorizontal ? 504 : 360
-        previewHeight = isHorizontal ? 360 : 504
-      }
-
-      // Ensure preview stays within viewport bounds
-      // Check right edge
-      if (previewX + previewWidth > window.innerWidth) {
-        // Try positioning to the left of the card
-        previewX = rect.left - previewWidth - 20
-        // If still off screen to the left, clamp to left edge
-        if (previewX < 0) {
-          previewX = 10 // Small margin from left edge
-        }
-      }
-
-      // Check left edge
-      if (previewX < 0) {
-        previewX = 10 // Small margin from left edge
-      }
-
-      // Adjust vertical position to keep preview within viewport
-      // previewY is the center point (due to translateY(-50%))
-      const previewTop = previewY - previewHeight / 2
-      const previewBottom = previewY + previewHeight / 2
-      let adjustedY = previewY
-
-      // Check top edge
-      if (previewTop < 0) {
-        adjustedY = previewHeight / 2 + 10 // Position so top is 10px from top
-      }
-
-      // Check bottom edge
-      if (previewBottom > window.innerHeight) {
-        adjustedY = window.innerHeight - previewHeight / 2 - 10 // Position so bottom is 10px from bottom
-      }
-
-      setHoveredCardPreview({ card, x: previewX, y: adjustedY })
-    }, 400)
-  }
-
-  const handleCardMouseLeave = () => {
-    // Clear the show timeout if it exists (preview hasn't shown yet)
-    if (previewTimeoutRef.current) {
-      clearTimeout(previewTimeoutRef.current)
-      previewTimeoutRef.current = null
-    }
-
-    // Hide the preview immediately
-    setHoveredCardPreview(null)
-  }
-
-  const handlePreviewMouseEnter = () => {
-    // Cancel the hide timeout when entering the preview
-    if (previewHideTimeoutRef.current) {
-      clearTimeout(previewHideTimeoutRef.current)
-      previewHideTimeoutRef.current = null
-    }
-  }
-
-  const handlePreviewMouseLeave = () => {
-    // Clear immediately when leaving the preview
-    if (previewHideTimeoutRef.current) {
-      clearTimeout(previewHideTimeoutRef.current)
-      previewHideTimeoutRef.current = null
-    }
-    setHoveredCardPreview(null)
   }
 
   // Toggle a card between deck and sideboard sections
