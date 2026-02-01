@@ -3,6 +3,7 @@
  *
  * Combines a filter button with the AspectFilterModal.
  * Used in both Deck and Pool section headers.
+ * AspectFilterModal gets most props from DeckBuilderContext.
  */
 
 import Button from '../Button'
@@ -13,13 +14,9 @@ export function FilterWithModal({
   onToggle,
   onClose,
   mode = 'deck',
-  cardPositions,
-  onMoveCards,
-  activeLeader,
-  activeBase,
-  filterAspectsExpanded,
-  onFilterAspectsExpandedChange,
   cardCount,
+  // Only pass props that override context defaults
+  onFilterAspectsExpandedChange,
 }) {
   return (
     <div style={{ position: 'relative' }}>
@@ -43,11 +40,6 @@ export function FilterWithModal({
         isOpen={isOpen}
         onClose={onClose}
         mode={mode}
-        cardPositions={cardPositions}
-        onMoveCards={onMoveCards}
-        activeLeader={activeLeader}
-        activeBase={activeBase}
-        filterAspectsExpanded={filterAspectsExpanded}
         onFilterAspectsExpandedChange={onFilterAspectsExpandedChange}
         cardCount={cardCount}
       />
