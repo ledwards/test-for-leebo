@@ -27,7 +27,7 @@
     "test:fixes": "node src/utils/cardFixes.test.js",
     "test:data": "node src/data/cards.test.js; node src/data/cardCounts.test.js",
     "test:counts": "node src/data/cardCounts.test.js",
-    "qa": "node src/qa/packGeneration.test.js",
+    "qa": "node src/qa/packGeneration.test.js && node src/qa/beltSlotAspects.test.js && node src/qa/seamAwareBelt.test.js",
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
     "test:e2e:headed": "npx playwright test --headed",

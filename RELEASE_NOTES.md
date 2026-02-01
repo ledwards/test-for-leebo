@@ -1,5 +1,15 @@
 # Release Notes
 
+## 02.01.2026
+
+### 📦 Pack Generation
+- **Seam-aware belt refill**: Belt now refills when it has exactly `drawSize` cards left, using the remaining cards to inform the first segment of the new boot. This guarantees 100% aspect coverage even across belt refill boundaries.
+- Removed `ensureAspectCoverage` post-hoc fix in favor of proper belt construction (manufacturing principle)
+
+### 🔧 Maintenance
+- Added comprehensive QA tests for seam-aware belt behavior
+- Documentation audit: moved planning docs to `plans/`, deleted obsolete duplicates, updated docs with seam-aware refill documentation
+
 ## 01.31.2026
 
 ### 🎉 New Features

@@ -369,6 +369,9 @@ async function runQA(silentMode = false) {
       }
 
       // Check for pods that are statistical outliers (>3σ)
+      // With 100 pods per set, we expect ~0.3 outliers (0.3% at 3σ)
+      // Allow up to 2 outliers as normal statistical variance
+      const MAX_ALLOWED_OUTLIERS = 2
       const outliers = []
       pods.forEach((pod, i) => {
         const dupCount = podDuplicateCounts[i]
@@ -377,12 +380,12 @@ async function runQA(silentMode = false) {
         }
       })
 
-      if (outliers.length > 0) {
+      if (outliers.length > MAX_ALLOWED_OUTLIERS) {
         const examples = outliers.slice(0, 3).map(o =>
           `Pod ${o.index}: ${o.count} duplicates (z=${o.zScore})`
         ).join(', ')
         throw new Error(
-          `Found ${outliers.length} pods with extreme duplicate counts (>3σ). Examples: ${examples}`
+          `Found ${outliers.length} pods with extreme duplicate counts (>3σ), exceeds ${MAX_ALLOWED_OUTLIERS} allowed. Examples: ${examples}`
         )
       }
     })
@@ -400,6 +403,9 @@ async function runQA(silentMode = false) {
       }
 
       // Check for pods that are statistical outliers (>3σ)
+      // With 100 pods per set, we expect ~0.3 outliers (0.3% at 3σ)
+      // Allow up to 2 outliers as normal statistical variance
+      const MAX_ALLOWED_OUTLIERS = 2
       const outliers = []
       pods.forEach((pod, i) => {
         const tripCount = podTriplicateCounts[i]
@@ -408,12 +414,12 @@ async function runQA(silentMode = false) {
         }
       })
 
-      if (outliers.length > 0) {
+      if (outliers.length > MAX_ALLOWED_OUTLIERS) {
         const examples = outliers.slice(0, 3).map(o =>
           `Pod ${o.index}: ${o.count} triplicates (z=${o.zScore})`
         ).join(', ')
         throw new Error(
-          `Found ${outliers.length} pods with extreme triplicate counts (>3σ). Examples: ${examples}`
+          `Found ${outliers.length} pods with extreme triplicate counts (>3σ), exceeds ${MAX_ALLOWED_OUTLIERS} allowed. Examples: ${examples}`
         )
       }
     })

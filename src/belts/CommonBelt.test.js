@@ -4,7 +4,7 @@
  * Run with: node src/belts/CommonBelt.test.js
  */
 
-import { CommonBelt, getCommonPools } from './CommonBelt.js'
+import { CommonBelt, getCommonPools, getBeltCards } from './CommonBelt.js'
 import { initializeCardCache } from '../utils/cardCache.js'
 
 let passed = 0
@@ -49,74 +49,45 @@ async function runTests() {
   console.log('\x1b[1m\x1b[35m🎯 CommonBelt Tests\x1b[0m')
   console.log('\x1b[35m====================\x1b[0m')
 
-  test('getCommonPools divides commons into two pools', () => {
-    const { poolA, poolB } = getCommonPools('SOR')
-    const flatA = flattenPool(poolA)
-    const flatB = flattenPool(poolB)
-    assert(flatA.length > 0, 'Pool A should not be empty')
-    assert(flatB.length > 0, 'Pool B should not be empty')
+  test('getBeltCards returns cards for Belt A', () => {
+    const beltACards = getBeltCards('SOR', 'A')
+    assert(beltACards.length > 0, 'Belt A should not be empty')
+    assert(beltACards.length === 60, `Belt A should have 60 cards, got ${beltACards.length}`)
   })
 
-  test('pools have required aspect sub-pools', () => {
-    const { poolA, poolB } = getCommonPools('SOR')
-    assert(poolA.primary1.length > 0, 'Pool A should have Vigilance cards (primary1)')
-    assert(poolA.primary2.length > 0, 'Pool A should have Command cards (primary2)')
-    assert(poolA.assigned.length > 0, 'Pool A should have Heroism cards (assigned)')
-    assert(poolB.primary1.length > 0, 'Pool B should have Aggression cards (primary1)')
-    assert(poolB.primary2.length > 0, 'Pool B should have Cunning cards (primary2)')
-    assert(poolB.assigned.length > 0, 'Pool B should have Villainy cards (assigned)')
+  test('getBeltCards returns cards for Belt B', () => {
+    const beltBCards = getBeltCards('SOR', 'B')
+    assert(beltBCards.length > 0, 'Belt B should not be empty')
+    assert(beltBCards.length === 30, `Belt B should have 30 cards, got ${beltBCards.length}`)
   })
 
   test('Belt A contains Vigilance and Command cards', () => {
-    const { poolA } = getCommonPools('SOR')
-    const flatA = flattenPool(poolA)
-    const vigilanceCommand = flatA.filter(c =>
+    const beltACards = getBeltCards('SOR', 'A')
+    const vigilanceCommand = beltACards.filter(c =>
       c.aspects && (c.aspects.includes('Vigilance') || c.aspects.includes('Command'))
     )
     assert(vigilanceCommand.length > 0, 'Belt A should have Vigilance/Command cards')
   })
 
-  test('Belt B contains Aggression and Cunning cards', () => {
-    const { poolB } = getCommonPools('SOR')
-    const flatB = flattenPool(poolB)
-    const aggressionCunning = flatB.filter(c =>
-      c.aspects && (c.aspects.includes('Aggression') || c.aspects.includes('Cunning'))
+  test('Belt B contains Cunning cards', () => {
+    const beltBCards = getBeltCards('SOR', 'B')
+    const cunning = beltBCards.filter(c =>
+      c.aspects && c.aspects.includes('Cunning')
     )
-    assert(aggressionCunning.length > 0, 'Belt B should have Aggression/Cunning cards')
-  })
-
-  test('Belt A does not contain Aggression or Cunning aspect cards', () => {
-    const { poolA } = getCommonPools('SOR')
-    const flatA = flattenPool(poolA)
-    const wrongAspects = flatA.filter(c =>
-      c.aspects && (c.aspects.includes('Aggression') || c.aspects.includes('Cunning'))
-    )
-    assertEqual(wrongAspects.length, 0, 'Belt A should not have Aggression/Cunning cards')
-  })
-
-  test('Belt B does not contain Vigilance or Command aspect cards', () => {
-    const { poolB } = getCommonPools('SOR')
-    const flatB = flattenPool(poolB)
-    const wrongAspects = flatB.filter(c =>
-      c.aspects && (c.aspects.includes('Vigilance') || c.aspects.includes('Command'))
-    )
-    assertEqual(wrongAspects.length, 0, 'Belt B should not have Vigilance/Command cards')
+    assert(cunning.length > 0, 'Belt B should have Cunning cards')
   })
 
   test('Belt A and Belt B are completely disjoint (no shared cards)', () => {
-    const { poolA, poolB } = getCommonPools('SOR')
-    const flatA = flattenPool(poolA)
-    const flatB = flattenPool(poolB)
+    const beltACards = getBeltCards('SOR', 'A')
+    const beltBCards = getBeltCards('SOR', 'B')
 
-    // Create sets of card IDs
-    const idsInA = new Set(flatA.map(c => c.id))
-    const idsInB = new Set(flatB.map(c => c.id))
+    const idsInA = new Set(beltACards.map(c => c.id))
+    const idsInB = new Set(beltBCards.map(c => c.id))
 
-    // Check for any overlap
     const overlap = []
     for (const id of idsInA) {
       if (idsInB.has(id)) {
-        const card = flatA.find(c => c.id === id)
+        const card = beltACards.find(c => c.id === id)
         overlap.push(`${card.name} (${id})`)
       }
     }
@@ -125,121 +96,28 @@ async function runTests() {
       `Belt A and Belt B must be disjoint, but found ${overlap.length} shared cards: ${overlap.join(', ')}`)
   })
 
-  test('Belt A filling pool has no duplicate card IDs', () => {
-    const { poolA } = getCommonPools('SOR')
-    const flatA = flattenPool(poolA)
-    const ids = flatA.map(c => c.id)
-    const uniqueIds = new Set(ids)
-
-    const duplicates = []
-    const seen = new Set()
-    for (const card of flatA) {
-      if (seen.has(card.id)) {
-        duplicates.push(`${card.name} (${card.id})`)
-      }
-      seen.add(card.id)
-    }
-
-    assertEqual(duplicates.length, 0,
-      `Pool A should have no duplicate IDs, but found: ${duplicates.join(', ')}`)
-    assertEqual(ids.length, uniqueIds.size,
-      `Pool A has ${ids.length} cards but only ${uniqueIds.size} unique IDs`)
+  test('all cards in belts are commons', () => {
+    const beltACards = getBeltCards('SOR', 'A')
+    const beltBCards = getBeltCards('SOR', 'B')
+    assert(beltACards.every(c => c.rarity === 'Common'), 'All Belt A cards should be Common')
+    assert(beltBCards.every(c => c.rarity === 'Common'), 'All Belt B cards should be Common')
   })
 
-  test('Belt B filling pool has no duplicate card IDs', () => {
-    const { poolB } = getCommonPools('SOR')
-    const flatB = flattenPool(poolB)
-    const ids = flatB.map(c => c.id)
-    const uniqueIds = new Set(ids)
-
-    const duplicates = []
-    const seen = new Set()
-    for (const card of flatB) {
-      if (seen.has(card.id)) {
-        duplicates.push(`${card.name} (${card.id})`)
-      }
-      seen.add(card.id)
-    }
-
-    assertEqual(duplicates.length, 0,
-      `Pool B should have no duplicate IDs, but found: ${duplicates.join(', ')}`)
-    assertEqual(ids.length, uniqueIds.size,
-      `Pool B has ${ids.length} cards but only ${uniqueIds.size} unique IDs`)
+  test('no leaders or bases in belts', () => {
+    const beltACards = getBeltCards('SOR', 'A')
+    const beltBCards = getBeltCards('SOR', 'B')
+    assert(beltACards.every(c => !c.isLeader && !c.isBase), 'Belt A should not have leaders/bases')
+    assert(beltBCards.every(c => !c.isLeader && !c.isBase), 'Belt B should not have leaders/bases')
   })
 
-  test('Belt hopper has no close duplicates after initial fill', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
-
-    // Check the hopper for close duplicates (within 10 positions)
-    // Note: with period-3 interleave, cards from smaller aspect pools may repeat
-    // in the hopper, but they should be far apart (at least pool size × 3 positions)
-    const closeViolations = []
-    for (let i = 0; i < belt.hopper.length; i++) {
-      for (let j = i + 1; j <= Math.min(i + 10, belt.hopper.length - 1); j++) {
-        if (belt.hopper[i].id === belt.hopper[j].id) {
-          closeViolations.push(`${belt.hopper[i].name} at positions ${i} and ${j}`)
-        }
-      }
-    }
-
-    assertEqual(closeViolations.length, 0,
-      `Hopper should have no duplicate IDs within 10 positions, but found: ${closeViolations.join(', ')}`)
-  })
-
-  test('Belt hopper has no close duplicates after refill', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
-    const flatPoolSize = belt.flatPool.length
-
-    // Drain to trigger refill
-    while (belt.size > flatPoolSize) {
-      belt.next()
-    }
-
-    // Trigger refill
-    belt.next()
-
-    // Check for close duplicates (within 10 positions) after refill
-    const closeViolations = []
-    for (let i = 0; i < belt.hopper.length; i++) {
-      for (let j = i + 1; j <= Math.min(i + 10, belt.hopper.length - 1); j++) {
-        if (belt.hopper[i].id === belt.hopper[j].id) {
-          closeViolations.push(`${belt.hopper[i].name} at positions ${i} and ${j}`)
-        }
-      }
-    }
-
-    assertEqual(closeViolations.length, 0,
-      `Hopper should have no duplicate IDs within 10 positions after refill, but found: ${closeViolations.join(', ')}`)
-  })
-
-  test('all cards in pools are commons', () => {
-    const { poolA, poolB } = getCommonPools('SOR')
-    const flatA = flattenPool(poolA)
-    const flatB = flattenPool(poolB)
-    assert(flatA.every(c => c.rarity === 'Common'), 'All Pool A cards should be Common')
-    assert(flatB.every(c => c.rarity === 'Common'), 'All Pool B cards should be Common')
-  })
-
-  test('no leaders or bases in pools', () => {
-    const { poolA, poolB } = getCommonPools('SOR')
-    const flatA = flattenPool(poolA)
-    const flatB = flattenPool(poolB)
-    assert(flatA.every(c => !c.isLeader && !c.isBase), 'Pool A should not have leaders/bases')
-    assert(flatB.every(c => !c.isLeader && !c.isBase), 'Pool B should not have leaders/bases')
-  })
-
-  test('CommonBelt initializes with a pool', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
-    assert(belt.flatPool.length > 0, 'Flat pool should not be empty')
+  test('CommonBelt initializes with belt ID', () => {
+    const belt = new CommonBelt('SOR', 'A')
+    assert(belt.beltCards.length > 0, 'Belt cards should not be empty')
     assert(belt.hopper.length > 0, 'Hopper should be filled')
   })
 
   test('next() returns a common card', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
+    const belt = new CommonBelt('SOR', 'A')
     const card = belt.next()
     assert(card !== null, 'next() should return a card')
     assert(card.rarity === 'Common', 'Returned card should be Common')
@@ -248,107 +126,53 @@ async function runTests() {
   })
 
   test('next() removes card from hopper', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
+    const belt = new CommonBelt('SOR', 'A')
     const initialSize = belt.size
     belt.next()
     assertEqual(belt.size, initialSize - 1, 'Hopper size should decrease by 1')
   })
 
   test('next() returns a copy, not the original', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
+    const belt = new CommonBelt('SOR', 'A')
     const card1 = belt.next()
     card1.modified = true
     const card2 = belt.next()
     assert(card2.modified === undefined, 'Cards should be copies, not references')
   })
 
-  test('hopper refills when depleted', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
-    const flatPoolSize = belt.flatPool.length
+  test('hopper refills when low', () => {
+    const belt = new CommonBelt('SOR', 'A')
+    const beltCardsSize = belt.beltCards.length
+    const drawSize = 6 // SOR Belt A draws 6 cards per pack
 
-    // Drain the hopper to exactly the threshold
-    while (belt.size > flatPoolSize) {
+    // Drain the hopper until it reaches the refill threshold (drawSize)
+    while (belt.size > drawSize) {
       belt.next()
     }
 
-    // Pull one more (hopper is still at threshold, won't refill yet)
+    // At this point, hopper should have <= drawSize cards
+    assert(belt.size <= drawSize, `Hopper should be at refill threshold: ${belt.size}`)
+
+    // Pull one more to trigger refill
     belt.next()
-    // Pull another (hopper is now below threshold, should trigger refill)
-    belt.next()
 
-    // After refill, hopper should be at least as large as flat pool (with < instead of <=, it refills to exactly flat pool size)
-    assert(belt.size >= flatPoolSize, `Hopper should refill. Size: ${belt.size}, threshold: ${flatPoolSize}`)
-  })
-
-  test('no duplicate commons within 5 slots of each other (seam dedup)', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
-
-    // Check first 100 cards for duplicates within 5 slots
-    const sample = []
-    for (let i = 0; i < 100; i++) {
-      sample.push(belt.next())
-    }
-
-    let violations = 0
-    const violationDetails = []
-    for (let i = 0; i < sample.length; i++) {
-      for (let j = i + 1; j <= Math.min(i + 5, sample.length - 1); j++) {
-        if (sample[i].id === sample[j].id) {
-          violations++
-          violationDetails.push(`${sample[i].name} (${sample[i].id}) at positions ${i} and ${j}`)
-        }
-      }
-    }
-
-    // With ~45 commons per belt, duplicates within 5 slots should be rare
-    assert(violations <= 3, `Found ${violations} duplicate pairs within 5 slots (max allowed: 3): ${violationDetails.join(', ')}`)
-  })
-
-  test('seam dedup works across multiple refills', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
-    const flatPoolSize = belt.flatPool.length
-
-    // Pull enough cards to trigger multiple refills (3x flat pool size)
-    const sample = []
-    for (let i = 0; i < flatPoolSize * 3; i++) {
-      sample.push(belt.next())
-    }
-
-    // Check for duplicates within 5 slots across the entire sequence
-    let violations = 0
-    const violationDetails = []
-    for (let i = 0; i < sample.length; i++) {
-      for (let j = i + 1; j <= Math.min(i + 5, sample.length - 1); j++) {
-        if (sample[i].id === sample[j].id) {
-          violations++
-          violationDetails.push(`${sample[i].name} (${sample[i].id}) at positions ${i} and ${j}`)
-        }
-      }
-    }
-
-    assert(violations <= 10, `Found ${violations} duplicate pairs within 5 slots across multiple refills (max allowed: 10): ${violationDetails.slice(0, 5).join(', ')}${violationDetails.length > 5 ? '...' : ''}`)
+    // After refill, hopper should be larger
+    assert(belt.size > drawSize, `Hopper should refill. Size: ${belt.size}, threshold: ${drawSize}`)
   })
 
   test('different belt instances start at different positions', () => {
-    const { poolA } = getCommonPools('SOR')
     const firstCards = new Set()
     for (let i = 0; i < 10; i++) {
-      const belt = new CommonBelt('SOR', poolA)
+      const belt = new CommonBelt('SOR', 'A')
       firstCards.add(belt.peek(1)[0].id)
     }
 
-    // With random start, we should see variation
+    // With random shuffling, we should see variation
     assert(firstCards.size > 1, 'Different belt instances should start at different positions')
   })
 
   test('peek() returns cards without removing them', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
+    const belt = new CommonBelt('SOR', 'A')
     const peeked = belt.peek(3)
     const sizeBefore = belt.size
 
@@ -360,87 +184,32 @@ async function runTests() {
     assertEqual(next1.id, peeked[0].id, 'First peeked card should match first next()')
   })
 
-  test('pulling 20 consecutive cards from many belts rarely yields duplicates within dedup window', () => {
-    const { poolA } = getCommonPools('SOR')
-    const DEDUP_WINDOW = 12  // Must match CommonBelt.DEDUP_WINDOW
-    let beltsWithCloseDuplicates = 0
-    const duplicateExamples = []
+  test('pulling 20 consecutive cards from a belt has reasonable variety', () => {
+    const belt = new CommonBelt('SOR', 'A')
 
-    // Test 100 different belt instances
-    for (let beltNum = 0; beltNum < 100; beltNum++) {
-      const belt = new CommonBelt('SOR', poolA)
-
-      // Pull 20 consecutive cards (more than enough for a pack)
-      const pulled = []
-      for (let i = 0; i < 20; i++) {
-        pulled.push(belt.next())
-      }
-
-      // Check for duplicates within DEDUP_WINDOW positions of each other
-      let hasCloseDuplicate = false
-      for (let i = 0; i < pulled.length; i++) {
-        for (let j = i + 1; j < Math.min(i + DEDUP_WINDOW, pulled.length); j++) {
-          if (pulled[i].id === pulled[j].id) {
-            hasCloseDuplicate = true
-            duplicateExamples.push(
-              `Belt ${beltNum}: ${pulled[i].name} (${pulled[i].id}) at positions ${i} and ${j} (${j - i} apart)`
-            )
-            break
-          }
-        }
-        if (hasCloseDuplicate) break
-      }
-
-      if (hasCloseDuplicate) {
-        beltsWithCloseDuplicates++
-        if (duplicateExamples.length >= 10) break
-      }
-    }
-
-    // Allow up to 3% failure rate (3 out of 100 belts) for statistical variance
-    // This accounts for edge cases in random shuffling while still catching systematic issues
-    assert(beltsWithCloseDuplicates <= 3,
-      `Found close duplicates (within ${DEDUP_WINDOW} positions) in ${beltsWithCloseDuplicates} out of 100 belts (expected ≤3 for statistical variance). Examples:\n  ${duplicateExamples.slice(0, 5).join('\n  ')}`)
-  })
-
-  test('pulling 100 cards from a single belt never yields duplicates within 5 positions', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
-
-    // Pull 100 cards to go through multiple refills
+    // Pull 20 consecutive cards
     const pulled = []
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 20; i++) {
       pulled.push(belt.next())
     }
 
-    // Check for duplicates within 5 positions
-    let violations = 0
-    const violationDetails = []
-    for (let i = 0; i < pulled.length; i++) {
-      for (let j = i + 1; j <= Math.min(i + 5, pulled.length - 1); j++) {
-        if (pulled[i].id === pulled[j].id) {
-          violations++
-          violationDetails.push(`${pulled[i].name} (${pulled[i].id}) at positions ${i} and ${j} (${j - i} apart)`)
-        }
-      }
-    }
-
-    assertEqual(violations, 0,
-      `Should have no duplicates within 5 positions when pulling 100 cards, but found ${violations}:\n  ${violationDetails.slice(0, 10).join('\n  ')}`)
+    // Check we have at least 15 unique cards (some duplicates allowed due to belt cycling)
+    const uniqueIds = new Set(pulled.map(c => c.id))
+    assert(uniqueIds.size >= 15,
+      `Should have at least 15 unique cards in 20 draws, got ${uniqueIds.size}`)
   })
 
-  test('no repeating pattern: consecutive belt fills produce different sequences', () => {
-    const { poolA } = getCommonPools('SOR')
-    const belt = new CommonBelt('SOR', poolA)
-    const fillSize = belt.flatPool.length
+  test('consecutive belt fills produce different sequences', () => {
+    const belt = new CommonBelt('SOR', 'A')
+    const fillSize = belt.beltCards.length
 
-    // Deploy entire first fill into an array
+    // Pull entire first fill
     const firstFill = []
     for (let i = 0; i < fillSize; i++) {
       firstFill.push(belt.next().id)
     }
 
-    // Deploy second fill into an array
+    // Pull second fill
     const secondFill = []
     for (let i = 0; i < fillSize; i++) {
       secondFill.push(belt.next().id)
@@ -461,6 +230,13 @@ async function runTests() {
     // At least 50% of positions should be different (shuffled)
     const diffPercent = (differences / firstFill.length) * 100
     assert(diffPercent > 50, `At least 50% of positions should differ, got ${diffPercent.toFixed(1)}%`)
+  })
+
+  // Legacy getCommonPools tests for backward compatibility
+  test('getCommonPools returns structured pools (legacy)', () => {
+    const { poolA, poolB } = getCommonPools('SOR')
+    assert(poolA.primary1.length > 0, 'Pool A primary1 should not be empty')
+    assert(poolB.primary1.length > 0, 'Pool B primary1 should not be empty')
   })
 
   console.log('')

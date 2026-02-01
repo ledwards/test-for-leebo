@@ -2,6 +2,16 @@
 
 This document describes the belt system used for generating booster packs.
 
+## Manufacturing Principle
+
+We mimic a physical card manufacturing process. The belt is a cyclic conveyor
+that dispenses cards in order. We do NOT use post-hoc fixes or manual corrections.
+Instead, we ensure the belt is constructed properly from the start.
+
+The correct way to guarantee aspect coverage is to ensure that every segment
+of N cards (where N = number of slots filled from this belt) contains the
+required aspects. This is handled during belt construction, not after pack generation.
+
 ## Overview
 
 A **belt** is a cyclic queue of cards that provides cards for pack generation. Cards are drawn from the front of the belt, and when the belt runs low, it refills with a shuffled "boot" of cards.
@@ -59,6 +69,10 @@ Cards are assigned to belts differently based on which block the set belongs to.
 
 **Hyperspace Upgrade Slot**: Slot 6
 
+**Segment Constraints**:
+- Belt A: Every segment of 6 cards has at least 1 Blue, 1 Green, 1 Red
+- Belt B: Every segment of 3 cards has at least 1 Yellow
+
 ### Block A (Sets 4-6: JTL, LOF, SEC)
 
 **Belt A (50 cards)**:
@@ -80,6 +94,10 @@ Cards are assigned to belts differently based on which block the set belongs to.
 **Belt Size Ratio**: 1:1 (50 cards : 50 cards)
 
 **Hyperspace Upgrade Slot**: Slot 4
+
+**Segment Constraints**:
+- Belt A: Every segment of 4 cards has at least 1 Blue, 1 Green
+- Belt B: Every segment of 4 cards has at least 1 Red, 1 Yellow
 
 ### Block B (Sets 7+)
 
@@ -115,13 +133,51 @@ For Block A:
 2. Move flexible cards between belts until balanced
 3. Verify final counts: A = 50, B = 50
 
+## Seam-Aware Belt Refill
+
+When the belt hopper runs low, we use a seam-aware refill strategy to ensure aspect coverage is maintained even across boot boundaries.
+
+### The Seam Problem
+
+When a belt refills, there's a "seam" between the old boot's remaining cards and the new boot's cards. A draw that spans this seam could potentially lack required aspects if not handled carefully.
+
+### Refill Threshold
+
+The belt refills when it has exactly `drawSize` cards left:
+- Block 0 Belt A: refill at ≤6 cards (draws 6 per pack)
+- Block 0 Belt B: refill at ≤3 cards (draws 3 per pack)
+- Block A Belt A: refill at ≤4 cards (draws 4 per pack)
+- Block A Belt B: refill at ≤4 cards (draws 4 per pack)
+
+### Seam-Aware Construction
+
+When building a new boot, we pass the remaining "seam cards" to the boot construction algorithm:
+
+1. **Analyze seam cards**: Determine which required aspects the seam cards already have
+2. **Find missing aspects**: Identify aspects that must appear in the first positions of the new boot
+3. **Place complementary cards first**: The first `(drawSize - seamCards.length)` positions get cards with missing aspects
+4. **Fill remainder normally**: Remaining positions use the standard constrained construction
+
+Example for Belt A (drawSize=6, requires B,G,R):
+- Seam has 3 cards: [B,B,G] → covers B,G but missing R
+- New boot's first 3 positions must include at least 1 R card
+- The seam window [seam0, seam1, seam2, boot0, boot1, boot2] will satisfy constraints
+
+### Testing
+
+Seam-aware behavior is tested in `src/qa/seamAwareBelt.test.js`:
+- Refill threshold tests for each belt type
+- 100-pack consecutive draw tests for aspect coverage
+- Cross-seam verification tests
+- All-sets coverage tests
+
 ## Deduplication
 
 ### Within-Belt Deduplication
 
 - 12-card deduplication window prevents same card appearing close together
 - Cards are skipped during boot generation if they're in the recent IDs window
-- Seam deduplication runs at boot boundaries
+- Seam cards are pre-loaded into the deduplication window at refill time
 
 ### Within-Pack Deduplication
 

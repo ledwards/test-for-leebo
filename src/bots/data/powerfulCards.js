@@ -108,11 +108,9 @@ export const POWERFUL_CARDS = {
     'Mas Ameda',
     'Kazuda Xiono',
     'Elia Kane',
-    'Crucible',
     'Dedra Meero',
     'Renowned Dignitaries',
     'Cantwell Arrestor Cruiser',
-    'Fulminatrix',
     'Darth Nihilus',
     'Chancellor Palpatine',
     'Alexsandr Kallus',
@@ -120,7 +118,15 @@ export const POWERFUL_CARDS = {
     'Queen Amidala',
     'Mon Mothma',
     'Captain Rex',
+    'Bo Katan',
     'Karis Nemik',
+    "Darth Scion",
+
+    // Ships
+    'Lightmaker',
+    'First Light',
+    'Crucible',
+    'Fulminatrix',
   ],
 }
 
