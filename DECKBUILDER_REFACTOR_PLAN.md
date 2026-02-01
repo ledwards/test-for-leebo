@@ -4,9 +4,9 @@
 
 ### Progress Summary
 - **Original DeckBuilder.jsx:** ~6700 lines
-- **Current DeckBuilder.jsx:** 4604 lines
-- **Reduction:** ~2100 lines (~31%)
-- **E2E Tests:** 57/58 passing (1 pre-existing flaky mobile test)
+- **Current DeckBuilder.jsx:** 4486 lines
+- **Reduction:** ~2214 lines (~33%)
+- **E2E Tests:** 57/59 passing (1 pre-existing flaky mobile test, 1 unrelated regression test)
 
 ### Completed Work
 
@@ -99,6 +99,10 @@
 6. `7f98ad7` - Update DeckBuilder to use extracted components
 7. `23bc85c` - Extract sortGroupKeys utility
 8. `0c30f8d` - Add ListTableHeader component
+9. `895c4b1` - Add DeckBuilderContext and update refactor plan
+10. `3b90861` - Add component library (AspectIcon, Card, CollapsibleSection, SearchInput)
+11. `f32dd57` - Add component extraction plan documentation
+12. `3b09dc2` - Replace inline cost icons with CostIcon component (-118 lines)
 
 ### Commands for Testing
 ```bash
