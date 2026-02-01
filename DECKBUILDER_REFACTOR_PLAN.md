@@ -4,8 +4,8 @@
 
 ### Progress Summary
 - **Original DeckBuilder.jsx:** ~6700 lines
-- **Current DeckBuilder.jsx:** 2271 lines
-- **Reduction:** ~4429 lines (~66%)
+- **Current DeckBuilder.jsx:** 2066 lines
+- **Reduction:** ~4634 lines (~69%)
 - **E2E Tests:** 58/59 passing (1 flaky test)
 - **Context Integration:** ✓ Complete - sub-components use DeckBuilderContext
 - **Grid View Sections:** ✓ Extracted to DeckSection & PoolSection components
@@ -13,6 +13,7 @@
 - **Export Functionality:** ✓ Extracted to useDeckExport hook
 - **Drag & Drop:** ✓ Extracted to useDragAndDrop hook
 - **Card Preview:** ✓ Extracted to useCardPreview hook
+- **Tooltip:** ✓ Extracted to useTooltip hook
 - **Aspect Utilities:** ✓ Extracted to aspectCombinations.js
 
 ### Completed Work
@@ -35,7 +36,11 @@
 | ListTableHeader.jsx | ~55 | ✓ Complete |
 | SelectionListSection.jsx | ~115 | ✓ Complete |
 | PoolListSection.jsx | ~400 | ✓ Complete |
-| index.js | ~20 | ✓ Complete |
+| Tooltip.jsx | ~30 | ✓ Complete |
+| DeckImageModal.jsx | ~70 | ✓ Complete |
+| DeleteDeckSection.jsx | ~80 | ✓ Complete |
+| ViewModeToggle.jsx | ~40 | ✓ Complete |
+| index.js | ~25 | ✓ Complete |
 
 #### Hook Extractions (in `src/hooks/`)
 | Hook | Lines | Status |
@@ -43,6 +48,7 @@
 | useDeckExport.js | ~370 | ✓ Complete |
 | useDragAndDrop.js | ~380 | ✓ Complete |
 | useCardPreview.js | ~130 | ✓ Complete |
+| useTooltip.js | ~100 | ✓ Complete |
 
 #### Utility Extractions (in `src/utils/cardSort.js`)
 | Function | Purpose | Status |
