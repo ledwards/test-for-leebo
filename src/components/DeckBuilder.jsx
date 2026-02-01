@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import './DeckBuilder.css'
 import './AspectIcons.css'
+import DeckBuilderContext from '../contexts/DeckBuilderContext'
 import { getCachedCards, isCacheInitialized, initializeCardCache } from '../utils/cardCache'
 import { buildBaseCardMap as buildBaseCardMapUtil, getBaseCardId as getBaseCardIdUtil } from '../utils/variantDowngrade'
 import { fetchSetCards } from '../utils/api'
@@ -2958,7 +2959,52 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     backgroundPosition: 'center center',
   } : {}
 
+  // Context value for child components
+  const contextValue = useMemo(() => ({
+    // Core state
+    cardPositions,
+    setCardPositions,
+    activeLeader,
+    setActiveLeader,
+    activeBase,
+    setActiveBase,
+    // Derived cards
+    leaderCard,
+    baseCard,
+    // Selection
+    selectedCards,
+    setSelectedCards,
+    hoveredCard,
+    setHoveredCard,
+    // Filter state
+    filterAspectsExpanded,
+    setFilterAspectsExpanded,
+    deckFilterOpen,
+    setDeckFilterOpen,
+    poolFilterOpen,
+    setPoolFilterOpen,
+    // UI preferences
+    showAspectPenalties,
+    setShowAspectPenalties,
+    viewMode,
+    setViewMode,
+    poolSortOption,
+    setPoolSortOption,
+    deckSortOption,
+    setDeckSortOption,
+    // Actions
+    toggleCardSection,
+    moveCardsToDeck,
+    moveCardsToPool,
+  }), [
+    cardPositions, activeLeader, activeBase, leaderCard, baseCard,
+    selectedCards, hoveredCard, filterAspectsExpanded, deckFilterOpen,
+    poolFilterOpen, showAspectPenalties, viewMode, poolSortOption,
+    deckSortOption, toggleCardSection, moveCardsToDeck, moveCardsToPool,
+  ])
+
   return (
+    <DeckBuilderContext.Provider value={contextValue}>
     <div className="deck-builder" ref={containerRef}>
       {packArtUrl && (
         <div className="set-art-header" style={setArtStyle}></div>
@@ -4298,6 +4344,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       </Modal>
       </div>
     </div>
+    </DeckBuilderContext.Provider>
   )
 }
 
