@@ -4,13 +4,15 @@
 
 ### Progress Summary
 - **Original DeckBuilder.jsx:** ~6700 lines
-- **Current DeckBuilder.jsx:** 2819 lines
-- **Reduction:** ~3881 lines (~58%)
-- **E2E Tests:** 57/59 passing (mobile test known flaky)
+- **Current DeckBuilder.jsx:** 2271 lines
+- **Reduction:** ~4429 lines (~66%)
+- **E2E Tests:** 58/59 passing (1 flaky test)
 - **Context Integration:** ✓ Complete - sub-components use DeckBuilderContext
 - **Grid View Sections:** ✓ Extracted to DeckSection & PoolSection components
 - **List View Sections:** ✓ Extracted to SelectionListSection & PoolListSection
 - **Export Functionality:** ✓ Extracted to useDeckExport hook
+- **Drag & Drop:** ✓ Extracted to useDragAndDrop hook
+- **Card Preview:** ✓ Extracted to useCardPreview hook
 - **Aspect Utilities:** ✓ Extracted to aspectCombinations.js
 
 ### Completed Work
@@ -39,6 +41,8 @@
 | Hook | Lines | Status |
 |------|-------|--------|
 | useDeckExport.js | ~370 | ✓ Complete |
+| useDragAndDrop.js | ~380 | ✓ Complete |
+| useCardPreview.js | ~130 | ✓ Complete |
 
 #### Utility Extractions (in `src/utils/cardSort.js`)
 | Function | Purpose | Status |
@@ -98,7 +102,7 @@
 10. **Replace remaining List View table headers with ListTableHeader** (~2 hours)
 
 ### Success Criteria (from original plan)
-- [ ] DeckBuilder.jsx < 500 lines (currently 2819 - 58% reduction from 6700)
+- [ ] DeckBuilder.jsx < 500 lines (currently 2271 - 66% reduction from 6700)
 - [x] Card component used everywhere
 - [ ] All state in context (not started)
 - [x] Each component < 200 lines (most are)
