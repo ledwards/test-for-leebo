@@ -4,9 +4,10 @@
 
 ### Progress Summary
 - **Original DeckBuilder.jsx:** ~6700 lines
-- **Current DeckBuilder.jsx:** 4304 lines
-- **Reduction:** ~2396 lines (~36%)
+- **Current DeckBuilder.jsx:** 4324 lines
+- **Reduction:** ~2376 lines (~35%)
 - **E2E Tests:** 57/59 passing (mobile test known flaky)
+- **Context Integration:** ✓ Complete - sub-components use DeckBuilderContext
 
 ### Completed Work
 
@@ -42,11 +43,10 @@
 
 #### HIGH PRIORITY - Next Steps
 
-1. **Phase 3: DeckBuilderContext** (~4 hours)
-   - Create `src/contexts/DeckBuilderContext.jsx`
-   - Move 50+ useState hooks to context
-   - Create action functions for state mutations
-   - This is CRITICAL for further component extraction
+1. ~~**Phase 3: DeckBuilderContext**~~ ✓ COMPLETE
+   - Context integrated into DeckBuilder
+   - Sub-components (LeaderBaseSelector, SectionHeader, etc.) use context
+   - Props fallback pattern for backwards compatibility
 
 2. **Extract CardPool component** (~4 hours)
    - Pool section with filtering, grouping, card display
@@ -114,6 +114,10 @@
 21. `83dd6f5` - Add moveCardsToDeck/moveCardsToPool helpers for bulk operations
 22. `2002372` - Add createCardRenderer factory for card stack rendering
 23. `359e4a6` - Remove redundant leaderCard/baseCard computations
+24. `672db9d` - Integrate DeckBuilderContext into DeckBuilder component
+25. `cfed080` - Simplify LeaderBaseSelector to use context
+26. `bdbd24d` - Update SectionHeader to use DeckBuilderContext
+27. `bf15602` - Update DeckBuilder sub-components to use context
 
 ### Commands for Testing
 ```bash
