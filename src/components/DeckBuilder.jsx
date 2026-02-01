@@ -167,6 +167,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // Memoized active leader and base cards (derived from cardPositions)
+  const leaderCard = useMemo(() => {
+    return activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
+  }, [activeLeader, cardPositions])
+
+  const baseCard = useMemo(() => {
+    return activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
+  }, [activeBase, cardPositions])
+
   const getAspectColorName = (card) => {
     const aspectColorMap = {
       'Vigilance': 'blue',
@@ -228,14 +237,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   useEffect(() => {
     if (!shareId || !poolCreatedAt) return
 
-    const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
-    const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
-
     // Only update if at least one is selected
     if (leaderCard || baseCard) {
       updatePoolName(leaderCard, baseCard)
     }
-  }, [activeLeader, activeBase, cardPositions, shareId, poolCreatedAt, updatePoolName])
+  }, [leaderCard, baseCard, shareId, poolCreatedAt, updatePoolName])
   const [deckImageModal, setDeckImageModal] = useState(null) // URL for deck image modal
   const [hoveredCardPreview, setHoveredCardPreview] = useState(null) // { card, x, y } for enlarged preview
   const [tooltip, setTooltip] = useState({ show: false, text: '', x: 0, y: 0 })
