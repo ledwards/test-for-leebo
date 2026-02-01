@@ -50,21 +50,22 @@ export default function ShowcasesPage() {
         // Initialize card cache to get image URLs
         await initializeCardCache()
 
-        // Build a map of card id -> card data for all sets and count showcase leaders
+        // Build a map of card id -> card data for all sets and count unique showcase leaders
         const cardMap = {}
-        let showcaseLeaderCount = 0
+        const uniqueShowcaseLeaders = new Set()
         const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
         sets.forEach(setCode => {
           const cards = getCachedCards(setCode) || []
           cards.forEach(card => {
             cardMap[card.id] = card
             if (card.isLeader && card.variantType === 'Showcase') {
-              showcaseLeaderCount++
+              // Use name + subtitle as unique key to avoid counting duplicates
+              uniqueShowcaseLeaders.add(`${card.name}|${card.subtitle || ''}`)
             }
           })
         })
         setCardsData(cardMap)
-        setTotalLeaders(showcaseLeaderCount)
+        setTotalLeaders(uniqueShowcaseLeaders.size)
 
         const response = await fetch(`/api/users/${user.id}/showcase-leaders`)
         if (response.ok) {
@@ -306,6 +307,11 @@ export default function ShowcasesPage() {
     }
   }
 
+  // Count unique showcases (by name + subtitle to avoid duplicates)
+  const uniqueShowcaseCount = new Set(
+    showcases.map(s => `${s.cardName}|${cardsData[s.cardId]?.subtitle || ''}`)
+  ).size
+
   // Sort showcases for export: set number ASC, villain before hero, alphabetical
   const setOrder = { 'SOR': 1, 'SHD': 2, 'TWI': 3, 'JTL': 4, 'LOF': 5, 'SEC': 6 }
   const sortedShowcases = [...showcases].sort((a, b) => {
@@ -381,7 +387,7 @@ export default function ShowcasesPage() {
           <line x1="4" y1="1" x2="5" y2="3" strokeLinecap="round"/>
         </svg>
         <span className="showcases-title-text">Showcase Collection</span>
-        <span className="showcases-count">{showcases.length}/{totalLeaders}</span>
+        <span className="showcases-count">{uniqueShowcaseCount}/{totalLeaders}</span>
         <button className="showcases-share-button" onClick={handleExport} title="Export as Image">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -456,7 +462,7 @@ export default function ShowcasesPage() {
               <line x1="4" y1="1" x2="5" y2="3" strokeLinecap="round"/>
             </svg>
             <span>{user.username} Showcase Collection</span>
-            <span className="showcases-count">{showcases.length}/{totalLeaders}</span>
+            <span className="showcases-count">{uniqueShowcaseCount}/{totalLeaders}</span>
           </div>
           <div className="showcases-export-url">https://www.protectthepod.com</div>
           <div className="showcases-export-grid">
