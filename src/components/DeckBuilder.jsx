@@ -36,6 +36,11 @@ import { PoolListSection } from './DeckBuilder/PoolListSection'
 import { getCardTypeOrder, getTypeStringOrder, sortGroupKeys, createGetGroupKey, createDefaultSortFn, createGroupCardSortFn } from '../utils/cardSort'
 import { getRarityColor } from '../utils/aspectColors'
 import { useDeckExport } from '../hooks/useDeckExport'
+import {
+  getAspectCombinationKey as getAspectCombinationKeyUtil,
+  getAspectCombinationDisplayName as getAspectCombinationDisplayNameUtil,
+  getAspectKey as getAspectKeyUtil,
+} from '../utils/aspectCombinations'
 
 // Get aspect symbol for list view using individual icon files
 import AspectIcon from './AspectIcon'
@@ -580,92 +585,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   // Use imported getAspectSortKey from cardSorting service
   const getDefaultAspectSortKey = useCallback(getAspectSortKey, [])
 
-  // Get aspect combination grouping key and display name for deck sections
-  const getAspectCombinationKey = useCallback((card) => {
-    const aspects = card.aspects || []
-    if (aspects.length === 0) return 'neutral'
+  // Get aspect combination grouping key (uses utility function)
+  const getAspectCombinationKey = useCallback(getAspectCombinationKeyUtil, [])
 
-    const hasVillainy = aspects.includes('Villainy')
-    const hasHeroism = aspects.includes('Heroism')
-    const primaryAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning']
-    const primaryAspect = aspects.find(a => primaryAspects.includes(a))
-
-    // Single aspect
-    if (aspects.length === 1) {
-      const aspect = aspects[0]
-      // Single primary aspect (includes double primary like Vig Vig)
-      if (primaryAspects.includes(aspect)) {
-        return aspect.toLowerCase() // e.g., "vigilance", "command"
-      }
-      if (aspect === 'Villainy') return 'villainy'
-      if (aspect === 'Heroism') return 'heroism'
-      return 'neutral'
-    }
-
-    // Two aspects
-    if (aspects.length === 2) {
-      if (primaryAspect) {
-        // Check if it's double primary (e.g., Vigilance Vigilance)
-        const primaryCount = aspects.filter(a => a === primaryAspect).length
-        if (primaryCount === 2) {
-          // Double primary - separate key (e.g., "command_command")
-          return `${primaryAspect.toLowerCase()}_${primaryAspect.toLowerCase()}`
-        }
-        if (hasVillainy) {
-          return `${primaryAspect.toLowerCase()}_villainy` // e.g., "vigilance_villainy"
-        }
-        if (hasHeroism) {
-          return `${primaryAspect.toLowerCase()}_heroism` // e.g., "vigilance_heroism"
-        }
-      } else {
-        // Villainy + Heroism
-        return 'villainy_heroism'
-      }
-    }
-
-    // More than 2 aspects - use first primary aspect
-    if (primaryAspect) {
-      const sortedAspects = [...aspects].sort()
-      return sortedAspects.join('_').toLowerCase()
-    }
-
-    return 'neutral'
-  }, [])
-
-  // Get display name for aspect combination
-  const getAspectCombinationDisplayName = useCallback((key) => {
-    const parts = key.split('_')
-    if (parts.length === 1) {
-      // Single aspect
-      const aspect = parts[0]
-      const displayNames = {
-        'vigilance': 'Vigilance',
-        'command': 'Command',
-        'aggression': 'Aggression',
-        'cunning': 'Cunning',
-        'villainy': 'Villainy',
-        'heroism': 'Heroism',
-        'neutral': 'Neutral'
-      }
-      return displayNames[aspect] || aspect.charAt(0).toUpperCase() + aspect.slice(1)
-    } else if (parts.length === 2) {
-      // Two aspects
-      const [first, second] = parts
-      const displayNames = {
-        'vigilance': 'Vigilance',
-        'command': 'Command',
-        'aggression': 'Aggression',
-        'cunning': 'Cunning',
-        'villainy': 'Villainy',
-        'heroism': 'Heroism'
-      }
-      const firstDisplay = displayNames[first] || first.charAt(0).toUpperCase() + first.slice(1)
-      const secondDisplay = displayNames[second] || second.charAt(0).toUpperCase() + second.slice(1)
-      return `${firstDisplay} ${secondDisplay}`
-    }
-    // More than 2 aspects - capitalize each part
-    return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ')
-  }, [])
+  // Get display name for aspect combination (uses utility function)
+  const getAspectCombinationDisplayName = useCallback(getAspectCombinationDisplayNameUtil, [])
 
   // Get aspect icons for deck area headers (replaces text with icons)
   const getAspectCombinationIcons = useCallback((key) => {
@@ -714,29 +638,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
   }, [])
 
-  // Get aspect combination key for sorting (legacy, used for 'aspect' sort option)
-  const getAspectKey = useCallback((card) => {
-    const aspects = card.aspects || []
-    if (aspects.length === 0) return 'ZZZ_Neutral'
-
-    // Single aspects - sort by priority (alphabetical of colors: Blue, Green, Red, Yellow)
-    if (aspects.length === 1) {
-      const aspect = aspects[0]
-      const priority = {
-        'Vigilance': 'A_Vigilance',      // Blue
-        'Command': 'B_Command',          // Green
-        'Aggression': 'C_Aggression',    // Red
-        'Cunning': 'D_Cunning',          // Yellow
-        'Villainy': 'E_Villainy',
-        'Heroism': 'F_Heroism'
-      }
-      return priority[aspect] || `G_${aspect}`
-    }
-
-    // Two aspects - return sorted combination with prefix
-    const sortedAspects = [...aspects].sort()
-    return `H_${sortedAspects.join(' ')}`
-  }, [])
+  // Get aspect combination key for sorting (uses utility function)
+  const getAspectKey = useCallback(getAspectKeyUtil, [])
 
   // Sort cards (only from deck section, excluding bases and leaders)
   // Note: No longer filtering - cards are moved between deck/sideboard via filter checkboxes
