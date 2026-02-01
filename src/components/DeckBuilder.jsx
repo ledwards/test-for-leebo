@@ -555,9 +555,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
 
     // Check in/out aspect filters (only when both leader and base are selected)
-    const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
-    const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
-
     if (leaderCard && baseCard) {
       const penalty = calculateAspectPenalty(card, leaderCard, baseCard)
       const isInAspect = penalty === 0
@@ -572,7 +569,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
 
     return true
-  }, [aspectFilters, activeLeader, activeBase, cardPositions, inAspectFilter, outAspectFilter])
+  }, [aspectFilters, leaderCard, baseCard, inAspectFilter, outAspectFilter])
 
   // Use imported getAspectSortKey from cardSorting service
   const getDefaultAspectSortKey = useCallback(getAspectSortKey, [])
@@ -742,9 +739,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
       .map(pos => pos.card)
 
-    // Get leader and base for penalty calculation
-    const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
-    const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
+    // Get effective cost including aspect penalty
     const getEffectiveCost = (card) => {
       const baseCost = card.cost || 0
       const penalty = (showAspectPenalties && leaderCard && baseCard) ? calculateAspectPenalty(card, leaderCard, baseCard) : 0
@@ -763,7 +758,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       return allCards.sort((a, b) => getEffectiveCost(a) - getEffectiveCost(b))
     }
     return allCards
-  }, [cardPositions, deckSortOption, getAspectKey, getDefaultAspectSortKey, showAspectPenalties, activeLeader, activeBase])
+  }, [cardPositions, deckSortOption, getAspectKey, getDefaultAspectSortKey, showAspectPenalties, leaderCard, baseCard])
 
   // Helper to filter and map deck cards
   const getDeckCards = useCallback(() => {
@@ -1616,9 +1611,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
 
     // Sync in/out aspect filters (only when leader and base are selected)
-    const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
-    const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
-
     if (leaderCard && baseCard) {
       // Categorize cards by in/out of aspect
       const inAspectCards = poolCards.filter(pos => calculateAspectPenalty(pos.card, leaderCard, baseCard) === 0)
@@ -1644,7 +1636,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
       }
     }
-  }, [cardPositions, activeLeader, activeBase]) // Only depend on these to avoid infinite loops
+  }, [cardPositions, leaderCard, baseCard]) // Only depend on these to avoid infinite loops
 
   // Determine pool/deck order once on initial load (draft mode only)
   // If pool has more cards, show it first; otherwise show deck first
@@ -2439,9 +2431,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
   // Build deck data structure for export (uses base card IDs for Karabast compatibility)
   const buildDeckData = () => {
-    const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
-    const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
-
     // Build set of leader/base IDs to filter from final output
     // Use getBaseCardId to ensure variant treatments map to their base ID
     const leaderBaseIds = new Set()
@@ -3138,9 +3127,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           // Get all deck cards (only enabled ones)
           const deckCards = getDeckCards()
 
-          const leaderCardDeck = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
-          const baseCardDeck = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
-
           // Default sort uses flat container with default sort order
           if (deckSortOption === 'default') {
             const sortedDeckCards = [...deckCards].sort(createDefaultSortFn(getDefaultAspectSortKey))
@@ -3150,7 +3136,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               <div className="card-block deck-flat-container" style={{ width: '100%' }}>
                 <div className="card-block-content">
                   <div className="cards-grid">
-                    {groupedCards.map(group => renderCardStack(group, createCardRenderer(leaderCardDeck, baseCardDeck, { showDisabled: true })))}
+                    {groupedCards.map(group => renderCardStack(group, createCardRenderer(leaderCard, baseCard, { showDisabled: true })))}
                   </div>
                 </div>
               </div>
@@ -3159,8 +3145,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
           // Grouped blocks for aspect, cost, type
           // Helper to get group key based on sort option
-          const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
-          const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
           const getGroupKey = createGetGroupKey(deckSortOption, {
             showAspectPenalties,
             leaderCard,
@@ -3313,9 +3297,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               return null
             }
 
-            const leaderCardPool = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
-            const baseCardPool = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
-
             // Default sort - flat container
             if (poolSortOption === 'default') {
               const sortedPoolCards = [...poolCards].sort(createDefaultSortFn(getDefaultAspectSortKey))
@@ -3327,7 +3308,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     <div className="card-block pool-flat-container" style={{ width: '100%' }}>
                       <div className="card-block-content">
                         <div className="cards-grid">
-                          {groupedCards.map(group => renderCardStack(group, createCardRenderer(leaderCardPool, baseCardPool)))}
+                          {groupedCards.map(group => renderCardStack(group, createCardRenderer(leaderCard, baseCard)))}
                         </div>
                       </div>
                     </div>
@@ -3337,8 +3318,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             }
 
             // Helper to get group key based on sort option
-            const leaderCard = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
-            const baseCard = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
             const getGroupKey = createGetGroupKey(poolSortOption, {
               showAspectPenalties,
               leaderCard,
