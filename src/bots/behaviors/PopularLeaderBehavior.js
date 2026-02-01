@@ -21,7 +21,7 @@
  * - src/bots/data/powerfulCards.js (easily editable)
  */
 
-import { POWERFUL_CARDS, POWERFUL_CARD_BONUS } from '../data/powerfulCards'
+import { POWERFUL_CARDS, POWERFUL_CARD_BONUS } from '../data/powerfulCards.js'
 
 // Leader power rankings per set (best to worst for LIMITED/DRAFT play)
 // These differ from constructed rankings - limited favors:

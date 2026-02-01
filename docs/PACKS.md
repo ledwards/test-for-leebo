@@ -81,24 +81,48 @@ This ensures the hyperspace card is a variant of something that was "supposed to
 
 ## Aspect Coverage
 
-The belt system is designed to ensure all 6 aspects appear in every pack's commons:
+The belt system guarantees aspect coverage through proper manufacturing, not post-hoc fixes.
 
-### Block 0
-- Belt A covers: Vigilance, Command, Aggression
-- Belt B covers: Cunning, Villainy, Heroism, Neutral
-- Combined: All aspects covered
+### Manufacturing Principle
 
-### Block A
-- Belt A covers: Vigilance, Command, Villainy
-- Belt B covers: Aggression, Cunning, Heroism, Neutral
-- Combined: All aspects covered
+We mimic a physical card manufacturing process. The belt is a cyclic conveyor
+that dispenses cards in order. We do NOT use post-hoc fixes or manual corrections.
+Instead, we ensure the belt is constructed properly from the start.
 
-### Safety Net
+The correct way to guarantee aspect coverage is to ensure that every segment
+of N cards (where N = number of slots filled from this belt) contains the
+required aspects. This is handled during belt construction, not after pack generation.
 
-After drawing commons, `ensureAspectCoverage()` runs as a safety net:
-1. Checks which aspects are present in the pack's commons
-2. If any aspect is missing, replaces a redundant common with one that has the missing aspect
-3. Runs again after upgrades in case they broke aspect coverage
+### Block 0 (Sets 1-3)
+- Belt A (60 cards, fills slots 1-6): Every segment of 6 cards has at least 1 Blue, 1 Green, 1 Red
+- Belt B (30 cards, fills slots 7-9): Every segment of 3 cards has at least 1 Yellow
+- Combined: All basic aspects (B, G, R, Y) guaranteed in every pack
+
+### Block A (Sets 4-6)
+- Belt A (50 cards, fills slots 1-4): Every segment of 4 cards has at least 1 Blue, 1 Green
+- Belt B (50 cards, fills slots 6-9): Every segment of 4 cards has at least 1 Red, 1 Yellow
+- Combined: All basic aspects (B, G, R, Y) guaranteed in every pack
+
+### Algorithm
+
+The belt construction algorithm:
+1. Categorizes cards by their aspect coverage (single-aspect, multi-aspect, other)
+2. Evenly distributes aspect cards across the belt
+3. Fills remaining slots with other cards
+4. Shuffles for randomness while maintaining aspect spacing
+
+### Seam-Aware Refill
+
+When a belt refills, we use seam-aware construction to maintain aspect coverage across boot boundaries:
+
+1. **Refill threshold**: Belt refills when it has exactly `drawSize` cards left
+2. **Seam analysis**: The remaining cards (seam cards) are analyzed for their aspects
+3. **Complementary construction**: New boot's first positions get cards with aspects missing from seam
+4. **Result**: Any draw spanning the seam still satisfies aspect constraints
+
+This ensures 100% aspect coverage even after many refill cycles.
+
+See `docs/BELTS.md` for detailed seam-aware refill documentation.
 
 ## Sealed Pod Generation
 

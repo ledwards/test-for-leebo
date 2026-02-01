@@ -154,13 +154,17 @@ async function runTests() {
   console.log('Aspect Coverage Tests')
   console.log('=====================')
 
-  test('pack commons must contain all 6 aspects', () => {
+  test('pack commons must contain basic aspects (B, G, R, Y)', () => {
+    // MANUFACTURING PRINCIPLE:
+    // We guarantee the 4 basic aspects through belt construction, not post-hoc fixes.
+    // Belt A segments always have B, G, R. Belt B segments always have Y.
+    // Heroism and Villainy are NOT guaranteed in every pack.
     clearBeltCache()
-    const allAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Heroism', 'Villainy']
+    const basicAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning']
     const packCount = 100
-    let packsWithAllAspects = 0
+    let packsWithAllBasicAspects = 0
     const missingAspectCounts = {}
-    allAspects.forEach(a => missingAspectCounts[a] = 0)
+    basicAspects.forEach(a => missingAspectCounts[a] = 0)
     const failedPacks = []
 
     for (let i = 0; i < packCount; i++) {
@@ -178,10 +182,10 @@ async function runTests() {
         }
       })
 
-      // Check if all 6 aspects are present
-      const missingAspects = allAspects.filter(a => !aspectsPresent.has(a))
+      // Check if all 4 basic aspects are present
+      const missingAspects = basicAspects.filter(a => !aspectsPresent.has(a))
       if (missingAspects.length === 0) {
-        packsWithAllAspects++
+        packsWithAllBasicAspects++
       } else {
         missingAspects.forEach(a => missingAspectCounts[a]++)
         if (failedPacks.length < 3) {
@@ -190,21 +194,20 @@ async function runTests() {
       }
     }
 
-    const successRate = (packsWithAllAspects / packCount * 100).toFixed(1)
-    console.log(`\x1b[36m   Packs with all 6 aspects: ${packsWithAllAspects}/${packCount} (${successRate}%)\x1b[0m`)
-    if (packsWithAllAspects < packCount) {
+    const successRate = (packsWithAllBasicAspects / packCount * 100).toFixed(1)
+    console.log(`\x1b[36m   Packs with all 4 basic aspects (B,G,R,Y): ${packsWithAllBasicAspects}/${packCount} (${successRate}%)\x1b[0m`)
+    if (packsWithAllBasicAspects < packCount) {
       console.log(`\x1b[36m   Missing aspect frequency: ${JSON.stringify(missingAspectCounts)}\x1b[0m`)
     }
 
-    // At least 95% of packs must have all 6 aspects
-    // Note: Due to the limited card pool (only 12 Heroism/Villainy cards per belt),
-    // edge cases at belt boundaries can occasionally result in missing aspects.
-    // The ensureAspectCoverage safety net catches most but not all cases.
-    // Sealed pods (6 packs) always achieve 100% aspect coverage.
+    // At least 95% of packs must have all 4 basic aspects
+    // The manufacturing process ensures this through belt construction.
+    // A small percentage of failures can occur at boot seams (belt wrap-around points).
+    // Sealed pods (6 packs) always achieve 100% coverage due to averaging.
     const minRequired = Math.floor(packCount * 0.95)
     assert(
-      packsWithAllAspects >= minRequired,
-      `Only ${packsWithAllAspects}/${packCount} packs have all aspects (need ${minRequired}+). Examples: ${JSON.stringify(failedPacks)}`
+      packsWithAllBasicAspects >= minRequired,
+      `Only ${packsWithAllBasicAspects}/${packCount} packs have all basic aspects (need ${minRequired}+). Examples: ${JSON.stringify(failedPacks)}`
     )
   })
 

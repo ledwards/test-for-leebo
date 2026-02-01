@@ -6,14 +6,11 @@
 ## Architecture & Design
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Target system architecture (layers, domains, data flow)
 - **[STYLE_GUIDE.md](./STYLE_GUIDE.md)** - UI components and design tokens
-
-## Refactoring Initiative
-- **[REFACTORING_PLAN.md](./REFACTORING_PLAN.md)** - Comprehensive refactoring plan
-- **[REFACTORING_PROGRESS.md](./REFACTORING_PROGRESS.md)** - Progress tracker with checkboxes
+- **[STYLE_DEVIATION_REPORT.md](./STYLE_DEVIATION_REPORT.md)** - Button standardization audit
 
 ## Core Systems
-- **[PACK_GENERATION.md](./PACK_GENERATION.md)** - Belt system and pack collation
-- **[pack-collation-findings.md](./pack-collation-findings.md)** - Research on SWU pack structure
+- **[BELTS.md](./BELTS.md)** - Belt system with seam-aware refill
+- **[PACKS.md](./PACKS.md)** - Pack generation and slot allocation
 - **[CARD_FIXES.md](./CARD_FIXES.md)** - Runtime card data fix system
 - **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - Card fixes implementation details
 
@@ -34,17 +31,19 @@
 - **[QUICKSTART_FIXES.md](./QUICKSTART_FIXES.md)** - How to add card fixes
 - **[EXAMPLE_ADDING_FIX.md](./EXAMPLE_ADDING_FIX.md)** - Example fix walkthrough
 
+## Planning Documents
+Planning documents are in the `plans/` directory:
+- **[../plans/REFACTORING_PLAN.md](../plans/REFACTORING_PLAN.md)** - Comprehensive refactoring plan
+- **[../plans/REFACTORING_PROGRESS.md](../plans/REFACTORING_PROGRESS.md)** - Progress tracker
+- **[../plans/DECKBUILDER_REFACTOR_PLAN.md](../plans/DECKBUILDER_REFACTOR_PLAN.md)** - DeckBuilder refactor (completed)
+- **[../plans/COMPONENT_EXTRACTION_PLAN.md](../plans/COMPONENT_EXTRACTION_PLAN.md)** - Component extraction (completed)
+- **[../plans/STYLEGUIDE_PLAN.md](../plans/STYLEGUIDE_PLAN.md)** - Style guide page plan
+
 ---
 
-## Document Status
+## Document Categories
 
-| Document | Status | Notes |
-|----------|--------|-------|
-| ARCHITECTURE.md | New | Target architecture |
-| REFACTORING_PLAN.md | New | Active planning |
-| REFACTORING_PROGRESS.md | New | Track progress |
-| STYLE_GUIDE.md | Current | Recently updated |
-| PACK_GENERATION.md | Current | Core reference |
-| CARD_FIXES.md | Current | Core reference |
-| DEV_LOG.md | Active | Add entries as needed |
-| QA_STATUS.md | Auto-generated | Don't edit manually |
+| Category | Purpose |
+|----------|---------|
+| **docs/** | Current architecture, reference, and how-to guides |
+| **plans/** | Planning documents, roadmaps, and progress tracking |
