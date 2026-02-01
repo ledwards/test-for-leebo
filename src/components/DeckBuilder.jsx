@@ -3131,332 +3131,44 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
           {/* Deck and Pool sections wrapper - allows reordering via CSS */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-
-          {/* Deck Section (appears below Pool) */}
-          <div style={{ order: 1 }}>
-          {/* Deck Header */}
-          <SectionHeader
-            id="deck-header"
-            title="Deck"
-            mode="deck"
-            cardCount={getDeckCards().length}
-            expanded={deckExpanded}
-            onToggleExpanded={() => setDeckExpanded(!deckExpanded)}
-            onSortChange={setDeckSortOption}
-            filterOpen={deckFilterOpen}
-            onFilterToggle={() => { setDeckFilterOpen(!deckFilterOpen); setPoolFilterOpen(false); }}
-            onFilterClose={() => setDeckFilterOpen(false)}
-            onFilterAspectsExpandedChange={setFilterAspectsExpanded}
-          />
-
-          {/* Deck Blocks Row */}
-          {deckExpanded && (
-            <div className="blocks-deck-row" ref={deckBlocksRowRef}>
-              {(() => {
-          // Get all deck cards (only enabled ones)
-          const deckCards = getDeckCards()
-
-          // Default sort uses flat container with default sort order
-          if (deckSortOption === 'default') {
-            const sortedDeckCards = [...deckCards].sort(createDefaultSortFn(getDefaultAspectSortKey))
-            const groupedCards = groupCardsByName(sortedDeckCards)
-
-            return (
-              <div className="card-block deck-flat-container" style={{ width: '100%' }}>
-                <div className="card-block-content">
-                  <div className="cards-grid">
-                    {groupedCards.map(group => renderCardStack(group, createCardRenderer(leaderCard, baseCard, { showDisabled: true })))}
-                  </div>
-                </div>
-              </div>
-            )
-          }
-
-          // Grouped blocks for aspect, cost, type
-          // Helper to get group key based on sort option
-          const getGroupKey = createGetGroupKey(deckSortOption, {
-            showAspectPenalties,
-            leaderCard,
-            baseCard,
-            calculateAspectPenalty,
-            getAspectKey
-          })
-
-          // Sort function for cards within groups
-          const cardSortFn = createGroupCardSortFn(deckSortOption, getDefaultAspectSortKey)
-
-          // Group cards
-          const groups = {}
-          deckCards.forEach(({ cardId, position }) => {
-            const key = getGroupKey(position.card)
-            if (!groups[key]) groups[key] = []
-            groups[key].push({ cardId, position })
-          })
-
-          // Also group pool cards to determine +All availability
-          const poolCardsAll = getPoolCards()
-          const poolGroups = {}
-          poolCardsAll.forEach(({ cardId, position }) => {
-            const key = getGroupKey(position.card)
-            if (!poolGroups[key]) poolGroups[key] = []
-            poolGroups[key].push({ cardId, position })
-          })
-
-          // Sort group keys
-          const sortedKeys = sortGroupKeys(Object.keys(groups), deckSortOption, '8+')
-
-          // Toggle group expanded state
-          const toggleDeckGroupExpanded = (key) => {
-            setDeckGroupsExpanded(prev => ({
-              ...prev,
-              [key]: prev[key] === false ? true : false
-            }))
-          }
-
-          // Check if group is expanded (default true)
-          const isDeckGroupExpanded = (key) => deckGroupsExpanded[key] !== false
-
-          // Helper to check if a group key is a mono-aspect (single primary color)
-          const isDeckMonoAspect = (key) => {
-            if (deckSortOption !== 'aspect') return false
-            return key === 'A_Vigilance' || key === 'B_Command' || key === 'C_Aggression' || key === 'D_Cunning'
-          }
-
-          // Determine block class based on sort option
-          const blockTypeClass = deckSortOption === 'type' ? 'type-block' : deckSortOption === 'cost' ? 'cost-block' : 'aspect-block'
-
-          return (
-            <div className="blocks-deck-groups-row">
-              {sortedKeys.map(groupKey => {
-                const groupCards = groups[groupKey].sort(cardSortFn)
-                const groupedByName = groupCardsByName(groupCards)
-                const expanded = isDeckGroupExpanded(groupKey)
-                const monoAspect = isDeckMonoAspect(groupKey)
-
-                // Get matching pool cards for this group
-                const matchingPoolCards = poolGroups[groupKey] || []
-                // +All enabled if there are pool cards to add
-                const hasPoolCardsToAdd = matchingPoolCards.length > 0
-                // -All enabled if there are deck cards to remove
-                const hasDeckCardsToRemove = groupCards.length > 0
-
-                return (
-                  <div key={groupKey} className={`card-block deck-group-block ${monoAspect ? 'mono-aspect' : ''} ${blockTypeClass} ${!expanded ? 'collapsed' : ''}`}>
-                    <div
-                      className="card-block-header"
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                    >
-                      <span
-                        style={{ marginRight: '0.25rem', fontSize: '0.8rem', cursor: 'pointer' }}
-                        onClick={() => toggleDeckGroupExpanded(groupKey)}
-                      >{expanded ? '▼' : '▶'}</span>
-                      <span style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => toggleDeckGroupExpanded(groupKey)}>
-                        <GroupHeader groupKey={groupKey} count={groupCards.length} sortOption={deckSortOption} getAspectSymbol={getAspectSymbol} />
-                      </span>
-                      <Button
-                        variant="danger"
-                        size="xs"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          moveCardsToPool(groupCards.map(({ cardId }) => cardId))
-                        }}
-                        className="remove-all-button"
-                        disabled={!hasDeckCardsToRemove}
-                      >
-                        - All
-                      </Button>
-                      <Button
-                        variant="primary"
-                        size="xs"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          moveCardsToDeck(matchingPoolCards.map(({ cardId }) => cardId))
-                        }}
-                        className="add-all-button"
-                        disabled={!hasPoolCardsToAdd}
-                      >
-                        + All
-                      </Button>
-                    </div>
-                    {expanded && <div className="card-block-content">
-                      <div className="cards-grid">
-                        {groupedByName.map(group => renderCardStack(group, createCardRenderer(leaderCard, baseCard, { showDisabled: true })))}
-                      </div>
-                    </div>}
-                  </div>
-                )
-              })}
-            </div>
-          )
-              })()}
-            </div>
-          )}
-          </div>{/* End Deck Section */}
-
-          {/* Pool Section (appears above Deck) */}
-          <div style={{ order: 0 }}>
-          {/* Pool Header */}
-          <SectionHeader
-            id="pool-header"
-            title="Pool"
-            mode="pool"
-            cardCount={getPoolCards().length}
-            expanded={sideboardExpanded}
-            onToggleExpanded={() => setSideboardExpanded(!sideboardExpanded)}
-            onSortChange={setPoolSortOption}
-            filterOpen={poolFilterOpen}
-            onFilterToggle={() => { setPoolFilterOpen(!poolFilterOpen); setDeckFilterOpen(false); }}
-            onFilterClose={() => setPoolFilterOpen(false)}
-            onFilterAspectsExpandedChange={setFilterAspectsExpanded}
-          />
-
-          {/* Pool Blocks - Grouped by sort option or flat for default */}
-          {(() => {
-            const poolCards = getPoolCards()
-
-            if (poolCards.length === 0) {
-              return null
-            }
-
-            // Default sort - flat container
-            if (poolSortOption === 'default') {
-              const sortedPoolCards = [...poolCards].sort(createDefaultSortFn(getDefaultAspectSortKey))
-              const groupedCards = groupCardsByName(sortedPoolCards)
-
-              return (
-                <div className="blocks-pool-row">
-                  {sideboardExpanded && (
-                    <div className="card-block pool-flat-container" style={{ width: '100%' }}>
-                      <div className="card-block-content">
-                        <div className="cards-grid">
-                          {groupedCards.map(group => renderCardStack(group, createCardRenderer(leaderCard, baseCard)))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            }
-
-            // Helper to get group key based on sort option
-            const getGroupKey = createGetGroupKey(poolSortOption, {
-              showAspectPenalties,
-              leaderCard,
-              baseCard,
-              calculateAspectPenalty,
-              getAspectKey
-            })
-
-            // Sort function for cards within groups
-            const cardSortFn = createGroupCardSortFn(poolSortOption, getDefaultAspectSortKey)
-
-            // Group cards
-            const groups = {}
-            poolCards.forEach(({ cardId, position }) => {
-              const key = getGroupKey(position.card)
-              if (!groups[key]) groups[key] = []
-              groups[key].push({ cardId, position })
-            })
-
-            // Also group deck cards to determine -All availability (remove from deck to pool)
-            const deckCardsAll = getDeckCards()
-            const deckGroups = {}
-            deckCardsAll.forEach(({ cardId, position }) => {
-              const key = getGroupKey(position.card)
-              if (!deckGroups[key]) deckGroups[key] = []
-              deckGroups[key].push({ cardId, position })
-            })
-
-            // Sort group keys
-            const sortedKeys = sortGroupKeys(Object.keys(groups), poolSortOption, '8+')
-
-            // Helper to determine if a group key is a mono-aspect (single primary color)
-            const isMonoAspect = (key) => {
-              if (poolSortOption !== 'aspect') return false
-              // Check if it's a single primary aspect (Vigilance, Command, Aggression, Cunning)
-              return key === 'A_Vigilance' || key === 'B_Command' || key === 'C_Aggression' || key === 'D_Cunning'
-            }
-
-            // Toggle group expanded state
-            const toggleGroupExpanded = (key) => {
-              setPoolGroupsExpanded(prev => ({
-                ...prev,
-                [key]: prev[key] === false ? true : false // Default to true (expanded), toggle to false
-              }))
-            }
-
-            // Check if group is expanded (default true)
-            const isGroupExpanded = (key) => poolGroupsExpanded[key] !== false
-
-            return (
-              <div className="blocks-pool-row">
-                {sideboardExpanded && sortedKeys.map(groupKey => {
-                  const groupCards = groups[groupKey].sort(cardSortFn)
-                  const groupedByName = groupCardsByName(groupCards)
-                  const monoAspect = isMonoAspect(groupKey)
-                  const expanded = isGroupExpanded(groupKey)
-
-                  // Determine block class based on sort option
-                  const blockTypeClass = poolSortOption === 'type' ? 'type-block' : poolSortOption === 'cost' ? 'cost-block' : 'aspect-block'
-
-                  // Get matching deck cards for this group
-                  const matchingDeckCards = deckGroups[groupKey] || []
-                  // +All (add to deck): enabled if there are pool cards to move
-                  const hasPoolCardsToMove = groupCards.length > 0
-                  // -All (remove from deck to pool): enabled if there are matching deck cards
-                  const hasDeckCardsToRemove = matchingDeckCards.length > 0
-
-                  return (
-                    <div key={groupKey} className={`card-block pool-group-block ${monoAspect ? 'mono-aspect' : ''} ${blockTypeClass} ${!expanded ? 'collapsed' : ''}`}>
-                      <div
-                        className="card-block-header"
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                      >
-                        <span
-                          style={{ marginRight: '0.25rem', fontSize: '0.8rem', cursor: 'pointer' }}
-                          onClick={() => toggleGroupExpanded(groupKey)}
-                        >{expanded ? '▼' : '▶'}</span>
-                        <span style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => toggleGroupExpanded(groupKey)}>
-                          <GroupHeader groupKey={groupKey} count={groupCards.length} sortOption={poolSortOption} getAspectSymbol={getAspectSymbol} />
-                        </span>
-                        <Button
-                          variant="primary"
-                          size="xs"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            moveCardsToDeck(groupCards.map(({ cardId }) => cardId))
-                          }}
-                          className="add-all-button"
-                          disabled={!hasPoolCardsToMove}
-                        >
-                          + All
-                        </Button>
-                        <Button
-                          variant="danger"
-                          size="xs"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            moveCardsToPool(matchingDeckCards.map(({ cardId }) => cardId))
-                          }}
-                          className="remove-all-button"
-                          disabled={!hasDeckCardsToRemove}
-                        >
-                          - All
-                        </Button>
-                      </div>
-                      {expanded && <div className="card-block-content">
-                        <div className="cards-grid">
-                          {groupedByName.map(group => renderCardStack(group, createCardRenderer(leaderCard, baseCard)))}
-                        </div>
-                      </div>}
-                    </div>
-                  )
-                })}
-              </div>
-            )
-          })()}
-        </div>
-        </div>
+            <DeckSection
+              getDeckCards={getDeckCards}
+              getPoolCards={getPoolCards}
+              groupCardsByName={groupCardsByName}
+              renderCardStack={renderCardStack}
+              createCardRenderer={createCardRenderer}
+              getAspectSymbol={getAspectSymbol}
+              getDefaultAspectSortKey={getDefaultAspectSortKey}
+              getAspectKey={getAspectKey}
+              deckExpanded={deckExpanded}
+              setDeckExpanded={setDeckExpanded}
+              deckGroupsExpanded={deckGroupsExpanded}
+              setDeckGroupsExpanded={setDeckGroupsExpanded}
+              deckFilterOpen={deckFilterOpen}
+              setDeckFilterOpen={setDeckFilterOpen}
+              setPoolFilterOpen={setPoolFilterOpen}
+              setFilterAspectsExpanded={setFilterAspectsExpanded}
+              deckBlocksRowRef={deckBlocksRowRef}
+            />
+            <PoolSection
+              getPoolCards={getPoolCards}
+              getDeckCards={getDeckCards}
+              groupCardsByName={groupCardsByName}
+              renderCardStack={renderCardStack}
+              createCardRenderer={createCardRenderer}
+              getAspectSymbol={getAspectSymbol}
+              getDefaultAspectSortKey={getDefaultAspectSortKey}
+              getAspectKey={getAspectKey}
+              sideboardExpanded={sideboardExpanded}
+              setSideboardExpanded={setSideboardExpanded}
+              poolGroupsExpanded={poolGroupsExpanded}
+              setPoolGroupsExpanded={setPoolGroupsExpanded}
+              poolFilterOpen={poolFilterOpen}
+              setPoolFilterOpen={setPoolFilterOpen}
+              setDeckFilterOpen={setDeckFilterOpen}
+              setFilterAspectsExpanded={setFilterAspectsExpanded}
+            />
+          </div>
         </div>
       )}
 
