@@ -147,7 +147,7 @@ export default function DraftLandingPage() {
 
           <div className="draft-option">
             <h2>Join Draft</h2>
-            <p>To find a draft pod, join the Disocrd server!</p>
+            <p>To find a draft pod, join the Discord server!</p>
             <div className="landing-login">
             <a
               className="landing-login-button"
