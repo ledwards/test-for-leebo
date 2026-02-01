@@ -199,8 +199,7 @@ function HostControls({
               onClick={() => setShowCancelConfirm(true)}
               disabled={isCancelling}
             >
-              <XIcon />
-              <span>Cancel Draft</span>
+              Cancel Draft
             </Button>
           </div>
         )}

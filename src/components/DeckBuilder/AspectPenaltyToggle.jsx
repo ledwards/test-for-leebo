@@ -71,10 +71,10 @@ export function AspectPenaltyToggle({
     )
   }
 
-  // When leader/base not selected, show warning button
+  // When leader/base not selected, show danger button
   return (
     <Button
-      variant="warning"
+      variant="danger"
       size="xs"
       onClick={(e) => {
         e.stopPropagation()
