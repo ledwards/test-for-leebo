@@ -1,23 +1,35 @@
 /**
  * CommonBelt
  *
- * A belt that provides common cards for booster packs.
- * Two belts are used: Belt A (Vigilance/Command) and Belt B (Aggression/Cunning).
+ * A belt that provides common cards for booster packs using static belt assignments.
  *
- * ASPECT COVERAGE GUARANTEE:
- * Uses a 4-card repeating interleave pattern so ANY 4+ consecutive cards have:
- * - Belt A: Vigilance, Command, Heroism (positions 0,1,2 mod 4)
- * - Belt B: Aggression, Cunning, Villainy (positions 0,1,2 mod 4)
- * Combined: all 6 aspects appear in every pack's 9 commons
+ * STATIC ASSIGNMENTS:
+ * Each set has a predefined list of cards assigned to Belt A or Belt B.
+ * See src/belts/data/commonBeltAssignments.js for the mappings.
  *
- * Packs alternate which belt starts: A,B,A,B,A,B,A,B,A then B,A,B,A,B,A,B,A,B
- * This means Belt A draws 5 or 4 cards per pack (alternating).
- * The 4-card interleave pattern guarantees aspects regardless of draw count.
+ * BLOCK-SPECIFIC BEHAVIOR:
  *
- * Seam deduplication ensures no duplicates within 10 slots of each other.
+ * Block 0 (Sets 1-3: SOR, SHD, TWI):
+ * - Belt A: 60 cards (Vigilance, Command, Aggression)
+ * - Belt B: 30 cards (Cunning, Villainy, Heroism, Neutral)
+ * - Belt A fills slots 1-6, Belt B fills slots 7-9
+ *
+ * Block A (Sets 4-6: JTL, LOF, SEC):
+ * - Belt A: 50 cards (Vigilance, Command, Villainy)
+ * - Belt B: 50 cards (Aggression, Cunning, Heroism, Neutral)
+ * - Belt A fills slots 1-4, slot 5 alternates, Belt B fills slots 6-9
+ *
+ * DUPLICATE PREVENTION:
+ * - 12-card deduplication window prevents same card appearing close together
+ * - Seam deduplication ensures no duplicates at boot boundaries
+ *
+ * COLOR PROXIMITY:
+ * - Cards are shuffled within their belt
+ * - No special aspect ordering is enforced (aspect coverage comes from belt slot assignment)
  */
 
 import { getCachedCards } from '../utils/cardCache.js'
+import { COMMON_BELT_ASSIGNMENTS } from './data/commonBeltAssignments.js'
 
 /**
  * Shuffle an array in place (Fisher-Yates)
@@ -39,136 +51,73 @@ function isSameCard(a, b) {
 }
 
 /**
- * Check if a card has any of the given aspects
- */
-function hasAnyAspect(card, aspects) {
-  if (!card.aspects || card.aspects.length === 0) return false
-  return aspects.some(aspect => card.aspects.includes(aspect))
-}
-
-/**
- * Check if a card has a specific aspect
- */
-function hasAspect(card, aspect) {
-  if (!card.aspects || card.aspects.length === 0) return false
-  return card.aspects.includes(aspect)
-}
-
-/**
- * Get common cards divided into Belt A and Belt B pools with aspect-specific organization
+ * Get common cards for a specific belt from static assignments
  *
- * Belt A guarantees: Vigilance, Command, Heroism
- * Belt B guarantees: Aggression, Cunning, Villainy
- *
- * Cards are deduplicated: dual-aspect cards go to only ONE pool to avoid
- * the same card appearing multiple times in the belt.
- *
- * Priority for dual-aspect cards:
- * - Cards with alignment (Heroism/Villainy) go to assigned pool first
- * - Remaining cards go to their color aspect pool
+ * @param {string} setCode - Set code (SOR, SHD, etc.)
+ * @param {string} beltId - 'A' or 'B'
+ * @returns {Array} Cards assigned to this belt
  */
-export function getCommonPools(setCode) {
+export function getBeltCards(setCode, beltId) {
   const cards = getCachedCards(setCode)
+  const assignments = COMMON_BELT_ASSIGNMENTS[setCode]
 
+  if (!assignments) {
+    console.warn(`No belt assignments found for set ${setCode}`)
+    return []
+  }
+
+  const cardNames = beltId === 'A' ? assignments.beltA : assignments.beltB
+
+  // Map names to card objects
   // Filter to normal variant commons (non-leader, non-base)
   const allCommons = cards.filter(c =>
     c.variantType === 'Normal' &&
     c.rarity === 'Common' &&
-    !c.isLeader &&
-    !c.isBase
+    c.type !== 'Leader' &&
+    c.type !== 'Base'
   )
 
-  const beltAAspects = ['Vigilance', 'Command']
-  const beltBAspects = ['Aggression', 'Cunning']
+  // Create lookup by name
+  const cardByName = new Map()
+  allCommons.forEach(c => {
+    if (!cardByName.has(c.name)) {
+      cardByName.set(c.name, c)
+    }
+  })
 
-  // First, identify assigned pools (all cards with alignment aspects for their belt)
-  // These take priority - dual-aspect cards go here first
-  const heroismForA = allCommons.filter(c =>
-    hasAspect(c, 'Heroism') && !hasAnyAspect(c, beltBAspects)
-  )
-  const villainyForB = allCommons.filter(c =>
-    hasAspect(c, 'Villainy') && !hasAnyAspect(c, beltAAspects)
-  )
-
-  // Track IDs in assigned pools to avoid duplicates
-  const heroismIds = new Set(heroismForA.map(c => c.id))
-  const villainyIds = new Set(villainyForB.map(c => c.id))
-
-  // Belt A primary pools: Vigilance and Command cards NOT already in Heroism pool
-  const vigilanceCards = allCommons.filter(c =>
-    hasAspect(c, 'Vigilance') && !heroismIds.has(c.id)
-  )
-  const commandCards = allCommons.filter(c =>
-    hasAspect(c, 'Command') && !hasAspect(c, 'Vigilance') && !heroismIds.has(c.id)
-  )
-
-  // Belt B primary pools: Aggression and Cunning cards NOT already in Villainy pool
-  const aggressionCards = allCommons.filter(c =>
-    hasAspect(c, 'Aggression') && !villainyIds.has(c.id)
-  )
-  const cunningCards = allCommons.filter(c =>
-    hasAspect(c, 'Cunning') && !hasAspect(c, 'Aggression') && !villainyIds.has(c.id)
-  )
-
-  // Pure neutral (no aspects at all) - used as filler
-  const pureNeutralCards = allCommons.filter(c =>
-    !hasAnyAspect(c, beltAAspects) && !hasAnyAspect(c, beltBAspects) &&
-    !hasAspect(c, 'Heroism') && !hasAspect(c, 'Villainy')
-  )
-
-  // Shuffle each category
-  shuffle(vigilanceCards)
-  shuffle(commandCards)
-  shuffle(aggressionCards)
-  shuffle(cunningCards)
-  shuffle(heroismForA)
-  shuffle(villainyForB)
-  shuffle(pureNeutralCards)
-
-  // Split pure neutrals between belts
-  const neutralsForA = pureNeutralCards.slice(0, Math.ceil(pureNeutralCards.length / 2))
-  const neutralsForB = pureNeutralCards.slice(Math.ceil(pureNeutralCards.length / 2))
-
-  return {
-    poolA: {
-      primary1: vigilanceCards,      // Vigilance cards (excluding Heroism dual-aspect)
-      primary2: commandCards,        // Command cards (excluding Heroism dual-aspect)
-      assigned: heroismForA,         // ALL Heroism cards for Belt A (including dual-aspect)
-      neutral: neutralsForA          // Pure neutral cards (filler)
-    },
-    poolB: {
-      primary1: aggressionCards,     // Aggression cards (excluding Villainy dual-aspect)
-      primary2: cunningCards,        // Cunning cards (excluding Villainy dual-aspect)
-      assigned: villainyForB,        // ALL Villainy cards for Belt B (including dual-aspect)
-      neutral: neutralsForB          // Pure neutral cards (filler)
+  // Get cards in order specified by assignments
+  const beltCards = []
+  for (const name of cardNames) {
+    const card = cardByName.get(name)
+    if (card) {
+      beltCards.push(card)
+    } else {
+      console.warn(`Card not found for belt assignment: ${name} in ${setCode}`)
     }
   }
+
+  return beltCards
 }
 
 export class CommonBelt {
   /**
-   * @param {string} setCode
-   * @param {Object} pool - Aspect-organized pool with primary1, primary2, assigned, neutral
+   * @param {string} setCode - Set code (SOR, SHD, etc.)
+   * @param {string} beltId - 'A' or 'B'
    */
-  constructor(setCode, pool) {
+  constructor(setCode, beltId) {
     this.setCode = setCode
+    this.beltId = beltId
     this.hopper = []
-    this.pool = pool
 
-    // Create flat array for fallback and counting
-    // Note: neutral cards are excluded as they don't contribute to aspect coverage
-    this.flatPool = [
-      ...pool.primary1,
-      ...pool.primary2,
-      ...pool.assigned
-    ]
+    // Get cards assigned to this belt
+    this.beltCards = getBeltCards(setCode, beltId)
 
     // Track recently used card IDs across refills to avoid close duplicates
     // This persists between boot fills to handle the seam
     this.recentIds = []
     this.DEDUP_WINDOW = 12  // Slightly larger than max pack draw (9 commons)
 
-    // Track total draws to know the phase offset for pattern validation
+    // Track total draws
     this.totalDraws = 0
 
     this._initialize()
@@ -186,19 +135,18 @@ export class CommonBelt {
    * Fill the hopper if it needs more cards
    */
   _fillIfNeeded() {
-    // Safety check: if no cards in pool, can't fill
-    if (this.flatPool.length === 0) {
+    // Safety check: if no cards in belt, can't fill
+    if (this.beltCards.length === 0) {
       return
     }
-    while (this.hopper.length < this.flatPool.length) {
+    while (this.hopper.length < this.beltCards.length) {
       this._fill()
     }
   }
 
   /**
-   * Fill the hopper with aspect-interleaved cards
-   * Uses a period-3 pattern: [primary1, primary2, assigned, ...]
-   * This guarantees any 3+ consecutive cards have all 3 required aspects
+   * Fill the hopper with shuffled cards from this belt
+   * Uses deduplication to prevent same card appearing within DEDUP_WINDOW
    */
   _fill() {
     const wasEmpty = this.hopper.length === 0
@@ -212,215 +160,55 @@ export class CommonBelt {
       this.recentIds = this.hopper.slice(tailStart).map(c => c.id)
     }
 
-    // Build interleaved boot
-    const boot = this._buildInterleavedBoot()
+    // Build shuffled boot with deduplication
+    const boot = this._buildShuffledBoot()
     this.hopper.push(...boot)
 
     // Run seam dedup as additional safety if hopper wasn't empty
     if (!wasEmpty) {
       this._seamDedup(bootStart, boot.length)
     }
-
-    // Validate and fix period-3 pattern
-    // Focus on the head of the hopper (first 15 cards = 5 pack draws worth)
-    // since that's what will be drawn soon. Also validate the seam area.
-    this._validateAndFixPattern(0, Math.min(15, this.hopper.length))
-    if (bootStart > 0) {
-      // Also validate around the seam
-      const seamStart = Math.max(0, bootStart - 6)
-      const seamEnd = Math.min(this.hopper.length, bootStart + 12)
-      this._validateAndFixPattern(seamStart, seamEnd)
-    }
   }
 
   /**
-   * Validate that the hopper maintains period-3 aspect pattern.
-   * If any card is in the wrong slot, swap it with a card that belongs in this slot.
-   * This guarantees that any 3+ consecutive draws will have all 3 required aspects.
-   *
-   * @param {number} startIdx - Start of range to validate
-   * @param {number} endIdx - End of range to validate (defaults to hopper length)
+   * Build a shuffled boot of cards with deduplication
    */
-  _validateAndFixPattern(startIdx = 0, endIdx = undefined) {
-    if (endIdx === undefined) endIdx = this.hopper.length
-    // Build aspect sets for each slot from the pools
-    const slot0Aspects = new Set()
-    const slot1Aspects = new Set()
-    const slot2Aspects = new Set()
-
-    this.pool.primary1.forEach(c => c.aspects?.forEach(a => slot0Aspects.add(a)))
-    this.pool.primary2.forEach(c => c.aspects?.forEach(a => slot1Aspects.add(a)))
-    this.pool.assigned.forEach(c => c.aspects?.forEach(a => slot2Aspects.add(a)))
-
-    const slotAspects = [slot0Aspects, slot1Aspects, slot2Aspects]
-
-    // Helper to check if a card fits a given slot
-    const cardFitsSlot = (card, slot) => {
-      const cardAspects = card.aspects || []
-      return cardAspects.some(a => slotAspects[slot].has(a))
-    }
-
-    // Helper to check if swapping would create a duplicate within DEDUP_WINDOW
-    const wouldCreateDuplicate = (idxA, idxB) => {
-      const cardA = this.hopper[idxA]
-      const cardB = this.hopper[idxB]
-
-      // Check if cardB would duplicate anything near position idxA
-      for (let k = Math.max(0, idxA - this.DEDUP_WINDOW); k < Math.min(this.hopper.length, idxA + this.DEDUP_WINDOW + 1); k++) {
-        if (k === idxA || k === idxB) continue
-        if (this.hopper[k].id === cardB.id) return true
-      }
-
-      // Check if cardA would duplicate anything near position idxB
-      for (let k = Math.max(0, idxB - this.DEDUP_WINDOW); k < Math.min(this.hopper.length, idxB + this.DEDUP_WINDOW + 1); k++) {
-        if (k === idxA || k === idxB) continue
-        if (this.hopper[k].id === cardA.id) return true
-      }
-
-      return false
-    }
-
-    // First pass: identify all violations in the range
-    const violations = []
-    for (let i = startIdx; i < endIdx; i++) {
-      const slot = i % 3
-      if (!cardFitsSlot(this.hopper[i], slot)) {
-        violations.push(i)
-      }
-    }
-
-    // Second pass: fix violations by finding swap partners
-    for (const violationIdx of violations) {
-      const violationSlot = violationIdx % 3
-      const violatingCard = this.hopper[violationIdx]
-
-      // Skip if this violation was already fixed by a previous swap
-      if (cardFitsSlot(violatingCard, violationSlot)) continue
-
-      // Find a card that:
-      // 1. Fits the violation's slot (has the right aspect)
-      // 2. Won't create a duplicate when swapped
-      // 3. Ideally: is in a position where the violating card would fit (mutual benefit)
-      let bestSwapIdx = -1
-
-      for (let j = violationIdx + 1; j < this.hopper.length; j++) {
-        const candidateSlot = j % 3
-        const candidate = this.hopper[j]
-
-        // Does candidate fit the violation slot?
-        if (!cardFitsSlot(candidate, violationSlot)) continue
-
-        // Would this swap create a duplicate?
-        if (wouldCreateDuplicate(violationIdx, j)) continue
-
-        // Would the violating card fit the candidate's slot? (mutual benefit)
-        if (cardFitsSlot(violatingCard, candidateSlot)) {
-          // Perfect - mutual swap
-          bestSwapIdx = j
-          break
-        }
-
-        // Otherwise, just remember this as a fallback
-        if (bestSwapIdx < 0) {
-          bestSwapIdx = j
-        }
-      }
-
-      if (bestSwapIdx >= 0) {
-        ;[this.hopper[violationIdx], this.hopper[bestSwapIdx]] =
-          [this.hopper[bestSwapIdx], this.hopper[violationIdx]]
-      }
-    }
-  }
-
-  /**
-   * Build a boot that guarantees aspect coverage with no close duplicates.
-   *
-   * Strategy: Build 3-card groups where each group has all 3 required aspects.
-   * Within each group, select cards that haven't been used recently to avoid duplicates.
-   *
-   * This guarantees ANY 3+ consecutive cards have all 3 required aspects.
-   * Uses this.recentIds which persists across refills to handle seam duplicates.
-   *
-   * Note: Neutral cards (no aspects) are excluded from the period-3 pattern
-   * since they don't contribute to aspect coverage.
-   */
-  _buildInterleavedBoot() {
-    // Shuffle each aspect pool to randomize which specific cards appear
-    const primary1 = shuffle([...this.pool.primary1])
-    const primary2 = shuffle([...this.pool.primary2])
-    const assigned = shuffle([...this.pool.assigned])
-
-    // If any required pool is empty, fall back to basic shuffle
-    if (primary1.length === 0 || primary2.length === 0 || assigned.length === 0) {
-      return shuffle([...this.flatPool])
-    }
+  _buildShuffledBoot() {
+    // Shuffle a copy of the belt cards
+    const shuffled = shuffle([...this.beltCards])
 
     const boot = []
-    // Only count cards that have aspects - neutral cards are excluded
-    const totalCards = primary1.length + primary2.length + assigned.length
+    const usedInBoot = new Set()
 
-    // Track cycling indices for each pool
-    let p1Idx = 0, p2Idx = 0, aIdx = 0
+    for (const card of shuffled) {
+      // Skip if this card was used recently (dedup window)
+      if (this.recentIds.includes(card.id)) {
+        continue
+      }
 
-    // Build period-3 pattern with duplicate avoidance
-    for (let pos = 0; pos < totalCards; pos++) {
-      const slot = pos % 3
-      let card = null
-
-      if (slot === 0) {
-        // Slot 0: primary1 (Vigilance or Aggression)
-        for (let attempt = 0; attempt < primary1.length; attempt++) {
-          const idx = (p1Idx + attempt) % primary1.length
-          const candidate = primary1[idx]
-          if (!this.recentIds.includes(candidate.id)) {
-            card = candidate
-            p1Idx = (idx + 1) % primary1.length
-            break
-          }
-        }
-        if (!card) {
-          card = primary1[p1Idx % primary1.length]
-          p1Idx = (p1Idx + 1) % primary1.length
-        }
-      } else if (slot === 1) {
-        // Slot 1: primary2 (Command or Cunning)
-        for (let attempt = 0; attempt < primary2.length; attempt++) {
-          const idx = (p2Idx + attempt) % primary2.length
-          const candidate = primary2[idx]
-          if (!this.recentIds.includes(candidate.id)) {
-            card = candidate
-            p2Idx = (idx + 1) % primary2.length
-            break
-          }
-        }
-        if (!card) {
-          card = primary2[p2Idx % primary2.length]
-          p2Idx = (p2Idx + 1) % primary2.length
-        }
-      } else {
-        // Slot 2: assigned (Heroism or Villainy)
-        for (let attempt = 0; attempt < assigned.length; attempt++) {
-          const idx = (aIdx + attempt) % assigned.length
-          const candidate = assigned[idx]
-          if (!this.recentIds.includes(candidate.id)) {
-            card = candidate
-            aIdx = (idx + 1) % assigned.length
-            break
-          }
-        }
-        if (!card) {
-          card = assigned[aIdx % assigned.length]
-          aIdx = (aIdx + 1) % assigned.length
-        }
+      // Skip if already used in this boot
+      if (usedInBoot.has(card.id)) {
+        continue
       }
 
       boot.push(card)
+      usedInBoot.add(card.id)
 
-      // Update recent IDs window (persists across refills)
+      // Update recent IDs window
       this.recentIds.push(card.id)
       if (this.recentIds.length > this.DEDUP_WINDOW) {
         this.recentIds.shift()
+      }
+    }
+
+    // If we skipped too many due to dedup, add them anyway (better than running out)
+    // This handles edge cases where the belt is smaller than DEDUP_WINDOW
+    if (boot.length < this.beltCards.length * 0.5) {
+      for (const card of shuffled) {
+        if (!usedInBoot.has(card.id)) {
+          boot.push(card)
+          usedInBoot.add(card.id)
+        }
       }
     }
 
@@ -429,16 +217,15 @@ export class CommonBelt {
 
   /**
    * Seam deduplication
-   * Look at the first 10 cards in the segment (the seam).
-   * For each, check if it has a duplicate within 10 slots.
-   * If so, swap with a card from the same slot type (mod 3) in the back half
-   * to preserve the aspect coverage pattern.
+   * Look at the first cards in the segment (the seam).
+   * For each, check if it has a duplicate within dedup window.
+   * If so, swap with a card from the back half.
    */
   _seamDedup(segmentStart, segmentLength, depth = 0) {
     // Prevent infinite recursion
     if (depth > 10) return
 
-    const seamSize = Math.min(10, segmentLength)
+    const seamSize = Math.min(this.DEDUP_WINDOW, segmentLength)
     const backHalfStart = segmentStart + Math.floor(segmentLength / 2)
     const backHalfEnd = segmentStart + segmentLength
 
@@ -446,13 +233,13 @@ export class CommonBelt {
       const cardIndex = segmentStart + i
       const card = this.hopper[cardIndex]
 
-      // Check for duplicates within 10 slots (before and after)
+      // Check for duplicates within dedup window (before and after)
       let hasDuplicate = false
-      for (let offset = -10; offset <= 10; offset++) {
+      for (let offset = -this.DEDUP_WINDOW; offset <= this.DEDUP_WINDOW; offset++) {
         if (offset === 0) continue
         const checkIndex = cardIndex + offset
         if (checkIndex < 0 || checkIndex >= this.hopper.length) continue
-        if (checkIndex >= segmentStart + segmentLength) continue // Don't check beyond segment
+        if (checkIndex >= segmentStart + segmentLength) continue
 
         if (isSameCard(card, this.hopper[checkIndex])) {
           hasDuplicate = true
@@ -461,16 +248,10 @@ export class CommonBelt {
       }
 
       if (hasDuplicate) {
-        // Find a swap candidate from the back half with the SAME slot type
-        // to preserve aspect coverage (slot 0=primary1, slot 1=primary2, slot 2=assigned)
-        const cardSlot = cardIndex % 3
-
-        // Build list of valid swap candidates (same slot type, in back half)
+        // Find a swap candidate from the back half
         const candidates = []
         for (let j = backHalfStart; j < backHalfEnd; j++) {
-          if (j % 3 === cardSlot) {
-            candidates.push(j)
-          }
+          candidates.push(j)
         }
 
         if (candidates.length > 0) {
@@ -492,103 +273,14 @@ export class CommonBelt {
   next() {
     this._fillIfNeeded()
 
-    // Validate the first few cards to ensure aspect coverage
-    // Use phase offset to account for previous draws
-    this._ensureHeadValid()
+    if (this.hopper.length === 0) {
+      console.warn(`CommonBelt ${this.beltId} for ${this.setCode} is empty`)
+      return null
+    }
 
     const card = this.hopper.shift()
     this.totalDraws++
     return { ...card } // Return a copy
-  }
-
-  /**
-   * Ensure the first 9 cards in the hopper have all required aspects.
-   * This guarantees the next pack's draws will have proper coverage.
-   */
-  _ensureHeadValid() {
-    if (this.hopper.length < 9) return
-
-    // Build aspect sets for each slot
-    const slot0Aspects = new Set()
-    const slot1Aspects = new Set()
-    const slot2Aspects = new Set()
-
-    this.pool.primary1.forEach(c => c.aspects?.forEach(a => slot0Aspects.add(a)))
-    this.pool.primary2.forEach(c => c.aspects?.forEach(a => slot1Aspects.add(a)))
-    this.pool.assigned.forEach(c => c.aspects?.forEach(a => slot2Aspects.add(a)))
-
-    const slotAspects = [slot0Aspects, slot1Aspects, slot2Aspects]
-
-    // Check first 9 cards - account for phase offset from previous draws
-    const phaseOffset = this.totalDraws % 3
-
-    // Build set of IDs in first 9 for duplicate checking
-    const headIds = new Set(this.hopper.slice(0, 9).map(c => c.id))
-
-    for (let i = 0; i < 9; i++) {
-      const expectedSlot = (i + phaseOffset) % 3
-      const card = this.hopper[i]
-      const cardAspects = card.aspects || []
-
-      const hasCorrectAspect = cardAspects.some(a => slotAspects[expectedSlot].has(a))
-
-      if (!hasCorrectAspect) {
-        // Find a swap candidate from later in the hopper
-        // Must have correct aspect AND not already in the first 9 cards
-        for (let j = 9; j < this.hopper.length; j++) {
-          const candidate = this.hopper[j]
-          const candidateAspects = candidate.aspects || []
-
-          // Check: has correct aspect AND won't create duplicate in head
-          if (candidateAspects.some(a => slotAspects[expectedSlot].has(a)) &&
-              !headIds.has(candidate.id)) {
-            // Update headIds: remove old card, add new card
-            // Only remove if this card doesn't appear elsewhere in head
-            let cardAppearsElsewhere = false
-            for (let k = 0; k < 9; k++) {
-              if (k !== i && this.hopper[k].id === card.id) {
-                cardAppearsElsewhere = true
-                break
-              }
-            }
-            if (!cardAppearsElsewhere) {
-              headIds.delete(card.id)
-            }
-            headIds.add(candidate.id)
-            ;[this.hopper[i], this.hopper[j]] = [this.hopper[j], this.hopper[i]]
-            break
-          }
-        }
-      }
-    }
-
-    // Final pass: fix any duplicates in first 9
-    // This handles pre-existing duplicates that might exist
-    this._dedupHead()
-  }
-
-  /**
-   * Remove duplicates from the first 9 cards in the hopper
-   */
-  _dedupHead() {
-    if (this.hopper.length < 9) return
-
-    const seenIds = new Set()
-    for (let i = 0; i < 9; i++) {
-      const card = this.hopper[i]
-      if (seenIds.has(card.id)) {
-        // Found a duplicate - swap with a card from later that isn't in first 9
-        const headIds = new Set(this.hopper.slice(0, 9).map(c => c.id))
-        for (let j = 9; j < this.hopper.length; j++) {
-          const candidate = this.hopper[j]
-          if (!headIds.has(candidate.id)) {
-            ;[this.hopper[i], this.hopper[j]] = [this.hopper[j], this.hopper[i]]
-            break
-          }
-        }
-      }
-      seenIds.add(this.hopper[i].id)
-    }
   }
 
   /**
@@ -604,5 +296,30 @@ export class CommonBelt {
    */
   get size() {
     return this.hopper.length
+  }
+}
+
+/**
+ * Legacy function for backward compatibility
+ * Returns pool objects structured like the old getCommonPools
+ * @deprecated Use getBeltCards directly
+ */
+export function getCommonPools(setCode) {
+  const beltACards = getBeltCards(setCode, 'A')
+  const beltBCards = getBeltCards(setCode, 'B')
+
+  return {
+    poolA: {
+      primary1: beltACards,
+      primary2: [],
+      assigned: [],
+      neutral: [],
+    },
+    poolB: {
+      primary1: beltBCards,
+      primary2: [],
+      assigned: [],
+      neutral: [],
+    }
   }
 }

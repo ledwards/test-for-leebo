@@ -19,7 +19,8 @@ import { BaseBelt } from '../belts/BaseBelt.js'
 import { FoilBelt } from '../belts/FoilBelt.js'
 import { RareLegendaryBelt } from '../belts/RareLegendaryBelt.js'
 import { UncommonBelt } from '../belts/UncommonBelt.js'
-import { CommonBelt, getCommonPools } from '../belts/CommonBelt.js'
+import { CommonBelt } from '../belts/CommonBelt.js'
+import { getBlockForSet, getBeltConfig } from '../belts/data/commonBeltAssignments.js'
 import { ShowcaseLeaderBelt } from '../belts/ShowcaseLeaderBelt.js'
 import { HyperfoilBelt } from '../belts/HyperfoilBelt.js'
 import { HyperspaceLeaderBelt } from '../belts/HyperspaceLeaderBelt.js'
@@ -139,18 +140,22 @@ function getUncommonBelt(setCode) {
 
 /**
  * Get or create CommonBelts A and B for a set
- * Belt A guarantees: Vigilance, Command, Heroism
- * Belt B guarantees: Aggression, Cunning, Villainy
- * Combined: all 6 aspects in every pack's commons
+ *
+ * Block 0 (SOR, SHD, TWI):
+ * - Belt A: Vigilance, Command, Aggression (60 cards)
+ * - Belt B: Cunning, Villainy, Heroism, Neutral (30 cards)
+ *
+ * Block A (JTL, LOF, SEC):
+ * - Belt A: Vigilance, Command, Villainy (50 cards)
+ * - Belt B: Aggression, Cunning, Heroism, Neutral (50 cards)
  */
 function getCommonBelts(setCode) {
   const keyA = `common-a-${setCode}`
   const keyB = `common-b-${setCode}`
 
   if (!beltCache.has(keyA) || !beltCache.has(keyB)) {
-    const { poolA, poolB } = getCommonPools(setCode)
-    beltCache.set(keyA, new CommonBelt(setCode, poolA))
-    beltCache.set(keyB, new CommonBelt(setCode, poolB))
+    beltCache.set(keyA, new CommonBelt(setCode, 'A'))
+    beltCache.set(keyB, new CommonBelt(setCode, 'B'))
   }
 
   return {
@@ -346,12 +351,21 @@ function applyUpgradePass(pack, setCode) {
     if (upgraded) pack.cards[uncommonIndices[2]] = upgraded
   }
 
-  // 8. Common upgrade - find HS version of a random common
-  if (commonIndices.length > 0 && probs.commonToHyperspace && shouldUpgrade(probs.commonToHyperspace)) {
-    const randomCommonIndex = commonIndices[Math.floor(Math.random() * commonIndices.length)]
-    const currentCommon = pack.cards[randomCommonIndex]
-    const upgraded = findHyperspaceVariant(currentCommon, setCode)
-    if (upgraded) pack.cards[randomCommonIndex] = upgraded
+  // 8. Common upgrade - find HS version of the card in the specific hyperspace slot
+  // Block 0: Slot 6 (index 7 = leader + base + 5 more)
+  // Block A: Slot 4 (index 5 = leader + base + 3 more)
+  if (probs.commonToHyperspace && shouldUpgrade(probs.commonToHyperspace)) {
+    const block = getBlockForSet(setCode)
+    const config = getBeltConfig(block)
+    // hyperspaceSlot is 1-indexed, convert to pack index (after leader and base)
+    const hyperspaceIndex = 1 + config.hyperspaceSlot // +1 for leader, slot is 1-indexed
+    if (hyperspaceIndex < pack.cards.length) {
+      const currentCommon = pack.cards[hyperspaceIndex]
+      if (currentCommon && currentCommon.rarity === 'Common' && !currentCommon.isLeader && !currentCommon.isBase) {
+        const upgraded = findHyperspaceVariant(currentCommon, setCode)
+        if (upgraded) pack.cards[hyperspaceIndex] = upgraded
+      }
+    }
   }
 
   return pack
@@ -569,29 +583,57 @@ export function generateBoosterPack(cards, setCode) {
   const base = baseBelt.next()
   if (base) packCards.push(base)
 
-  // 9 Commons (alternating between Belt A and Belt B)
-  // Pattern: A,B,A,B,A,B,A,B,A or B,A,B,A,B,A,B,A,B
-  const firstBelt = startWithBeltA ? commonBeltA : commonBeltB
-  const secondBelt = startWithBeltA ? commonBeltB : commonBeltA
+  // 9 Commons - slot pattern depends on block
+  // Block 0 (SOR, SHD, TWI): Belt A for slots 1-6, Belt B for slots 7-9
+  // Block A (JTL, LOF, SEC): Belt A for slots 1-4, slot 5 alternates, Belt B for slots 6-9
+  const block = getBlockForSet(setCode)
+  const config = getBeltConfig(block)
 
-  for (let i = 0; i < 9; i++) {
-    const belt = (i % 2 === 0) ? firstBelt : secondBelt
+  for (let slot = 1; slot <= 9; slot++) {
+    let belt
+    if (block === 0) {
+      // Block 0: Belt A for slots 1-6, Belt B for slots 7-9
+      belt = (slot <= 6) ? commonBeltA : commonBeltB
+    } else {
+      // Block A: Belt A for slots 1-4, slot 5 alternates, Belt B for slots 6-9
+      if (slot <= 4) {
+        belt = commonBeltA
+      } else if (slot === 5) {
+        // Slot 5 alternates between Belt A and Belt B
+        belt = startWithBeltA ? commonBeltA : commonBeltB
+      } else {
+        belt = commonBeltB
+      }
+    }
     const common = belt.next()
     if (common) packCards.push(common)
   }
 
-  // Toggle for next pack
+  // Toggle alternating slot for next pack
   startWithBeltA = !startWithBeltA
 
   // Dedup commons - belt cycling can rarely produce duplicates
   // Replace any duplicate commons with fresh cards from the appropriate belt
   const commonNames = new Set()
-  for (let i = 2; i < packCards.length; i++) { // Start at index 2 (after leader/base)
+  for (let i = 2; i < 11; i++) { // Commons are at indices 2-10 (after leader/base)
     const card = packCards[i]
+    if (!card) continue
+
     if (commonNames.has(card.name)) {
-      // Duplicate found - get a replacement from the belt this card came from
-      const beltIdx = (i - 2) % 2 // Which belt this position came from
-      const replacementBelt = (beltIdx === 0) ? firstBelt : secondBelt
+      // Duplicate found - get a replacement from the belt this slot came from
+      const slot = i - 1 // Convert index to slot (1-indexed)
+      let replacementBelt
+      if (block === 0) {
+        replacementBelt = (slot <= 6) ? commonBeltA : commonBeltB
+      } else {
+        if (slot <= 4) {
+          replacementBelt = commonBeltA
+        } else if (slot === 5) {
+          replacementBelt = currentStartWithA ? commonBeltA : commonBeltB
+        } else {
+          replacementBelt = commonBeltB
+        }
+      }
 
       // Try to find a non-duplicate replacement
       for (let attempt = 0; attempt < 10; attempt++) {
