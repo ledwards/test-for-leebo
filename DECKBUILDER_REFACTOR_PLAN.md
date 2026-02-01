@@ -4,11 +4,14 @@
 
 ### Progress Summary
 - **Original DeckBuilder.jsx:** ~6700 lines
-- **Current DeckBuilder.jsx:** 4038 lines
-- **Reduction:** ~2662 lines (~40%)
+- **Current DeckBuilder.jsx:** 2819 lines
+- **Reduction:** ~3881 lines (~58%)
 - **E2E Tests:** 57/59 passing (mobile test known flaky)
 - **Context Integration:** ✓ Complete - sub-components use DeckBuilderContext
 - **Grid View Sections:** ✓ Extracted to DeckSection & PoolSection components
+- **List View Sections:** ✓ Extracted to SelectionListSection & PoolListSection
+- **Export Functionality:** ✓ Extracted to useDeckExport hook
+- **Aspect Utilities:** ✓ Extracted to aspectCombinations.js
 
 ### Completed Work
 
@@ -28,7 +31,14 @@
 | TypeIcon.jsx | ~50 | ✓ Complete |
 | GroupHeader.jsx | ~75 | ✓ Complete |
 | ListTableHeader.jsx | ~55 | ✓ Complete |
+| SelectionListSection.jsx | ~115 | ✓ Complete |
+| PoolListSection.jsx | ~400 | ✓ Complete |
 | index.js | ~20 | ✓ Complete |
+
+#### Hook Extractions (in `src/hooks/`)
+| Hook | Lines | Status |
+|------|-------|--------|
+| useDeckExport.js | ~370 | ✓ Complete |
 
 #### Utility Extractions (in `src/utils/cardSort.js`)
 | Function | Purpose | Status |
@@ -39,6 +49,13 @@
 | createGetGroupKey | Factory for group key generator | ✓ Complete |
 | createDefaultSortFn | Factory for default card sort | ✓ Complete |
 | createGroupCardSortFn | Factory for within-group sort | ✓ Complete |
+
+#### Utility Extractions (in `src/utils/aspectCombinations.js`)
+| Function | Purpose | Status |
+|----------|---------|--------|
+| getAspectCombinationKey | Get grouping key for card aspects | ✓ Complete |
+| getAspectCombinationDisplayName | Get display name for aspect key | ✓ Complete |
+| getAspectKey | Get sortable key for aspects | ✓ Complete |
 
 ### Remaining Work
 
@@ -55,9 +72,10 @@
 3. ~~**Extract DeckSection component**~~ ✓ COMPLETE (DeckSection.jsx)
    - Extracted to ~200 lines in separate component
 
-4. **Extract List View sections** (~4 hours)
-   - Leaders, Bases, Deck, Sideboard list tables
-   - Currently ~700 lines inline
+4. ~~**Extract List View sections**~~ ✓ COMPLETE
+   - SelectionListSection: shared component for Leaders/Bases
+   - PoolListSection: Pool/Deck/Sideboard list view
+   - useDeckExport: Export functions (JSON, clipboard, image)
 
 #### MEDIUM PRIORITY
 
@@ -70,8 +88,8 @@
    - Standardize card grid layouts
    - Replace repeated grid rendering code
 
-7. **ExportModal extraction** (~2 hours)
-   - Extract export/share functionality
+7. ~~**ExportModal extraction**~~ ✓ COMPLETE (useDeckExport hook)
+   - Export functions extracted to hook
 
 #### LOW PRIORITY (Polish)
 
@@ -80,7 +98,7 @@
 10. **Replace remaining List View table headers with ListTableHeader** (~2 hours)
 
 ### Success Criteria (from original plan)
-- [ ] DeckBuilder.jsx < 500 lines (currently 4038)
+- [ ] DeckBuilder.jsx < 500 lines (currently 2819 - 58% reduction from 6700)
 - [x] Card component used everywhere
 - [ ] All state in context (not started)
 - [x] Each component < 200 lines (most are)
