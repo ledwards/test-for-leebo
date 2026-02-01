@@ -787,6 +787,25 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     return group.cards.map((cardEntry, index) => renderCard(cardEntry, null, false))
   }, [])
 
+  // Get common Card props for a card entry
+  const getCardEventHandlers = useCallback((cardId, card) => ({
+    onClick: (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      if (!e.shiftKey) {
+        toggleCardSection(cardId)
+      }
+    },
+    onMouseEnter: (e) => {
+      setHoveredCard(cardId)
+      handleCardMouseEnter(card, e)
+    },
+    onMouseLeave: () => {
+      setHoveredCard(null)
+      handleCardMouseLeave()
+    }
+  }), [toggleCardSection, handleCardMouseEnter, handleCardMouseLeave])
+
   // Restore saved state on mount
   useEffect(() => {
     if (Object.keys(cardPositions).length === 0 && savedState) {
@@ -3103,21 +3122,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           stackIndex={stackIndex}
                           showPenalty={showAspectPenalties && leaderCardDeck && baseCardDeck}
                           penaltyAmount={penalty}
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            if (!e.shiftKey) {
-                              toggleCardSection(cardId)
-                            }
-                          }}
-                          onMouseEnter={(e) => {
-                            setHoveredCard(cardId)
-                            handleCardMouseEnter(position.card, e)
-                          }}
-                          onMouseLeave={() => {
-                            setHoveredCard(null)
-                            handleCardMouseLeave()
-                          }}
+                          {...getCardEventHandlers(cardId, position.card)}
                         />
                       )
                     }))}
@@ -3269,21 +3274,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                               stackIndex={stackIndex}
                               showPenalty={showAspectPenalties}
                               penaltyAmount={penalty}
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                if (!e.shiftKey) {
-                                  toggleCardSection(cardId)
-                                }
-                              }}
-                              onMouseEnter={(e) => {
-                                setHoveredCard(cardId)
-                                handleCardMouseEnter(position.card, e)
-                              }}
-                              onMouseLeave={() => {
-                                setHoveredCard(null)
-                                handleCardMouseLeave()
-                              }}
+                              {...getCardEventHandlers(cardId, position.card)}
                             />
                           )
                         }))}
@@ -3363,21 +3354,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                 stackIndex={stackIndex}
                                 showPenalty={showAspectPenalties}
                                 penaltyAmount={penalty}
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  if (!e.shiftKey) {
-                                    toggleCardSection(cardId)
-                                  }
-                                }}
-                                onMouseEnter={(e) => {
-                                  setHoveredCard(cardId)
-                                  handleCardMouseEnter(position.card, e)
-                                }}
-                                onMouseLeave={() => {
-                                  setHoveredCard(null)
-                                  handleCardMouseLeave()
-                                }}
+                                {...getCardEventHandlers(cardId, position.card)}
                               />
                             )
                           }))}
@@ -3530,21 +3507,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                 stackIndex={stackIndex}
                                 showPenalty={showAspectPenalties}
                                 penaltyAmount={penalty}
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  if (!e.shiftKey) {
-                                    toggleCardSection(cardId)
-                                  }
-                                }}
-                                onMouseEnter={(e) => {
-                                  setHoveredCard(cardId)
-                                  handleCardMouseEnter(position.card, e)
-                                }}
-                                onMouseLeave={() => {
-                                  setHoveredCard(null)
-                                  handleCardMouseLeave()
-                                }}
+                                {...getCardEventHandlers(cardId, position.card)}
                               />
                             )
                           }))}
