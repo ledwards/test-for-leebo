@@ -827,6 +827,35 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
   }), [toggleCardSection, handleCardMouseEnter, handleCardMouseLeave])
 
+  // Factory for card render callbacks used in renderCardStack
+  const createCardRenderer = useCallback((leaderCardRef, baseCardRef, { showDisabled = false } = {}) => {
+    return (cardEntry, stackIndex, isStacked) => {
+      const { cardId, position } = cardEntry
+      const card = position.card
+      const isSelected = selectedCards.has(cardId)
+      const isHovered = hoveredCard === cardId
+      const isDisabled = showDisabled && !position.enabled
+      const penalty = showAspectPenalties && leaderCardRef && baseCardRef
+        ? calculateAspectPenalty(card, leaderCardRef, baseCardRef)
+        : 0
+
+      return (
+        <Card
+          key={cardId}
+          card={card}
+          selected={isSelected}
+          hovered={isHovered}
+          disabled={isDisabled}
+          stacked={isStacked}
+          stackIndex={stackIndex}
+          showPenalty={showAspectPenalties && leaderCardRef && baseCardRef}
+          penaltyAmount={penalty}
+          {...getCardEventHandlers(cardId, position.card)}
+        />
+      )
+    }
+  }, [selectedCards, hoveredCard, showAspectPenalties, getCardEventHandlers])
+
   // Restore saved state on mount
   useEffect(() => {
     if (Object.keys(cardPositions).length === 0 && savedState) {
@@ -3121,32 +3150,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               <div className="card-block deck-flat-container" style={{ width: '100%' }}>
                 <div className="card-block-content">
                   <div className="cards-grid">
-                    {groupedCards.map(group => renderCardStack(group, (cardEntry, stackIndex, isStacked) => {
-                      const { cardId, position } = cardEntry
-                      const card = position.card
-                      const isSelected = selectedCards.has(cardId)
-                      const isHovered = hoveredCard === cardId
-                      const isDisabled = !position.enabled
-
-                      const penalty = showAspectPenalties && leaderCardDeck && baseCardDeck
-                        ? calculateAspectPenalty(card, leaderCardDeck, baseCardDeck)
-                        : 0
-
-                      return (
-                        <Card
-                          key={cardId}
-                          card={card}
-                          selected={isSelected}
-                          hovered={isHovered}
-                          disabled={isDisabled}
-                          stacked={isStacked}
-                          stackIndex={stackIndex}
-                          showPenalty={showAspectPenalties && leaderCardDeck && baseCardDeck}
-                          penaltyAmount={penalty}
-                          {...getCardEventHandlers(cardId, position.card)}
-                        />
-                      )
-                    }))}
+                    {groupedCards.map(group => renderCardStack(group, createCardRenderer(leaderCardDeck, baseCardDeck, { showDisabled: true })))}
                   </div>
                 </div>
               </div>
@@ -3263,29 +3267,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     </div>
                     {expanded && <div className="card-block-content">
                       <div className="cards-grid">
-                        {groupedByName.map(group => renderCardStack(group, (cardEntry, stackIndex, isStacked) => {
-                          const { cardId, position } = cardEntry
-                          const card = position.card
-                          const isSelected = selectedCards.has(cardId)
-                          const isHovered = hoveredCard === cardId
-                          const isDisabled = !position.enabled
-
-                          const penalty = showAspectPenalties && leaderCard && baseCard ? calculateAspectPenalty(card, leaderCard, baseCard) : 0
-                          return (
-                            <Card
-                              key={cardId}
-                              card={card}
-                              selected={isSelected}
-                              hovered={isHovered}
-                              disabled={isDisabled}
-                              stacked={isStacked}
-                              stackIndex={stackIndex}
-                              showPenalty={showAspectPenalties}
-                              penaltyAmount={penalty}
-                              {...getCardEventHandlers(cardId, position.card)}
-                            />
-                          )
-                        }))}
+                        {groupedByName.map(group => renderCardStack(group, createCardRenderer(leaderCard, baseCard, { showDisabled: true })))}
                       </div>
                     </div>}
                   </div>
@@ -3345,27 +3327,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                     <div className="card-block pool-flat-container" style={{ width: '100%' }}>
                       <div className="card-block-content">
                         <div className="cards-grid">
-                          {groupedCards.map(group => renderCardStack(group, (cardEntry, stackIndex, isStacked) => {
-                            const { cardId, position } = cardEntry
-                            const card = position.card
-                            const isSelected = selectedCards.has(cardId)
-                            const isHovered = hoveredCard === cardId
-
-                            const penalty = showAspectPenalties && leaderCardPool && baseCardPool ? calculateAspectPenalty(card, leaderCardPool, baseCardPool) : 0
-                            return (
-                              <Card
-                                key={cardId}
-                                card={card}
-                                selected={isSelected}
-                                hovered={isHovered}
-                                stacked={isStacked}
-                                stackIndex={stackIndex}
-                                showPenalty={showAspectPenalties}
-                                penaltyAmount={penalty}
-                                {...getCardEventHandlers(cardId, position.card)}
-                              />
-                            )
-                          }))}
+                          {groupedCards.map(group => renderCardStack(group, createCardRenderer(leaderCardPool, baseCardPool)))}
                         </div>
                       </div>
                     </div>
@@ -3484,27 +3446,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                       </div>
                       {expanded && <div className="card-block-content">
                         <div className="cards-grid">
-                          {groupedByName.map(group => renderCardStack(group, (cardEntry, stackIndex, isStacked) => {
-                            const { cardId, position } = cardEntry
-                            const card = position.card
-                            const isSelected = selectedCards.has(cardId)
-                            const isHovered = hoveredCard === cardId
-
-                            const penalty = showAspectPenalties && leaderCard && baseCard ? calculateAspectPenalty(card, leaderCard, baseCard) : 0
-                            return (
-                              <Card
-                                key={cardId}
-                                card={card}
-                                selected={isSelected}
-                                hovered={isHovered}
-                                stacked={isStacked}
-                                stackIndex={stackIndex}
-                                showPenalty={showAspectPenalties}
-                                penaltyAmount={penalty}
-                                {...getCardEventHandlers(cardId, position.card)}
-                              />
-                            )
-                          }))}
+                          {groupedByName.map(group => renderCardStack(group, createCardRenderer(leaderCard, baseCard)))}
                         </div>
                       </div>}
                     </div>
