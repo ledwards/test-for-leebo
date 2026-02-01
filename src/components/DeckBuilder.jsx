@@ -37,6 +37,7 @@ import { Tooltip } from './DeckBuilder/Tooltip'
 import { DeckImageModal } from './DeckBuilder/DeckImageModal'
 import { DeleteDeckSection } from './DeckBuilder/DeleteDeckSection'
 import { ViewModeToggle } from './DeckBuilder/ViewModeToggle'
+import { CollapsibleSectionHeader } from './DeckBuilder/CollapsibleSectionHeader'
 import { getCardTypeOrder, getTypeStringOrder, sortGroupKeys, createGetGroupKey, createDefaultSortFn, createGroupCardSortFn } from '../utils/cardSort'
 import { getRarityColor } from '../utils/aspectColors'
 import { useDeckExport } from '../hooks/useDeckExport'
@@ -1857,28 +1858,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       {/* Grid View */}
       {viewMode === 'grid' && (
         <div className="blocks-container">
-          {/* Leaders & Bases Header */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginTop: '1.5rem',
-            marginBottom: '0.75rem',
-            fontSize: '1.2rem',
-            fontWeight: 600,
-            color: 'rgba(255, 255, 255, 0.9)',
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-            paddingBottom: '0.25rem',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-            cursor: 'pointer',
-            userSelect: 'none'
-          }}
-          onClick={() => setLeadersBasesExpanded(!leadersBasesExpanded)}
-          >
-            <span>{leadersBasesExpanded ? '▼' : '▶'}</span>
-            <span>Leaders & Bases</span>
-          </div>
+          <CollapsibleSectionHeader
+            title="Leaders & Bases"
+            expanded={leadersBasesExpanded}
+            onToggle={() => setLeadersBasesExpanded(!leadersBasesExpanded)}
+          />
 
           {/* Leaders and Bases - only show when parent is expanded */}
           {leadersBasesExpanded && (
