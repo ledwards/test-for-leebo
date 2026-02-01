@@ -99,27 +99,11 @@ export function SectionHeader({
         onToggle={onFilterToggle}
         onClose={onFilterClose}
         mode={mode}
-        cardPositions={cardPositions}
-        onMoveCards={setCardPositions}
-        activeLeader={activeLeader}
-        activeBase={activeBase}
-        filterAspectsExpanded={filterAspectsExpanded}
         onFilterAspectsExpandedChange={onFilterAspectsExpandedChange}
         cardCount={cardCount}
       />
-      <AspectPenaltyToggle
-        sortOption={sortOption}
-        activeLeader={activeLeader}
-        activeBase={activeBase}
-        cardPositions={cardPositions}
-        showAspectPenalties={showAspectPenalties}
-        setShowAspectPenalties={setShowAspectPenalties}
-      />
-      <BulkMoveButtons
-        cardPositions={cardPositions}
-        setCardPositions={setCardPositions}
-        mode={mode}
-      />
+      <AspectPenaltyToggle sortOption={sortOption} />
+      <BulkMoveButtons mode={mode} />
     </div>
   )
 }

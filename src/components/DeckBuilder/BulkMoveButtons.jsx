@@ -6,15 +6,28 @@
  *
  * In Deck mode: Shows "- All" first (primary action is removing from deck)
  * In Pool mode: Shows "+ All" first (primary action is adding to deck)
+ *
+ * Can use DeckBuilderContext or receive props directly.
  */
 
 import Button from '../Button'
+import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
 
 export function BulkMoveButtons({
-  cardPositions,
-  setCardPositions,
+  cardPositions: cardPositionsProp,
+  setCardPositions: setCardPositionsProp,
   mode = 'deck',
 }) {
+  // Try to get values from context
+  let contextValue = null
+  try {
+    contextValue = useDeckBuilder()
+  } catch {
+    // Not inside a provider
+  }
+
+  const cardPositions = cardPositionsProp ?? contextValue?.cardPositions ?? {}
+  const setCardPositions = setCardPositionsProp ?? contextValue?.setCardPositions
   const deckCardCount = Object.values(cardPositions)
     .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length
   const poolCardCount = Object.values(cardPositions)

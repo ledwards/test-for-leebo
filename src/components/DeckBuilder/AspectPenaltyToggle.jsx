@@ -6,19 +6,34 @@
  * or a warning button prompting selection when they're not.
  *
  * Used in both Deck and Pool headers.
+ * Can use DeckBuilderContext or receive props directly.
  */
 
 import Button from '../Button'
 import { getLeaderAbilityDescription } from '../../services/cards/aspectPenalties'
+import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
 
 export function AspectPenaltyToggle({
   sortOption,
-  activeLeader,
-  activeBase,
-  cardPositions,
-  showAspectPenalties,
-  setShowAspectPenalties,
+  activeLeader: activeLeaderProp,
+  activeBase: activeBaseProp,
+  cardPositions: cardPositionsProp,
+  showAspectPenalties: showAspectPenaltiesProp,
+  setShowAspectPenalties: setShowAspectPenaltiesProp,
 }) {
+  // Try to get values from context
+  let contextValue = null
+  try {
+    contextValue = useDeckBuilder()
+  } catch {
+    // Not inside a provider
+  }
+
+  const activeLeader = activeLeaderProp ?? contextValue?.activeLeader
+  const activeBase = activeBaseProp ?? contextValue?.activeBase
+  const cardPositions = cardPositionsProp ?? contextValue?.cardPositions ?? {}
+  const showAspectPenalties = showAspectPenaltiesProp ?? contextValue?.showAspectPenalties ?? false
+  const setShowAspectPenalties = setShowAspectPenaltiesProp ?? contextValue?.setShowAspectPenalties
   // Only show when sorted by cost
   if (sortOption !== 'cost') {
     return null
