@@ -71,16 +71,13 @@ export function AspectPenaltyToggle({
     )
   }
 
-  // When leader/base not selected, show danger button
+  // When leader/base not selected, show disabled button with red styling
   return (
     <Button
-      variant="danger"
+      variant="primary"
       size="xs"
-      onClick={(e) => {
-        e.stopPropagation()
-        // Scroll to top to select leader and base
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }}
+      className="aspect-penalty-disabled"
+      disabled
     >
       Select a leader and base to include aspect penalties
     </Button>
