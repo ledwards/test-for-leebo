@@ -109,4 +109,19 @@ export function getSingleAspectColor(aspect) {
   return ASPECT_COLORS[aspect] || NO_ASPECT_COLOR
 }
 
-export { ASPECT_COLORS, NO_ASPECT_COLOR }
+// Rarity color mappings
+const RARITY_COLORS = {
+  'Common': '#999',
+  'Uncommon': '#4CAF50',
+  'Rare': '#2196F3',
+  'Legendary': '#FF9800',
+}
+
+/**
+ * Gets the display color for a card's rarity
+ */
+export function getRarityColor(rarity) {
+  return RARITY_COLORS[rarity] || '#666'
+}
+
+export { ASPECT_COLORS, NO_ASPECT_COLOR, RARITY_COLORS }
