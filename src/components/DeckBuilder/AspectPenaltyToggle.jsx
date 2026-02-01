@@ -1,0 +1,75 @@
+/**
+ * AspectPenaltyToggle Component
+ *
+ * Displays the aspect penalty toggle button when sorted by cost.
+ * Shows a toggle to include/hide aspect penalties when leader and base are selected,
+ * or a warning button prompting selection when they're not.
+ *
+ * Used in both Deck and Pool headers.
+ */
+
+import Button from '../Button'
+import { getLeaderAbilityDescription } from '../../services/cards/aspectPenalties'
+
+export function AspectPenaltyToggle({
+  sortOption,
+  activeLeader,
+  activeBase,
+  cardPositions,
+  showAspectPenalties,
+  setShowAspectPenalties,
+}) {
+  // Only show when sorted by cost
+  if (sortOption !== 'cost') {
+    return null
+  }
+
+  // When leader and base are selected, show the toggle
+  if (activeLeader && activeBase) {
+    const leaderCard = cardPositions[activeLeader]?.card
+    const abilityDesc = getLeaderAbilityDescription(leaderCard)
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <Button
+          variant="toggle"
+          glowColor="blue"
+          size="xs"
+          active={showAspectPenalties}
+          className={showAspectPenalties ? "aspect-penalty-button-active" : "aspect-penalty-button"}
+          onClick={(e) => {
+            e.stopPropagation()
+            setShowAspectPenalties(!showAspectPenalties)
+          }}
+        >
+          <span className="desktop-text">
+            {showAspectPenalties ? 'Hide Aspect Penalties' : 'Include Aspect Penalties'}
+          </span>
+          <span className="mobile-text">Aspect Penalties</span>
+        </Button>
+        {showAspectPenalties && abilityDesc && (
+          <span style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.7)', fontStyle: 'italic' }}>
+            {leaderCard.name}: {abilityDesc}
+          </span>
+        )}
+      </div>
+    )
+  }
+
+  // When leader/base not selected, show warning button
+  return (
+    <Button
+      variant="warning"
+      size="xs"
+      onClick={(e) => {
+        e.stopPropagation()
+        // Scroll to top to select leader and base
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }}
+    >
+      Select a leader and base to include aspect penalties
+    </Button>
+  )
+}
+
+export default AspectPenaltyToggle
