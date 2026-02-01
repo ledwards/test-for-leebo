@@ -3118,23 +3118,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           {/* Leaders and Bases - only show when parent is expanded */}
           {leadersBasesExpanded && (
             <LeaderBaseSelector
-              cardPositions={cardPositions}
-              activeLeader={activeLeader}
-              setActiveLeader={setActiveLeader}
-              activeBase={activeBase}
-              setActiveBase={setActiveBase}
-              selectedCards={selectedCards}
-              hoveredCard={hoveredCard}
-              setHoveredCard={setHoveredCard}
               leadersExpanded={leadersExpanded}
               setLeadersExpanded={setLeadersExpanded}
               basesExpanded={basesExpanded}
               setBasesExpanded={setBasesExpanded}
               onCardMouseEnter={handleCardMouseEnter}
               onCardMouseLeave={handleCardMouseLeave}
-              poolSortOption={poolSortOption}
-              deckSortOption={deckSortOption}
-              setShowAspectPenalties={setShowAspectPenalties}
             />
           )}
 
