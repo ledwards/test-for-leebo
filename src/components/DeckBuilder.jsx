@@ -3730,25 +3730,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </h2>
                 {basesExpanded && basePositions.length > 0 && (
                   <table className="list-table">
-                  <thead>
-                    <tr>
-                      <th className="checkbox-col" style={{ visibility: 'hidden' }}>
-                        <input type="checkbox" disabled />
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('name')}>
-                        Title {getSortArrow('name')}
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('cost')}>
-                        Cost {getSortArrow('cost')}
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('aspects')}>
-                        Aspects {getSortArrow('aspects')}
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('rarity')}>
-                        Rarity {getSortArrow('rarity')}
-                      </th>
-                    </tr>
-                  </thead>
+                  <ListTableHeader
+                    sectionId="bases"
+                    tableSort={tableSort}
+                    onSort={handleTableSort}
+                    columns={[
+                      { field: 'name', label: 'Title' },
+                      { field: 'cost', label: 'Cost' },
+                      { field: 'aspects', label: 'Aspects' },
+                      { field: 'rarity', label: 'Rarity' },
+                    ]}
+                    checkboxVisible={false}
+                  />
                   <tbody>
                     {sortedBases.map(({ cardId, card, enabled }, idx) => {
                       const aspectSymbols = card.aspects && card.aspects.length > 0

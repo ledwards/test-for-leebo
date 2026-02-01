@@ -15,6 +15,8 @@
  * @param {Object[]} props.columns - Column definitions [{ field, label, className? }]
  * @param {boolean} props.showCheckbox - Whether to show checkbox column
  * @param {boolean} props.checkboxVisible - Whether checkbox is visible (vs hidden placeholder)
+ * @param {boolean} props.checkboxChecked - Whether checkbox is checked (for functional checkboxes)
+ * @param {function} props.onCheckboxChange - Handler for checkbox changes (makes checkbox functional)
  */
 export function ListTableHeader({
   sectionId,
@@ -23,6 +25,8 @@ export function ListTableHeader({
   columns,
   showCheckbox = true,
   checkboxVisible = true,
+  checkboxChecked = false,
+  onCheckboxChange = null,
 }) {
   const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' }
 
@@ -43,7 +47,12 @@ export function ListTableHeader({
             className="checkbox-col"
             style={checkboxVisible ? {} : { visibility: 'hidden' }}
           >
-            <input type="checkbox" disabled />
+            <input
+              type="checkbox"
+              checked={checkboxChecked}
+              disabled={!onCheckboxChange}
+              onChange={onCheckboxChange || (() => {})}
+            />
           </th>
         )}
         {columns.map(({ field, label, className }) => (
