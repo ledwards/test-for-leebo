@@ -38,6 +38,7 @@ import { getRarityColor } from '../utils/aspectColors'
 import { useDeckExport } from '../hooks/useDeckExport'
 import { useDragAndDrop } from '../hooks/useDragAndDrop'
 import { useCardPreview } from '../hooks/useCardPreview'
+import { useTooltip } from '../hooks/useTooltip'
 import {
   getAspectCombinationKey as getAspectCombinationKeyUtil,
   getAspectCombinationDisplayName as getAspectCombinationDisplayNameUtil,
@@ -248,10 +249,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
   }, [leaderCard, baseCard, shareId, poolCreatedAt, updatePoolName])
   const [deckImageModal, setDeckImageModal] = useState(null) // URL for deck image modal
-  // Card preview handled by useCardPreview hook
-  const [tooltip, setTooltip] = useState({ show: false, text: '', x: 0, y: 0 })
-  const tooltipTimeoutRef = useRef(null)
-  const longPressTimeoutRef = useRef(null)
   const modalHoverTimeoutRef = useRef(null)
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
@@ -290,66 +287,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     handlePreviewMouseLeave,
   } = useCardPreview()
 
-  // Tooltip handlers
-  const showTooltip = (text, event) => {
-    if (tooltipTimeoutRef.current) {
-      clearTimeout(tooltipTimeoutRef.current)
-    }
-    tooltipTimeoutRef.current = setTimeout(() => {
-      const rect = event.currentTarget.getBoundingClientRect()
-      setTooltip({
-        show: true,
-        text,
-        x: rect.left + rect.width / 2,
-        y: rect.top - 10,
-        alignLeft: false
-      })
-    }, 1000)
-  }
-
-  // Tooltip for right nav buttons (no delay)
-  const showNavTooltip = (text, event) => {
-    const rect = event.currentTarget.getBoundingClientRect()
-    setTooltip({
-      show: true,
-      text,
-      x: rect.left,
-      y: rect.top + rect.height / 2,
-      alignLeft: true
-    })
-  }
-
-  const hideTooltip = () => {
-    if (tooltipTimeoutRef.current) {
-      clearTimeout(tooltipTimeoutRef.current)
-      tooltipTimeoutRef.current = null
-    }
-    setTooltip({ show: false, text: '', x: 0, y: 0, alignLeft: false })
-  }
-
-  // Mobile long press handler
-  const handleLongPress = (text, event, onClick) => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-    if (!isMobile) return
-
-    longPressTimeoutRef.current = setTimeout(() => {
-      const rect = event.currentTarget.getBoundingClientRect()
-      setTooltip({
-        show: true,
-        text,
-        x: rect.left + rect.width / 2,
-        y: rect.top - 10,
-        alignLeft: false
-      })
-    }, 1000)
-  }
-
-  const cancelLongPress = () => {
-    if (longPressTimeoutRef.current) {
-      clearTimeout(longPressTimeoutRef.current)
-      longPressTimeoutRef.current = null
-    }
-  }
+  // Tooltip handling
+  const {
+    tooltip,
+    showTooltip,
+    showNavTooltip,
+    hideTooltip,
+    handleLongPress,
+    cancelLongPress,
+  } = useTooltip()
 
   // Toggle a card between deck and sideboard sections
   const toggleCardSection = useCallback((cardId) => {
@@ -391,23 +337,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     })
   }, [])
 
-  // Cleanup tooltip timeouts
+  // Cleanup modal hover timeout
   useEffect(() => {
     return () => {
-      if (tooltipTimeoutRef.current) {
-        clearTimeout(tooltipTimeoutRef.current)
-      }
-      if (longPressTimeoutRef.current) {
-        clearTimeout(longPressTimeoutRef.current)
-      }
       if (modalHoverTimeoutRef.current) {
         clearTimeout(modalHoverTimeoutRef.current)
-      }
-      if (previewTimeoutRef.current) {
-        clearTimeout(previewTimeoutRef.current)
-      }
-      if (previewHideTimeoutRef.current) {
-        clearTimeout(previewHideTimeoutRef.current)
       }
     }
   }, [])
