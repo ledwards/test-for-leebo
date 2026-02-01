@@ -27,7 +27,7 @@ import { DeckBuilderHeader } from './DeckBuilder/DeckBuilderHeader'
 import { StickyInfoBar } from './DeckBuilder/StickyInfoBar'
 import { TypeIcon } from './DeckBuilder/TypeIcon'
 import { GroupHeader } from './DeckBuilder/GroupHeader'
-import { getCardTypeOrder, getTypeStringOrder, createGetGroupKey, createDefaultSortFn, createGroupCardSortFn } from '../utils/cardSort'
+import { getCardTypeOrder, getTypeStringOrder, sortGroupKeys, createGetGroupKey, createDefaultSortFn, createGroupCardSortFn } from '../utils/cardSort'
 
 // Get aspect symbol for list view using individual icon files
 import AspectIcon from './AspectIcon'
@@ -3139,46 +3139,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           })
 
           // Sort group keys
-          const sortedKeys = Object.keys(groups).sort((a, b) => {
-            if (deckSortOption === 'cost') {
-              const costA = a === '8+' ? 8 : parseInt(a, 10)
-              const costB = b === '8+' ? 8 : parseInt(b, 10)
-              return costA - costB
-            } else if (deckSortOption === 'type') {
-              const order = { 'Ground Units': 1, 'Space Units': 2, 'Units': 1.5, 'Upgrades': 3, 'Events': 4, 'Other': 5 }
-              return (order[a] || 99) - (order[b] || 99)
-            }
-            // Aspect sorting
-            const getAspectSortOrder = (key) => {
-              let aspectName = key
-              if (key === 'ZZZ_Neutral') return 999
-              const match = key.match(/^[A-Z]_(.+)$/)
-              if (match) aspectName = match[1]
-              const aspects = aspectName.includes(' ') ? aspectName.split(' ').sort() : [aspectName]
-              const isDual = aspects.length === 2
-              const primaryOrder = { 'Vigilance': 0, 'Command': 100, 'Aggression': 200, 'Cunning': 300, 'Villainy': 400, 'Heroism': 500 }
-              if (isDual) {
-                const primary = aspects.find(a => ['Vigilance', 'Command', 'Aggression', 'Cunning'].includes(a))
-                const secondary = aspects.find(a => ['Villainy', 'Heroism'].includes(a))
-                if (primary && secondary) {
-                  const secondaryOrder = { 'Villainy': 0, 'Heroism': 1 }
-                  return primaryOrder[primary] + secondaryOrder[secondary]
-                }
-                const firstAspect = aspects[0]
-                if (['Vigilance', 'Command', 'Aggression', 'Cunning'].includes(firstAspect)) {
-                  return primaryOrder[firstAspect] + 2
-                }
-                return primaryOrder[firstAspect] || 999
-              } else {
-                const aspect = aspects[0]
-                if (['Vigilance', 'Command', 'Aggression', 'Cunning'].includes(aspect)) {
-                  return primaryOrder[aspect] + 3
-                }
-                return primaryOrder[aspect] || 999
-              }
-            }
-            return getAspectSortOrder(a) - getAspectSortOrder(b)
-          })
+          const sortedKeys = sortGroupKeys(Object.keys(groups), deckSortOption, '8+')
 
           // Toggle group expanded state
           const toggleDeckGroupExpanded = (key) => {
@@ -3473,68 +3434,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             })
 
             // Sort group keys
-            const sortedKeys = Object.keys(groups).sort((a, b) => {
-              if (poolSortOption === 'cost') {
-                // Sort cost groups numerically
-                const costA = a === '6+' ? 6 : parseInt(a, 10)
-                const costB = b === '6+' ? 6 : parseInt(b, 10)
-                return costA - costB
-              } else if (poolSortOption === 'type') {
-                // Sort type groups in order: Ground Units, Space Units, Upgrades, Events, Other
-                const order = { 'Ground Units': 1, 'Space Units': 2, 'Units': 1.5, 'Upgrades': 3, 'Events': 4, 'Other': 5 }
-                return (order[a] || 99) - (order[b] || 99)
-              }
-
-              // Custom aspect sorting order:
-              // Vigilance+Villainy, Vigilance+Heroism, Vigilance,
-              // Command+Villainy, Command+Heroism, Command,
-              // Aggression+Villainy, Aggression+Heroism, Aggression,
-              // Cunning+Villainy, Cunning+Heroism, Cunning,
-              // Villainy, Heroism, Neutral
-              const getAspectSortOrder = (key) => {
-                // Extract aspect name from key (remove prefix like "A_", "H_", etc.)
-                let aspectName = key
-                if (key === 'ZZZ_Neutral') return 999
-                const match = key.match(/^[A-Z]_(.+)$/)
-                if (match) aspectName = match[1]
-
-                // Parse aspects
-                const aspects = aspectName.includes(' ') ? aspectName.split(' ').sort() : [aspectName]
-                const isDual = aspects.length === 2
-
-                // Order within each primary color group:
-                // 0 = Primary+Villainy, 1 = Primary+Heroism, 2 = Primary+Primary (same), 3 = Primary mono
-                const primaryOrder = { 'Vigilance': 0, 'Command': 100, 'Aggression': 200, 'Cunning': 300, 'Villainy': 400, 'Heroism': 500 }
-
-                if (isDual) {
-                  // Find which is primary (Vigilance, Command, Aggression, Cunning) and which is secondary (Villainy, Heroism)
-                  const primary = aspects.find(a => ['Vigilance', 'Command', 'Aggression', 'Cunning'].includes(a))
-                  const secondary = aspects.find(a => ['Villainy', 'Heroism'].includes(a))
-
-                  if (primary && secondary) {
-                    // Primary + Villainy/Heroism combo
-                    const secondaryOrder = { 'Villainy': 0, 'Heroism': 1 }
-                    return primaryOrder[primary] + secondaryOrder[secondary]
-                  }
-                  // Both same type (e.g., Aggression Aggression) - comes after Villainy/Heroism combos but before mono
-                  const firstAspect = aspects[0]
-                  if (['Vigilance', 'Command', 'Aggression', 'Cunning'].includes(firstAspect)) {
-                    return primaryOrder[firstAspect] + 2
-                  }
-                  return primaryOrder[firstAspect] || 999
-                } else {
-                  // Single aspect (mono)
-                  const aspect = aspects[0]
-                  if (['Vigilance', 'Command', 'Aggression', 'Cunning'].includes(aspect)) {
-                    return primaryOrder[aspect] + 3 // +3 so mono comes after dual combos including same-type
-                  }
-                  // Villainy, Heroism as single
-                  return primaryOrder[aspect] || 999
-                }
-              }
-
-              return getAspectSortOrder(a) - getAspectSortOrder(b)
-            })
+            const sortedKeys = sortGroupKeys(Object.keys(groups), poolSortOption, '8+')
 
             // Helper to determine if a group key is a mono-aspect (single primary color)
             const isMonoAspect = (key) => {
