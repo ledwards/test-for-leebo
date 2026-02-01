@@ -9,13 +9,19 @@
  *    - Heavy preference for units
  *    - Bonus for dual-aspect cards
  *    - Bonus for high-value cards from community lists
+ *    - Bonus for set-specific powerful cards
  *
  * Leader rankings sourced from:
  * - Dexerto tier lists
  * - GarbageRollers draft guides
  * - swumetastats.com tournament data
  * - Community consensus from limited play
+ *
+ * Powerful cards per set are defined in:
+ * - src/bots/data/powerfulCards.js (easily editable)
  */
+
+import { POWERFUL_CARDS, POWERFUL_CARD_BONUS } from '../data/powerfulCards'
 
 // Leader power rankings per set (best to worst for LIMITED/DRAFT play)
 // These differ from constructed rankings - limited favors:
@@ -127,15 +133,15 @@ const LEADER_RANKINGS = {
   ],
 
   SEC: [
+    'Leia Organa',        // Vigilance/heroism - top pick
     'Sly Moore',          // Cunning/villainy
-    'Leia Organa',        // Vigilance/heroism
     'Colonel Yularen',    // Command/villainy
+    'Jabba the Hutt',     // Vigilance/villainy
+    'Mon Mothma',         // Command/heroism
+    'Dedra Meero',        // Aggression/villainy
     'Sabé',               // Cunning/heroism
     'Chancellor Palpatine', // Vigilance/villainy, versatile
     'Cassian Andor',      // Aggression/heroism
-    'Mon Mothma',         // Command/heroism
-    'Jabba the Hutt',     // Vigilance/villainy
-    'Dedra Meero',        // Aggression/villainy
     'Governor Pryce',     // Aggression/villainy
     'Luthen Rael',        // Aggression/heroism
     'Dryden Vos',         // Command/villainy
@@ -286,8 +292,12 @@ export class PopularLeaderBehavior {
 
   /**
    * Score a card based on multiple factors
+   * @param {Object} card - Card to score
+   * @param {Array} myColors - Bot's color aspects
+   * @param {Object} context - Draft context including setCode
    */
   _scoreCard(card, myColors, context) {
+    const setCode = context.setCode || this._inferSetCode([card])
     let score = 0
 
     // 1. RARITY BONUS (Legendary > Rare > Uncommon > Common)
@@ -329,13 +339,19 @@ export class PopularLeaderBehavior {
       score += 10
     }
 
-    // 5. HIGH-VALUE CARD BONUS
+    // 5. HIGH-VALUE CARD BONUS (generic high-value cards)
     const highValueBonus = HIGH_VALUE_CARDS[card.name] || 0
     if (highValueBonus > 0 && (inColorCount > 0 || cardAspects.length === 0)) {
       score += highValueBonus
     }
 
-    // 6. COST CURVE CONSIDERATION - slight preference for 2-4 cost cards
+    // 6. SET-SPECIFIC POWERFUL CARDS BONUS
+    const powerfulCardsForSet = POWERFUL_CARDS[setCode] || []
+    if (powerfulCardsForSet.includes(card.name) && (inColorCount > 0 || cardAspects.length === 0)) {
+      score += POWERFUL_CARD_BONUS
+    }
+
+    // 7. COST CURVE CONSIDERATION - slight preference for 2-4 cost cards
     const cost = card.cost || 0
     if (cost >= 2 && cost <= 4) {
       score += 10
@@ -343,7 +359,7 @@ export class PopularLeaderBehavior {
       score += 5
     }
 
-    // 7. STATS EFFICIENCY (for units)
+    // 8. STATS EFFICIENCY (for units)
     if (card.type === 'Unit' && card.power && card.hp) {
       const statTotal = card.power + card.hp
       const efficiency = statTotal / Math.max(card.cost, 1)
