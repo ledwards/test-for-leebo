@@ -3685,27 +3685,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                             </div>
                           </td>
                           <td>
-                            {card.cost !== null && card.cost !== undefined ? (
-                              <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
-                                <img
-                                  src="/icons/cost.png"
-                                  alt="cost"
-                                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                />
-                                <span style={{
-                                  position: 'absolute',
-                                  top: '50%',
-                                  left: '50%',
-                                  transform: 'translate(-50%, -50%)',
-                                  color: 'white',
-                                  fontWeight: 'bold',
-                                  fontSize: '16px',
-                                  textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
-                                }}>
-                                  {card.cost}
-                                </span>
-                              </div>
-                            ) : '-'}
+                            <CostIcon cost={card.cost} size={39} />
                           </td>
                           <td className="aspects-cell">
                             {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
@@ -3818,27 +3798,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                             </div>
                           </td>
                           <td>
-                            {card.cost !== null && card.cost !== undefined ? (
-                              <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
-                                <img
-                                  src="/icons/cost.png"
-                                  alt="cost"
-                                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                />
-                                <span style={{
-                                  position: 'absolute',
-                                  top: '50%',
-                                  left: '50%',
-                                  transform: 'translate(-50%, -50%)',
-                                  color: 'white',
-                                  fontWeight: 'bold',
-                                  fontSize: '16px',
-                                  textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
-                                }}>
-                                  {card.cost}
-                                </span>
-                              </div>
-                            ) : '-'}
+                            <CostIcon cost={card.cost} size={39} />
                           </td>
                           <td className="aspects-cell">
                             {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
@@ -3937,25 +3897,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                 style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                               >
                                 <span>{isExpanded ? '▼' : '▶'}</span>
-                                <div style={{ position: 'relative', display: 'inline-block', width: '32px', height: '32px' }}>
-                                  <img
-                                    src="/icons/cost.png"
-                                    alt="cost"
-                                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                  />
-                                  <span style={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    color: 'white',
-                                    fontWeight: 'bold',
-                                    fontSize: '18px',
-                                    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
-                                  }}>
-                                    {costSegment}
-                                  </span>
-                                </div>
+                                <CostIcon cost={costSegment} size={32} />
                                 <span>({cards.length})</span>
                               </h4>
                               <div className={`list-section-content-wrapper ${isExpanded ? '' : 'collapsed'}`}>
@@ -4049,27 +3991,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                             {getFormattedType(card)}
                                           </td>
                                           <td>
-                                            {card.cost !== null && card.cost !== undefined ? (
-                                              <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
-                                                <img
-                                                  src="/icons/cost.png"
-                                                  alt="cost"
-                                                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                                />
-                                                <span style={{
-                                                  position: 'absolute',
-                                                  top: '50%',
-                                                  left: '50%',
-                                                  transform: 'translate(-50%, -50%)',
-                                                  color: 'white',
-                                                  fontWeight: 'bold',
-                                                  fontSize: '20px',
-                                                  textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
-                                                }}>
-                                                  {card.cost}
-                                                </span>
-                                              </div>
-                                            ) : '-'}
+                                            <CostIcon cost={card.cost} size={39} />
                                           </td>
                                           <td className="aspects-cell">
                                             {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
@@ -4267,27 +4189,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                             {getFormattedType(card)}
                                           </td>
                                           <td>
-                                            {card.cost !== null && card.cost !== undefined ? (
-                                              <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
-                                                <img
-                                                  src="/icons/cost.png"
-                                                  alt="cost"
-                                                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                                />
-                                                <span style={{
-                                                  position: 'absolute',
-                                                  top: '50%',
-                                                  left: '50%',
-                                                  transform: 'translate(-50%, -50%)',
-                                                  color: 'white',
-                                                  fontWeight: 'bold',
-                                                  fontSize: '20px',
-                                                  textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
-                                                }}>
-                                                  {card.cost}
-                                                </span>
-                                              </div>
-                                            ) : '-'}
+                                            <CostIcon cost={card.cost} size={39} />
                                           </td>
                                           <td className="aspects-cell">
                                             {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
@@ -4407,27 +4309,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                 </div>
                               </td>
                               <td>
-                                {card.cost !== null && card.cost !== undefined ? (
-                                  <div style={{ position: 'relative', display: 'inline-block', width: '39px', height: '39px' }}>
-                                    <img
-                                      src="/icons/cost.png"
-                                      alt="cost"
-                                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                    />
-                                    <span style={{
-                                      position: 'absolute',
-                                      top: '50%',
-                                      left: '50%',
-                                      transform: 'translate(-50%, -50%)',
-                                      color: 'white',
-                                      fontWeight: 'bold',
-                                      fontSize: '16px',
-                                      textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
-                                    }}>
-                                      {card.cost}
-                                    </span>
-                                  </div>
-                                ) : '-'}
+                                <CostIcon cost={card.cost} size={39} />
                               </td>
                               <td className="aspects-cell">
                                 {aspectSymbols && aspectSymbols.length > 0 ? aspectSymbols : <span>Neutral</span>}
