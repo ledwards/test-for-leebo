@@ -29,6 +29,8 @@ import { StickyInfoBar } from './DeckBuilder/StickyInfoBar'
 import { TypeIcon } from './DeckBuilder/TypeIcon'
 import { GroupHeader } from './DeckBuilder/GroupHeader'
 import { ListTableHeader } from './DeckBuilder/ListTableHeader'
+import { PoolSection } from './DeckBuilder/PoolSection'
+import { DeckSection } from './DeckBuilder/DeckSection'
 import { getCardTypeOrder, getTypeStringOrder, sortGroupKeys, createGetGroupKey, createDefaultSortFn, createGroupCardSortFn } from '../utils/cardSort'
 import { getRarityColor } from '../utils/aspectColors'
 
