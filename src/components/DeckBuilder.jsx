@@ -44,6 +44,15 @@ const getAspectSymbol = (aspect, size = 'medium') => {
   return <AspectIcon aspect={aspect} size={sizeMap[size] || 'md'} />
 }
 
+// Build aspect icons for table cells
+const getAspectIcons = (card) => {
+  if (!card.aspects || card.aspects.length === 0) return null
+  return card.aspects.map((aspect, i) => {
+    const symbol = getAspectSymbol(aspect, 'large')
+    return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
+  }).filter(Boolean)
+}
+
 const ASPECTS = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Villainy', 'Heroism']
 const NO_ASPECT_LABEL = 'Neutral'
 const SORT_OPTIONS = ['aspect', 'cost']
@@ -3626,12 +3635,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   />
                   <tbody>
                     {sortedLeaders.map(({ cardId, card, enabled }, idx) => {
-                      const aspectSymbols = card.aspects && card.aspects.length > 0
-                        ? card.aspects.map((aspect, i) => {
-                            const symbol = getAspectSymbol(aspect, 'large')
-                            return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
-                          }).filter(Boolean)
-                        : null
+                      const aspectSymbols = getAspectIcons(card)
                       const isSelected = activeLeader === cardId
                       return (
                         <tr
@@ -3735,12 +3739,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   />
                   <tbody>
                     {sortedBases.map(({ cardId, card, enabled }, idx) => {
-                      const aspectSymbols = card.aspects && card.aspects.length > 0
-                        ? card.aspects.map((aspect, i) => {
-                            const symbol = getAspectSymbol(aspect, 'large')
-                            return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
-                          }).filter(Boolean)
-                        : null
+                      const aspectSymbols = getAspectIcons(card)
                       const isSelected = activeBase === cardId
                       return (
                         <tr
@@ -3929,12 +3928,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                   </thead>
                                   <tbody>
                                     {sortedCards.map(({ cardId, card }, idx) => {
-                                      const aspectSymbols = card.aspects && card.aspects.length > 0
-                                        ? card.aspects.map((aspect, i) => {
-                                            const symbol = getAspectSymbol(aspect, 'large')
-                                            return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
-                                          }).filter(Boolean)
-                                        : null
+                                      const aspectSymbols = getAspectIcons(card)
                                       return (
                                         <tr
                                           key={`deck-cost-${costSegment}-${cardId}-${idx}`}
@@ -4127,12 +4121,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                   </thead>
                                   <tbody>
                                     {sortedCards.map(({ cardId, card }, idx) => {
-                                      const aspectSymbols = card.aspects && card.aspects.length > 0
-                                        ? card.aspects.map((aspect, i) => {
-                                            const symbol = getAspectSymbol(aspect, 'large')
-                                            return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
-                                          }).filter(Boolean)
-                                        : null
+                                      const aspectSymbols = getAspectIcons(card)
                                       return (
                                         <tr
                                           key={`deck-${aspectKey}-${cardId}-${idx}`}
@@ -4249,12 +4238,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         </thead>
                         <tbody>
                           {sortedSideboard.map(({ cardId, card }, idx) => {
-                          const aspectSymbols = card.aspects && card.aspects.length > 0
-                            ? card.aspects.map((aspect, i) => {
-                                const symbol = getAspectSymbol(aspect, 'large')
-                                return symbol ? <span key={i} className="aspect-symbol-wrapper">{symbol}</span> : null
-                              }).filter(Boolean)
-                            : null
+                          const aspectSymbols = getAspectIcons(card)
                           return (
                             <tr
                               key={`sideboard-${cardId}-${idx}`}
