@@ -1989,7 +1989,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             isDraftMode={isDraftMode}
             tableSort={tableSort}
             handleTableSort={handleTableSort}
-            getSortArrow={getSortArrow}
             defaultSort={defaultSort}
             sortTableData={sortTableData}
             getAspectIcons={getAspectIcons}

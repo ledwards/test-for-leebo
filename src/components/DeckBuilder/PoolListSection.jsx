@@ -7,6 +7,23 @@
 
 import CostIcon from '../CostIcon'
 import { getRarityColor } from '../../utils/aspectColors'
+import { ListTableHeader } from './ListTableHeader'
+
+// Column configurations
+const DECK_COLUMNS = [
+  { field: 'name', label: 'Title' },
+  { field: 'type', label: 'Type' },
+  { field: 'cost', label: 'Cost' },
+  { field: 'aspects', label: 'Aspects' },
+  { field: 'rarity', label: 'Rarity' },
+]
+
+const SIDEBOARD_COLUMNS = [
+  { field: 'name', label: 'Title' },
+  { field: 'cost', label: 'Cost' },
+  { field: 'aspects', label: 'Aspects' },
+  { field: 'rarity', label: 'Rarity' },
+]
 
 export function PoolListSection({
   // Data
@@ -17,7 +34,6 @@ export function PoolListSection({
   // Sorting
   tableSort,
   handleTableSort,
-  getSortArrow,
   defaultSort,
   sortTableData,
   // Helpers
@@ -155,47 +171,29 @@ export function PoolListSection({
             </h4>
             <div className={`list-section-content-wrapper ${isExpanded ? '' : 'collapsed'}`}>
               <table className="list-table">
-                <thead>
-                  <tr>
-                    <th className="checkbox-col">
-                      <input
-                        type="checkbox"
-                        checked={allEnabled}
-                        onChange={(e) => {
-                          const shouldEnable = e.target.checked
-                          setCardPositions(prev => {
-                            const updated = { ...prev }
-                            sortedCards.forEach(({ cardId }) => {
-                              updated[cardId] = {
-                                ...prev[cardId],
-                                section: shouldEnable ? 'deck' : 'sideboard',
-                                enabled: shouldEnable,
-                                x: 0,
-                                y: 0
-                              }
-                            })
-                            return updated
-                          })
-                        }}
-                      />
-                    </th>
-                    <th className="sortable" onClick={() => handleTableSort(`deck-cost-${costSegment}`, 'name')}>
-                      Title {getSortArrow(`deck-cost-${costSegment}`, 'name')}
-                    </th>
-                    <th className="sortable" onClick={() => handleTableSort(`deck-cost-${costSegment}`, 'type')}>
-                      Type {getSortArrow(`deck-cost-${costSegment}`, 'type')}
-                    </th>
-                    <th className="sortable" onClick={() => handleTableSort(`deck-cost-${costSegment}`, 'cost')}>
-                      Cost {getSortArrow(`deck-cost-${costSegment}`, 'cost')}
-                    </th>
-                    <th className="sortable" onClick={() => handleTableSort(`deck-cost-${costSegment}`, 'aspects')}>
-                      Aspects {getSortArrow(`deck-cost-${costSegment}`, 'aspects')}
-                    </th>
-                    <th className="sortable" onClick={() => handleTableSort(`deck-cost-${costSegment}`, 'rarity')}>
-                      Rarity {getSortArrow(`deck-cost-${costSegment}`, 'rarity')}
-                    </th>
-                  </tr>
-                </thead>
+                <ListTableHeader
+                  sectionId={sectionId}
+                  tableSort={tableSort}
+                  onSort={handleTableSort}
+                  columns={DECK_COLUMNS}
+                  checkboxChecked={allEnabled}
+                  onCheckboxChange={(e) => {
+                    const shouldEnable = e.target.checked
+                    setCardPositions(prev => {
+                      const updated = { ...prev }
+                      sortedCards.forEach(({ cardId }) => {
+                        updated[cardId] = {
+                          ...prev[cardId],
+                          section: shouldEnable ? 'deck' : 'sideboard',
+                          enabled: shouldEnable,
+                          x: 0,
+                          y: 0
+                        }
+                      })
+                      return updated
+                    })
+                  }}
+                />
                 <tbody>
                   {sortedCards.map(({ cardId, card }, idx) =>
                     renderDeckCardRow(cardId, card, idx, `deck-cost-${costSegment}`)
@@ -274,68 +272,50 @@ export function PoolListSection({
             </h4>
             <div className={`list-section-content-wrapper ${isExpanded ? '' : 'collapsed'}`}>
               <table className="list-table">
-                <thead>
-                  <tr>
-                    <th className="checkbox-col">
-                      <input
-                        type="checkbox"
-                        checked={allEnabled}
-                        onChange={(e) => {
-                          const shouldEnable = e.target.checked
-                          setCardPositions(prev => {
-                            const updated = { ...prev }
+                <ListTableHeader
+                  sectionId={sectionId}
+                  tableSort={tableSort}
+                  onSort={handleTableSort}
+                  columns={DECK_COLUMNS}
+                  checkboxChecked={allEnabled}
+                  onCheckboxChange={(e) => {
+                    const shouldEnable = e.target.checked
+                    setCardPositions(prev => {
+                      const updated = { ...prev }
 
-                            // If section is empty and we're enabling, restore all cards from sideboard
-                            if (sortedCards.length === 0 && shouldEnable) {
-                              Object.entries(prev).forEach(([cardId, position]) => {
-                                if ((position.section === 'sideboard' || position.enabled === false) &&
-                                    position.visible &&
-                                    !position.card.isBase &&
-                                    !position.card.isLeader &&
-                                    getAspectCombinationKey(position.card) === aspectKey) {
-                                  updated[cardId] = {
-                                    ...position,
-                                    section: 'deck',
-                                    enabled: true,
-                                    x: 0,
-                                    y: 0
-                                  }
-                                }
-                              })
-                            } else {
-                              sortedCards.forEach(({ cardId }) => {
-                                updated[cardId] = {
-                                  ...prev[cardId],
-                                  section: shouldEnable ? 'deck' : 'sideboard',
-                                  enabled: shouldEnable,
-                                  x: 0,
-                                  y: 0
-                                }
-                              })
+                      // If section is empty and we're enabling, restore all cards from sideboard
+                      if (sortedCards.length === 0 && shouldEnable) {
+                        Object.entries(prev).forEach(([cardId, position]) => {
+                          if ((position.section === 'sideboard' || position.enabled === false) &&
+                              position.visible &&
+                              !position.card.isBase &&
+                              !position.card.isLeader &&
+                              getAspectCombinationKey(position.card) === aspectKey) {
+                            updated[cardId] = {
+                              ...position,
+                              section: 'deck',
+                              enabled: true,
+                              x: 0,
+                              y: 0
                             }
+                          }
+                        })
+                      } else {
+                        sortedCards.forEach(({ cardId }) => {
+                          updated[cardId] = {
+                            ...prev[cardId],
+                            section: shouldEnable ? 'deck' : 'sideboard',
+                            enabled: shouldEnable,
+                            x: 0,
+                            y: 0
+                          }
+                        })
+                      }
 
-                            return updated
-                          })
-                        }}
-                      />
-                    </th>
-                    <th className="sortable" onClick={() => handleTableSort(`deck-aspect-${aspectKey}`, 'name')}>
-                      Title {getSortArrow(`deck-aspect-${aspectKey}`, 'name')}
-                    </th>
-                    <th className="sortable" onClick={() => handleTableSort(`deck-aspect-${aspectKey}`, 'type')}>
-                      Type {getSortArrow(`deck-aspect-${aspectKey}`, 'type')}
-                    </th>
-                    <th className="sortable" onClick={() => handleTableSort(`deck-aspect-${aspectKey}`, 'cost')}>
-                      Cost {getSortArrow(`deck-aspect-${aspectKey}`, 'cost')}
-                    </th>
-                    <th className="sortable" onClick={() => handleTableSort(`deck-aspect-${aspectKey}`, 'aspects')}>
-                      Aspects {getSortArrow(`deck-aspect-${aspectKey}`, 'aspects')}
-                    </th>
-                    <th className="sortable" onClick={() => handleTableSort(`deck-aspect-${aspectKey}`, 'rarity')}>
-                      Rarity {getSortArrow(`deck-aspect-${aspectKey}`, 'rarity')}
-                    </th>
-                  </tr>
-                </thead>
+                      return updated
+                    })
+                  }}
+                />
                 <tbody>
                   {sortedCards.map(({ cardId, card }, idx) =>
                     renderDeckCardRow(cardId, card, idx, `deck-${aspectKey}`)
@@ -362,46 +342,33 @@ export function PoolListSection({
 
     if (sortedSideboard.length === 0) return null
 
+    const handleSideboardCheckbox = (e) => {
+      const shouldEnable = e.target.checked
+      setCardPositions(prev => {
+        const updated = { ...prev }
+        sideboardCardPositions.forEach(({ cardId }) => {
+          updated[cardId] = {
+            ...prev[cardId],
+            section: shouldEnable ? 'deck' : 'sideboard',
+            enabled: shouldEnable,
+            x: 0,
+            y: 0
+          }
+        })
+        return updated
+      })
+    }
+
     return (
       <table className="list-table">
-        <thead>
-          <tr>
-            <th className="checkbox-col">
-              <input
-                type="checkbox"
-                checked={false}
-                onChange={(e) => {
-                  const shouldEnable = e.target.checked
-                  setCardPositions(prev => {
-                    const updated = { ...prev }
-                    sideboardCardPositions.forEach(({ cardId }) => {
-                      updated[cardId] = {
-                        ...prev[cardId],
-                        section: shouldEnable ? 'deck' : 'sideboard',
-                        enabled: shouldEnable,
-                        x: 0,
-                        y: 0
-                      }
-                    })
-                    return updated
-                  })
-                }}
-              />
-            </th>
-            <th className="sortable" onClick={() => handleTableSort('sideboard', 'name')}>
-              Title {getSortArrow('sideboard', 'name')}
-            </th>
-            <th className="sortable" onClick={() => handleTableSort('sideboard', 'cost')}>
-              Cost {getSortArrow('sideboard', 'cost')}
-            </th>
-            <th className="sortable" onClick={() => handleTableSort('sideboard', 'aspects')}>
-              Aspects {getSortArrow('sideboard', 'aspects')}
-            </th>
-            <th className="sortable" onClick={() => handleTableSort('sideboard', 'rarity')}>
-              Rarity {getSortArrow('sideboard', 'rarity')}
-            </th>
-          </tr>
-        </thead>
+        <ListTableHeader
+          sectionId="sideboard"
+          tableSort={tableSort}
+          onSort={handleTableSort}
+          columns={SIDEBOARD_COLUMNS}
+          checkboxChecked={false}
+          onCheckboxChange={handleSideboardCheckbox}
+        />
         <tbody>
           {sortedSideboard.map(({ cardId, card }, idx) => {
             const aspectSymbols = getAspectIcons(card)
