@@ -7,17 +7,11 @@ import { buildBaseCardMap as buildBaseCardMapUtil, getBaseCardId as getBaseCardI
 import { fetchSetCards } from '../utils/api'
 import { useAuth } from '../contexts/AuthContext'
 import { jsonParse } from '../utils/json'
-import {
-  calculateAspectPenalty,
-  getLeaderAbilityDescription as getLeaderAspectAbilityDescription,
-} from '../services/cards/aspectPenalties'
+import { calculateAspectPenalty } from '../services/cards/aspectPenalties'
 import {
   getAspectSortKey,
   compareByAspectTypeCostName,
 } from '../services/cards/cardSorting'
-import CostIcon from './CostIcon'
-import Modal from './Modal'
-import Button from './Button'
 import { updatePool } from '../utils/poolApi'
 import { getPackArtUrl } from '../utils/packArt'
 import Card from './Card'
@@ -26,9 +20,6 @@ import { LeaderBaseSelector } from './DeckBuilder/LeaderBaseSelector'
 import { SectionHeader } from './DeckBuilder/SectionHeader'
 import { DeckBuilderHeader } from './DeckBuilder/DeckBuilderHeader'
 import { StickyInfoBar } from './DeckBuilder/StickyInfoBar'
-import { TypeIcon } from './DeckBuilder/TypeIcon'
-import { GroupHeader } from './DeckBuilder/GroupHeader'
-import { ListTableHeader } from './DeckBuilder/ListTableHeader'
 import { PoolSection } from './DeckBuilder/PoolSection'
 import { DeckSection } from './DeckBuilder/DeckSection'
 import { SelectionListSection } from './DeckBuilder/SelectionListSection'
@@ -38,8 +29,7 @@ import { DeckImageModal } from './DeckBuilder/DeckImageModal'
 import { DeleteDeckSection } from './DeckBuilder/DeleteDeckSection'
 import { ViewModeToggle } from './DeckBuilder/ViewModeToggle'
 import { CollapsibleSectionHeader } from './DeckBuilder/CollapsibleSectionHeader'
-import { getCardTypeOrder, getTypeStringOrder, sortGroupKeys, createGetGroupKey, createDefaultSortFn, createGroupCardSortFn } from '../utils/cardSort'
-import { getRarityColor } from '../utils/aspectColors'
+import { getTypeStringOrder } from '../utils/cardSort'
 import { useDeckExport } from '../hooks/useDeckExport'
 import { useDragAndDrop } from '../hooks/useDragAndDrop'
 import { useCardPreview } from '../hooks/useCardPreview'
@@ -74,7 +64,6 @@ const getAspectIcons = (card) => {
 
 const ASPECTS = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Villainy', 'Heroism']
 const NO_ASPECT_LABEL = 'Neutral'
-const SORT_OPTIONS = ['aspect', 'cost']
 
 function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareId = null, poolCreatedAt = null, poolType = 'sealed', poolName: initialPoolName = null, poolOwnerUsername = null, poolOwnerId = null }) {
   const { user, isAuthenticated, signIn } = useAuth()
@@ -1664,14 +1653,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         [sectionId]: { field, direction: 'asc' }
       }
     })
-  }
-
-  const getSortArrow = (sectionId, field) => {
-    const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' }
-    if (sectionSort.field !== field) {
-      return <span className="sort-arrow">↕</span>
-    }
-    return sectionSort.direction === 'asc' ? <span className="sort-arrow">↑</span> : <span className="sort-arrow">↓</span>
   }
 
   // Default sort function: aspect combinations, then type, then cost
