@@ -471,6 +471,27 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     })
   }, [])
 
+  // Bulk move helpers for +All/-All buttons
+  const moveCardsToDeck = useCallback((cardIds) => {
+    setCardPositions(prev => {
+      const updated = { ...prev }
+      cardIds.forEach(cardId => {
+        updated[cardId] = { ...updated[cardId], section: 'deck', enabled: true }
+      })
+      return updated
+    })
+  }, [])
+
+  const moveCardsToPool = useCallback((cardIds) => {
+    setCardPositions(prev => {
+      const updated = { ...prev }
+      cardIds.forEach(cardId => {
+        updated[cardId] = { ...updated[cardId], section: 'sideboard', enabled: false }
+      })
+      return updated
+    })
+  }, [])
+
   // Cleanup tooltip timeouts
   useEffect(() => {
     return () => {
@@ -3220,13 +3241,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         size="xs"
                         onClick={(e) => {
                           e.stopPropagation()
-                          setCardPositions(prev => {
-                            const updated = { ...prev }
-                            groupCards.forEach(({ cardId }) => {
-                              updated[cardId] = { ...updated[cardId], section: 'sideboard', enabled: false }
-                            })
-                            return updated
-                          })
+                          moveCardsToPool(groupCards.map(({ cardId }) => cardId))
                         }}
                         className="remove-all-button"
                         disabled={!hasDeckCardsToRemove}
@@ -3238,14 +3253,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                         size="xs"
                         onClick={(e) => {
                           e.stopPropagation()
-                          // Add matching pool cards to deck
-                          setCardPositions(prev => {
-                            const updated = { ...prev }
-                            matchingPoolCards.forEach(({ cardId }) => {
-                              updated[cardId] = { ...updated[cardId], section: 'deck', enabled: true }
-                            })
-                            return updated
-                          })
+                          moveCardsToDeck(matchingPoolCards.map(({ cardId }) => cardId))
                         }}
                         className="add-all-button"
                         disabled={!hasPoolCardsToAdd}
@@ -3454,14 +3462,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           size="xs"
                           onClick={(e) => {
                             e.stopPropagation()
-                            // Move pool cards to deck
-                            setCardPositions(prev => {
-                              const updated = { ...prev }
-                              groupCards.forEach(({ cardId }) => {
-                                updated[cardId] = { ...updated[cardId], section: 'deck', enabled: true }
-                              })
-                              return updated
-                            })
+                            moveCardsToDeck(groupCards.map(({ cardId }) => cardId))
                           }}
                           className="add-all-button"
                           disabled={!hasPoolCardsToMove}
@@ -3473,14 +3474,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                           size="xs"
                           onClick={(e) => {
                             e.stopPropagation()
-                            // Move matching deck cards to pool
-                            setCardPositions(prev => {
-                              const updated = { ...prev }
-                              matchingDeckCards.forEach(({ cardId }) => {
-                                updated[cardId] = { ...updated[cardId], section: 'sideboard', enabled: false }
-                              })
-                              return updated
-                            })
+                            moveCardsToPool(matchingDeckCards.map(({ cardId }) => cardId))
                           }}
                           className="remove-all-button"
                           disabled={!hasDeckCardsToRemove}

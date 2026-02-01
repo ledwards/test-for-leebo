@@ -4,9 +4,9 @@
 
 ### Progress Summary
 - **Original DeckBuilder.jsx:** ~6700 lines
-- **Current DeckBuilder.jsx:** 4426 lines
-- **Reduction:** ~2274 lines (~34%)
-- **E2E Tests:** 56/59 passing (known flaky tests)
+- **Current DeckBuilder.jsx:** 4389 lines
+- **Reduction:** ~2311 lines (~35%)
+- **E2E Tests:** 59/59 passing
 
 ### Completed Work
 
@@ -83,7 +83,7 @@
 10. **Replace remaining List View table headers with ListTableHeader** (~2 hours)
 
 ### Success Criteria (from original plan)
-- [ ] DeckBuilder.jsx < 500 lines (currently 4604)
+- [ ] DeckBuilder.jsx < 500 lines (currently 4389)
 - [x] Card component used everywhere
 - [ ] All state in context (not started)
 - [x] Each component < 200 lines (most are)
@@ -109,6 +109,8 @@
 16. `6eadcd2` - Extract toggleCardSection callback
 17. `7647285` - Add getDeckCards and getPoolCards helper functions
 18. `d783f50` - Memoize leaderCard and baseCard
+19. `6b50c45` - docs: Update refactor plan with session progress
+20. `9574337` - Consolidate Card event handlers with getCardEventHandlers helper
 
 ### Commands for Testing
 ```bash
