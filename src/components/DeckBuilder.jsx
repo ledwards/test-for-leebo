@@ -738,6 +738,20 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     return allCards
   }, [cardPositions, deckSortOption, getAspectKey, getDefaultAspectSortKey, showAspectPenalties, activeLeader, activeBase])
 
+  // Helper to filter and map deck cards
+  const getDeckCards = useCallback(() => {
+    return Object.entries(cardPositions)
+      .filter(([_, pos]) => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
+      .map(([cardId, position]) => ({ cardId, position }))
+  }, [cardPositions])
+
+  // Helper to filter and map pool/sideboard cards
+  const getPoolCards = useCallback(() => {
+    return Object.entries(cardPositions)
+      .filter(([_, pos]) => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader)
+      .map(([cardId, position]) => ({ cardId, position }))
+  }, [cardPositions])
+
   // Group cards by base name (ignoring treatments like foil, hyperspace, showcase)
   // Returns an array of groups, where each group contains cards with the same base name
   const groupCardsByName = useCallback((cardEntries) => {
@@ -3024,8 +3038,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             id="deck-header"
             title="Deck"
             mode="deck"
-            cardCount={Object.values(cardPositions)
-              .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length}
+            cardCount={getDeckCards().length}
             expanded={deckExpanded}
             onToggleExpanded={() => setDeckExpanded(!deckExpanded)}
             sortOption={deckSortOption}
@@ -3048,9 +3061,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             <div className="blocks-deck-row" ref={deckBlocksRowRef}>
               {(() => {
           // Get all deck cards (only enabled ones)
-          const deckCards = Object.entries(cardPositions)
-            .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader && position.enabled !== false)
-            .map(([cardId, position]) => ({ cardId, position }))
+          const deckCards = getDeckCards()
 
           const leaderCardDeck = activeLeader && cardPositions[activeLeader] ? cardPositions[activeLeader].card : null
           const baseCardDeck = activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
@@ -3134,9 +3145,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           })
 
           // Also group pool cards to determine +All availability
-          const poolCardsAll = Object.entries(cardPositions)
-            .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
-            .map(([cardId, position]) => ({ cardId, position }))
+          const poolCardsAll = getPoolCards()
           const poolGroups = {}
           poolCardsAll.forEach(({ cardId, position }) => {
             const key = getGroupKey(position.card)
@@ -3291,9 +3300,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             id="pool-header"
             title="Pool"
             mode="pool"
-            cardCount={Object.entries(cardPositions)
-              .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
-              .length}
+            cardCount={getPoolCards().length}
             expanded={sideboardExpanded}
             onToggleExpanded={() => setSideboardExpanded(!sideboardExpanded)}
             sortOption={poolSortOption}
@@ -3313,9 +3320,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
           {/* Pool Blocks - Grouped by sort option or flat for default */}
           {(() => {
-            const poolCards = Object.entries(cardPositions)
-              .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
-              .map(([cardId, position]) => ({ cardId, position }))
+            const poolCards = getPoolCards()
 
             if (poolCards.length === 0) {
               return null
@@ -3401,9 +3406,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             })
 
             // Also group deck cards to determine -All availability (remove from deck to pool)
-            const deckCardsAll = Object.entries(cardPositions)
-              .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader && position.enabled !== false)
-              .map(([cardId, position]) => ({ cardId, position }))
+            const deckCardsAll = getDeckCards()
             const deckGroups = {}
             deckCardsAll.forEach(({ cardId, position }) => {
               const key = getGroupKey(position.card)
