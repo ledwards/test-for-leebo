@@ -4,10 +4,11 @@
 
 ### Progress Summary
 - **Original DeckBuilder.jsx:** ~6700 lines
-- **Current DeckBuilder.jsx:** 4324 lines
-- **Reduction:** ~2376 lines (~35%)
+- **Current DeckBuilder.jsx:** 4038 lines
+- **Reduction:** ~2662 lines (~40%)
 - **E2E Tests:** 57/59 passing (mobile test known flaky)
 - **Context Integration:** ✓ Complete - sub-components use DeckBuilderContext
+- **Grid View Sections:** ✓ Extracted to DeckSection & PoolSection components
 
 ### Completed Work
 
@@ -48,19 +49,15 @@
    - Sub-components (LeaderBaseSelector, SectionHeader, etc.) use context
    - Props fallback pattern for backwards compatibility
 
-2. **Extract CardPool component** (~4 hours)
-   - Pool section with filtering, grouping, card display
-   - Currently ~400 lines inline in DeckBuilder.jsx
-   - Depends on DeckBuilderContext
+2. ~~**Extract CardPool component**~~ ✓ COMPLETE (PoolSection.jsx)
+   - Extracted to ~190 lines in separate component
 
-3. **Extract DeckSection component** (~4 hours)
-   - Deck cards section with grouping, sorting
-   - Currently ~400 lines inline
-   - Depends on DeckBuilderContext
+3. ~~**Extract DeckSection component**~~ ✓ COMPLETE (DeckSection.jsx)
+   - Extracted to ~200 lines in separate component
 
-4. **Extract SideboardSection component** (~2 hours)
-   - Similar to DeckSection
-   - Currently ~200 lines inline
+4. **Extract List View sections** (~4 hours)
+   - Leaders, Bases, Deck, Sideboard list tables
+   - Currently ~700 lines inline
 
 #### MEDIUM PRIORITY
 
@@ -83,7 +80,7 @@
 10. **Replace remaining List View table headers with ListTableHeader** (~2 hours)
 
 ### Success Criteria (from original plan)
-- [ ] DeckBuilder.jsx < 500 lines (currently 4304)
+- [ ] DeckBuilder.jsx < 500 lines (currently 4038)
 - [x] Card component used everywhere
 - [ ] All state in context (not started)
 - [x] Each component < 200 lines (most are)
@@ -118,6 +115,8 @@
 25. `cfed080` - Simplify LeaderBaseSelector to use context
 26. `bdbd24d` - Update SectionHeader to use DeckBuilderContext
 27. `bf15602` - Update DeckBuilder sub-components to use context
+28. `31b284b` - Add PoolSection and DeckSection components
+29. `4c895b3` - Integrate DeckSection and PoolSection (-286 lines)
 
 ### Commands for Testing
 ```bash
