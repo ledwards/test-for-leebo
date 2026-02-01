@@ -32,6 +32,66 @@ export function getTypeStringOrder(type) {
 }
 
 /**
+ * Sort group keys based on sort option.
+ * Handles cost (numeric), type (predefined order), and aspect (complex ordering).
+ *
+ * @param {string[]} keys - Array of group keys to sort
+ * @param {string} sortOption - 'cost', 'type', or 'aspect'
+ * @param {string} costThreshold - The cost value that represents "X+" (default '8+')
+ * @returns {string[]} Sorted array of group keys
+ */
+export function sortGroupKeys(keys, sortOption, costThreshold = '8+') {
+  const thresholdValue = parseInt(costThreshold, 10) || 8
+
+  return [...keys].sort((a, b) => {
+    if (sortOption === 'cost') {
+      const costA = a === costThreshold ? thresholdValue : parseInt(a, 10)
+      const costB = b === costThreshold ? thresholdValue : parseInt(b, 10)
+      return costA - costB
+    }
+
+    if (sortOption === 'type') {
+      const order = { 'Ground Units': 1, 'Space Units': 2, 'Units': 1.5, 'Upgrades': 3, 'Events': 4, 'Other': 5 }
+      return (order[a] || 99) - (order[b] || 99)
+    }
+
+    // Aspect sorting
+    const getAspectSortOrder = (key) => {
+      let aspectName = key
+      if (key === 'ZZZ_Neutral') return 999
+      const match = key.match(/^[A-Z]_(.+)$/)
+      if (match) aspectName = match[1]
+
+      const aspects = aspectName.includes(' ') ? aspectName.split(' ').sort() : [aspectName]
+      const isDual = aspects.length === 2
+      const primaryOrder = { 'Vigilance': 0, 'Command': 100, 'Aggression': 200, 'Cunning': 300, 'Villainy': 400, 'Heroism': 500 }
+
+      if (isDual) {
+        const primary = aspects.find(a => ['Vigilance', 'Command', 'Aggression', 'Cunning'].includes(a))
+        const secondary = aspects.find(a => ['Villainy', 'Heroism'].includes(a))
+        if (primary && secondary) {
+          const secondaryOrder = { 'Villainy': 0, 'Heroism': 1 }
+          return primaryOrder[primary] + secondaryOrder[secondary]
+        }
+        const firstAspect = aspects[0]
+        if (['Vigilance', 'Command', 'Aggression', 'Cunning'].includes(firstAspect)) {
+          return primaryOrder[firstAspect] + 2
+        }
+        return primaryOrder[firstAspect] || 999
+      } else {
+        const aspect = aspects[0]
+        if (['Vigilance', 'Command', 'Aggression', 'Cunning'].includes(aspect)) {
+          return primaryOrder[aspect] + 3
+        }
+        return primaryOrder[aspect] || 999
+      }
+    }
+
+    return getAspectSortOrder(a) - getAspectSortOrder(b)
+  })
+}
+
+/**
  * Create a function to get the group key for a card based on sort option.
  * Used for grouping cards by cost, type, or aspect.
  *
