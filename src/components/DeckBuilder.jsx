@@ -27,6 +27,7 @@ import { DeckBuilderHeader } from './DeckBuilder/DeckBuilderHeader'
 import { StickyInfoBar } from './DeckBuilder/StickyInfoBar'
 import { TypeIcon } from './DeckBuilder/TypeIcon'
 import { GroupHeader } from './DeckBuilder/GroupHeader'
+import { ListTableHeader } from './DeckBuilder/ListTableHeader'
 import { getCardTypeOrder, getTypeStringOrder, sortGroupKeys, createGetGroupKey, createDefaultSortFn, createGroupCardSortFn } from '../utils/cardSort'
 
 // Get aspect symbol for list view using individual icon files
@@ -3620,25 +3621,18 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                 </h2>
                 {leadersExpanded && leaderPositions.length > 0 && (
                   <table className="list-table">
-                  <thead>
-                    <tr>
-                      <th className="checkbox-col" style={{ visibility: 'hidden' }}>
-                        <input type="checkbox" disabled />
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('leaders', 'name')}>
-                        Title {getSortArrow('leaders', 'name')}
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('leaders', 'cost')}>
-                        Cost {getSortArrow('leaders', 'cost')}
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('leaders', 'aspects')}>
-                        Aspects {getSortArrow('leaders', 'aspects')}
-                      </th>
-                      <th className="sortable" onClick={() => handleTableSort('leaders', 'rarity')}>
-                        Rarity {getSortArrow('leaders', 'rarity')}
-                      </th>
-                    </tr>
-                  </thead>
+                  <ListTableHeader
+                    sectionId="leaders"
+                    tableSort={tableSort}
+                    onSort={handleTableSort}
+                    columns={[
+                      { field: 'name', label: 'Title' },
+                      { field: 'cost', label: 'Cost' },
+                      { field: 'aspects', label: 'Aspects' },
+                      { field: 'rarity', label: 'Rarity' },
+                    ]}
+                    checkboxVisible={false}
+                  />
                   <tbody>
                     {sortedLeaders.map(({ cardId, card, enabled }, idx) => {
                       const aspectSymbols = card.aspects && card.aspects.length > 0
