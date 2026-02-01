@@ -10,12 +10,14 @@
  * - Bulk move buttons
  *
  * Used by both Deck and Pool sections.
+ * Can use DeckBuilderContext or receive props directly.
  */
 
 import { SortControls } from './SortControls'
 import { FilterWithModal } from './FilterWithModal'
 import { AspectPenaltyToggle } from './AspectPenaltyToggle'
 import { BulkMoveButtons } from './BulkMoveButtons'
+import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
 
 export function SectionHeader({
   id,
@@ -24,20 +26,39 @@ export function SectionHeader({
   cardCount,
   expanded,
   onToggleExpanded,
-  sortOption,
+  sortOption: sortOptionProp,
   onSortChange,
   filterOpen,
   onFilterToggle,
   onFilterClose,
-  cardPositions,
-  setCardPositions,
-  activeLeader,
-  activeBase,
-  filterAspectsExpanded,
+  // Props with context fallback
+  cardPositions: cardPositionsProp,
+  setCardPositions: setCardPositionsProp,
+  activeLeader: activeLeaderProp,
+  activeBase: activeBaseProp,
+  filterAspectsExpanded: filterAspectsExpandedProp,
   onFilterAspectsExpandedChange,
-  showAspectPenalties,
-  setShowAspectPenalties,
+  showAspectPenalties: showAspectPenaltiesProp,
+  setShowAspectPenalties: setShowAspectPenaltiesProp,
 }) {
+  // Try to get values from context
+  let contextValue = null
+  try {
+    contextValue = useDeckBuilder()
+  } catch {
+    // Not inside a provider
+  }
+
+  // Use props if provided, otherwise use context
+  const cardPositions = cardPositionsProp ?? contextValue?.cardPositions ?? {}
+  const setCardPositions = setCardPositionsProp ?? contextValue?.setCardPositions
+  const activeLeader = activeLeaderProp ?? contextValue?.activeLeader
+  const activeBase = activeBaseProp ?? contextValue?.activeBase
+  const filterAspectsExpanded = filterAspectsExpandedProp ?? contextValue?.filterAspectsExpanded ?? {}
+  const showAspectPenalties = showAspectPenaltiesProp ?? contextValue?.showAspectPenalties ?? false
+  const setShowAspectPenalties = setShowAspectPenaltiesProp ?? contextValue?.setShowAspectPenalties
+  // Sort option uses mode-specific context values
+  const sortOption = sortOptionProp ?? (mode === 'deck' ? contextValue?.deckSortOption : contextValue?.poolSortOption)
   const headerStyle = {
     display: 'flex',
     alignItems: 'center',

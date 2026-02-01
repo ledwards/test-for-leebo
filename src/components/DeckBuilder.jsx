@@ -3140,19 +3140,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             cardCount={getDeckCards().length}
             expanded={deckExpanded}
             onToggleExpanded={() => setDeckExpanded(!deckExpanded)}
-            sortOption={deckSortOption}
             onSortChange={setDeckSortOption}
             filterOpen={deckFilterOpen}
             onFilterToggle={() => { setDeckFilterOpen(!deckFilterOpen); setPoolFilterOpen(false); }}
             onFilterClose={() => setDeckFilterOpen(false)}
-            cardPositions={cardPositions}
-            setCardPositions={setCardPositions}
-            activeLeader={activeLeader}
-            activeBase={activeBase}
-            filterAspectsExpanded={filterAspectsExpanded}
             onFilterAspectsExpandedChange={setFilterAspectsExpanded}
-            showAspectPenalties={showAspectPenalties}
-            setShowAspectPenalties={setShowAspectPenalties}
           />
 
           {/* Deck Blocks Row */}
@@ -3309,19 +3301,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             cardCount={getPoolCards().length}
             expanded={sideboardExpanded}
             onToggleExpanded={() => setSideboardExpanded(!sideboardExpanded)}
-            sortOption={poolSortOption}
             onSortChange={setPoolSortOption}
             filterOpen={poolFilterOpen}
             onFilterToggle={() => { setPoolFilterOpen(!poolFilterOpen); setDeckFilterOpen(false); }}
             onFilterClose={() => setPoolFilterOpen(false)}
-            cardPositions={cardPositions}
-            setCardPositions={setCardPositions}
-            activeLeader={activeLeader}
-            activeBase={activeBase}
-            filterAspectsExpanded={filterAspectsExpanded}
             onFilterAspectsExpandedChange={setFilterAspectsExpanded}
-            showAspectPenalties={showAspectPenalties}
-            setShowAspectPenalties={setShowAspectPenalties}
           />
 
           {/* Pool Blocks - Grouped by sort option or flat for default */}
