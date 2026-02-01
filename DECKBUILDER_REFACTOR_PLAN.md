@@ -4,8 +4,8 @@
 
 ### Progress Summary
 - **Original DeckBuilder.jsx:** ~6700 lines
-- **Current DeckBuilder.jsx:** 2066 lines
-- **Reduction:** ~4634 lines (~69%)
+- **Current DeckBuilder.jsx:** 2050 lines
+- **Reduction:** ~4650 lines (~69%)
 - **E2E Tests:** 58/59 passing (1 flaky test)
 - **Context Integration:** ✓ Complete - sub-components use DeckBuilderContext
 - **Grid View Sections:** ✓ Extracted to DeckSection & PoolSection components
@@ -40,7 +40,8 @@
 | DeckImageModal.jsx | ~70 | ✓ Complete |
 | DeleteDeckSection.jsx | ~80 | ✓ Complete |
 | ViewModeToggle.jsx | ~40 | ✓ Complete |
-| index.js | ~25 | ✓ Complete |
+| CollapsibleSectionHeader.jsx | ~35 | ✓ Complete |
+| index.js | ~30 | ✓ Complete |
 
 #### Hook Extractions (in `src/hooks/`)
 | Hook | Lines | Status |
