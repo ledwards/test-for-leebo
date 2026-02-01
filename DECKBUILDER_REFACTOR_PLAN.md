@@ -4,9 +4,9 @@
 
 ### Progress Summary
 - **Original DeckBuilder.jsx:** ~6700 lines
-- **Current DeckBuilder.jsx:** 4470 lines
-- **Reduction:** ~2230 lines (~33%)
-- **E2E Tests:** 57/59 passing (1 pre-existing flaky mobile test, 1 unrelated regression test)
+- **Current DeckBuilder.jsx:** 4426 lines
+- **Reduction:** ~2274 lines (~34%)
+- **E2E Tests:** 56/59 passing (known flaky tests)
 
 ### Completed Work
 
@@ -105,6 +105,10 @@
 12. `3b09dc2` - Replace inline cost icons with CostIcon component (-118 lines)
 13. `dfecc49` - Use ListTableHeader for bases section, fix sorting bug
 14. `85c6856` - Extract getRarityColor to aspectColors utility
+15. `d398767` - Extract getAspectIcons helper function
+16. `6eadcd2` - Extract toggleCardSection callback
+17. `7647285` - Add getDeckCards and getPoolCards helper functions
+18. `d783f50` - Memoize leaderCard and baseCard
 
 ### Commands for Testing
 ```bash
