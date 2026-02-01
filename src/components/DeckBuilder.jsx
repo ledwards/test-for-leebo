@@ -29,6 +29,7 @@ import { TypeIcon } from './DeckBuilder/TypeIcon'
 import { GroupHeader } from './DeckBuilder/GroupHeader'
 import { ListTableHeader } from './DeckBuilder/ListTableHeader'
 import { getCardTypeOrder, getTypeStringOrder, sortGroupKeys, createGetGroupKey, createDefaultSortFn, createGroupCardSortFn } from '../utils/cardSort'
+import { getRarityColor } from '../utils/aspectColors'
 
 // Get aspect symbol for list view using individual icon files
 import AspectIcon from './AspectIcon'
@@ -2240,16 +2241,6 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       window.removeEventListener('resize', markLastInRow)
     }
   }, [deckExpanded, cardPositions, deckSortOption])
-
-  const getRarityColor = (rarity) => {
-    switch (rarity) {
-      case 'Common': return '#999'
-      case 'Uncommon': return '#4CAF50'
-      case 'Rare': return '#2196F3'
-      case 'Legendary': return '#FF9800'
-      default: return '#666'
-    }
-  }
 
   // Table sorting functions - per section
   const handleTableSort = (sectionId, field) => {
