@@ -225,15 +225,26 @@ test.describe('Deck Builder - Mobile', () => {
       await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
       await page.locator('.set-card').first().click()
 
-      // Wait for pool page to load (URL changes via replaceState)
-      // Handle pack opening animation if present, then wait for cards
-      await waitForCardsToLoad(page)
-      await page.waitForTimeout(1000) // Let replaceState complete
+      // Wait for navigation to /pools/new page
+      await page.waitForURL(/\/pools\/new/, { timeout: 10000 })
+
+      // Wait for the pack opening animation to appear
+      await expect(page.locator('.pack-opening-container, .skip-button').first()).toBeVisible({ timeout: 15000 })
+
+      // Click skip button to skip animation
+      const skipButton = page.locator('.skip-button')
+      await expect(skipButton).toBeVisible({ timeout: 5000 })
+      await skipButton.click()
+
+      // Wait for SealedPod to appear (animation done)
+      await expect(page.locator('.sealed-pod').first()).toBeVisible({ timeout: 15000 })
+
+      // Wait for URL to update (replaceState after save)
+      await page.waitForTimeout(1500)
       poolShareId = page.url().split('/pool/')[1]?.split('/')[0]?.split('?')[0]
 
       // Fallback if URL extraction fails
       if (!poolShareId || poolShareId.includes('pools')) {
-        // Still on /pools/new, try extracting from another source or wait more
         await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 10000 })
         poolShareId = page.url().split('/pool/')[1]?.split('/')[0]?.split('?')[0]
       }
@@ -241,9 +252,11 @@ test.describe('Deck Builder - Mobile', () => {
 
     await page.goto(`${BASE_URL}/pool/${poolShareId}/deck`)
 
-    // Wait for deck builder
+    // Wait for deck builder to be visible
     await expect(page.locator('.deck-builder, .card-grid').first()).toBeVisible({ timeout: 30000 })
-    await waitForCardsToLoad(page)
+
+    // Wait for cards to actually render (canvas-card is the card wrapper)
+    await expect(page.locator('.canvas-card').first()).toBeVisible({ timeout: 30000 })
 
     // Check mobile layout
     const issues = await checkLayoutIssues(page)
@@ -267,9 +280,13 @@ test.describe('Deck Builder - Mobile', () => {
       await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
       await page.locator('.set-card').first().click()
 
-      // Wait for pool page to load (handle pack opening animation)
-      await waitForCardsToLoad(page)
-      await page.waitForTimeout(1000)
+      // Wait for navigation and animation
+      await page.waitForURL(/\/pools\/new/, { timeout: 10000 })
+      await expect(page.locator('.skip-button').first()).toBeVisible({ timeout: 15000 })
+      await page.locator('.skip-button').click()
+      await expect(page.locator('.sealed-pod').first()).toBeVisible({ timeout: 15000 })
+
+      await page.waitForTimeout(1500)
       poolShareId = page.url().split('/pool/')[1]?.split('/')[0]?.split('?')[0]
 
       if (!poolShareId || poolShareId.includes('pools')) {
@@ -279,7 +296,7 @@ test.describe('Deck Builder - Mobile', () => {
     }
 
     await page.goto(`${BASE_URL}/pool/${poolShareId}/deck`)
-    await waitForCardsToLoad(page)
+    await expect(page.locator('.canvas-card').first()).toBeVisible({ timeout: 30000 })
 
     // Scroll down to avoid sticky header covering cards
     await page.evaluate(() => window.scrollTo(0, 600))

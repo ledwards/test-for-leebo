@@ -196,7 +196,7 @@ export async function waitForCardsToLoad(page) {
   await page.waitForTimeout(500)
 
   // Try to skip pack opening animation if present (multiple attempts for reliability)
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 5; attempt++) {
     // Check for skip button or Open All button (indicators of pack opening animation)
     const skipButton = page.locator('.skip-button, button:has-text(">>")').first()
     const openAllButton = page.locator('button:has-text("Open All")').first()
@@ -208,24 +208,34 @@ export async function waitForCardsToLoad(page) {
       // Pack opening animation is showing - click skip button
       if (skipVisible) {
         await skipButton.click()
-        // Wait for animation transition
-        await page.waitForTimeout(800)
+        // Wait for animation to fully transition (can be slow under load)
+        await page.waitForTimeout(1500)
       } else if (openAllVisible) {
         // If skip not visible but Open All is, we might be on mobile - look for skip again
         const mobileSkip = page.locator('button').filter({ hasText: '>>' }).first()
         if (await mobileSkip.isVisible().catch(() => false)) {
           await mobileSkip.click()
-          await page.waitForTimeout(800)
+          await page.waitForTimeout(1500)
         }
       }
     } else {
       // No animation detected, break out of retry loop
       break
     }
+
+    // Small pause between attempts to let page stabilize
+    await page.waitForTimeout(300)
   }
 
-  // Wait for card images or card placeholders to appear
-  await page.waitForSelector('.card-image, .card-placeholder, .set-card', { timeout: 30000 })
+  // Wait for card elements to appear
+  // Multiple selectors to handle different page contexts:
+  // - .canvas-card: DeckBuilder card wrapper
+  // - .card-item: SealedPod card wrapper
+  // - .card-image: img element when image is loaded
+  // - .card-placeholder: shown when image hasn't loaded yet
+  // - .set-card: used on the sets page
+  // - .sealed-pod: the SealedPod container (indicates animation is done)
+  await page.waitForSelector('.canvas-card, .card-item, .card-image, .card-placeholder, .set-card, .sealed-pod', { timeout: 30000 })
 }
 
 /**
