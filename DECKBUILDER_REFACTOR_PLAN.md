@@ -4,9 +4,9 @@
 
 ### Progress Summary
 - **Original DeckBuilder.jsx:** ~6700 lines
-- **Current DeckBuilder.jsx:** 4389 lines
-- **Reduction:** ~2311 lines (~35%)
-- **E2E Tests:** 59/59 passing
+- **Current DeckBuilder.jsx:** 4304 lines
+- **Reduction:** ~2396 lines (~36%)
+- **E2E Tests:** 57/59 passing (mobile test known flaky)
 
 ### Completed Work
 
@@ -83,7 +83,7 @@
 10. **Replace remaining List View table headers with ListTableHeader** (~2 hours)
 
 ### Success Criteria (from original plan)
-- [ ] DeckBuilder.jsx < 500 lines (currently 4389)
+- [ ] DeckBuilder.jsx < 500 lines (currently 4304)
 - [x] Card component used everywhere
 - [ ] All state in context (not started)
 - [x] Each component < 200 lines (most are)
@@ -111,6 +111,9 @@
 18. `d783f50` - Memoize leaderCard and baseCard
 19. `6b50c45` - docs: Update refactor plan with session progress
 20. `9574337` - Consolidate Card event handlers with getCardEventHandlers helper
+21. `83dd6f5` - Add moveCardsToDeck/moveCardsToPool helpers for bulk operations
+22. `2002372` - Add createCardRenderer factory for card stack rendering
+23. `359e4a6` - Remove redundant leaderCard/baseCard computations
 
 ### Commands for Testing
 ```bash
