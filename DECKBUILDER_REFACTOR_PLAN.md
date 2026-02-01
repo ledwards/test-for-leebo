@@ -4,8 +4,8 @@
 
 ### Progress Summary
 - **Original DeckBuilder.jsx:** ~6700 lines
-- **Current DeckBuilder.jsx:** 4486 lines
-- **Reduction:** ~2214 lines (~33%)
+- **Current DeckBuilder.jsx:** 4470 lines
+- **Reduction:** ~2230 lines (~33%)
 - **E2E Tests:** 57/59 passing (1 pre-existing flaky mobile test, 1 unrelated regression test)
 
 ### Completed Work
@@ -103,6 +103,8 @@
 10. `3b90861` - Add component library (AspectIcon, Card, CollapsibleSection, SearchInput)
 11. `f32dd57` - Add component extraction plan documentation
 12. `3b09dc2` - Replace inline cost icons with CostIcon component (-118 lines)
+13. `dfecc49` - Use ListTableHeader for bases section, fix sorting bug
+14. `85c6856` - Extract getRarityColor to aspectColors utility
 
 ### Commands for Testing
 ```bash
