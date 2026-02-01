@@ -446,6 +446,25 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     setHoveredCardPreview(null)
   }
 
+  // Toggle a card between deck and sideboard sections
+  const toggleCardSection = useCallback((cardId) => {
+    setHoveredCard(null)
+    setCardPositions(prev => {
+      const newSection = prev[cardId].section === 'deck' ? 'sideboard' : 'deck'
+      const newEnabled = newSection === 'deck'
+      return {
+        ...prev,
+        [cardId]: {
+          ...prev[cardId],
+          section: newSection,
+          enabled: newEnabled,
+          x: 0,
+          y: 0,
+        }
+      }
+    })
+  }, [])
+
   // Cleanup tooltip timeouts
   useEffect(() => {
     return () => {
@@ -3071,21 +3090,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                             e.preventDefault()
                             e.stopPropagation()
                             if (!e.shiftKey) {
-                              setHoveredCard(null)
-                              setCardPositions(prev => {
-                                const newSection = prev[cardId].section === 'deck' ? 'sideboard' : 'deck'
-                                const newEnabled = newSection === 'deck'
-                                return {
-                                  ...prev,
-                                  [cardId]: {
-                                    ...prev[cardId],
-                                    section: newSection,
-                                    enabled: newEnabled,
-                                    x: 0,
-                                    y: 0,
-                                  }
-                                }
-                              })
+                              toggleCardSection(cardId)
                             }
                           }}
                           onMouseEnter={(e) => {
@@ -3253,21 +3258,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                 e.preventDefault()
                                 e.stopPropagation()
                                 if (!e.shiftKey) {
-                                  setHoveredCard(null)
-                                  setCardPositions(prev => {
-                                    const newSection = prev[cardId].section === 'deck' ? 'sideboard' : 'deck'
-                                    const newEnabled = newSection === 'deck'
-                                    return {
-                                      ...prev,
-                                      [cardId]: {
-                                        ...prev[cardId],
-                                        section: newSection,
-                                        enabled: newEnabled,
-                                        x: 0,
-                                        y: 0,
-                                      }
-                                    }
-                                  })
+                                  toggleCardSection(cardId)
                                 }
                               }}
                               onMouseEnter={(e) => {
@@ -3365,21 +3356,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                   e.preventDefault()
                                   e.stopPropagation()
                                   if (!e.shiftKey) {
-                                    setHoveredCard(null)
-                                    setCardPositions(prev => {
-                                      const newSection = prev[cardId].section === 'deck' ? 'sideboard' : 'deck'
-                                      const newEnabled = newSection === 'deck'
-                                      return {
-                                        ...prev,
-                                        [cardId]: {
-                                          ...prev[cardId],
-                                          section: newSection,
-                                          enabled: newEnabled,
-                                          x: 0,
-                                          y: 0,
-                                        }
-                                      }
-                                    })
+                                    toggleCardSection(cardId)
                                   }
                                 }}
                                 onMouseEnter={(e) => {
@@ -3548,21 +3525,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                                   e.preventDefault()
                                   e.stopPropagation()
                                   if (!e.shiftKey) {
-                                    setHoveredCard(null)
-                                    setCardPositions(prev => {
-                                      const newSection = prev[cardId].section === 'deck' ? 'sideboard' : 'deck'
-                                      const newEnabled = newSection === 'deck'
-                                      return {
-                                        ...prev,
-                                        [cardId]: {
-                                          ...prev[cardId],
-                                          section: newSection,
-                                          enabled: newEnabled,
-                                          x: 0,
-                                          y: 0,
-                                        }
-                                      }
-                                    })
+                                    toggleCardSection(cardId)
                                   }
                                 }}
                                 onMouseEnter={(e) => {
