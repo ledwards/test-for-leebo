@@ -27,9 +27,6 @@ export function GroupHeader({ groupKey, count, sortOption, getAspectSymbol }) {
             {costValue}
           </span>
         </div>
-        <span className="desktop-text">
-          {costValue === '8+' ? <>8<sup>+</sup>-cost</> : `${costValue}-cost`}
-        </span>
         <span>({count})</span>
       </div>
     )
@@ -66,7 +63,7 @@ export function GroupHeader({ groupKey, count, sortOption, getAspectSymbol }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
       {aspectIcons.length > 0 && <div style={{ display: 'flex', gap: '2px' }}>{aspectIcons}</div>}
-      <span><span className="aspect-text-label">{displayName}</span> ({count})</span>
+      <span>({count})</span>
     </div>
   )
 }
