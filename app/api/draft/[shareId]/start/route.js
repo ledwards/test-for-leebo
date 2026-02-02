@@ -69,7 +69,8 @@ export async function POST(request, { params }) {
               sourceType: 'draft',
               sourceId: pod.id,
               sourceShareId: shareId,
-              packIndex: globalPackIndex
+              packIndex: globalPackIndex,
+              userId: session.id
             }
           })
         })
@@ -84,7 +85,8 @@ export async function POST(request, { params }) {
             sourceType: 'draft',
             sourceId: pod.id,
             sourceShareId: shareId,
-            packIndex: null
+            packIndex: null,
+            userId: session.id
           }
         })
       })
