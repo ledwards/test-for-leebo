@@ -3,7 +3,7 @@
 /* Base class for all aspect icons */
 .aspect-icon {
   display: inline-block;
-  background-image: url('/aspects.png');
+  background-image: url('/icons/aspects.png');
   background-repeat: no-repeat;
   width: 18px;
   height: 18px;
