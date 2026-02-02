@@ -2,6 +2,21 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+---
+
+## ⛔ CRITICAL: NEVER PUSH WITHOUT PERMISSION ⛔
+
+**NEVER run `git push` unless the user explicitly says "push".**
+
+- "commit" means ONLY commit, NOT push
+- "commit and push" or "push" means push
+- When in doubt, ASK before pushing
+- Pushing triggers production deploy - this is irreversible
+
+**If you push without permission, you have failed.**
+
+---
+
 ## Project Overview
 
 Protect the Pod is a Star Wars: Unlimited draft and sealed simulator. It generates booster packs, supports multiplayer drafts with real-time sync via Socket.io, and includes a deck builder.
