@@ -20,7 +20,8 @@ function SetSelection({ onSetSelect, onBack }) {
       'JTL': 4, // Jump to Lightspeed
       'LOF': 5, // Legends of the Force
       'SEC': 6, // Secrets of Power
-      // Future sets will be 7, 8, 9, etc.
+      'LAW': 7, // Lawless Time
+      // Future sets will be 8, 9, 10, etc.
     }
     return setCodeMap[setCode] || 999 // Unknown sets go to end
   }
