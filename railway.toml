@@ -1,6 +1,3 @@
-[build]
-builder = "nixpacks"
-
 [deploy]
 releaseCommand = "node scripts/migrate.js prod --yes"
 startCommand = "npm start"
