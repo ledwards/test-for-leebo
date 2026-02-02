@@ -76,17 +76,18 @@ function createDbClient(connectionString) {
   })
 }
 
-// Get all migration files sorted by name
+// Get all migration files sorted by name (supports .sql and .js)
 function getMigrationFiles() {
   const migrationsDir = join(__dirname, '../migrations')
   const files = readdirSync(migrationsDir)
-    .filter(file => file.endsWith('.sql'))
+    .filter(file => file.endsWith('.sql') || file.endsWith('.js'))
     .filter(file => file !== '000_migration_tracking.sql') // Exclude tracking table migration
     .sort()
-  
+
   return files.map(file => ({
     name: file,
-    path: join(migrationsDir, file)
+    path: join(migrationsDir, file),
+    type: file.endsWith('.js') ? 'js' : 'sql'
   }))
 }
 
@@ -115,27 +116,37 @@ async function markMigrationApplied(client, migrationName) {
   )
 }
 
-// Run a single migration
+// Run a single migration (SQL or JS)
 async function runMigration(client, migrationFile) {
   const migrationName = migrationFile.name
   const migrationPath = migrationFile.path
-  
+  const migrationType = migrationFile.type
+
   // Check if already applied
   const isApplied = await isMigrationApplied(client, migrationName)
   if (isApplied) {
     console.log(`⏭️  Skipping ${migrationName} (already applied)`)
     return false
   }
-  
+
   console.log(`📦 Running ${migrationName}...`)
-  
-  // Read and execute migration
-  const migrationSQL = readFileSync(migrationPath, 'utf-8')
-  await client.query(migrationSQL)
-  
+
+  if (migrationType === 'js') {
+    // Import and run JS migration
+    const migration = await import(migrationPath)
+    if (typeof migration.run !== 'function') {
+      throw new Error(`JS migration ${migrationName} must export a 'run' function`)
+    }
+    await migration.run(client)
+  } else {
+    // Read and execute SQL migration
+    const migrationSQL = readFileSync(migrationPath, 'utf-8')
+    await client.query(migrationSQL)
+  }
+
   // Mark as applied
   await markMigrationApplied(client, migrationName)
-  
+
   console.log(`✅ Applied ${migrationName}`)
   return true
 }
