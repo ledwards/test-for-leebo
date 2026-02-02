@@ -20,8 +20,10 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 // Get environment from command line argument
-const env = process.argv[2] || 'dev'
+const args = process.argv.slice(2)
+const env = args.find(a => !a.startsWith('--')) || 'dev'
 const isProd = env === 'prod'
+const skipConfirm = args.includes('--yes') || args.includes('-y') || process.env.CI === 'true'
 
 // Get database URL based on environment
 function getDatabaseUrl() {
@@ -251,8 +253,8 @@ async function runMigrations() {
     process.exit(0)
   }
   
-  // For production, require confirmation
-  if (isProd) {
+  // For production, require confirmation (unless --yes flag or CI environment)
+  if (isProd && !skipConfirm) {
     const confirmed = await confirmProductionMigration()
     if (!confirmed) {
       process.exit(0)

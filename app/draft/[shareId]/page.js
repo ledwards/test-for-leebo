@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { useDraftSocket } from '../../../src/hooks/useDraftSocket'
-import { joinDraft, leaveDraft, startDraft, randomizeSeats, makePick, selectCard, updateSettings, togglePause } from '../../../src/utils/draftApi'
+import { joinDraft, leaveDraft, startDraft, randomizeSeats, makePick, selectCard, updateSettings, togglePause, dropFromDraft } from '../../../src/utils/draftApi'
 import DraftLobby from '../../../src/components/DraftLobby'
 import LeaderDraftPhase from '../../../src/components/LeaderDraftPhase'
 import PackDraftPhase from '../../../src/components/PackDraftPhase'
@@ -36,6 +36,8 @@ export default function DraftRoomPage({ params }) {
   const [showOpponentTooltip, setShowOpponentTooltip] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
+  const [showDropConfirm, setShowDropConfirm] = useState(false)
+  const [isDropping, setIsDropping] = useState(false)
 
   // Get shareId from params
   useEffect(() => {
@@ -256,6 +258,19 @@ export default function DraftRoomPage({ params }) {
     }
   }
 
+  const handleDropFromDraft = async () => {
+    if (!shareId || isDropping) return
+    setIsDropping(true)
+    try {
+      await dropFromDraft(shareId)
+      router.push('/draft')
+    } catch (err) {
+      setError(err.message)
+      setIsDropping(false)
+      setShowDropConfirm(false)
+    }
+  }
+
   // Loading auth state
   if (authLoading || !shareId) {
     return (
@@ -427,7 +442,7 @@ export default function DraftRoomPage({ params }) {
             </div>
           </div>
 
-          {/* Cancel Draft Button - bottom center during active phases */}
+          {/* Cancel Draft Button - bottom center during active phases (host only) */}
           {isHost && status === 'active' && (
             <div className="draft-cancel-section">
               <button
@@ -436,6 +451,19 @@ export default function DraftRoomPage({ params }) {
                 disabled={isCancelling}
               >
                 Cancel Draft
+              </button>
+            </div>
+          )}
+
+          {/* Drop from Draft Button - for non-host players during active phases */}
+          {!isHost && isPlayer && status === 'active' && (
+            <div className="draft-drop-section">
+              <button
+                className="draft-drop-button"
+                onClick={() => setShowDropConfirm(true)}
+                disabled={isDropping}
+              >
+                Drop from Draft
               </button>
             </div>
           )}
@@ -462,6 +490,32 @@ export default function DraftRoomPage({ params }) {
                 disabled={isCancelling}
               >
                 {isCancelling ? 'Cancelling...' : 'Cancel Draft'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Drop Confirmation Modal */}
+      {showDropConfirm && (
+        <div className="draft-drop-overlay" onClick={() => setShowDropConfirm(false)}>
+          <div className="draft-drop-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Drop from Draft?</h2>
+            <p>Are you sure you want to drop from this draft? A bot will take over your picks and you will lose access to your drafted cards.</p>
+            <div className="draft-drop-buttons">
+              <button
+                className="draft-drop-back"
+                onClick={() => setShowDropConfirm(false)}
+                disabled={isDropping}
+              >
+                Go Back
+              </button>
+              <button
+                className="draft-drop-confirm"
+                onClick={handleDropFromDraft}
+                disabled={isDropping}
+              >
+                {isDropping ? 'Dropping...' : 'Drop from Draft'}
               </button>
             </div>
           </div>
