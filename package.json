@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node server.js",
     "build": "next build",
-    "postbuild": "node scripts/migrate.js prod --yes",
+    "postbuild": "node scripts/postbuild.js",
     "start": "NODE_ENV=production node server.js",
     "lint": "eslint .",
     "fetch-cards": "node scripts/fetchCards.js",
