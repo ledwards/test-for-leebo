@@ -197,3 +197,19 @@ export async function deleteDraft(shareId) {
     return false
   }
 }
+
+/**
+ * Drop from a draft pod (non-host only)
+ * - During waiting: Removes player from lobby
+ * - During active: Converts slot to bot that takes over picks
+ * @param {string} shareId - Share ID of the draft
+ * @returns {Promise<Object>} Drop result { dropped: true, convertedToBot: boolean }
+ */
+export async function dropFromDraft(shareId) {
+  try {
+    return await httpClient.post(`/draft/${shareId}/drop`)
+  } catch (error) {
+    console.error('Failed to drop from draft:', error)
+    throw error
+  }
+}

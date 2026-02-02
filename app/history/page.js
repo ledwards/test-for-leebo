@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../src/contexts/AuthContext'
 import { fetchUserPools, updatePool, deletePool } from '../../src/utils/poolApi'
+import { dropFromDraft } from '../../src/utils/draftApi'
 import { useRouter } from 'next/navigation'
 import { getSetConfig } from '../../src/utils/setConfigs'
 import EditableTitle from '../../src/components/EditableTitle'
@@ -18,6 +19,8 @@ export default function HistoryPage() {
   const [error, setError] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null) // { shareId, type: 'sealed' | 'draft', isActiveDraft: boolean }
   const [isDeleting, setIsDeleting] = useState(false)
+  const [dropConfirm, setDropConfirm] = useState(null) // { shareId }
+  const [isDropping, setIsDropping] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -149,6 +152,21 @@ export default function HistoryPage() {
       console.error('Failed to delete:', err)
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  const handleDrop = async () => {
+    if (!dropConfirm) return
+    setIsDropping(true)
+    try {
+      await dropFromDraft(dropConfirm.shareId)
+      // Remove from local state (user dropped, so they no longer see it as active)
+      setDraftPods(pods => pods.filter(p => p.shareId !== dropConfirm.shareId))
+      setDropConfirm(null)
+    } catch (err) {
+      console.error('Failed to drop from draft:', err)
+    } finally {
+      setIsDropping(false)
     }
   }
 
@@ -350,6 +368,19 @@ export default function HistoryPage() {
                                 </svg>
                               </button>
                             )}
+                            {isActive && !pod.isHost && !pod.isBot && (
+                              <button
+                                className="history-drop-button"
+                                onClick={() => setDropConfirm({ shareId: pod.shareId })}
+                                title="Drop from Draft"
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                  <polyline points="16 17 21 12 16 7"></polyline>
+                                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                              </button>
+                            )}
                             {!isActive && pod.poolShareId && (
                               <button
                                 className="history-delete-button"
@@ -399,6 +430,34 @@ export default function HistoryPage() {
                   {isDeleting
                     ? (deleteConfirm.isActiveDraft ? 'Cancelling...' : 'Deleting...')
                     : (deleteConfirm.isActiveDraft ? 'Cancel Draft' : 'Delete')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Drop Confirmation Modal */}
+        {dropConfirm && (
+          <div className="drop-confirm-overlay" onClick={() => setDropConfirm(null)}>
+            <div className="drop-confirm-modal" onClick={(e) => e.stopPropagation()}>
+              <h2>Drop from Draft?</h2>
+              <p>
+                Are you sure you want to drop from this draft? A bot will take over your picks and you will lose access to your drafted cards.
+              </p>
+              <div className="drop-confirm-buttons">
+                <button
+                  className="drop-confirm-cancel"
+                  onClick={() => setDropConfirm(null)}
+                  disabled={isDropping}
+                >
+                  Go Back
+                </button>
+                <button
+                  className="drop-confirm-drop"
+                  onClick={handleDrop}
+                  disabled={isDropping}
+                >
+                  {isDropping ? 'Dropping...' : 'Drop from Draft'}
                 </button>
               </div>
             </div>

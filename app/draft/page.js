@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../src/contexts/AuthContext'
 import AuthWidget from '../../src/components/AuthWidget'
+import { dropFromDraft } from '../../src/utils/draftApi'
 import '../../src/App.css'
 import '../../src/components/LandingPage.css'
 import './draft.css'
@@ -17,6 +18,8 @@ export default function DraftLandingPage() {
   const [historyLoading, setHistoryLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null) // { shareId, poolShareId, isHost }
   const [isDeleting, setIsDeleting] = useState(false)
+  const [dropConfirm, setDropConfirm] = useState(null) // { shareId }
+  const [isDropping, setIsDropping] = useState(false)
 
   // Fetch draft history when authenticated
   useEffect(() => {
@@ -93,6 +96,21 @@ export default function DraftLandingPage() {
       console.error('Failed to delete draft:', err)
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  const handleDropFromDraft = async () => {
+    if (!dropConfirm) return
+    setIsDropping(true)
+    try {
+      await dropFromDraft(dropConfirm.shareId)
+      // Remove from local state (user dropped, so they no longer see it)
+      setHistory(prev => prev.filter(pod => pod.shareId !== dropConfirm.shareId))
+      setDropConfirm(null)
+    } catch (err) {
+      console.error('Failed to drop from draft:', err)
+    } finally {
+      setIsDropping(false)
     }
   }
 
@@ -219,6 +237,19 @@ export default function DraftLandingPage() {
                         </svg>
                       </button>
                     )}
+                    {!pod.isHost && !pod.isBot && (
+                      <button
+                        className="draft-history-drop-button"
+                        onClick={() => setDropConfirm({ shareId: pod.shareId })}
+                        title="Drop from Draft"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                          <polyline points="16 17 21 12 16 7"></polyline>
+                          <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -246,6 +277,32 @@ export default function DraftLandingPage() {
                   disabled={isDeleting}
                 >
                   {isDeleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Drop Confirmation Modal */}
+        {dropConfirm && (
+          <div className="draft-drop-confirm-overlay" onClick={() => setDropConfirm(null)}>
+            <div className="draft-drop-confirm-modal" onClick={(e) => e.stopPropagation()}>
+              <h2>Drop from Draft?</h2>
+              <p>Are you sure you want to drop from this draft? A bot will take over your picks and you will lose access to your drafted cards.</p>
+              <div className="draft-drop-confirm-buttons">
+                <button
+                  className="draft-drop-confirm-cancel"
+                  onClick={() => setDropConfirm(null)}
+                  disabled={isDropping}
+                >
+                  Go Back
+                </button>
+                <button
+                  className="draft-drop-confirm-drop"
+                  onClick={handleDropFromDraft}
+                  disabled={isDropping}
+                >
+                  {isDropping ? 'Dropping...' : 'Drop from Draft'}
                 </button>
               </div>
             </div>

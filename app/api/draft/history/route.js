@@ -20,6 +20,7 @@ export async function GET(request) {
         dp.created_at,
         dp.started_at,
         dp.completed_at,
+        dpp.is_bot as player_is_bot,
         cp.name as pool_name,
         cp.share_id as pool_share_id,
         cp.deck_builder_state
@@ -27,6 +28,7 @@ export async function GET(request) {
        JOIN draft_pod_players dpp ON dp.id = dpp.draft_pod_id
        LEFT JOIN card_pools cp ON cp.draft_pod_id = dp.id AND cp.user_id = $1
        WHERE dpp.user_id = $1
+         AND (dpp.is_bot = false OR dpp.is_bot IS NULL)
        ORDER BY dp.created_at DESC
        LIMIT 20`,
       [session.id]
@@ -73,6 +75,7 @@ export async function GET(request) {
         currentPlayers: pod.current_players,
         maxPlayers: pod.max_players,
         isHost: pod.host_id === session.id,
+        isBot: pod.player_is_bot === true,
         createdAt: pod.created_at,
         startedAt: pod.started_at,
         completedAt: pod.completed_at,

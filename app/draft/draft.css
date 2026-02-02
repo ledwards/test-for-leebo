@@ -790,6 +790,114 @@
   cursor: not-allowed;
 }
 
+/* Drop Button (Draft Landing Page) */
+.draft-history-drop-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(255, 165, 0, 0.3);
+  color: rgba(255, 180, 100, 0.8);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.draft-history-drop-button:hover {
+  background: rgba(255, 165, 0, 0.1);
+  border-color: rgba(255, 165, 0, 0.8);
+  color: rgba(255, 200, 150, 1);
+  box-shadow: 0 0 12px rgba(255, 165, 0, 0.4);
+}
+
+/* Drop Confirmation Modal (Draft Landing Page) */
+.draft-drop-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.draft-drop-confirm-modal {
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.draft-drop-confirm-modal h2 {
+  margin: 0 0 1rem 0;
+  color: rgba(255, 180, 100, 1);
+  font-size: 1.5rem;
+}
+
+.draft-drop-confirm-modal p {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+}
+
+.draft-drop-confirm-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.draft-drop-confirm-cancel {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draft-drop-confirm-cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.draft-drop-confirm-drop {
+  padding: 0.75rem 1.5rem;
+  background: rgba(200, 120, 0, 0.8);
+  border: 2px solid rgba(255, 165, 0, 0.8);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draft-drop-confirm-drop:hover:not(:disabled) {
+  background: rgba(255, 165, 0, 0.9);
+  box-shadow: 0 0 16px rgba(255, 165, 0, 0.6);
+}
+
+.draft-drop-confirm-cancel:disabled,
+.draft-drop-confirm-drop:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Host cancel draft section - bottom center */
 .draft-cancel-section {
   display: flex;
@@ -911,6 +1019,126 @@
   cursor: not-allowed;
 }
 
+/* Drop from Draft Button and Modal */
+.draft-drop-section {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0 3rem 0;
+  margin-top: 2rem;
+}
+
+.draft-drop-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: #000;
+  border: 2px solid rgba(255, 165, 0, 0.8);
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 180, 100, 1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draft-drop-button:hover:not(:disabled) {
+  background: #000;
+  border-color: rgba(255, 165, 0, 1);
+  color: rgba(255, 200, 150, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 165, 0, 0.6);
+}
+
+.draft-drop-button:disabled {
+  color: #555;
+  border-color: rgba(255, 255, 255, 0.1);
+  cursor: not-allowed;
+}
+
+.draft-drop-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.draft-drop-modal {
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.draft-drop-modal h2 {
+  margin: 0 0 1rem 0;
+  color: rgba(255, 180, 100, 1);
+  font-size: 1.5rem;
+}
+
+.draft-drop-modal p {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+}
+
+.draft-drop-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.draft-drop-back {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draft-drop-back:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.draft-drop-confirm {
+  padding: 0.75rem 1.5rem;
+  background: rgba(200, 120, 0, 0.8);
+  border: 2px solid rgba(255, 165, 0, 0.8);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draft-drop-confirm:hover:not(:disabled) {
+  background: rgba(255, 165, 0, 0.9);
+  box-shadow: 0 0 16px rgba(255, 165, 0, 0.6);
+}
+
+.draft-drop-back:disabled,
+.draft-drop-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 600px) {
   .draft-options {
     flex-direction: column;
@@ -998,6 +1226,29 @@
   .draft-history-delete-button::after {
     content: '×';
     font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  /* Drop button positioned inside top-right of history item on mobile (below delete if both shown) */
+  .draft-history-drop-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    font-size: 1.2rem;
+    border-radius: 4px;
+    z-index: 2;
+  }
+
+  /* Hide the exit SVG on mobile - will show arrow via CSS content */
+  .draft-history-drop-button svg {
+    display: none;
+  }
+
+  .draft-history-drop-button::after {
+    content: '↩';
+    font-size: 1.2rem;
     line-height: 1;
   }
 
