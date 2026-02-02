@@ -1,0 +1,174 @@
+.draft-lobby {
+  padding: 20px;
+  margin: 0 auto;
+}
+
+/* Two-column layout matching LeaderDraftPhase */
+.lobby-layout {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.draft-lobby .players-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 450px;
+}
+
+.player-count {
+  color: #888;
+  font-size: 1.1rem;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.draft-lobby .controls-section {
+  min-width: 350px;
+  max-width: 500px;
+  flex: 1;
+}
+
+.player-actions {
+  background: #1e1e1e;
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+}
+
+.waiting-message {
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.leave-button {
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.leave-button:hover {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: rgba(244, 67, 54, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(244, 67, 54, 0.5);
+}
+
+.leave-button:disabled {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #555;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.spectator-notice {
+  background: #1e1e1e;
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  color: #888;
+}
+
+.lobby-error {
+  margin-top: 20px;
+  padding: 12px;
+  background: #f44336;
+  color: white;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Share URL section */
+.share-url-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 15px;
+  font-size: 0.9rem;
+}
+
+.share-label {
+  font-weight: 600;
+  color: white;
+}
+
+.copy-url-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: #888;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-url-button:hover {
+  background: #111;
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .draft-lobby {
+    padding: 0.5rem;
+    padding-top: 3rem;
+  }
+
+  .lobby-layout {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .draft-lobby .players-section {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .draft-lobby .controls-section {
+    width: 100%;
+    max-width: 100%;
+    min-width: auto;
+  }
+
+  .player-count {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .player-actions {
+    padding: 1rem;
+  }
+
+  .leave-button {
+    width: 100%;
+    padding: 0.875rem;
+    font-size: 1rem;
+  }
+
+  .share-url-section {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+    margin-top: 0.75rem;
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-01-31T06:34:07.284Z",
+  "totalFixes": 2,
+  "byType": {
+    "individual": 0,
+    "batch": 0,
+    "custom": 2
+  },
+  "byField": {},
+  "fixes": [
+    {
+      "type": "custom",
+      "transform": "Keep only draft-relevant variants",
+      "cardsRemoved": 479
+    },
+    {
+      "type": "custom",
+      "transform": "Remove Token cards",
+      "cardsRemoved": 34
+    }
+  ]
+}

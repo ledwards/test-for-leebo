@@ -1,0 +1,416 @@
+/**
+ * Card Component Styles
+ *
+ * Styles for the Card component (.canvas-card).
+ * Extracted from DeckBuilder.css for reusability.
+ */
+
+/* ==========================================================================
+   Context-specific card sizing (when used in grids/containers)
+   ========================================================================== */
+
+/* Cards in flex container should not be absolutely positioned */
+.leaders-bases-container .canvas-card {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Stacked cards - overlapping with offset */
+.cards-grid .card-stack .canvas-card.stacked {
+  position: absolute;
+  top: 0;
+}
+
+.cards-grid .canvas-card {
+  width: 120px;
+  max-width: 120px;
+  height: auto;
+  position: relative;
+  margin: 0;
+}
+
+.cards-grid .canvas-card.leader,
+.cards-grid .canvas-card.base {
+  width: 168px;
+  max-width: 168px;
+}
+
+/* ==========================================================================
+   Base card styles
+   ========================================================================== */
+
+.canvas-card {
+  position: relative;
+  width: 120px;
+  aspect-ratio: 2.5 / 3.5;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 11px;
+  transition: transform 0.1s ease;
+  cursor: pointer;
+  isolation: isolate;
+  user-select: none;
+  touch-action: none;
+  overflow: visible;
+}
+
+/* Leaders and bases are landscape (wider than tall) */
+.canvas-card.leader,
+.canvas-card.base {
+  width: 168px;
+  aspect-ratio: 3.5 / 2.5;
+}
+
+/* Rainbow border pseudo-element */
+.canvas-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 12px;
+  background: linear-gradient(
+    45deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #0000ff,
+    #4b0082,
+    #9400d3,
+    #ff0000
+  );
+  background-size: 400% 400%;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: rainbow-border 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Leaders and bases use same border width as other cards on hover */
+.canvas-card.leader::before,
+.canvas-card.base::before {
+  inset: -1px;
+  border-radius: 12px;
+}
+
+.canvas-card > * {
+  border-radius: 11px;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Card state variants
+   ========================================================================== */
+
+/* Rainbow border only shows on selected cards (not on hover) */
+.canvas-card.selected::before,
+.canvas-card.active-leader::before,
+.canvas-card.active-base::before {
+  opacity: 1;
+  animation: rainbow-border 3s linear infinite;
+}
+
+.canvas-card:hover {
+  transform: scale(1.05);
+}
+
+.canvas-card.hovered {
+  transform: scale(1.125);
+}
+
+.canvas-card.selected {
+  /* Rainbow border shows selection via ::before pseudo-element */
+}
+
+.canvas-card.active-leader {
+  /* No white border - selection indicated by other means */
+}
+
+.canvas-card.active-base {
+  /* No white border - selection indicated by other means */
+}
+
+.canvas-card.disabled {
+  opacity: 0.7;
+  /* Don't apply filter to the card itself - only to the image so border stays colorful */
+}
+
+.canvas-card.disabled .card-image,
+.canvas-card.disabled .card-placeholder {
+  filter: grayscale(100%);
+}
+
+/* ==========================================================================
+   Card variant styles (foil, hyperspace, showcase)
+   ========================================================================== */
+
+.canvas-card.foil {
+  position: relative;
+  overflow: hidden;
+}
+
+.canvas-card.foil::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    transparent 0%,
+    rgba(255, 0, 0, 0.35) 15%,
+    rgba(255, 127, 0, 0.4) 25%,
+    rgba(255, 255, 0, 0.45) 35%,
+    rgba(0, 255, 0, 0.45) 45%,
+    rgba(0, 0, 255, 0.45) 55%,
+    rgba(75, 0, 130, 0.4) 65%,
+    rgba(148, 0, 211, 0.35) 75%,
+    transparent 85%,
+    transparent 100%
+  );
+  background-size: 200% 200%;
+  mix-blend-mode: overlay;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 2;
+  animation: foil-shimmer 6s ease-in-out infinite;
+  filter: blur(10px);
+}
+
+.canvas-card.hyperspace {
+  border-color: #9C27B0 !important;
+}
+
+.canvas-card.showcase {
+  position: relative;
+  overflow: hidden;
+}
+
+.canvas-card.showcase::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    transparent 0%,
+    rgba(255, 0, 0, 0.35) 15%,
+    rgba(255, 127, 0, 0.4) 25%,
+    rgba(255, 255, 0, 0.45) 35%,
+    rgba(0, 255, 0, 0.45) 45%,
+    rgba(0, 0, 255, 0.45) 55%,
+    rgba(75, 0, 130, 0.4) 65%,
+    rgba(148, 0, 211, 0.35) 75%,
+    transparent 85%,
+    transparent 100%
+  );
+  background-size: 200% 200%;
+  mix-blend-mode: overlay;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 2;
+  animation: foil-shimmer 6s ease-in-out infinite;
+  filter: blur(10px);
+}
+
+/* ==========================================================================
+   Card inner elements
+   ========================================================================== */
+
+.canvas-card .card-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.canvas-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.canvas-card .card-placeholder {
+  aspect-ratio: 2.5 / 3.5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.canvas-card .card-name {
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  color: white;
+  font-weight: 600;
+}
+
+.canvas-card .card-rarity {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Card badges
+   ========================================================================== */
+
+.canvas-card .card-badges {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.canvas-card .aspect-penalty-badge {
+  position: absolute;
+  top: 18px;
+  left: 17px;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.canvas-card .aspect-penalty-badge .penalty-icon {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.canvas-card .aspect-penalty-badge .penalty-icon img {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.canvas-card .aspect-penalty-badge .penalty-text {
+  position: relative;
+  color: white;
+  font-weight: bold;
+  font-size: 9px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+  z-index: 1;
+  margin-left: -1px;
+}
+
+.canvas-card .badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+}
+
+.canvas-card .foil-badge {
+  background: rgba(255, 255, 255, 0.8);
+  color: #000;
+}
+
+.canvas-card .hyperspace-badge {
+  background: rgba(156, 39, 176, 0.8);
+  color: white;
+}
+
+/* ==========================================================================
+   Card preview foil treatment
+   ========================================================================== */
+
+.card-preview-enlarged .card-preview-foil {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-preview-enlarged .card-preview-foil::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    transparent 0%,
+    rgba(255, 0, 0, 0.35) 15%,
+    rgba(255, 127, 0, 0.4) 25%,
+    rgba(255, 255, 0, 0.45) 35%,
+    rgba(0, 255, 0, 0.45) 45%,
+    rgba(0, 0, 255, 0.45) 55%,
+    rgba(75, 0, 130, 0.4) 65%,
+    rgba(148, 0, 211, 0.35) 75%,
+    transparent 85%,
+    transparent 100%
+  );
+  background-size: 200% 200%;
+  mix-blend-mode: overlay;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 2;
+  animation: foil-shimmer 6s ease-in-out infinite;
+  filter: blur(10px);
+  border-radius: 18px;
+}
+
+/* ==========================================================================
+   Mobile responsive styles
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .cards-grid .canvas-card,
+  .cards-grid .canvas-card.leader,
+  .cards-grid .canvas-card.base {
+    width: 48%;
+    max-width: 48%;
+    flex: 0 0 48%;
+  }
+
+  .canvas-card {
+    border-radius: 8px;
+  }
+
+  .canvas-card img {
+    border-radius: 8px;
+  }
+
+  .leaders-bases-container .canvas-card.leader,
+  .leaders-bases-container .canvas-card.base {
+    width: calc(50% - 0.2rem);
+    max-width: calc(50% - 0.2rem);
+    aspect-ratio: 3.5 / 2.5;
+  }
+
+  .leaders-bases-container .canvas-card.leader img,
+  .leaders-bases-container .canvas-card.base img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* COMPLETELY disable hover effects on mobile - no enlarged preview */
+  .canvas-card:hover {
+    transform: none !important;
+    z-index: auto !important;
+  }
+
+  .canvas-card:hover::before {
+    display: none !important;
+  }
+}

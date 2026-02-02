@@ -1,0 +1,48 @@
+/**
+ * Shared CSS Animations
+ *
+ * These animations are used across multiple components.
+ * Import this file where needed instead of duplicating keyframes.
+ */
+
+/* Rainbow border animation for card selection */
+@keyframes rainbow-border {
+  0% {
+    background-position: 0% 0%, 0% 50%;
+  }
+  25% {
+    background-position: 0% 0%, 50% 50%;
+  }
+  50% {
+    background-position: 0% 0%, 100% 50%;
+  }
+  75% {
+    background-position: 0% 0%, 50% 50%;
+  }
+  100% {
+    background-position: 0% 0%, 0% 50%;
+  }
+}
+
+/* Foil shimmer effect for foil cards - soft wavy rainbow animation
+ * STYLE GUIDE: Use this for all foil effects across the site
+ * - Soft, diffuse rainbow waves (not hard lines)
+ * - Uses blur filter (8-10px) for soft appearance
+ * - overlay blend mode with opacity (0.8)
+ * - 6 second animation for smooth, slow movement
+ * - One-way sweep from top-left to bottom-right
+ *
+ * Gradient structure:
+ * - Start with transparency
+ * - Gradually fade in rainbow colors (0.35-0.45 opacity)
+ * - End with transparency
+ * - Use 200-300% background-size for smooth movement
+ */
+@keyframes foil-shimmer {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
