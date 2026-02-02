@@ -6,9 +6,11 @@ import { getPackArtUrl } from './packArt.js'
 /**
  * Fetch all sets
  * Returns array of set objects with code, name, and imageUrl
+ * @param {Object} options - Options
+ * @param {boolean} options.includeBeta - Include beta sets (default: false)
  */
-export async function fetchSets() {
-  // Use hardcoded set data for the 6 expansion sets
+export async function fetchSets({ includeBeta = false } = {}) {
+  // Use hardcoded set data for the expansion sets
   // External API calls fail due to CORS, so we use local data
   const knownSets = [
     { code: 'SOR', name: 'Spark of Rebellion', releaseDate: '2024-03-08' },
@@ -17,9 +19,15 @@ export async function fetchSets() {
     { code: 'JTL', name: 'Jump to Lightspeed', releaseDate: '2025-03-14' },
     { code: 'LOF', name: 'Legends of the Force', releaseDate: '2025-07-11' },
     { code: 'SEC', name: 'Secrets of Power', releaseDate: '2025-11-07' },
+    { code: 'LAW', name: 'A Lawless Time', releaseDate: '2026-03-13', beta: true },
   ]
 
-  return knownSets.map((set) => ({
+  // Filter out beta sets unless explicitly requested
+  const filteredSets = includeBeta
+    ? knownSets
+    : knownSets.filter((set) => !set.beta)
+
+  return filteredSets.map((set) => ({
     ...set,
     imageUrl: getPackArtUrl(set.code),
   }))

@@ -10,6 +10,7 @@ import { TWI_CONFIG } from './TWI.js'
 import { JTL_CONFIG } from './JTL.js'
 import { LOF_CONFIG } from './LOF.js'
 import { SEC_CONFIG } from './SEC.js'
+import { LAW_CONFIG } from './LAW.js'
 
 /**
  * All set configurations
@@ -21,6 +22,7 @@ export const SET_CONFIGS = {
   'JTL': JTL_CONFIG,
   'LOF': LOF_CONFIG,
   'SEC': SEC_CONFIG,
+  'LAW': LAW_CONFIG,
 }
 
 /**

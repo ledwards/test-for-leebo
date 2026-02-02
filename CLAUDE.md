@@ -20,6 +20,9 @@ npm run test:utils       # Pack generation tests
 npm run test:data        # Card data validation
 npm run test:hooks       # Hook tests only
 npm run test:e2e         # Playwright E2E tests
+npm run test:auth        # Auth & beta access tests
+npm run test:api         # API utility tests
+npm run test:law         # LAW set config tests
 npm run qa               # Statistical QA (100 packs/set)
 
 # Run a single test file
@@ -30,8 +33,12 @@ npm run test:e2e -- --grep "Sealed Happy Path"  # Quick sanity check
 npm run test:e2e -- --grep-invert "8-player"    # Skip slow test
 
 # Card data
-npm run fetch-cards      # Refresh cards.json from API
+npm run fetch-cards      # Refresh cards.json from API (includes LAW)
 npm run show-fixes       # Show card data fixes
+
+# Admin
+npm run make-admin user@email.com     # Grant admin by email
+npm run make-admin -- --discord 123   # Grant admin by Discord ID
 ```
 
 ## Architecture
@@ -101,13 +108,15 @@ Belts maintain a "hopper" that refills from a "filling pool" when depleted. This
 Orchestrates belt usage to create 16-card packs. Handles variant replacement (hyperspace, showcase, hyperfoil) at various probability rates.
 
 ### Set Configs (`src/utils/setConfigs/`)
-Per-set parameters: card counts, rarity distributions, legendary drop rates. Sets 4-6 (JTL, LOF, SEC) have different rules than sets 1-3.
+Per-set parameters: card counts, rarity distributions, legendary drop rates. Sets 4-6 (JTL, LOF, SEC) have different rules than sets 1-3. Set 7 (LAW) is a beta set with `beta: true` flag.
+
+**See `docs/sets/` for detailed per-set documentation** including collation rules, belt assignments, and pack construction.
 
 ### Real-time Draft (`server.js`, `src/hooks/useDraftSync.js`)
 Custom Next.js server with Socket.io for multiplayer draft synchronization. Draft state stored in PostgreSQL, synced to clients in real-time.
 
 ### Card Data (`src/data/cards.json`, `scripts/cardFixes.js`)
-~5000 cards from 6 sets. Runtime fix system automatically corrects data issues (variant flags, missing properties) when cards are loaded via `cardCache.js`.
+~6000 cards from 7 sets (SOR through LAW). Runtime fix system automatically corrects data issues (variant flags, missing properties) when cards are loaded via `cardCache.js`.
 
 ### Utility Functions
 
@@ -215,6 +224,27 @@ PostgreSQL via `lib/db.js`. Migrations in `scripts/migrations/`. Use `queryRows(
 ### Authentication
 Discord OAuth via `lib/auth.js`. JWT tokens in cookies. User context via `src/contexts/AuthContext`.
 
+### User Roles & Beta Access
+Users have two role flags: `is_admin` and `is_beta_tester`. See `docs/BETA_ACCESS.md` for full documentation.
+
+**Server-side authorization:**
+```javascript
+import { requireAuth, requireBetaAccess, requireAdmin } from '@/lib/auth.js'
+
+const session = requireBetaAccess(request)  // throws if not beta/admin
+```
+
+**Client-side:**
+```jsx
+const { user, enrollBeta } = useAuth()
+const hasBetaAccess = user?.is_beta_tester || user?.is_admin
+
+// Enroll user (updates state immediately, no re-login)
+await enrollBeta()
+```
+
+**Beta sets:** Sets with `beta: true` in their config (e.g., LAW) are hidden from non-beta users.
+
 ## Testing Notes
 
 Tests use Node's built-in test runner (no Jest). Run individual test files directly with `node`. Statistical QA tests validate pack distribution across 600 packs.
@@ -223,6 +253,8 @@ Tests use Node's built-in test runner (no Jest). Run individual test files direc
 - `src/utils/*.test.js` - Utility function tests
 - `src/hooks/*.test.js` - Hook contract tests
 - `src/belts/*.test.js` - Belt system tests
+- `src/utils/setConfigs/*.test.js` - Set config tests
+- `lib/*.test.js` - Server-side utility tests
 - `e2e/*.spec.js` - Playwright E2E tests
 
 ## Architecture & Refactoring

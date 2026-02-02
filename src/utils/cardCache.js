@@ -22,7 +22,7 @@ export function initializeCardCache() {
     const allCards = getAllCards()
     
     // Organize cards by set
-    const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
+    const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC', 'LAW']
     sets.forEach(setCode => {
       const setCards = getCardsBySet(setCode)
       cardCache.set(setCode, setCards)

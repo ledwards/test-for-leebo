@@ -26,7 +26,17 @@
  * - Belt B fills common slots 6-9 (4 cards per pack)
  * - Hyperspace upgrades happen in slot 4
  *
- * Block B (Sets 7+): TBD
+ * Block B (Sets 7+: LAW):
+ * - Same belt structure as Block A (50/50 split)
+ * - Belt A: Vigilance, Command, Villainy - 50 cards
+ * - Belt B: Aggression, Cunning, Heroism, Neutral - 50 cards
+ * - Slot 5 is the GUARANTEED Hyperspace slot (always HS common)
+ * - Triple-aspect cards (new in LAW) are assigned based on primary aspect priority
+ *
+ * TRIPLE-ASPECT CARDS:
+ * LAW introduces cards with 3 aspects (e.g., Vigilance + Command + Heroism)
+ * Assignment rule: If card has ANY Belt A aspect (Vigilance, Command, Villainy) -> Belt A
+ * This is configurable in the set config if needed
  *
  * To edit: Simply add or remove card names from the arrays below.
  * Run the test suite after editing to verify no duplicates and correct sizes.
@@ -636,6 +646,14 @@ export const COMMON_BELT_ASSIGNMENTS = {
       "Assassin Probe",
       "Clandestine Connections"
     ]
+  },
+  // LAW (Set 7) - Belt assignments TBD
+  // Triple-aspect cards are assigned using the assignTripleAspectCard helper
+  // For now, use auto-assignment based on aspects until static assignments are created
+  "LAW": {
+    "beltA": [],
+    "beltB": [],
+    "autoAssign": true  // Flag to use aspect-based auto-assignment
   }
 };
 
@@ -643,15 +661,17 @@ export const COMMON_BELT_ASSIGNMENTS = {
  * Get the block number for a set code
  * Block 0: Sets 1-3 (SOR, SHD, TWI)
  * Block A: Sets 4-6 (JTL, LOF, SEC)
- * Block B: Sets 7+ (TBD)
+ * Block B: Sets 7+ (LAW, etc.)
  */
 export function getBlockForSet(setCode) {
   const block0Sets = ['SOR', 'SHD', 'TWI'];
   const blockASets = ['JTL', 'LOF', 'SEC'];
+  const blockBSets = ['LAW'];
 
   if (block0Sets.includes(setCode)) return 0;
   if (blockASets.includes(setCode)) return 'A';
-  return 'B'; // Future sets
+  if (blockBSets.includes(setCode)) return 'B';
+  return 'B'; // Default to Block B for future sets
 }
 
 /**
@@ -677,14 +697,56 @@ export function getBeltConfig(block) {
       targetBeltBSize: 50,
     };
   } else {
-    // Block B - TBD, default to Block A pattern
+    // Block B (LAW+) - Similar to Block A but with guaranteed HS common in slot 5
     return {
-      beltASlots: 4,
-      beltBSlots: 4,
-      alternatingSlot: 5,
-      hyperspaceSlot: 4,
+      beltASlots: 4,  // Slots 1-4
+      beltBSlots: 4,  // Slots 6-9
+      alternatingSlot: 5,  // Slot 5 alternates (and is guaranteed HS in LAW+)
+      hyperspaceSlot: 5,  // Slot 5 is the GUARANTEED Hyperspace slot
       targetBeltASize: 50,
       targetBeltBSize: 50,
+      guaranteedHyperspace: true,  // Every pack has HS common in this slot
     };
   }
+}
+
+/**
+ * Determine which belt a card should be assigned to based on its aspects
+ * Used for auto-assignment of cards (especially triple-aspect cards)
+ *
+ * @param {Object} card - Card object with aspects array
+ * @param {string} block - Block identifier ('0', 'A', or 'B')
+ * @returns {string} 'A' or 'B'
+ */
+export function assignCardToBelt(card, block) {
+  const aspects = card.aspects || [];
+
+  // Belt A aspects vary by block
+  let beltAAspects;
+  if (block === 0) {
+    beltAAspects = ['Vigilance', 'Command', 'Aggression'];
+  } else {
+    // Block A and B
+    beltAAspects = ['Vigilance', 'Command', 'Villainy'];
+  }
+
+  // If card has ANY Belt A aspect, assign to Belt A
+  // This handles triple-aspect cards (e.g., Vigilance + Command + Heroism -> Belt A)
+  for (const aspect of aspects) {
+    if (beltAAspects.includes(aspect)) {
+      return 'A';
+    }
+  }
+
+  // No Belt A aspects found, assign to Belt B
+  return 'B';
+}
+
+/**
+ * Check if a card is a triple-aspect card (has 3+ aspects)
+ * @param {Object} card - Card object with aspects array
+ * @returns {boolean}
+ */
+export function isTripleAspectCard(card) {
+  return (card.aspects || []).length >= 3;
 }

@@ -65,3 +65,51 @@ export async function isAuthenticated() {
   const session = await getSession()
   return session !== null
 }
+
+/**
+ * Refresh session with latest user data from database
+ * Updates the session cookie with fresh data (role flags, etc.)
+ * @returns {Promise<Object|null>} Updated user object or null on failure
+ */
+export async function refreshSession() {
+  try {
+    const response = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    const data = await response.json()
+    return data.data?.user || null
+  } catch (error) {
+    console.error('Failed to refresh session:', error)
+    return null
+  }
+}
+
+/**
+ * Enroll current user as beta tester
+ * Returns the updated user object (session cookie is also updated)
+ * @returns {Promise<Object|null>} Updated user object or null on failure
+ */
+export async function enrollBeta() {
+  try {
+    const response = await fetch(`${API_BASE}/beta/enroll`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    const data = await response.json()
+    return data.data?.user || null
+  } catch (error) {
+    console.error('Failed to enroll in beta:', error)
+    return null
+  }
+}
