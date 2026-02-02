@@ -1,0 +1,91 @@
+/* Aspect Icons Sprite Sheet Infrastructure */
+
+/* Base class for all aspect icons */
+.aspect-icon {
+  display: inline-block;
+  background-image: url('/aspects.png');
+  background-repeat: no-repeat;
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  flex-shrink: 0;
+  /* Use crisp rendering for pixel art */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+/* Individual aspect icon classes */
+/* Sprite sheet: 2716px × 2000px, 3x2 grid, no padding
+ * Using percentage-based positioning so icons work at any size
+ * background-size: 300% 200% scales the sprite to 3× width, 2× height
+ * 
+ * Percentage positioning:
+ * - Column 0: 0% (leftmost)
+ * - Column 1: -33.333% (1/3 of the way, shift left)
+ * - Column 2: -66.666% (2/3 of the way, shift left)
+ * - Row 0: 0% (top)
+ * - Row 1: -50% (halfway down, shift up)
+ */
+.aspect-icon {
+  background-size: 300% 200%; /* 3 columns, 2 rows - scales proportionally */
+}
+
+/* Top row, column 0 - Vigilance */
+.aspect-icon-vigilance {
+  background-position: 0% 0%;
+}
+
+/* Top row, column 1 - Command */
+.aspect-icon-command {
+  background-position: -33.333% 0%; /* Shift left by 1/3 */
+}
+
+/* Top row, column 2 - Aggression */
+.aspect-icon-aggression {
+  background-position: -66.666% 0%; /* Shift left by 2/3 */
+}
+
+/* Bottom row, column 0 - Cunning */
+.aspect-icon-cunning {
+  background-position: 0% -50%; /* Shift up by 1/2 */
+}
+
+/* Bottom row, column 1 - Villainy */
+.aspect-icon-villainy {
+  background-position: -33.333% -50%; /* Shift left by 1/3, up by 1/2 */
+}
+
+/* Bottom row, column 2 - Heroism */
+.aspect-icon-heroism {
+  background-position: -66.666% -50%; /* Shift left by 2/3, up by 1/2 */
+}
+
+/* Size variants */
+.aspect-icon-small {
+  width: 16px;
+  height: 16px;
+}
+
+.aspect-icon-medium {
+  width: 18px;
+  height: 18px;
+}
+
+.aspect-icon-large {
+  width: 24px;
+  height: 24px;
+}
+
+/* Wrapper for aspect symbols (maintains compatibility with existing code) */
+.aspect-symbol-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.aspect-symbol-wrapper .aspect-icon {
+  margin: 0;
+}
