@@ -32,6 +32,17 @@ import { getSetConfig } from './setConfigs/index.js'
 import { getCachedCards } from './cardCache.js'
 
 /**
+ * Check if a set uses LAW+ pack rules (Set 7 onwards)
+ * - Foil slot is always Hyperspace Foil
+ * - Guaranteed Hyperspace common in every pack
+ * - Prestige cards can appear in rare slot
+ */
+function usesLawPackRules(setCode) {
+  const config = getSetConfig(setCode)
+  return config?.packRules?.foilSlotIsHyperspaceFoil === true
+}
+
+/**
  * Find the Hyperspace variant of a specific card
  * Returns the HS version if found, null otherwise
  */
@@ -307,7 +318,9 @@ function applyUpgradePass(pack, setCode) {
   }
 
   // 4. Foil upgrade to Hyperfoil - replace with a Hyperspace Foil card from belt
-  if (foilIndex >= 0 && probs.foilToHyperfoil && shouldUpgrade(probs.foilToHyperfoil)) {
+  // For LAW+, foil slot is ALREADY Hyperspace Foil (no upgrade needed)
+  const skipFoilUpgrade = usesLawPackRules(setCode)
+  if (!skipFoilUpgrade && foilIndex >= 0 && probs.foilToHyperfoil && shouldUpgrade(probs.foilToHyperfoil)) {
     const hyperfoilBelt = getHyperfoilBelt(setCode)
     const upgraded = hyperfoilBelt.next()
     if (upgraded) {
@@ -354,11 +367,24 @@ function applyUpgradePass(pack, setCode) {
   // 8. Common upgrade - find HS version of the card in the specific hyperspace slot
   // Block 0: Slot 6 (index 7 = leader + base + 5 more)
   // Block A: Slot 4 (index 5 = leader + base + 3 more)
-  if (probs.commonToHyperspace && shouldUpgrade(probs.commonToHyperspace)) {
-    const block = getBlockForSet(setCode)
-    const config = getBeltConfig(block)
-    // hyperspaceSlot is 1-indexed, convert to pack index (after leader and base)
-    const hyperspaceIndex = 1 + config.hyperspaceSlot // +1 for leader, slot is 1-indexed
+  // Block B (LAW+): Slot 5 is GUARANTEED Hyperspace (always upgrade)
+  const block = getBlockForSet(setCode)
+  const blockConfig = getBeltConfig(block)
+  const isLawPlus = usesLawPackRules(setCode)
+
+  // For LAW+, slot 5 is always Hyperspace (guaranteed)
+  if (isLawPlus && blockConfig.guaranteedHyperspace) {
+    const hyperspaceIndex = 1 + blockConfig.hyperspaceSlot // +1 for leader, slot is 1-indexed
+    if (hyperspaceIndex < pack.cards.length) {
+      const currentCommon = pack.cards[hyperspaceIndex]
+      if (currentCommon && currentCommon.rarity === 'Common' && !currentCommon.isLeader && !currentCommon.isBase) {
+        const upgraded = findHyperspaceVariant(currentCommon, setCode)
+        if (upgraded) pack.cards[hyperspaceIndex] = upgraded
+      }
+    }
+  } else if (probs.commonToHyperspace && shouldUpgrade(probs.commonToHyperspace)) {
+    // For earlier sets, probabilistic upgrade
+    const hyperspaceIndex = 1 + blockConfig.hyperspaceSlot // +1 for leader, slot is 1-indexed
     if (hyperspaceIndex < pack.cards.length) {
       const currentCommon = pack.cards[hyperspaceIndex]
       if (currentCommon && currentCommon.rarity === 'Common' && !currentCommon.isLeader && !currentCommon.isBase) {
@@ -367,6 +393,17 @@ function applyUpgradePass(pack, setCode) {
       }
     }
   }
+
+  // 9. Prestige card in rare slot (LAW+ only, ~1 in 18 packs)
+  // TODO: Implement when Prestige variant data is available
+  // For now, this is a placeholder - Prestige cards have their own variantType
+  // if (isLawPlus && probs.rareToPrestige && shouldUpgrade(probs.rareToPrestige)) {
+  //   const prestigeBelt = getPrestigeBelt(setCode)
+  //   if (prestigeBelt && rareIndex >= 0) {
+  //     const prestige = prestigeBelt.next()
+  //     if (prestige) pack.cards[rareIndex] = prestige
+  //   }
+  // }
 
   return pack
 }
@@ -382,10 +419,14 @@ export function generateBoosterPack(cards, setCode) {
   // Get belts
   const leaderBelt = getLeaderBelt(setCode)
   const baseBelt = getBaseBelt(setCode)
-  const foilBelt = getFoilBelt(setCode)
   const rareLegendaryBelt = getRareLegendaryBelt(setCode)
   const uncommonBelt = getUncommonBelt(setCode)
   const { beltA: commonBeltA, beltB: commonBeltB } = getCommonBelts(setCode)
+
+  // LAW+ uses HyperfoilBelt for foil slot (always Hyperspace Foil)
+  // Earlier sets use regular FoilBelt
+  const isLawPlus = usesLawPackRules(setCode)
+  const foilBelt = isLawPlus ? getHyperfoilBelt(setCode) : getFoilBelt(setCode)
 
   // Build pack
   const packCards = []

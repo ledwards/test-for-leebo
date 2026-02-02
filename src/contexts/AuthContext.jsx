@@ -2,7 +2,7 @@
 
 // Authentication context for React
 import { createContext, useContext, useState, useEffect } from 'react'
-import { getSession, signInWithDiscord, signOut as apiSignOut } from '../utils/auth'
+import { getSession, signInWithDiscord, signOut as apiSignOut, enrollBeta as apiEnrollBeta, refreshSession as apiRefreshSession } from '../utils/auth'
 
 const AuthContext = createContext(null)
 
@@ -56,12 +56,31 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  async function enrollBeta() {
+    const updatedUser = await apiEnrollBeta()
+    if (updatedUser) {
+      setUser(updatedUser)
+      return true
+    }
+    return false
+  }
+
+  async function refreshSession() {
+    const updatedUser = await apiRefreshSession()
+    if (updatedUser) {
+      setUser(updatedUser)
+      return true
+    }
+    return false
+  }
+
   const value = {
     user,
     loading,
     signIn,
     signOut,
-    refreshSession: loadSession,
+    enrollBeta,
+    refreshSession,
     isAuthenticated: !!user,
   }
 

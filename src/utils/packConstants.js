@@ -270,12 +270,143 @@ export const SETS_4_6_CONSTANTS = {
 }
 
 // ============================================================================
+// SET 7+ CONSTANTS (LAW onwards)
+// Major changes from official FFG announcement:
+// - No regular foils - foil slot is ALWAYS Hyperspace Foil
+// - Guaranteed Hyperspace card in every pack (common slot)
+// - Prestige cards in standard boosters (~1 in 18 packs)
+// - Showcase leaders are significantly rarer
+// - Triple-aspect cards (double primary aspect)
+//
+// Source: https://starwarsunlimited.com/articles/a-shift-from-what-was
+// ============================================================================
+
+export const SET_7_PLUS_CONSTANTS = {
+  // ---------------------------------------------------------------------------
+  // Foil Slot - ELIMINATED
+  // Regular foils are gone. The foil slot is now ALWAYS a Hyperspace Foil.
+  // ---------------------------------------------------------------------------
+  foilSlotWeights: null, // Not used - foil slot is always hyperspace foil
+
+  // ---------------------------------------------------------------------------
+  // Hyperspace Foil Slot Rarity Weights
+  // Since the slot is always HS Foil, these weights determine rarity
+  // ---------------------------------------------------------------------------
+  hyperspaceFoilSlotWeights: {
+    Common: 65,
+    Uncommon: 20,
+    Rare: 8,
+    Special: 4,
+    Legendary: 3,
+  },
+
+  // ---------------------------------------------------------------------------
+  // Hyperfoil Rate - N/A (foil slot IS hyperspace foil now)
+  // No longer an "upgrade" - it's the default
+  // ---------------------------------------------------------------------------
+  hyperfoilRate: 1.0, // Always hyperspace foil
+
+  // ---------------------------------------------------------------------------
+  // Rare Slot Legendary Ratio
+  // Keeping similar to Set 4-6 until we have more data
+  // ---------------------------------------------------------------------------
+  rareSlotLegendaryRatio: 5,
+
+  // ---------------------------------------------------------------------------
+  // Prestige Card Rate (NEW)
+  // ~1 in 18 packs contains a non-foil Prestige variant
+  // Appears in the rare slot (replaces the rare/legendary)
+  // ---------------------------------------------------------------------------
+  prestigeInRareSlotRate: 1 / 18,
+
+  // ---------------------------------------------------------------------------
+  // UC Slot 3 Upgrade Rate
+  // ---------------------------------------------------------------------------
+  ucSlot3UpgradeRate: 1 / 5,
+
+  // ---------------------------------------------------------------------------
+  // UC Slot 3 Upgraded Rarity Weights
+  // ---------------------------------------------------------------------------
+  ucSlot3UpgradedWeights: {
+    Uncommon: 60,
+    Rare: 25,
+    Special: 10,
+    Legendary: 5,
+  },
+
+  // ---------------------------------------------------------------------------
+  // Leader Hyperspace Upgrade Rate
+  // ---------------------------------------------------------------------------
+  leaderHyperspaceRate: 1 / 6,
+
+  // ---------------------------------------------------------------------------
+  // Base Hyperspace Upgrade Rate
+  // ---------------------------------------------------------------------------
+  baseHyperspaceRate: 1 / 4,
+
+  // ---------------------------------------------------------------------------
+  // Guaranteed Hyperspace Common (NEW)
+  // Every pack has at least 1 Hyperspace card - in a common slot
+  // We use the middle slot (slot 5) as the guaranteed HS slot
+  // ---------------------------------------------------------------------------
+  guaranteedHyperspaceCommon: true,
+  hyperspaceCommonSlot: 5, // Middle common slot (1-indexed)
+
+  // ---------------------------------------------------------------------------
+  // Additional Common Hyperspace Upgrade Rate
+  // Beyond the guaranteed slot, additional HS common upgrades
+  // ---------------------------------------------------------------------------
+  commonHyperspaceRate: 1 / 6, // Lower since we already have 1 guaranteed
+
+  // ---------------------------------------------------------------------------
+  // Uncommon Hyperspace Upgrade Rate
+  // ---------------------------------------------------------------------------
+  uncommonHyperspaceRate: 1 / 8,
+
+  // ---------------------------------------------------------------------------
+  // Rare/Legendary Hyperspace Upgrade in R Slot
+  // Still 0% - R slot is always black-border (or Prestige)
+  // ---------------------------------------------------------------------------
+  rareSlotHyperspaceRate: 0,
+
+  // ---------------------------------------------------------------------------
+  // HS Non-Foil Rarity Weights
+  // ---------------------------------------------------------------------------
+  hyperspaceNonFoilWeights: {
+    Common: 85,
+    Uncommon: 7,
+    Rare: 4,
+    Special: 3,
+    Legendary: 1,
+  },
+
+  // ---------------------------------------------------------------------------
+  // Showcase Leader Rate
+  // "Significantly reduced" per FFG - roughly doubling the rarity
+  // ---------------------------------------------------------------------------
+  showcaseLeaderRate: 1 / 576,
+
+  // ---------------------------------------------------------------------------
+  // Special Rarity Handling
+  // ---------------------------------------------------------------------------
+  specialInFoilSlot: true,
+  specialInHyperspaceSlot: true,
+
+  // ---------------------------------------------------------------------------
+  // Rare Bases in Rare Slot
+  // LAW is the LAST set where this is true. Future sets (8+) will have
+  // rare bases in the base slot instead.
+  // ---------------------------------------------------------------------------
+  rareBasesInRareSlot: true,
+}
+
+// ============================================================================
 // HELPER FUNCTION TO GET CONSTANTS BY SET
 // ============================================================================
 
 /**
  * Get pack constants for a specific set number
- * @param {number} setNumber - The set number (1-6)
+ * @param {number} setNumber - The set number (1-7+)
  * @returns {Object} The constants for that set group
  */
 export function getPackConstants(setNumber) {
@@ -283,9 +414,11 @@ export function getPackConstants(setNumber) {
     return SETS_1_3_CONSTANTS
   } else if (setNumber >= 4 && setNumber <= 6) {
     return SETS_4_6_CONSTANTS
+  } else if (setNumber >= 7) {
+    return SET_7_PLUS_CONSTANTS
   }
-  // Default to sets 1-3 for unknown sets
-  return SETS_1_3_CONSTANTS
+  // Default to sets 4-6 for unknown sets
+  return SETS_4_6_CONSTANTS
 }
 
 /**

@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react'
 import './SetSelection.css'
 import { fetchSets } from '../utils/api'
+import { useAuth } from '../contexts/AuthContext'
 import Button from './Button'
 
 function SetSelection({ onSetSelect, onBack }) {
+  const { user } = useAuth()
   const [sets, setSets] = useState([])
+  const [betaSets, setBetaSets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [imageFallbacks, setImageFallbacks] = useState({})
   const [failedImages, setFailedImages] = useState(new Set())
   const [isVertical, setIsVertical] = useState(false)
+
+  // Check if user has beta access (beta tester or admin)
+  const hasBetaAccess = user?.is_beta_tester || user?.is_admin
 
   // Map set codes to their set numbers for sorting
   const getSetNumber = (setCode) => {
@@ -20,7 +26,8 @@ function SetSelection({ onSetSelect, onBack }) {
       'JTL': 4, // Jump to Lightspeed
       'LOF': 5, // Legends of the Force
       'SEC': 6, // Secrets of Power
-      // Future sets will be 7, 8, 9, etc.
+      'LAW': 7, // A Lawless Time (beta)
+      // Future sets will be 8, 9, 10, etc.
     }
     return setCodeMap[setCode] || 999 // Unknown sets go to end
   }
@@ -70,8 +77,12 @@ function SetSelection({ onSetSelect, onBack }) {
     const loadSets = async () => {
       try {
         setLoading(true)
-        const setsData = await fetchSets()
-        setRawSets(setsData)
+        const setsData = await fetchSets({ includeBeta: hasBetaAccess })
+        // Separate beta sets from regular sets
+        const regular = setsData.filter((set) => !set.beta)
+        const beta = setsData.filter((set) => set.beta)
+        setRawSets(regular)
+        setBetaSets(beta)
       } catch (err) {
         setError(err.message)
       } finally {
@@ -79,7 +90,7 @@ function SetSelection({ onSetSelect, onBack }) {
       }
     }
     loadSets()
-  }, [])
+  }, [hasBetaAccess])
 
   // Sort sets whenever rawSets or isVertical changes
   useEffect(() => {
@@ -130,6 +141,23 @@ function SetSelection({ onSetSelect, onBack }) {
   return (
     <div className="set-selection">
       <h1>Select a Set</h1>
+      {betaSets.length > 0 && (
+        <div className="beta-sets-row">
+          {betaSets.map((set) => (
+            <div
+              key={set.code}
+              className="set-card set-card--beta"
+              onClick={() => onSetSelect(set.code)}
+            >
+              <div className="beta-badge">Pre-Release</div>
+              <div className="beta-card-content">
+                <div className="placeholder-text">{set.name}</div>
+                <div className="placeholder-code">{set.code}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="sets-grid">
         {sets.map((set) => (
           <div

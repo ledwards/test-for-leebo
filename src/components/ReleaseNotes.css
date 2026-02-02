@@ -101,7 +101,7 @@
 .release-notes-content h3 {
   font-size: 1rem;
   margin: 16px 0 8px 0;
-  color: #9C27B0;
+  color: #2196F3;
   font-weight: 600;
 }
 
@@ -127,7 +127,7 @@
   border-radius: 4px;
   font-family: 'Courier New', monospace;
   font-size: 0.85em;
-  color: #9C27B0;
+  color: #2196F3;
 }
 
 .release-notes-content pre {

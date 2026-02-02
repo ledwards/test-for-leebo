@@ -22,6 +22,8 @@ export async function GET(request) {
           email: session.email,
           username: session.username,
           avatar_url: session.avatar_url || null,
+          is_admin: session.is_admin || false,
+          is_beta_tester: session.is_beta_tester || false,
         },
       },
     })

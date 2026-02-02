@@ -1,0 +1,102 @@
+.beta-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: rgb(76, 77, 81);
+  background-image: linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%), linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%), linear-gradient(90deg, rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 15%, rgba(0, 0, 0, 0) 85%, rgb(9, 9, 9) 100%), linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url("/background-images/bg-texture-crop.png");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 150% auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat-y;
+  background-position: center center;
+  color: white;
+}
+
+.beta-container {
+  max-width: 420px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+}
+
+.beta-container h1 {
+  margin: 0 0 24px 0;
+  font-size: 1.8rem;
+  color: white;
+}
+
+.beta-info {
+  margin-bottom: 32px;
+}
+
+.beta-features {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 16px 20px;
+  text-align: left;
+}
+
+.beta-features h3 {
+  margin: 0 0 12px 0;
+  font-size: 0.95rem;
+  color: #2196F3;
+}
+
+.beta-features ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #b0b0b0;
+}
+
+.beta-features li {
+  margin: 8px 0;
+}
+
+.beta-features strong {
+  color: white;
+}
+
+.beta-actions {
+  margin-bottom: 24px;
+}
+
+.beta-prompt {
+  color: #b0b0b0;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+}
+
+.beta-success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  border-radius: 8px;
+  color: #4ade80;
+  font-size: 1.1rem;
+}
+
+.beta-success .checkmark {
+  font-size: 1.5rem;
+}
+
+.beta-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .beta-page {
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 300% auto;
+  }
+
+  .beta-container {
+    padding: 24px;
+  }
+}

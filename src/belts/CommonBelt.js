@@ -36,7 +36,7 @@
  */
 
 import { getCachedCards } from '../utils/cardCache.js'
-import { COMMON_BELT_ASSIGNMENTS, getBlockForSet } from './data/commonBeltAssignments.js'
+import { COMMON_BELT_ASSIGNMENTS, getBlockForSet, assignCardToBelt } from './data/commonBeltAssignments.js'
 
 // Aspect name constants
 const BLUE = 'Vigilance'
@@ -254,7 +254,7 @@ function buildConstrainedBoot(cards, drawSize, requiredAspects, excludedIds = ne
 }
 
 /**
- * Get common cards for a specific belt from static assignments
+ * Get common cards for a specific belt from static assignments or auto-assignment
  *
  * @param {string} setCode - Set code (SOR, SHD, etc.)
  * @param {string} beltId - 'A' or 'B'
@@ -269,9 +269,6 @@ export function getBeltCards(setCode, beltId) {
     return []
   }
 
-  const cardNames = beltId === 'A' ? assignments.beltA : assignments.beltB
-
-  // Map names to card objects
   // Filter to normal variant commons (non-leader, non-base)
   const allCommons = cards.filter(c =>
     c.variantType === 'Normal' &&
@@ -279,6 +276,15 @@ export function getBeltCards(setCode, beltId) {
     c.type !== 'Leader' &&
     c.type !== 'Base'
   )
+
+  // If autoAssign is enabled, use aspect-based assignment
+  if (assignments.autoAssign) {
+    const block = getBlockForSet(setCode)
+    return allCommons.filter(c => assignCardToBelt(c, block) === beltId)
+  }
+
+  // Otherwise use static belt assignments
+  const cardNames = beltId === 'A' ? assignments.beltA : assignments.beltB
 
   // Create lookup by name
   const cardByName = new Map()
