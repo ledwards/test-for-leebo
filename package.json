@@ -21,7 +21,7 @@
     "test:quiet": "node scripts/run-tests-quiet.js",
     "test:summary": "bash scripts/run-tests.sh",
     "test:belts": "node src/belts/BaseBelt.test.js && node src/belts/CommonBelt.test.js && node src/belts/FoilBelt.test.js && node src/belts/HyperfoilBelt.test.js && node src/belts/HyperspaceBelts.test.js && node src/belts/LeaderBelt.test.js && node src/belts/RareLegendaryBelt.test.js && node src/belts/ShowcaseLeaderBelt.test.js && node src/belts/UncommonBelt.test.js",
-    "test:utils": "node src/utils/boosterPack.test.js && node src/utils/variantDowngrade.test.js && node src/utils/cardSort.test.js && node src/utils/aspectCombinations.test.js",
+    "test:utils": "node src/utils/boosterPack.test.js && node src/utils/variantDowngrade.test.js && node src/utils/swudbExport.test.js && node src/utils/cardSort.test.js && node src/utils/aspectCombinations.test.js",
     "test:hooks": "node src/hooks/useTooltip.test.js && node src/hooks/useCardPreview.test.js && node src/hooks/common/useIsMobile.test.js && node src/hooks/common/useLocalStorage.test.js",
     "test:draft": "node src/utils/draftLogic.test.js",
     "test:fixes": "node src/utils/cardFixes.test.js",
