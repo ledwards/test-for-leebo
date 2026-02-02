@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node server.js",
+    "//prebuild": "Creates .buildstamp to bust Docker layer cache, ensuring migrations/ is never stale",
     "prebuild": "date > migrations/.buildstamp",
     "build": "next build",
     "postbuild": "node scripts/postbuild.js",

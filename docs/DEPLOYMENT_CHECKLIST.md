@@ -20,28 +20,42 @@
 - [ ] Migrations tested locally
 - [ ] Migration files are idempotent
 - [ ] No destructive changes without backup plan
-- [ ] Database connection strings verified in Vercel
+- [ ] Schema changes are backwards-compatible (old code runs during deploy)
 
 ### Environment Variables
-- [ ] All required env vars set in Vercel
-- [ ] `POSTGRES_URL` configured
-- [ ] `POSTGRES_PRISMA_URL` configured (if using Prisma)
+- [ ] All required env vars set in Railway
+- [ ] `POSTGRES_URL` configured (uses `postgres.railway.internal` in production)
 - [ ] Any new env vars documented
 
 ## During Deployment
 
-### Automated Checks (Vercel)
-- [ ] Pre-build tests run successfully
-- [ ] Migrations applied without errors
-- [ ] Build completed successfully
-- [ ] Post-build artifact generation completed
-- [ ] Deployment preview URL generated (for PRs)
+### Railway Build & Deploy Flow
 
-### GitHub Actions (if configured)
-- [ ] CI workflow completed
-- [ ] All test jobs passed
-- [ ] QA artifacts uploaded
-- [ ] Lint checks passed
+1. **Build phase** (`npm run build`)
+   - `prebuild`: Creates `migrations/.buildstamp` (busts Docker layer cache)
+   - `build`: Next.js production build
+   - `postbuild`: Runs QA tests, copies artifacts to public/
+
+2. **Release phase** (`releaseCommand` in railway.toml)
+   - Runs `node scripts/migrate.js prod --yes`
+   - If migration fails → deploy fails → old container keeps serving traffic
+   - If migration succeeds → continues to start phase
+
+3. **Start phase** (`startCommand` in railway.toml)
+   - Runs `npm start` (Node server with Socket.io)
+   - Health check passes → traffic switches to new container
+
+### Cache Busting
+
+The `prebuild` script creates `migrations/.buildstamp` with the current timestamp on every build. This ensures the Docker layer containing the migrations directory is never served from stale cache.
+
+Without this, Railway's build cache could serve old migration files even after new ones are committed.
+
+### Automated Checks
+- [ ] Build completed successfully
+- [ ] Migrations applied without errors (check deploy logs)
+- [ ] Post-build artifact generation completed
+- [ ] Health check passed
 
 ## Post-Deployment
 
@@ -87,23 +101,29 @@
 If issues are detected:
 
 1. **Immediate Issues**
-   - Use Vercel's instant rollback to previous deployment
-   - Go to Vercel dashboard → Deployments → Select previous → Promote to Production
+   - Use Railway's rollback to previous deployment
+   - Go to Railway dashboard → Deployments → Select previous → Rollback
 
 2. **Database Issues**
    - Database migrations are tracked and can be rolled back manually
    - Check `migrations` table for applied migrations
    - Have rollback SQL ready for recent migrations
+   - Note: Schema changes need backwards-compatible migrations (old code may still be running during deploy)
 
 3. **Code Issues**
    - Revert the problematic commit
    - Push to trigger new deployment
-   - Or use Vercel rollback for instant fix
+   - Or use Railway rollback for instant fix
+
+4. **Migration Failures**
+   - If `releaseCommand` fails, deploy automatically aborts
+   - Old container continues serving traffic
+   - Fix migration and push again
 
 ## Monitoring (First 24 Hours)
 
-- [ ] Check error rates in Vercel Analytics
-- [ ] Monitor function execution times
+- [ ] Check error rates in Railway logs
+- [ ] Monitor server response times
 - [ ] Review user feedback/reports
 - [ ] Check for database connection issues
 - [ ] Verify QA results remain consistent
@@ -117,8 +137,8 @@ If issues are detected:
 
 ## Emergency Contacts
 
-- **Vercel Support**: support@vercel.com
-- **Database Provider**: [Your DB provider support]
+- **Railway Support**: https://railway.app/help
+- **Database Provider**: Railway PostgreSQL
 - **Project Owner**: [Your contact info]
 
 ## Useful Commands
@@ -132,27 +152,27 @@ npm run lint              # Code quality check
 
 # Deployment
 git push origin main      # Triggers production deploy
-git push origin feature   # Triggers preview deploy
 
 # Database
 npm run migrate:status    # Check migration status
 npm run migrate:prod      # Manual production migration (not usually needed)
 
-# Debug
-vercel logs               # View production logs
-vercel env pull           # Pull environment variables locally
+# Debug (Railway)
+# View logs in Railway dashboard → Deployments → View Logs
+# Or use Railway CLI: railway logs
 ```
 
 ## Notes
 
 - Deployments typically take 2-5 minutes
-- Tests add ~1-2 minutes to build time
-- Preview deployments use separate database
+- QA tests add ~1-2 minutes to build time
 - QA results are regenerated on every build
-- Failed tests won't block deployment but will show warnings
+- Failed migrations WILL block deployment (releaseCommand fails → deploy aborts)
+- The `prebuild` script busts Docker cache for migrations directory
 
 ## Version History
 
 - **v1.0** - Initial deployment checklist
 - **v1.1** - Added QA test verification steps
 - **v1.2** - Added post-build artifact checks
+- **v1.3** - Updated for Railway (was Vercel), added migration flow docs
