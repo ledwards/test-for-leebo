@@ -5,6 +5,7 @@ import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/ut
 import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft } from '@/src/utils/draftAdvance.js'
 import { processBotTurns } from '@/src/utils/botLogic.js'
 import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
+import { trackCardGeneration } from '@/src/utils/trackGeneration.js'
 
 export async function POST(request, { params }) {
   try {
@@ -90,6 +91,21 @@ export async function POST(request, { params }) {
 
       // Add to drafted leaders
       draftedLeaders.push(pickedLeader)
+
+      // Track showcase leaders for the player who drafted them
+      // This fixes the bug where all cards were attributed to the host at draft start
+      if (pickedLeader.variantType === 'Showcase' && pickedLeader.isLeader) {
+        trackCardGeneration(pickedLeader, {
+          packType: 'leader',
+          sourceType: 'draft',
+          sourceId: pod.id,
+          sourceShareId: shareId,
+          slotType: 'leader',
+          userId: session.id  // The player who actually drafted it!
+        }).catch(err => {
+          console.error('Failed to track showcase leader pick:', err)
+        })
+      }
 
       // Update player
       await query(

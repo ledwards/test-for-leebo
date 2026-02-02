@@ -312,6 +312,7 @@ describe('Feature X', () => {
 
 ## Important Notes
 
-- **NEVER PUSH WITHOUT HUMAN REVIEW** - pushes trigger deploy to production
+- **NEVER PUSH OR DEPLOY WITHOUT EXPLICIT DIRECTION** - "commit" means ONLY commit, NOT push. Pushes trigger deploy to production. Only push when the user explicitly says "push" or "push to origin".
+- **"commit" ≠ "commit and push"** - These are separate operations. Always wait for explicit push instruction.
 - The mobile test (`deck-builder.spec.js:220`) is flaky - pre-existing issue
 - Skip 8-player test during iteration (takes 10+ minutes)
