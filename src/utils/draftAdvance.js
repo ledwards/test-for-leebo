@@ -217,12 +217,13 @@ async function advanceLeaderDraftAfterPicks(podId, draftState, pod, players) {
     for (let i = 0; i < updatedPlayers.length; i++) {
       const player = updatedPlayers[i]
       const pack = allPacks[i][0]
+      const packCards = pack.cards || pack // Extract cards array from pack object
 
       await query(
         `UPDATE draft_pod_players
          SET current_pack = $1, pick_status = 'picking'
          WHERE id = $2`,
-        [JSON.stringify(pack), player.id]
+        [JSON.stringify(packCards), player.id]
       )
     }
 
@@ -290,12 +291,13 @@ async function advancePackDraftAfterPicks(podId, draftState, pod) {
     for (let i = 0; i < players.length; i++) {
       const player = players[i]
       const pack = allPacks[i][packNumber]
+      const packCards = pack.cards || pack // Extract cards array from pack object
 
       await query(
         `UPDATE draft_pod_players
          SET current_pack = $1, pick_status = 'picking'
          WHERE id = $2`,
-        [JSON.stringify(pack), player.id]
+        [JSON.stringify(packCards), player.id]
       )
     }
 
@@ -428,13 +430,14 @@ export async function checkAndAdvanceLeaderDraft(podId, draftState, pod) {
     for (let i = 0; i < players.length; i++) {
       const player = players[i]
       const pack = allPacks[i][0] // Pack 1 for this player
+      const packCards = pack.cards || pack // Extract cards array from pack object
 
       await query(
         `UPDATE draft_pod_players
          SET current_pack = $1,
              pick_status = 'picking'
          WHERE id = $2`,
-        [JSON.stringify(pack), player.id]
+        [JSON.stringify(packCards), player.id]
       )
     }
 
@@ -549,14 +552,15 @@ export async function checkAndAdvancePackDraft(podId, draftState, pod) {
     for (let i = 0; i < players.length; i++) {
       const player = players[i]
       const pack = allPacks[i][packNumber] // Next pack (0-indexed array, packNumber is the old value which equals new index)
-      // console.log('[ADVANCE-PACK] Player', i, 'getting pack index', packNumber, 'with', pack?.length, 'cards')
+      const packCards = pack.cards || pack // Extract cards array from pack object
+      // console.log('[ADVANCE-PACK] Player', i, 'getting pack index', packNumber, 'with', packCards?.length, 'cards')
 
       await query(
         `UPDATE draft_pod_players
          SET current_pack = $1,
              pick_status = 'picking'
          WHERE id = $2`,
-        [JSON.stringify(pack), player.id]
+        [JSON.stringify(packCards), player.id]
       )
     }
 

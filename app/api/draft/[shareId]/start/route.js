@@ -56,12 +56,14 @@ export async function POST(request, { params }) {
     // console.log('[START] Packs generated, leaders per player:', leaders[0]?.length)
 
     // Track all generated cards for statistics (async, non-blocking)
+    // Note: packs are objects { cards: [...] }, extract .cards for iteration
     const trackingRecords = []
     let globalPackIndex = 0
     for (let i = 0; i < packs.length; i++) {
       for (let packNum = 0; packNum < packs[i].length; packNum++) {
         const pack = packs[i][packNum]
-        pack.forEach(card => {
+        const packCards = pack.cards || pack // Handle both object and array formats
+        packCards.forEach(card => {
           trackingRecords.push({
             card,
             options: {
@@ -96,10 +98,12 @@ export async function POST(request, { params }) {
     })
 
     // Assign leaders and first pack to each player
+    // Note: packs are objects { cards: [...] }, extract .cards for current_pack
     for (let i = 0; i < players.length; i++) {
       const player = players[i]
       const playerLeaders = leaders[i]
       const firstPack = packs[i][0] // First pack for drafting
+      const firstPackCards = firstPack.cards || firstPack // Extract cards array
 
       await query(
         `UPDATE draft_pod_players
@@ -110,7 +114,7 @@ export async function POST(request, { params }) {
          WHERE id = $3`,
         [
           JSON.stringify(playerLeaders),
-          JSON.stringify(firstPack),
+          JSON.stringify(firstPackCards),
           player.id
         ]
       )

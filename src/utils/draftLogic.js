@@ -58,7 +58,9 @@ export function generateDraftPacks(setCode, playerCount = 8) {
         pack.cards.splice(baseIndex, 1)
       }
 
-      playerPacks.push(pack.cards)
+      // Keep the pack object format { cards: [...] } for consistency with sealed pools
+      // DO NOT push pack.cards (the array) - push pack (the object)
+      playerPacks.push(pack)
     }
 
     allPlayerPacks.push(playerPacks)

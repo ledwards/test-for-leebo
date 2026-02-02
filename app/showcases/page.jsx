@@ -53,7 +53,7 @@ export default function ShowcasesPage() {
         // Build a map of card id -> card data for all sets and count unique showcase leaders
         const cardMap = {}
         const uniqueShowcaseLeaders = new Set()
-        const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
+        const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC', 'LAW']
         sets.forEach(setCode => {
           const cards = getCachedCards(setCode) || []
           cards.forEach(card => {

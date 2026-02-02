@@ -149,9 +149,17 @@ export async function run(client) {
 
     if (packs && Array.isArray(packs)) {
       packs = packs.map(pack => {
-        const packResult = fixCardsArray(pack, displayToInternal, nameSetVariantToInternal)
-        packsFixedCount += packResult.fixed
-        return packResult.cards
+        // Handle both formats: pack as array or pack as {cards: [...]} object
+        if (Array.isArray(pack)) {
+          const packResult = fixCardsArray(pack, displayToInternal, nameSetVariantToInternal)
+          packsFixedCount += packResult.fixed
+          return packResult.cards
+        } else if (pack && pack.cards) {
+          const packResult = fixCardsArray(pack.cards, displayToInternal, nameSetVariantToInternal)
+          packsFixedCount += packResult.fixed
+          return { ...pack, cards: packResult.cards }
+        }
+        return pack
       })
     }
 
@@ -232,9 +240,17 @@ export async function run(client) {
       allPacks = allPacks.map(playerPacks => {
         if (!Array.isArray(playerPacks)) return playerPacks
         return playerPacks.map(pack => {
-          const r = fixCardsArray(pack, displayToInternal, nameSetVariantToInternal)
-          fixedCount += r.fixed
-          return r.cards
+          // Handle both formats: pack as array or pack as {cards: [...]} object
+          if (Array.isArray(pack)) {
+            const r = fixCardsArray(pack, displayToInternal, nameSetVariantToInternal)
+            fixedCount += r.fixed
+            return r.cards
+          } else if (pack && pack.cards) {
+            const r = fixCardsArray(pack.cards, displayToInternal, nameSetVariantToInternal)
+            fixedCount += r.fixed
+            return { ...pack, cards: r.cards }
+          }
+          return pack
         })
       })
     }
