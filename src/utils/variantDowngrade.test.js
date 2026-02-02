@@ -254,12 +254,12 @@ test('exported deck IDs are all in swudb format', () => {
 
   const exportedIds = testDeck.map(card => getBaseCardId(card, map))
 
-  // All IDs should be in SOR_xxx format
-  const validFormat = /^[A-Z]{3}_\d+$/
+  // All IDs should be in SWUDB format: SET_XXX (3-digit zero-padded)
+  const validFormat = /^[A-Z]{3}_\d{3,}$/
   exportedIds.forEach((id, idx) => {
     assert(
       validFormat.test(id),
-      `Card "${testDeck[idx].name}" should export as SOR_xxx format, got "${id}"`
+      `Card "${testDeck[idx].name}" should export as SWUDB format SET_XXX, got "${id}"`
     )
   })
 })
