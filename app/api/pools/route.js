@@ -169,8 +169,10 @@ export async function POST(request) {
     if (packs && Array.isArray(packs)) {
       const trackingRecords = []
       packs.forEach((pack, packIndex) => {
-        if (Array.isArray(pack)) {
-          pack.forEach(card => {
+        // Support both formats: pack as array or pack as {cards: [...]} object
+        const packCards = Array.isArray(pack) ? pack : pack.cards
+        if (Array.isArray(packCards)) {
+          packCards.forEach(card => {
             trackingRecords.push({
               card,
               options: {

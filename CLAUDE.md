@@ -219,7 +219,10 @@ Cards have `variantType`: Normal, Foil, Hyperspace, Hyperspace Foil, Showcase. S
 Use `src/utils/aspectColors.js` for aspect-based styling. Aspects: Vigilance (blue), Command (green), Aggression (red), Cunning (yellow), Villainy (black/purple), Heroism (white).
 
 ### Database
-PostgreSQL via `lib/db.js`. Migrations in `scripts/migrations/`. Use `queryRows()` for SELECT, `queryRow()` for single row, `query()` for INSERT/UPDATE.
+PostgreSQL via `lib/db.js`. Migrations in `migrations/`. Use `queryRows()` for SELECT, `queryRow()` for single row, `query()` for INSERT/UPDATE.
+
+### Data Formats
+**See `docs/DATA_FORMATS.md` for canonical data structures.** Key rule: Packs are always `{ cards: [...] }` objects, never raw arrays. The exception is `current_pack` which stores just the cards array.
 
 ### Authentication
 Discord OAuth via `lib/auth.js`. JWT tokens in cookies. User context via `src/contexts/AuthContext`.
@@ -255,17 +258,52 @@ Tests use Node's built-in test runner (no Jest). Run individual test files direc
 - `src/belts/*.test.js` - Belt system tests
 - `src/utils/setConfigs/*.test.js` - Set config tests
 - `lib/*.test.js` - Server-side utility tests
+- `app/api/**/*.test.js` - API route tests
 - `e2e/*.spec.js` - Playwright E2E tests
+
+## Bug Fixing Process (MANDATORY)
+
+**Always use red-green TDD when fixing bugs:**
+
+1. **RED**: Write a test that demonstrates the bug
+   - Extract the buggy logic into a testable function if needed
+   - Show the test failing or producing wrong results with the old code
+   - Name it clearly: `'BUGGY: does X incorrectly'` or `'OLD CODE: fails when Y'`
+
+2. **GREEN**: Write the fix and show the test passing
+   - Add a parallel test with the fixed logic
+   - Name it clearly: `'FIXED: does X correctly'` or `'NEW CODE: handles Y'`
+
+3. **Document**: The test should serve as documentation of what went wrong
+
+Example structure:
+```javascript
+describe('Feature X', () => {
+  it('BUGGY: loses data with format Y', () => {
+    const result = buggyFunction(input)
+    assert.strictEqual(result.thing, null, 'BUG: thing is lost!')
+  })
+
+  it('FIXED: preserves data with format Y', () => {
+    const result = fixedFunction(input)
+    assert.strictEqual(result.thing, 'expected', 'thing preserved')
+  })
+})
+```
+
+**Why this matters:** Tests that demonstrate bugs prevent regressions and document what went wrong for future developers.
 
 ## Architecture & Refactoring
 
 **See `DECKBUILDER_REFACTOR_PLAN.md` for the completed refactoring summary.**
 
 ### Key Principles
-1. **Test Before Refactor**: Always write characterization tests before changing existing code
-2. **Services are Pure**: No React, no side effects, no I/O in services
-3. **Components Don't Calculate**: Move calculations to services, call via hooks
-4. **Small Files**: Components <300 lines, services <200 lines
+1. **Red-Green Bug Fixes**: Always write a failing test that demonstrates the bug BEFORE fixing it (see "Bug Fixing Process" above)
+2. **Test Before Refactor**: Always write characterization tests before changing existing code
+3. **Services are Pure**: No React, no side effects, no I/O in services
+4. **Components Don't Calculate**: Move calculations to services, call via hooks
+5. **Small Files**: Components <300 lines, services <200 lines
+6. **One Canonical Format**: Domain objects should have ONE representation - don't allow multiple formats to proliferate (see `docs/DATA_FORMATS.md`)
 
 ### When Adding New Features
 1. Business logic → `src/services/` (with tests)
