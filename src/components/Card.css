@@ -50,7 +50,7 @@
   cursor: pointer;
   isolation: isolate;
   user-select: none;
-  touch-action: none;
+  touch-action: pan-y; /* Allow vertical scrolling on mobile */
   overflow: visible;
 }
 
