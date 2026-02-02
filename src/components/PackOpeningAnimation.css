@@ -1,0 +1,570 @@
+/* Pack Opening Animation Styles */
+
+.pack-opening-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 10000;
+
+  /* Background matching DeckBuilder */
+  background-color: rgb(76, 77, 81);
+  background-image: linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%), linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%), linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url("/background-images/bg-texture-crop.png");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 150% auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat-y;
+  background-position: center center, center center, center center, center 400px;
+}
+
+/* Packs row */
+.packs-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 354px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 250;
+}
+
+
+.pack-item.visible.fading {
+  animation: pack-fade-out 0.5s ease 0.5s forwards !important;
+}
+
+@keyframes pack-fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Individual pack item */
+.pack-item {
+  position: absolute;
+  left: var(--pack-x);
+  top: 0;
+  width: 120px;
+  height: 168px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.2s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.pack-item.visible {
+  animation: pack-enter 0.3s ease forwards;
+  animation-delay: var(--pack-delay, 0ms);
+}
+
+@keyframes pack-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pack-item:hover:not(.opened) {
+  transform: scale(1.05);
+}
+
+
+/* Pack wrapper */
+.pack-wrapper {
+  position: relative;
+  width: 120px;
+  height: 168px;
+}
+
+.pack-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.pack-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Pack fallback if image doesn't load */
+.pack-fallback {
+  background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2e 100%);
+  border: 2px solid rgba(255, 200, 100, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pack-fallback::after {
+  content: 'PACK';
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* Flying cards container */
+.flying-cards-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  perspective: 1000px;
+  z-index: 200;
+}
+
+/* Flying card - uses CSS variables for dynamic sizing */
+.flying-card {
+  position: absolute;
+  width: var(--card-width, 70px);
+  height: var(--card-height, 100px);
+  transform-style: preserve-3d;
+  left: var(--start-x);
+  top: var(--start-y);
+  transform: translate(-50%, -50%) scale(0);
+  animation: card-fly 0.5s ease forwards;
+  animation-delay: var(--delay);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+@keyframes card-fly {
+  0% {
+    left: var(--start-x);
+    top: var(--start-y);
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1.1) rotate(calc(var(--rotation) * 0.5));
+    opacity: 1;
+  }
+  100% {
+    left: var(--end-x);
+    top: var(--end-y);
+    transform: translate(-50%, -50%) scale(1) rotate(var(--rotation));
+    opacity: 1;
+  }
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+/* When revealed, flip to show front */
+.flying-card.revealed .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+/* Card BACK is shown first */
+.card-back {
+  background: #1a1a2e;
+  border-radius: 8px;
+}
+
+.card-back img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.card-back-fallback {
+  background: linear-gradient(135deg, #4a2a5a 0%, #2a1a3e 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+}
+
+/* Card FRONT shown on flip */
+.card-front {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #3a3a5a 0%, #2a2a4a 100%);
+  border-radius: 8px;
+}
+
+.card-front img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.card-front-fallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  border-radius: 8px;
+}
+
+/* Foil shimmer animation */
+@keyframes foil-shimmer {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+/* Foil effect - holographic rainbow shimmer (for foil AND showcase cards) */
+.foil-content {
+  position: relative;
+}
+
+.foil-content::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(
+      115deg,
+      transparent 0%,
+      rgba(255, 0, 0, 0.35) 20%,
+      rgba(255, 127, 0, 0.4) 25%,
+      rgba(255, 255, 0, 0.45) 30%,
+      rgba(0, 255, 0, 0.45) 35%,
+      rgba(0, 255, 255, 0.45) 40%,
+      rgba(0, 0, 255, 0.45) 45%,
+      rgba(139, 0, 255, 0.4) 50%,
+      rgba(255, 0, 255, 0.35) 55%,
+      transparent 65%,
+      transparent 100%
+    );
+  background-size: 300% 300%;
+  background-position: -100% 0%;
+  mix-blend-mode: overlay;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 10;
+  animation: foil-shimmer 6s linear infinite;
+  filter: blur(8px);
+  border-radius: 8px;
+}
+
+/* Card hover preview overlay */
+.card-preview-overlay {
+  position: fixed;
+  pointer-events: none;
+  z-index: 10001;
+  transform: translateX(-50%);
+}
+
+.card-preview {
+  width: 300px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+
+.card-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Leader preview with both sides */
+.card-preview-leader {
+  display: flex;
+  gap: 12px;
+}
+
+.card-preview-leader .card-preview {
+  width: 240px;
+}
+
+.card-preview-leader .card-preview-front {
+  /* Front is horizontal (landscape) */
+}
+
+.card-preview-leader .card-preview-front img {
+  width: 100%;
+  height: auto;
+}
+
+.card-preview-leader .card-preview-back img {
+  width: 100%;
+  height: auto;
+}
+
+.card-preview-foil {
+  position: relative;
+}
+
+.card-preview-foil::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(
+      115deg,
+      transparent 0%,
+      rgba(255, 0, 0, 0.35) 20%,
+      rgba(255, 127, 0, 0.4) 25%,
+      rgba(255, 255, 0, 0.45) 30%,
+      rgba(0, 255, 0, 0.45) 35%,
+      rgba(0, 255, 255, 0.45) 40%,
+      rgba(0, 0, 255, 0.45) 45%,
+      rgba(139, 0, 255, 0.4) 50%,
+      rgba(255, 0, 255, 0.35) 55%,
+      transparent 65%,
+      transparent 100%
+    );
+  background-size: 200% 200%;
+  mix-blend-mode: overlay;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 2;
+  animation: foil-shimmer 6s ease-in-out infinite;
+  filter: blur(10px);
+  border-radius: 12px;
+}
+
+/* Open All button below packs */
+.open-all-container {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+/* Continue button at bottom */
+.pack-opening-buttons {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  z-index: 100;
+}
+
+.open-all-button,
+.continue-button,
+.skip-button {
+  padding: 12px 32px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: 'Barlow', sans-serif;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: #000;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.open-all-button:hover,
+.continue-button:hover,
+.skip-button:hover {
+  background: #000;
+  border-color: rgba(0, 255, 0, 0.8);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+  transform: translateY(-2px);
+}
+
+.open-all-button:active,
+.continue-button:active,
+.skip-button:active {
+  transform: translateY(0);
+}
+
+/* Skip button in upper right */
+.skip-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 400;
+  padding: 10px 20px;
+}
+
+/* Click anywhere to continue cursor */
+.pack-opening-container.click-to-continue {
+  cursor: pointer;
+}
+
+/* Pack counter at bottom */
+.pack-counter {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Barlow', sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  z-index: 300;
+}
+
+/* Phase: Complete - fade out */
+.phase-complete {
+  animation: container-fade-out 0.4s ease forwards;
+}
+
+@keyframes container-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Mobile carousel */
+.packs-carousel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 250;
+  perspective: 800px;
+}
+
+.pack-item-mobile {
+  position: absolute;
+  width: 100px;
+  height: 140px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  /* Carousel positioning based on offset (--abs-offset is absolute value from JS) */
+  transform: translateX(calc(var(--offset) * 90px))
+             scale(calc(1 - var(--abs-offset) * 0.15))
+             rotateY(calc(var(--offset) * -15deg));
+  opacity: calc(1 - var(--abs-offset) * 0.3);
+  z-index: calc(10 - var(--abs-offset));
+}
+
+.pack-item-mobile.active {
+  transform: translateX(0) scale(1.1) rotateY(0deg);
+  opacity: 1;
+  z-index: 20;
+}
+
+.pack-item-mobile.fading {
+  animation: pack-fade-out 0.5s ease 0s forwards !important;
+}
+
+.pack-wrapper-mobile {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.pack-item-mobile .pack-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.pack-item-mobile .pack-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .pack-opening-container {
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 300% auto;
+  }
+
+  /* Hide desktop packs row on mobile */
+  .packs-row {
+    display: none;
+  }
+
+  .pack-wrapper,
+  .pack-item {
+    width: 80px;
+    height: 112px;
+  }
+
+  .open-all-button,
+  .continue-button,
+  .skip-button {
+    padding: 10px 24px;
+    font-size: 1rem;
+  }
+
+  .skip-button {
+    top: 15px;
+    right: 15px;
+    padding: 8px 16px;
+  }
+
+  /* Adjust button position on mobile */
+  .open-all-container {
+    bottom: 60px !important;
+  }
+
+  .pack-counter {
+    bottom: 20px;
+    font-size: 1.5rem;
+  }
+
+  /* Flying cards - smaller on mobile */
+  .flying-card {
+    /* Card sizes are set via CSS variables from JS */
+  }
+
+  /* Card preview disabled on mobile */
+  .card-preview-overlay {
+    display: none;
+  }
+}
+
+/* Hide carousel on desktop */
+@media (min-width: 769px) {
+  .packs-carousel {
+    display: none;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .pack-opening-container * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

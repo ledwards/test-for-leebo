@@ -1,0 +1,1053 @@
+/* Shared background for draft pages - matches sealed-pod exactly */
+.draft-page-bg {
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: rgb(76, 77, 81);
+  background-image: linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%), linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%), linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url("/background-images/bg-texture-crop.png");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 150% auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat-y;
+  background-position: center center, center center, center center, center 400px;
+  color: white;
+  position: relative;
+}
+
+/* Set art header - using same class name as SealedPod for consistency */
+.draft-page-bg .set-art-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 400px;
+  z-index: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.draft-page-bg .set-art-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  background: linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%), linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%), linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8));
+  background-size: 100% 100%, 100% 100%, 100% 100%;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-position: center center, center center, center center;
+  pointer-events: none;
+}
+
+.draft-page-bg .set-art-header::after {
+  content: '';
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  right: 0;
+  height: 300px;
+  z-index: 2;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(9, 9, 9, 0.3) 20%,
+    rgba(9, 9, 9, 0.6) 40%,
+    rgba(9, 9, 9, 0.85) 60%,
+    rgb(9, 9, 9) 80%,
+    rgb(9, 9, 9) 100%);
+  pointer-events: none;
+}
+
+.draft-room-content {
+  position: relative;
+  z-index: 1;
+}
+
+
+
+.draft-landing {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}
+
+.draft-landing h1 {
+  margin-bottom: 10px;
+}
+
+.draft-description {
+  color: #888;
+  margin-bottom: 30px;
+}
+
+.draft-options {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.draft-option {
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 30px;
+  min-width: 280px;
+  max-width: 350px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.draft-option h2 {
+  margin-bottom: 10px;
+  font-size: 1.3rem;
+}
+
+.draft-option p {
+  color: #888;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+.draft-option .landing-login {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.draft-option .landing-login + p {
+  margin-top: 0;
+}
+
+.join-form {
+  display: flex;
+  gap: 10px;
+}
+
+.join-form input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #2a2a2a;
+  color: white;
+  font-size: 1rem;
+}
+
+.join-form input:focus {
+  outline: none;
+  border-color: #4a90d9;
+}
+
+.primary-button {
+  padding: 12px 24px;
+  background: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.primary-button:hover {
+  background: #5a9fe9;
+}
+
+.primary-button:disabled {
+  background: #444;
+  cursor: not-allowed;
+}
+
+/* Create Draft button - green forward style */
+.create-draft-button {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+.create-draft-button:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(0, 255, 0, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+}
+
+.create-draft-button:disabled {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #555;
+}
+
+.auth-note {
+  font-size: 0.8rem;
+  color: #f59e0b;
+  margin-top: 10px;
+}
+
+.error-message {
+  background: #f44336;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* Draft Room Styles */
+.draft-room {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.draft-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px;
+  min-height: 50px;
+}
+
+.draft-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  justify-content: center;
+}
+
+.draft-header .back-button {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.draft-header .back-button:hover {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: rgba(255, 0, 0, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
+}
+
+.draft-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.draft-header-center h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.draft-round-info {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #aaa;
+  margin: 0;
+}
+
+.draft-status {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-right: 70px;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-badge.waiting {
+  background: #f59e0b;
+  color: black;
+}
+
+.status-badge.active {
+  background: black;
+  color: white;
+  border: 1px solid white;
+}
+
+.status-badge.complete {
+  background: #666;
+  color: white;
+}
+
+.draft-main {
+  flex: 1;
+}
+
+.draft-content {
+  padding: 20px;
+}
+
+/* Lobby specific styles */
+.lobby-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.lobby-container h2 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.player-count {
+  text-align: center;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+/* Loading and Error states */
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 20px;
+}
+
+.error-container h2 {
+  color: #f44336;
+}
+
+/* Login required */
+.login-required {
+  max-width: 400px;
+  margin: 100px auto;
+  text-align: center;
+  padding: 30px;
+  background: #1e1e1e;
+  border-radius: 12px;
+}
+
+.login-required h2 {
+  margin-bottom: 15px;
+}
+
+.login-required p {
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.login-required .discord-login-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.5rem 1rem;
+  background: rgba(88, 101, 242, 0.8);
+  border: 1px solid rgba(88, 101, 242, 1);
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.login-required .discord-login-button:hover {
+  background: rgba(88, 101, 242, 1);
+  transform: translateY(-1px);
+}
+
+/* Draft complete */
+.draft-complete {
+  max-width: 600px;
+  margin: 50px auto;
+  text-align: center;
+  padding: 40px;
+  background: #1e1e1e;
+  border-radius: 12px;
+}
+
+.draft-complete h2 {
+  color: #4CAF50;
+  margin-bottom: 20px;
+}
+
+.draft-complete .primary-button {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.draft-complete .primary-button:hover {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(0, 255, 0, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+}
+
+.drafted-summary {
+  margin: 30px 0;
+}
+
+.drafted-summary h3 {
+  margin-bottom: 15px;
+}
+
+.leaders-list,
+.cards-count {
+  color: #888;
+  margin-bottom: 15px;
+}
+
+.first-opponent-info {
+  margin: 30px 0;
+  padding: 20px;
+  background: #2a2a2a;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.first-opponent-info h3 {
+  margin-bottom: 15px;
+  color: white;
+  font-size: 1.1rem;
+}
+
+.info-tooltip-button {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: help;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s;
+  position: relative;
+}
+
+.info-tooltip-button:hover {
+  color: #4a90d9;
+}
+
+.opponent-tooltip {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  margin-left: 15px;
+  background: #1e1e1e;
+  border: 1px solid #4a90d9;
+  border-radius: 8px;
+  padding: 15px;
+  min-width: 350px;
+  max-width: 400px;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+  text-align: left;
+}
+
+.tooltip-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a90d9;
+  margin-bottom: 10px;
+}
+
+.tooltip-steps {
+  margin: 0;
+  padding-left: 20px;
+  color: #ccc;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.tooltip-steps li {
+  margin-bottom: 8px;
+}
+
+.tooltip-steps li:last-child {
+  margin-bottom: 0;
+}
+
+.tooltip-steps strong {
+  color: white;
+}
+
+.bye-message {
+  color: #f59e0b;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.opponent-display {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 30px;
+  position: relative;
+  width: 100%;
+}
+
+.opponent-avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0;
+}
+
+.opponent-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid #4a90d9;
+  object-fit: cover;
+}
+
+.opponent-avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #444;
+  border: 3px solid #4a90d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: white;
+  font-weight: bold;
+}
+
+.opponent-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
+}
+
+.opponent-instructions {
+  flex: 1;
+  text-align: left;
+  min-width: 0;
+}
+
+.instructions-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a90d9;
+  margin-bottom: 10px;
+}
+
+.instructions-steps {
+  margin: 0;
+  padding-left: 20px;
+  color: #ccc;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.instructions-steps li {
+  margin-bottom: 8px;
+}
+
+.instructions-steps li:last-child {
+  margin-bottom: 0;
+}
+
+.instructions-steps strong {
+  color: white;
+}
+
+/* Draft History */
+.draft-history {
+  margin-top: 40px;
+  max-width: 800px;
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.draft-history h2 {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  color: #888;
+  text-align: left;
+}
+
+.history-loading,
+.history-empty {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 18px;
+  background: #1e1e1e;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.history-item:hover {
+  background: #2a2a2a;
+}
+
+.history-item-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.history-set {
+  font-weight: 500;
+  color: white;
+}
+
+.host-badge {
+  color: #f59e0b;
+  font-size: 0.85rem;
+}
+
+.history-status {
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.history-status.waiting {
+  background: #f59e0b;
+  color: black;
+}
+
+.history-status.active {
+  background: #4CAF50;
+  color: white;
+}
+
+.history-status.complete {
+  background: #666;
+  color: white;
+}
+
+.history-item-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.history-players {
+  color: #666;
+}
+
+.history-date {
+  color: #666;
+}
+
+/* History item wrapper for delete button */
+.history-item-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.history-item-wrapper .history-item {
+  flex: 1;
+}
+
+.draft-history-delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  color: rgba(255, 100, 100, 0.8);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.draft-history-delete-button:hover {
+  background: rgba(255, 0, 0, 0.1);
+  border-color: rgba(255, 0, 0, 0.8);
+  color: rgba(255, 150, 150, 1);
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.4);
+}
+
+/* Delete Confirmation Modal */
+.draft-delete-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.draft-delete-confirm-modal {
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.draft-delete-confirm-modal h2 {
+  margin: 0 0 1rem 0;
+  color: rgba(255, 100, 100, 1);
+  font-size: 1.5rem;
+}
+
+.draft-delete-confirm-modal p {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+}
+
+.draft-delete-confirm-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.draft-delete-confirm-cancel {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draft-delete-confirm-cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.draft-delete-confirm-delete {
+  padding: 0.75rem 1.5rem;
+  background: rgba(200, 0, 0, 0.8);
+  border: 2px solid rgba(255, 0, 0, 0.8);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draft-delete-confirm-delete:hover:not(:disabled) {
+  background: rgba(255, 0, 0, 0.9);
+  box-shadow: 0 0 16px rgba(255, 0, 0, 0.6);
+}
+
+.draft-delete-confirm-cancel:disabled,
+.draft-delete-confirm-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Host cancel draft section - bottom center */
+.draft-cancel-section {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0 3rem 0;
+  margin-top: 2rem;
+}
+
+.draft-cancel-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: #000;
+  border: 2px solid rgba(255, 80, 80, 0.8);
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 100, 100, 1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draft-cancel-button:hover:not(:disabled) {
+  background: #000;
+  border-color: rgba(255, 0, 0, 0.8);
+  color: rgba(255, 150, 150, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
+}
+
+.draft-cancel-button:disabled {
+  color: #555;
+  border-color: rgba(255, 255, 255, 0.1);
+  cursor: not-allowed;
+}
+
+/* Cancel Confirmation Modal */
+.draft-cancel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.draft-cancel-modal {
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.draft-cancel-modal h2 {
+  margin: 0 0 1rem 0;
+  color: rgba(255, 100, 100, 1);
+  font-size: 1.5rem;
+}
+
+.draft-cancel-modal p {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+}
+
+.draft-cancel-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.draft-cancel-back {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draft-cancel-back:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.draft-cancel-confirm {
+  padding: 0.75rem 1.5rem;
+  background: rgba(200, 0, 0, 0.8);
+  border: 2px solid rgba(255, 0, 0, 0.8);
+  color: white;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draft-cancel-confirm:hover:not(:disabled) {
+  background: rgba(255, 0, 0, 0.9);
+  box-shadow: 0 0 16px rgba(255, 0, 0, 0.6);
+}
+
+.draft-cancel-back:disabled,
+.draft-cancel-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .draft-options {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 0.5rem;
+  }
+
+  .draft-option {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 1.25rem;
+  }
+
+  .join-form {
+    flex-direction: column;
+  }
+
+  .draft-header {
+    flex-direction: column;
+    gap: 10px;
+    padding: 0.5rem;
+  }
+
+  .draft-header-center h1 {
+    font-size: 1.4rem;
+  }
+
+  .draft-round-info {
+    font-size: 0.85rem;
+  }
+
+  .draft-status {
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-right: 0;
+  }
+
+  /* Draft history - full width, reclaimed margins */
+  .draft-history {
+    padding: 0;
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
+  }
+
+  .draft-history h2 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  /* History item wrapper - item takes full width, delete button inside */
+  .history-item-wrapper {
+    position: relative;
+    gap: 0;
+  }
+
+  .history-item-wrapper .history-item {
+    width: 100%;
+    padding-right: 40px;
+  }
+
+  .history-item {
+    padding: 10px 12px;
+  }
+
+  /* X button positioned inside top-right of history item on mobile */
+  .draft-history-delete-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    font-size: 1.2rem;
+    border-radius: 4px;
+    z-index: 2;
+  }
+
+  /* Hide the trash SVG on mobile - will show X via CSS content */
+  .draft-history-delete-button svg {
+    display: none;
+  }
+
+  .draft-history-delete-button::after {
+    content: '×';
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .draft-content {
+    padding: 0;
+  }
+
+  /* Lobby container - center content */
+  .lobby-container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .lobby-container h2 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .draft-page {
+    padding: 0.5rem;
+    padding-top: 3rem;
+  }
+
+  .draft-page-bg {
+    padding: 0.5rem;
+    padding-top: 3rem;
+    /* Make pattern 2x bigger on mobile (300% instead of 150%) */
+    background-size: 100% 100%, 100% 100%, 100% 100%, 300% auto;
+  }
+
+  .draft-content {
+    padding: 0;
+  }
+
+  .draft-landing {
+    padding: 0.5rem;
+  }
+}
+
+/* Skeleton loading styles */
+.skeleton-box {
+  background: linear-gradient(90deg, rgba(40, 40, 45, 1) 0%, rgba(60, 60, 65, 1) 50%, rgba(40, 40, 45, 1) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

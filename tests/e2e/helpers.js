@@ -1,0 +1,256 @@
+// @ts-check
+import { expect } from '@playwright/test'
+
+/**
+ * Known benign error patterns to ignore
+ */
+export const IGNORED_ERROR_PATTERNS = [
+  'favicon.ico',
+  'Failed to load resource',
+  '404',
+  'Failed to save pool',  // Expected without database
+  'Failed to fetch',      // Network errors in test environment
+  'TypeError: Failed to fetch',
+  'net::ERR_',
+  'NetworkError',
+]
+
+/**
+ * Check if an error should be ignored
+ * @param {string} text
+ * @returns {boolean}
+ */
+export function shouldIgnoreError(text) {
+  return IGNORED_ERROR_PATTERNS.some(pattern => text.includes(pattern))
+}
+
+/**
+ * Helper to check for JavaScript console errors
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string[]>} Array of error messages
+ */
+export async function collectConsoleErrors(page) {
+  const errors = []
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      const text = msg.text()
+      if (!shouldIgnoreError(text)) {
+        errors.push(text)
+      }
+    }
+  })
+  return errors
+}
+
+/**
+ * Helper to check for uncaught page errors
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<Error[]>}
+ */
+export async function collectPageErrors(page) {
+  const errors = []
+  page.on('pageerror', error => {
+    errors.push(error)
+  })
+  return errors
+}
+
+/**
+ * Wait for network to be idle (no pending requests)
+ * @param {import('@playwright/test').Page} page
+ * @param {number} timeout
+ */
+export async function waitForNetworkIdle(page, timeout = 5000) {
+  await page.waitForLoadState('networkidle', { timeout })
+}
+
+/**
+ * Check that page has no major layout issues
+ * - No elements overflowing viewport horizontally
+ * - No elements with zero dimensions that should be visible
+ * @param {import('@playwright/test').Page} page
+ */
+export async function checkLayoutIssues(page) {
+  const issues = await page.evaluate(() => {
+    const problems = []
+    const viewportWidth = window.innerWidth
+
+    // Check for horizontal overflow
+    if (document.documentElement.scrollWidth > viewportWidth + 10) {
+      problems.push(`Page has horizontal overflow: ${document.documentElement.scrollWidth}px > ${viewportWidth}px`)
+    }
+
+    // Check for elements with issues
+    const allElements = document.querySelectorAll('*')
+    allElements.forEach(el => {
+      const rect = el.getBoundingClientRect()
+      const styles = getComputedStyle(el)
+
+      // Skip hidden elements
+      if (styles.display === 'none' || styles.visibility === 'hidden') return
+
+      // Check for elements extending beyond viewport
+      if (rect.right > viewportWidth + 50) {
+        const id = el.id ? `#${el.id}` : ''
+        const cls = el.className ? `.${String(el.className).split(' ')[0]}` : ''
+        problems.push(`Element ${el.tagName}${id}${cls} extends beyond viewport (right: ${rect.right}px)`)
+      }
+    })
+
+    return problems.slice(0, 5) // Limit to first 5 issues
+  })
+
+  return issues
+}
+
+/**
+ * Check that interactive elements are accessible
+ * @param {import('@playwright/test').Page} page
+ */
+export async function checkAccessibility(page) {
+  const issues = await page.evaluate(() => {
+    const problems = []
+
+    // Check buttons have accessible names
+    const buttons = document.querySelectorAll('button')
+    buttons.forEach(btn => {
+      if (!btn.textContent?.trim() && !btn.getAttribute('aria-label') && !btn.getAttribute('title')) {
+        problems.push(`Button without accessible name: ${btn.outerHTML.slice(0, 100)}`)
+      }
+    })
+
+    // Check images have alt text
+    const images = document.querySelectorAll('img')
+    images.forEach(img => {
+      if (!img.alt && !img.getAttribute('aria-hidden')) {
+        problems.push(`Image without alt text: ${img.src?.slice(-50)}`)
+      }
+    })
+
+    return problems.slice(0, 10)
+  })
+
+  return issues
+}
+
+/**
+ * Take a screenshot with a descriptive name
+ * @param {import('@playwright/test').Page} page
+ * @param {string} name
+ */
+export async function takeScreenshot(page, name) {
+  await page.screenshot({ path: `tests/e2e/screenshots/${name}.png`, fullPage: true })
+}
+
+/**
+ * Check that a page loaded successfully
+ * @param {import('@playwright/test').Page} page
+ * @param {object} options
+ */
+export async function assertPageLoaded(page, options = {}) {
+  const { expectTitle, expectSelector, expectNoErrors = true } = options
+
+  // Check title if provided
+  if (expectTitle) {
+    await expect(page).toHaveTitle(expectTitle)
+  }
+
+  // Check for expected element
+  if (expectSelector) {
+    await expect(page.locator(expectSelector)).toBeVisible({ timeout: 10000 })
+  }
+
+  // Check for no errors
+  if (expectNoErrors) {
+    const errors = await collectPageErrors(page)
+    expect(errors).toHaveLength(0)
+  }
+}
+
+/**
+ * Mock authentication for tests that require login
+ * Sets a test cookie that the app can recognize
+ * @param {import('@playwright/test').Page} page
+ * @param {object} user
+ */
+export async function mockAuth(page, user = { id: 'test-user-123', username: 'TestUser' }) {
+  // Set a cookie that simulates being logged in
+  // Note: This requires the app to support test mode authentication
+  await page.context().addCookies([
+    {
+      name: 'test_auth',
+      value: JSON.stringify(user),
+      domain: 'localhost',
+      path: '/',
+    }
+  ])
+}
+
+/**
+ * Wait for cards to load on the page
+ * Handles pack opening animation by clicking skip button if present
+ * @param {import('@playwright/test').Page} page
+ */
+export async function waitForCardsToLoad(page) {
+  // Give page a moment to render
+  await page.waitForTimeout(500)
+
+  // Try to skip pack opening animation if present (multiple attempts for reliability)
+  for (let attempt = 0; attempt < 5; attempt++) {
+    // Check for skip button or Open All button (indicators of pack opening animation)
+    const skipButton = page.locator('.skip-button, button:has-text(">>")').first()
+    const openAllButton = page.locator('button:has-text("Open All")').first()
+
+    const skipVisible = await skipButton.isVisible().catch(() => false)
+    const openAllVisible = await openAllButton.isVisible().catch(() => false)
+
+    if (skipVisible || openAllVisible) {
+      // Pack opening animation is showing - click skip button
+      if (skipVisible) {
+        await skipButton.click()
+        // Wait for animation to fully transition (can be slow under load)
+        await page.waitForTimeout(1500)
+      } else if (openAllVisible) {
+        // If skip not visible but Open All is, we might be on mobile - look for skip again
+        const mobileSkip = page.locator('button').filter({ hasText: '>>' }).first()
+        if (await mobileSkip.isVisible().catch(() => false)) {
+          await mobileSkip.click()
+          await page.waitForTimeout(1500)
+        }
+      }
+    } else {
+      // No animation detected, break out of retry loop
+      break
+    }
+
+    // Small pause between attempts to let page stabilize
+    await page.waitForTimeout(300)
+  }
+
+  // Wait for card elements to appear
+  // Multiple selectors to handle different page contexts:
+  // - .canvas-card: DeckBuilder card wrapper
+  // - .card-item: SealedPod card wrapper
+  // - .card-image: img element when image is loaded
+  // - .card-placeholder: shown when image hasn't loaded yet
+  // - .set-card: used on the sets page
+  // - .sealed-pod: the SealedPod container (indicates animation is done)
+  await page.waitForSelector('.canvas-card, .card-item, .card-image, .card-placeholder, .set-card, .sealed-pod', { timeout: 30000 })
+}
+
+/**
+ * Get the current viewport size
+ * @param {import('@playwright/test').Page} page
+ */
+export async function getViewportSize(page) {
+  return page.viewportSize()
+}
+
+/**
+ * Check if we're in mobile view
+ * @param {import('@playwright/test').Page} page
+ */
+export async function isMobileView(page) {
+  const size = await getViewportSize(page)
+  return size && size.width <= 768
+}

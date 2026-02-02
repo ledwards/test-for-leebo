@@ -1,0 +1,181 @@
+@import '../styles/animations.css';
+
+.set-selection {
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: rgb(76, 77, 81);
+  background-image: linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%), linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%), linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url("/background-images/bg-texture-crop.png");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 150% auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat-y;
+  background-position: center center, center center, center center, center center;
+  color: white;
+}
+
+/* Back button uses global styles from App.css */
+
+.set-selection h1 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  color: white;
+}
+
+.sets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  /* Use auto-flow dense for normal grid layout */
+  grid-auto-flow: row;
+}
+
+/* Single column on mobile - JS handles reverse sort order (SEC first, SOR last) */
+@media (max-width: 900px) {
+  .sets-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.set-card {
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  isolation: isolate;
+}
+
+.set-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 8px;
+  background: linear-gradient(
+    45deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #0000ff,
+    #4b0082,
+    #9400d3,
+    #ff0000
+  );
+  background-size: 400% 400%;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: rainbow-border 3s linear infinite;
+  pointer-events: none;
+}
+
+.set-card:hover::before {
+  opacity: 1;
+}
+
+.set-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.set-image-container {
+  width: 100%;
+  position: relative;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.set-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.set-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.placeholder-text {
+  font-size: 1.2rem;
+  color: white;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+.placeholder-code {
+  font-size: 0.9rem;
+  color: #999;
+  text-transform: uppercase;
+}
+
+.set-info {
+  padding: 1rem 1.5rem;
+  background: #2a2a2a;
+  height: 80px;
+  min-height: 80px;
+  max-height: 80px;
+  display: flex;
+  align-items: center;
+  border-radius: 0 0 8px 8px;
+  flex-shrink: 0;
+}
+
+.set-info h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800; /* Barlow ExtraBold */
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.5rem;
+}
+
+.error {
+  color: #ff6b6b;
+}
+
+@media (max-width: 768px) {
+  .set-selection {
+    /* Make pattern 2x bigger on mobile (300% instead of 150%) */
+    background-size: 100% 100%, 100% 100%, 100% 100%, 300% auto;
+  }
+
+  .sets-grid {
+    gap: 1.25rem;
+  }
+
+  .set-info {
+    padding: 0.875rem 1.25rem;
+  }
+
+  .set-info h3 {
+    font-size: 1.25rem;
+  }
+}
