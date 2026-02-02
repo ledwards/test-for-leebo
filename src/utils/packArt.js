@@ -28,6 +28,8 @@ const PACK_ART_URLS = {
   LOF: '/pack-art/lof.png',
   // Secrets of Power - Set 6
   SEC: '/pack-art/sec.png',
+  // Lawless Time - Set 7
+  LAW: '/pack-art/law.png',
 }
 
 /**
@@ -47,6 +49,8 @@ const PACK_IMAGE_URLS = {
   LOF: '/pack-images/lof-pack.png',
   // Secrets of Power - Set 6
   SEC: '/pack-images/sec-pack.png',
+  // Lawless Time - Set 7
+  LAW: '/pack-images/law-pack.png',
 }
 
 /**
