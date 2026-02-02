@@ -1,0 +1,50 @@
+/**
+ * FilterWithModal Component
+ *
+ * Combines a filter button with the AspectFilterModal.
+ * Used in both Deck and Pool section headers.
+ * AspectFilterModal gets most props from DeckBuilderContext.
+ */
+
+import Button from '../Button'
+import { AspectFilterModal } from './AspectFilterModal'
+
+export function FilterWithModal({
+  isOpen,
+  onToggle,
+  onClose,
+  mode = 'deck',
+  cardCount,
+  // Only pass props that override context defaults
+  onFilterAspectsExpandedChange,
+}) {
+  return (
+    <div style={{ position: 'relative' }}>
+      <Button
+        variant="toggle"
+        glowColor="blue"
+        active={isOpen}
+        className="filter-button"
+        onClick={(e) => {
+          e.stopPropagation()
+          onToggle?.()
+        }}
+        title="Filter by Aspect"
+        style={{ width: '28px', height: '28px', padding: '4px' }}
+      >
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 5H17M5 10H15M7 15H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      </Button>
+      <AspectFilterModal
+        isOpen={isOpen}
+        onClose={onClose}
+        mode={mode}
+        onFilterAspectsExpandedChange={onFilterAspectsExpandedChange}
+        cardCount={cardCount}
+      />
+    </div>
+  )
+}
+
+export default FilterWithModal
