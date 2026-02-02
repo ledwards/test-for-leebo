@@ -49,3 +49,4 @@ tests/e2e/screenshots/*.png
 src/tests/results.json
 src/qa/results.json
 backup_*.sql
+migrations/.buildstamp

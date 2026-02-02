@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node server.js",
+    "prebuild": "date > migrations/.buildstamp",
     "build": "next build",
     "postbuild": "node scripts/postbuild.js",
     "start": "NODE_ENV=production node server.js",
