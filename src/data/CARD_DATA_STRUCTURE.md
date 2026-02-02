@@ -34,12 +34,32 @@ The file should be a JSON object with a `cards` array:
 
 ## Card Object Properties
 
+### Card Identifiers (IMPORTANT)
+
+Cards have TWO different ID fields that serve different purposes:
+
+| Field | Example | Purpose |
+|-------|---------|---------|
+| `id` | `"42080"` | **Internal ID** - Used as lookup key in the app's card cache. Required for image lookups, data enrichment, etc. This is an internal implementation detail. |
+| `cardId` | `"SEC-1029"` | **External/Display ID** - The canonical card identifier matching printed cards and external systems (SWUDB). Used for deck exports (formatted as `SEC_029` for SWUDB). |
+
+**Why two IDs?**
+- The `id` field is a stable internal key used for fast lookups in our card cache
+- The `cardId` field matches how cards are identified externally (SWUDB, printed cards)
+- When exporting decks, we use `cardId` converted to SWUDB format (underscore, zero-padded)
+
+**Database storage:**
+- `card_generations.card_id` stores the **internal `id`** for image lookups
+- JSON card objects in pools/drafts use `id` as the **internal `id`**
+- The `cardId` field is preserved on card objects for export purposes
+
 ### Required Fields
 
-- **id** (string): Unique identifier for the card (e.g., "SOR-001", "SHD-042")
+- **id** (string): Internal unique identifier (e.g., "42080", "1479")
+- **cardId** (string): External display identifier (e.g., "SEC-1029", "SOR-001")
 - **name** (string): The card's name
-- **set** (string): Set code - one of: `SOR`, `SHD`, `TWI`, `JTL`, `LOF`, `SEC`
-- **rarity** (string): One of: `Common`, `Uncommon`, `Rare`, `Legendary`
+- **set** (string): Set code - one of: `SOR`, `SHD`, `TWI`, `JTL`, `LOF`, `SEC`, `LAW`
+- **rarity** (string): One of: `Common`, `Uncommon`, `Rare`, `Legendary`, `Special`
 - **type** (string): Card type - `Leader`, `Base`, `Unit`, `Event`, `Upgrade`, etc.
 - **isLeader** (boolean): `true` if this is a leader card
 - **isBase** (boolean): `true` if this is a base card
@@ -85,8 +105,10 @@ The file should be a JSON object with a `cards` array:
 ### Leader Card
 ```json
 {
-  "id": "SOR-001",
+  "id": "1479",
+  "cardId": "SOR-001",
   "name": "Luke Skywalker",
+  "subtitle": "Faithful Friend",
   "set": "SOR",
   "rarity": "Legendary",
   "type": "Leader",
@@ -94,15 +116,18 @@ The file should be a JSON object with a `cards` array:
   "cost": 0,
   "isLeader": true,
   "isBase": false,
-  "imageUrl": "https://swudb.com/images/cards/SOR-001.jpg"
+  "variantType": "Normal",
+  "imageUrl": "https://cdn.starwarsunlimited.com/...",
+  "backImageUrl": "https://cdn.starwarsunlimited.com/..."
 }
 ```
 
 ### Base Card
 ```json
 {
-  "id": "SOR-BASE-001",
-  "name": "Rebel Base",
+  "id": "420",
+  "cardId": "SOR-027",
+  "name": "Dagobah Swamp",
   "set": "SOR",
   "rarity": "Common",
   "type": "Base",
@@ -110,14 +135,16 @@ The file should be a JSON object with a `cards` array:
   "cost": 0,
   "isLeader": false,
   "isBase": true,
-  "imageUrl": "https://swudb.com/images/cards/SOR-BASE-001.jpg"
+  "variantType": "Normal",
+  "imageUrl": "https://cdn.starwarsunlimited.com/..."
 }
 ```
 
 ### Unit Card
 ```json
 {
-  "id": "SOR-042",
+  "id": "156",
+  "cardId": "SOR-042",
   "name": "Stormtrooper",
   "set": "SOR",
   "rarity": "Common",
@@ -125,11 +152,32 @@ The file should be a JSON object with a `cards` array:
   "aspects": ["Villainy"],
   "cost": 2,
   "power": 2,
-  "health": 2,
+  "hp": 2,
   "isLeader": false,
   "isBase": false,
-  "traits": ["Trooper"],
-  "imageUrl": "https://swudb.com/images/cards/SOR-042.jpg"
+  "traits": ["Trooper", "Imperial"],
+  "variantType": "Normal",
+  "imageUrl": "https://cdn.starwarsunlimited.com/..."
+}
+```
+
+### Showcase Variant Card
+```json
+{
+  "id": "42080",
+  "cardId": "SEC-1029",
+  "name": "Mon Mothma",
+  "subtitle": "Forming a Coalition",
+  "set": "SEC",
+  "rarity": "Common",
+  "type": "Leader",
+  "aspects": ["Command", "Heroism"],
+  "isLeader": true,
+  "isBase": false,
+  "variantType": "Showcase",
+  "isShowcase": true,
+  "imageUrl": "https://cdn.starwarsunlimited.com/...",
+  "backImageUrl": "https://cdn.starwarsunlimited.com/..."
 }
 ```
 
