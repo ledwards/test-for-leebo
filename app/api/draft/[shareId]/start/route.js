@@ -79,7 +79,12 @@ export async function POST(request, { params }) {
         globalPackIndex++
       }
       // Track leaders separately (no pack_index - they're from leader draft)
+      // SKIP showcase leaders here - they are tracked at pick time with the correct user_id
+      // (fixes bug where all showcases were attributed to host)
       leaders[i].forEach(leader => {
+        if (leader.variantType === 'Showcase') {
+          return // Skip - will be tracked when drafted
+        }
         trackingRecords.push({
           card: leader,
           options: {

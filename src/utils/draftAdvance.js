@@ -7,6 +7,7 @@
 
 import { query, queryRow, queryRows } from '@/lib/db.js'
 import { getPassDirection, getLeaderPassDirection, getNextSeat, getCardsPerDraftPack } from './draftLogic.js'
+import { trackCardGeneration } from './trackGeneration.js'
 
 /**
  * Process all staged picks when all players have selected
@@ -67,6 +68,21 @@ export async function processAllStagedPicks(podId, draftState, pod) {
         pickedLeader.leaderRound = leaderRound
 
         draftedLeaders.push(pickedLeader)
+
+        // Track showcase leaders for the player who drafted them
+        // Skip bots (no user_id) - only track for real users
+        if (pickedLeader.variantType === 'Showcase' && pickedLeader.isLeader && player.user_id) {
+          trackCardGeneration(pickedLeader, {
+            packType: 'leader',
+            sourceType: 'draft',
+            sourceId: podId,
+            sourceShareId: pod.share_id,
+            slotType: 'leader',
+            userId: player.user_id  // The player who actually drafted it!
+          }).catch(err => {
+            console.error('Failed to track showcase leader pick:', err)
+          })
+        }
 
         await query(
           `UPDATE draft_pod_players
