@@ -13,9 +13,9 @@
  * Handles the common pattern where database columns may return JSON strings
  * or already-parsed objects depending on the driver/context.
  *
- * @param {string|object|null|undefined} value - The value to parse
- * @param {*} fallback - Default value if parsing fails or value is nullish (default: null)
- * @returns {*} Parsed object, original value if already an object, or fallback
+ * @param value - The value to parse
+ * @param fallback - Default value if parsing fails or value is nullish (default: null)
+ * @returns Parsed object, original value if already an object, or fallback
  *
  * @example
  * // String JSON - parses it
@@ -34,7 +34,7 @@
  * // Invalid JSON - returns fallback
  * jsonParse('not valid json', { default: true }) // => { default: true }
  */
-export function jsonParse(value, fallback = null) {
+export function jsonParse<T = unknown>(value: string | T | null | undefined, fallback: T | null = null): T | null {
   // Handle nullish values
   if (value === null || value === undefined) {
     return fallback
@@ -48,31 +48,31 @@ export function jsonParse(value, fallback = null) {
     }
 
     try {
-      return JSON.parse(value)
-    } catch (e) {
+      return JSON.parse(value) as T
+    } catch {
       // Invalid JSON - return fallback
       return fallback
     }
   }
 
   // Already an object/array - return as-is
-  return value
+  return value as T
 }
 
 /**
  * Safely stringify a value to JSON.
  * Handles values that may already be strings.
  *
- * @param {*} value - The value to stringify
- * @param {string} fallback - Default value if stringify fails (default: null)
- * @returns {string|null} JSON string or fallback
+ * @param value - The value to stringify
+ * @param fallback - Default value if stringify fails (default: null)
+ * @returns JSON string or fallback
  *
  * @example
  * jsonStringify({ foo: 'bar' }) // => '{"foo":"bar"}'
  * jsonStringify('already a string') // => 'already a string' (returned as-is)
  * jsonStringify(circularRef, '{}') // => '{}'
  */
-export function jsonStringify(value, fallback = null) {
+export function jsonStringify(value: unknown, fallback: string | null = null): string | null {
   if (value === null || value === undefined) {
     return fallback
   }
@@ -84,7 +84,7 @@ export function jsonStringify(value, fallback = null) {
 
   try {
     return JSON.stringify(value)
-  } catch (e) {
+  } catch {
     return fallback
   }
 }
