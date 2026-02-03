@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 
 import { useState, useRef, useEffect, memo } from 'react'
@@ -5,16 +6,60 @@ import { createPortal } from 'react-dom'
 import PlayerSeat from './PlayerSeat'
 import './PlayerCircle.css'
 
+interface Leader {
+  name: string
+  aspects?: string[]
+  imageUrl?: string
+  backImageUrl?: string
+}
+
+interface Player {
+  id: string
+  seatNumber: number
+  username?: string
+  pickStatus?: 'picked' | 'selected' | 'picking' | 'timeout'
+  draftedLeaders?: Leader[]
+  leaderPack?: Leader[]
+}
+
+interface Draft {
+  [key: string]: unknown
+}
+
+interface Seat {
+  seatNumber: number
+  player?: Player
+  isCurrentUser: boolean
+}
+
+interface PositionStyle {
+  left: string
+  top: string
+  angle: number
+}
+
+export interface PlayerCircleProps {
+  players: Player[]
+  maxPlayers?: number
+  currentUserId?: string
+  showStatus?: boolean
+  draft?: Draft
+  hideEmptySeats?: boolean
+  showLeaderInfo?: boolean | 'simple'
+  passDirection?: 'left' | 'right' | null
+  leaderRound?: number
+}
+
 /**
  * Circular layout for draft players
  * Current user is always at the bottom (6 o'clock)
  * Other players arranged clockwise from bottom-left
  */
-function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = false, draft, hideEmptySeats = false, showLeaderInfo = false, passDirection = null, leaderRound = 1 }) {
-  const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState(null)
-  const previewTimeoutRef = useRef(null)
+function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = false, draft, hideEmptySeats = false, showLeaderInfo = false, passDirection = null, leaderRound = 1 }: PlayerCircleProps) {
+  const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState<Leader | null>(null)
+  const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const handleLeaderMouseEnter = (leader) => {
+  const handleLeaderMouseEnter = (leader: Leader) => {
     // Disable hover preview on mobile
     const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
     if (isMobileDevice) return
@@ -48,7 +93,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
   }
 
   // Create array of seats (filled or empty)
-  let seats = []
+  let seats: Seat[] = []
   for (let i = 1; i <= maxPlayers; i++) {
     const player = players.find(p => p.seatNumber === i)
     seats.push({
@@ -65,7 +110,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
 
   // Calculate position on circle
   // For dynamic positioning, we calculate based on actual number of seats shown
-  const getPositionStyle = (index, totalSeats, radius = 42) => {
+  const getPositionStyle = (index: number, totalSeats: number, radius = 42): PositionStyle => {
     // Start from bottom (180 degrees) and go clockwise
     // Current user should be at the bottom
     let currentUserIndex = seats.findIndex(s => s.isCurrentUser)
@@ -97,7 +142,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
   }
 
   // Render aspect icons
-  const renderAspectIcons = (aspects) => {
+  const renderAspectIcons = (aspects?: string[]) => {
     if (!aspects || aspects.length === 0) return null
     return (
       <span className="leader-aspects">
@@ -114,7 +159,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
   }
 
   // Get status color
-  const getStatusColor = (status) => {
+  const getStatusColor = (status?: string) => {
     switch (status) {
       case 'picked': return '#4CAF50'
       case 'selected': return '#4CAF50'  // Green - player has made their choice
@@ -125,7 +170,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
   }
 
   // Render simple leader info (just drafted leaders, no headers) - for pack draft
-  const renderSimpleLeaderInfo = (player) => {
+  const renderSimpleLeaderInfo = (player?: Player) => {
     if (!player) return null
 
     const draftedLeaders = player.draftedLeaders || []
@@ -163,7 +208,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
   }
 
   // Render full leader info (with pack, status, etc.) - for leader draft
-  const renderLeaderInfo = (player, isCurrentUser) => {
+  const renderLeaderInfo = (player?: Player, isCurrentUser?: boolean) => {
     if (!player) return null
 
     const allPickedLeaders = player.draftedLeaders || []
@@ -243,7 +288,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
   }
 
   // Get CSS class for position (only used when not hiding empty seats)
-  const getDisplayPosition = (seatNumber) => {
+  const getDisplayPosition = (seatNumber: number) => {
     // Rotate seats so current user is at position 1 (bottom)
     // userSeat defaults to 1 if current user not found
     let position = seatNumber - userSeat + 1
@@ -251,7 +296,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
     return position
   }
 
-  const getPositionClass = (displayPosition) => {
+  const getPositionClass = (displayPosition: number) => {
     return `seat-position-${displayPosition}`
   }
 

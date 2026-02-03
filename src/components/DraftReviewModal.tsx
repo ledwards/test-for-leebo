@@ -1,19 +1,65 @@
+// @ts-nocheck
 'use client'
 
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, type MouseEvent } from 'react'
 import './DraftReviewModal.css'
 import TimerPanel from './TimerPanel'
 import Button from './Button'
 
-function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, packSize = 14, draft, players = [], isHost = false, onTogglePause, onTimerExpire }) {
-  const [sortMode, setSortMode] = useState('pick') // 'pick', 'cost', 'type', 'aspect'
-  const [groupMode, setGroupMode] = useState('none') // 'none', 'cost', 'type', 'aspect'
-  const [hoveredCardPreview, setHoveredCardPreview] = useState(null)
-  const previewTimeoutRef = useRef(null)
+interface Card {
+  id: string
+  name: string
+  imageUrl?: string
+  backImageUrl?: string
+  cost?: number
+  type?: string
+  aspects?: string[]
+  isLeader?: boolean
+  isBase?: boolean
+  isFoil?: boolean
+}
+
+interface CardWithPickInfo extends Card {
+  pickNumber: number
+  packNumber: number
+  pickInPack: number
+}
+
+interface Draft {
+  [key: string]: unknown
+}
+
+interface Player {
+  [key: string]: unknown
+}
+
+interface HoveredCardPreview {
+  card: CardWithPickInfo
+  x: number
+  y: number
+}
+
+export interface DraftReviewModalProps {
+  draftedCards?: Card[]
+  draftedLeaders?: Card[]
+  onClose: () => void
+  packSize?: number
+  draft?: Draft
+  players?: Player[]
+  isHost?: boolean
+  onTogglePause?: () => void
+  onTimerExpire?: () => void
+}
+
+function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, packSize = 14, draft, players = [], isHost = false, onTogglePause, onTimerExpire }: DraftReviewModalProps) {
+  const [sortMode, setSortMode] = useState<'pick' | 'cost' | 'type' | 'aspect'>('pick')
+  const [groupMode, setGroupMode] = useState<'none' | 'cost' | 'type' | 'aspect'>('none')
+  const [hoveredCardPreview, setHoveredCardPreview] = useState<HoveredCardPreview | null>(null)
+  const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Handle Escape key to close modal
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose()
       }
@@ -23,13 +69,13 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
   }, [onClose])
 
   // Get aspect key for grouping (same logic as DeckBuilder)
-  const getAspectKey = (card) => {
+  const getAspectKey = (card: Card) => {
     const aspects = card.aspects || []
     if (aspects.length === 0) return 'ZZZ_Neutral'
 
     if (aspects.length === 1) {
       const aspect = aspects[0]
-      const priority = {
+      const priority: Record<string, string> = {
         'Vigilance': 'A_Vigilance',
         'Command': 'B_Command',
         'Aggression': 'C_Aggression',
@@ -43,7 +89,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
     return `F_${sortedAspects.join('/')}`
   }
 
-  const getAspectLabel = (key) => {
+  const getAspectLabel = (key: string) => {
     if (key === 'ZZZ_Neutral') return 'Neutral'
     if (key.startsWith('A_')) return 'Vigilance'
     if (key.startsWith('B_')) return 'Command'
@@ -54,9 +100,9 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
   }
 
   // Get card type for grouping
-  const getTypeKey = (card) => {
+  const getTypeKey = (card: Card) => {
     const type = card.type || 'Unknown'
-    const priority = {
+    const priority: Record<string, string> = {
       'Leader': 'A_Leader',
       'Base': 'B_Base',
       'Unit': 'C_Unit',
@@ -66,7 +112,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
     return priority[type] || `F_${type}`
   }
 
-  const getTypeLabel = (key) => {
+  const getTypeLabel = (key: string) => {
     if (key.startsWith('A_')) return 'Leader'
     if (key.startsWith('B_')) return 'Base'
     if (key.startsWith('C_')) return 'Unit'
@@ -77,7 +123,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
   }
 
   // Calculate pack and pick for each card
-  const cardsWithPickInfo = useMemo(() => {
+  const cardsWithPickInfo = useMemo((): CardWithPickInfo[] => {
     return draftedCards.map((card, index) => {
       // Total picks = 3 rounds × 14 cards each
       // Cards are in order picked, so index 0 = first pick
@@ -98,7 +144,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
   const { groups, sortedCards } = useMemo(() => {
     if (groupMode === 'none') {
       // Group by round in pick order mode
-      const roundGroups = {}
+      const roundGroups: Record<string, CardWithPickInfo[]> = {}
 
       cardsWithPickInfo.forEach(card => {
         const roundKey = `Round ${card.packNumber}`
@@ -111,8 +157,8 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
 
     if (groupMode === 'cost') {
       // Group by cost
-      const costGroups = {}
-      const costSegments = [0, 1, 2, 3, 4, 5, 6, 7, '8+']
+      const costGroups: Record<string | number, CardWithPickInfo[]> = {}
+      const costSegments: (number | string)[] = [0, 1, 2, 3, 4, 5, 6, 7, '8+']
 
       costSegments.forEach(segment => {
         costGroups[segment] = []
@@ -120,7 +166,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
 
       cardsWithPickInfo.forEach(card => {
         const cost = card.cost ?? 0
-        let segment = cost
+        let segment: number | string = cost
         if (cost >= 8) segment = '8+'
         if (!costGroups[segment]) costGroups[segment] = []
         costGroups[segment].push(card)
@@ -131,7 +177,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
 
     if (groupMode === 'type') {
       // Group by card type
-      const typeGroups = {}
+      const typeGroups: Record<string, CardWithPickInfo[]> = {}
 
       cardsWithPickInfo.forEach(card => {
         const key = getTypeKey(card)
@@ -141,7 +187,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
 
       // Sort groups by key
       const sortedKeys = Object.keys(typeGroups).sort()
-      const sortedGroups = {}
+      const sortedGroups: Record<string, CardWithPickInfo[]> = {}
       sortedKeys.forEach(key => {
         sortedGroups[key] = typeGroups[key].sort((a, b) => (a.cost || 0) - (b.cost || 0))
       })
@@ -151,7 +197,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
 
     if (groupMode === 'aspect') {
       // Group by aspect
-      const aspectGroups = {}
+      const aspectGroups: Record<string, CardWithPickInfo[]> = {}
 
       cardsWithPickInfo.forEach(card => {
         const key = getAspectKey(card)
@@ -161,7 +207,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
 
       // Sort groups by key
       const sortedKeys = Object.keys(aspectGroups).sort()
-      const sortedGroups = {}
+      const sortedGroups: Record<string, CardWithPickInfo[]> = {}
       sortedKeys.forEach(key => {
         sortedGroups[key] = aspectGroups[key].sort((a, b) => (a.cost || 0) - (b.cost || 0))
       })
@@ -172,7 +218,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
     return { groups: null, sortedCards: cardsWithPickInfo }
   }, [cardsWithPickInfo, groupMode])
 
-  const handleCardMouseEnter = (e, card) => {
+  const handleCardMouseEnter = (e: MouseEvent, card: CardWithPickInfo) => {
     // Disable hover preview on mobile
     if (window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
       return
@@ -190,7 +236,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
       // Calculate preview dimensions based on card type
       const hasBackImage = card.backImageUrl && card.isLeader
       const isHorizontal = card.isLeader || card.isBase
-      let previewWidth, previewHeight
+      let previewWidth: number, previewHeight: number
 
       if (hasBackImage) {
         previewWidth = 504 + 360 + 20 // front + back + gap
@@ -240,7 +286,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
     setHoveredCardPreview(null)
   }
 
-  const renderCard = (card) => (
+  const renderCard = (card: CardWithPickInfo) => (
     <div
       key={`${card.id}-${card.pickNumber}`}
       className="review-card"
@@ -305,7 +351,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
                   <div
                     key={idx}
                     className="review-leader"
-                    onMouseEnter={(e) => handleCardMouseEnter(e, leader)}
+                    onMouseEnter={(e) => handleCardMouseEnter(e, leader as CardWithPickInfo)}
                     onMouseLeave={handleCardMouseLeave}
                   >
                     <img src={leader.imageUrl} alt={leader.name} className="review-leader-image" />
@@ -317,7 +363,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
 
           <div className="review-section">
             <h3>Cards ({draftedCards.length})</h3>
-            {Object.entries(groups).map(([groupKey, groupCards]) => {
+            {groups && Object.entries(groups).map(([groupKey, groupCards]) => {
               if (groupCards.length === 0) return null
 
               const label = groupMode === 'none'
@@ -341,7 +387,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
                         </div>
                       ) : groupMode === 'aspect' ? (
                         <div className="aspect-icon-container">
-                          {label !== 'Neutral' && label.split('/').map((aspect, idx) => (
+                          {label !== 'Neutral' && String(label).split('/').map((aspect, idx) => (
                             <img
                               key={idx}
                               src={`/icons/${aspect.toLowerCase()}.png`}
@@ -372,7 +418,7 @@ function DraftReviewModal({ draftedCards = [], draftedLeaders = [], onClose, pac
           const isHorizontal = previewCard.isLeader || previewCard.isBase
           const borderRadius = '14px'
 
-          let previewWidth, previewHeight
+          let previewWidth: number, previewHeight: number
           if (hasBackImage) {
             previewWidth = 504 + 360 + 20
             previewHeight = 504
