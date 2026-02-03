@@ -5,9 +5,18 @@
  * Used in both Deck and Pool sections of the Grid View.
  */
 
+import type { ReactNode } from 'react'
 import { TypeIcon } from './TypeIcon'
+import type { SortOption } from './SortControls'
 
-export function GroupHeader({ groupKey, count, sortOption, getAspectSymbol }) {
+export interface GroupHeaderProps {
+  groupKey: string
+  count: number
+  sortOption: SortOption
+  getAspectSymbol: (aspect: string, size: string) => ReactNode
+}
+
+export function GroupHeader({ groupKey, count, sortOption, getAspectSymbol }: GroupHeaderProps) {
   if (sortOption === 'cost') {
     const costValue = groupKey === '8+' ? '8+' : groupKey
     return (

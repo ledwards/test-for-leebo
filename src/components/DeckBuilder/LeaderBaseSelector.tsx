@@ -8,19 +8,34 @@
  * Can use DeckBuilderContext or receive props directly.
  */
 
-import { useMemo, useCallback } from 'react'
+import { useMemo, useCallback, type MouseEvent } from 'react'
 import Card from '../Card'
 import { compareByAspectTypeCostName } from '../../services/cards/cardSorting'
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
+import type { CardPosition } from './AspectPenaltyToggle'
+import type { SortOption } from './SortControls'
+
+interface CardData {
+  aspects?: string[]
+  rarity?: string
+  isLeader?: boolean
+  isBase?: boolean
+  [key: string]: unknown
+}
+
+interface CardWithPosition {
+  cardId: string
+  position: CardPosition
+}
 
 // Get aspect combination key for sorting
-const getAspectKey = (card) => {
+const getAspectKey = (card: CardData): string => {
   const aspects = card.aspects || []
   if (aspects.length === 0) return 'ZZZ_Neutral'
 
   if (aspects.length === 1) {
     const aspect = aspects[0]
-    const priority = {
+    const priority: Record<string, string> = {
       'Vigilance': 'A_Vigilance',
       'Command': 'B_Command',
       'Aggression': 'C_Aggression',
@@ -35,8 +50,27 @@ const getAspectKey = (card) => {
   return `H_${sortedAspects.join(' ')}`
 }
 
+export interface LeaderBaseSelectorProps {
+  cardPositions?: Record<string, CardPosition>
+  activeLeader?: string | null
+  setActiveLeader?: (leader: string | null) => void
+  activeBase?: string | null
+  setActiveBase?: (base: string | null) => void
+  selectedCards?: Set<string>
+  hoveredCard?: string | null
+  setHoveredCard?: (card: string | null) => void
+  leadersExpanded?: boolean
+  setLeadersExpanded?: (expanded: boolean) => void
+  basesExpanded?: boolean
+  setBasesExpanded?: (expanded: boolean) => void
+  onCardMouseEnter?: (card: CardPosition['card'], e: MouseEvent) => void
+  onCardMouseLeave?: () => void
+  poolSortOption?: SortOption
+  deckSortOption?: SortOption
+  setShowAspectPenalties?: (show: boolean) => void
+}
+
 export function LeaderBaseSelector({
-  // Props with context fallback
   cardPositions: cardPositionsProp,
   activeLeader: activeLeaderProp,
   setActiveLeader: setActiveLeaderProp,
@@ -45,21 +79,18 @@ export function LeaderBaseSelector({
   selectedCards: selectedCardsProp,
   hoveredCard: hoveredCardProp,
   setHoveredCard: setHoveredCardProp,
-  // Expansion state
   leadersExpanded = true,
   setLeadersExpanded,
   basesExpanded = true,
   setBasesExpanded,
-  // Preview handlers (required as props - not in context)
   onCardMouseEnter,
   onCardMouseLeave,
-  // Options
   poolSortOption,
   deckSortOption,
   setShowAspectPenalties,
-}) {
+}: LeaderBaseSelectorProps) {
   // Try to get values from context
-  let contextValue = null
+  let contextValue: ReturnType<typeof useDeckBuilder> | null = null
   try {
     contextValue = useDeckBuilder()
   } catch {
@@ -72,12 +103,12 @@ export function LeaderBaseSelector({
   const setActiveLeader = setActiveLeaderProp ?? contextValue?.setActiveLeader
   const activeBase = activeBaseProp ?? contextValue?.activeBase
   const setActiveBase = setActiveBaseProp ?? contextValue?.setActiveBase
-  const selectedCards = selectedCardsProp ?? contextValue?.selectedCards ?? new Set()
+  const selectedCards = selectedCardsProp ?? contextValue?.selectedCards ?? new Set<string>()
   const hoveredCard = hoveredCardProp ?? contextValue?.hoveredCard
   const setHoveredCard = setHoveredCardProp ?? contextValue?.setHoveredCard
 
   // Get leaders cards
-  const leadersCards = useMemo(() => {
+  const leadersCards = useMemo((): CardWithPosition[] => {
     return Object.entries(cardPositions)
       .filter(([_, position]) => position.section === 'leaders-bases' && position.visible && position.card.isLeader)
       .map(([cardId, position]) => ({ cardId, position }))
@@ -85,14 +116,14 @@ export function LeaderBaseSelector({
   }, [cardPositions])
 
   // Get bases cards
-  const basesCards = useMemo(() => {
+  const basesCards = useMemo((): CardWithPosition[] => {
     return Object.entries(cardPositions)
       .filter(([_, position]) => position.section === 'leaders-bases' && position.visible && position.card.isBase)
       .map(([cardId, position]) => ({ cardId, position }))
       .sort((a, b) => {
         // Sort by rarity (rare first)
-        const aRarity = a.position.card.rarity
-        const bRarity = b.position.card.rarity
+        const aRarity = a.position.card.rarity as string | undefined
+        const bRarity = b.position.card.rarity as string | undefined
         const aIsRare = aRarity === 'Rare' || aRarity === 'Legendary' || aRarity === 'Special'
         const bIsRare = bRarity === 'Rare' || bRarity === 'Legendary' || bRarity === 'Special'
 
@@ -100,14 +131,14 @@ export function LeaderBaseSelector({
         if (!aIsRare && bIsRare) return 1
 
         // Then by aspect
-        const keyA = getAspectKey(a.position.card)
-        const keyB = getAspectKey(b.position.card)
+        const keyA = getAspectKey(a.position.card as CardData)
+        const keyB = getAspectKey(b.position.card as CardData)
         return keyA.localeCompare(keyB)
       })
   }, [cardPositions])
 
   // Handle leader click
-  const handleLeaderClick = useCallback((cardId) => {
+  const handleLeaderClick = useCallback((cardId: string) => {
     const newActiveLeader = activeLeader === cardId ? null : cardId
     setActiveLeader?.(newActiveLeader)
     // Show aspect penalties when selecting leader in cost mode
@@ -117,13 +148,13 @@ export function LeaderBaseSelector({
   }, [activeLeader, setActiveLeader, poolSortOption, deckSortOption, setShowAspectPenalties])
 
   // Handle base click
-  const handleBaseClick = useCallback((cardId) => {
+  const handleBaseClick = useCallback((cardId: string) => {
     const newActiveBase = activeBase === cardId ? null : cardId
     setActiveBase?.(newActiveBase)
   }, [activeBase, setActiveBase])
 
   // Handle card hover
-  const handleMouseEnter = useCallback((cardId, card, e) => {
+  const handleMouseEnter = useCallback((cardId: string, card: CardPosition['card'], e: MouseEvent) => {
     setHoveredCard?.(cardId)
     onCardMouseEnter?.(card, e)
   }, [setHoveredCard, onCardMouseEnter])

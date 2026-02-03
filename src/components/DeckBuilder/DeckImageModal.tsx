@@ -4,9 +4,20 @@
  * Modal for displaying and downloading deck export images.
  */
 
+import type { MouseEvent } from 'react'
 import Button from '../Button'
 
-export function DeckImageModal({ imageUrl, onClose, poolName, setCode, poolType }) {
+export type PoolType = 'draft' | 'sealed'
+
+export interface DeckImageModalProps {
+  imageUrl: string | null
+  onClose: () => void
+  poolName?: string
+  setCode?: string
+  poolType?: PoolType
+}
+
+export function DeckImageModal({ imageUrl, onClose, poolName, setCode, poolType }: DeckImageModalProps) {
   if (!imageUrl) return null
 
   const handleClose = () => {
@@ -42,7 +53,7 @@ export function DeckImageModal({ imageUrl, onClose, poolName, setCode, poolType 
 
   return (
     <div className="deck-image-modal-overlay" onClick={handleClose}>
-      <div className="deck-image-modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="deck-image-modal-content" onClick={(e: MouseEvent) => e.stopPropagation()}>
         <Button
           variant="icon"
           size="sm"

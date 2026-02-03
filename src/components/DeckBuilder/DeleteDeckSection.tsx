@@ -9,7 +9,16 @@ import Button from '../Button'
 import Modal from '../Modal'
 import { deletePool } from '../../utils/poolApi'
 
-export function DeleteDeckSection({ shareId, isOwner, setErrorMessage, setMessageType }) {
+export type MessageType = 'error' | 'success' | 'info'
+
+export interface DeleteDeckSectionProps {
+  shareId?: string
+  isOwner?: boolean
+  setErrorMessage: (message: string) => void
+  setMessageType: (type: MessageType) => void
+}
+
+export function DeleteDeckSection({ shareId, isOwner, setErrorMessage, setMessageType }: DeleteDeckSectionProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 

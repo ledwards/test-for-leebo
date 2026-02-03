@@ -14,10 +14,36 @@
  */
 
 import { SortControls } from './SortControls'
+import type { SortOption } from './SortControls'
 import { FilterWithModal } from './FilterWithModal'
 import { AspectPenaltyToggle } from './AspectPenaltyToggle'
+import type { CardPosition } from './AspectPenaltyToggle'
 import { BulkMoveButtons } from './BulkMoveButtons'
+import type { BulkMoveMode } from './BulkMoveButtons'
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
+
+export interface SectionHeaderProps {
+  id?: string
+  title: string
+  mode?: BulkMoveMode
+  cardCount: number
+  expanded: boolean
+  onToggleExpanded: () => void
+  sortOption?: SortOption
+  onSortChange?: (value: SortOption) => void
+  filterOpen: boolean
+  onFilterToggle: () => void
+  onFilterClose: () => void
+  // Props with context fallback
+  cardPositions?: Record<string, CardPosition>
+  setCardPositions?: (fn: (prev: Record<string, CardPosition>) => Record<string, CardPosition>) => void
+  activeLeader?: string | null
+  activeBase?: string | null
+  filterAspectsExpanded?: Record<string, boolean>
+  onFilterAspectsExpandedChange?: (expanded: Record<string, boolean>) => void
+  showAspectPenalties?: boolean
+  setShowAspectPenalties?: (show: boolean) => void
+}
 
 export function SectionHeader({
   id,
@@ -40,9 +66,9 @@ export function SectionHeader({
   onFilterAspectsExpandedChange,
   showAspectPenalties: showAspectPenaltiesProp,
   setShowAspectPenalties: setShowAspectPenaltiesProp,
-}) {
+}: SectionHeaderProps) {
   // Try to get values from context
-  let contextValue = null
+  let contextValue: ReturnType<typeof useDeckBuilder> | null = null
   try {
     contextValue = useDeckBuilder()
   } catch {
@@ -68,11 +94,11 @@ export function SectionHeader({
     fontSize: '1.2rem',
     fontWeight: 600,
     color: 'rgba(255, 255, 255, 0.9)',
-    textTransform: 'uppercase',
+    textTransform: 'uppercase' as const,
     letterSpacing: '1px',
     paddingBottom: '0.25rem',
     borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-    userSelect: 'none',
+    userSelect: 'none' as const,
   }
 
   return (
@@ -102,7 +128,7 @@ export function SectionHeader({
         onFilterAspectsExpandedChange={onFilterAspectsExpandedChange}
         cardCount={cardCount}
       />
-      <AspectPenaltyToggle sortOption={sortOption} />
+      <AspectPenaltyToggle sortOption={sortOption || 'aspect'} />
       <BulkMoveButtons mode={mode} />
     </div>
   )

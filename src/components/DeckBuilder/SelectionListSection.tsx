@@ -5,34 +5,62 @@
  * Used in List View mode for selecting the active leader or base.
  */
 
+import type { ReactNode, MouseEvent, ChangeEvent } from 'react'
 import { ListTableHeader } from './ListTableHeader'
+import type { TableSortMap } from './ListTableHeader'
 import CostIcon from '../CostIcon'
 import { getRarityColor } from '../../utils/aspectColors'
 
+interface CardData {
+  name?: string
+  subtitle?: string
+  cost?: number
+  rarity?: string
+  isBase?: boolean
+  [key: string]: unknown
+}
+
+interface CardPosition {
+  cardId: string
+  card: CardData
+}
+
+export interface SelectionListSectionProps {
+  title: string
+  sectionId: string
+  radioName: string
+  positions: CardPosition[]
+  selectedId: string | null
+  onSelect: (cardId: string | null) => void
+  tableSort: TableSortMap
+  onSort: (sectionId: string, field: string) => void
+  defaultSort: (a: CardData, b: CardData) => number
+  sortTableData: (a: CardData, b: CardData, field: string, direction: 'asc' | 'desc') => number
+  expanded: boolean
+  onToggleExpanded: () => void
+  getAspectIcons: (card: CardData) => ReactNode[]
+  onCardHover: (cardId: string, card: CardData, e: MouseEvent) => void
+  onCardLeave: () => void
+}
+
 export function SelectionListSection({
-  // Section configuration
   title,
   sectionId,
   radioName,
-  // Data
   positions,
   selectedId,
   onSelect,
-  // Table sorting
   tableSort,
   onSort,
   defaultSort,
   sortTableData,
-  // UI state
   expanded,
   onToggleExpanded,
-  // Helpers
   getAspectIcons,
-  // Hover handlers
   onCardHover,
   onCardLeave,
-}) {
-  const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' }
+}: SelectionListSectionProps) {
+  const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' as const }
 
   const sortedPositions = [...positions].sort((a, b) => {
     if (!sectionSort.field) {
@@ -80,7 +108,7 @@ export function SelectionListSection({
                       type="radio"
                       name={radioName}
                       checked={isSelected}
-                      onChange={(e) => {
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
                         if (e.target.checked) {
                           onSelect(cardId)
                         } else {

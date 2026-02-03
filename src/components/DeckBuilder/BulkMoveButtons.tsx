@@ -10,16 +10,26 @@
  * Can use DeckBuilderContext or receive props directly.
  */
 
+import type { MouseEvent } from 'react'
 import Button from '../Button'
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
+import type { CardPosition } from './AspectPenaltyToggle'
+
+export type BulkMoveMode = 'deck' | 'pool'
+
+export interface BulkMoveButtonsProps {
+  cardPositions?: Record<string, CardPosition>
+  setCardPositions?: (fn: (prev: Record<string, CardPosition>) => Record<string, CardPosition>) => void
+  mode?: BulkMoveMode
+}
 
 export function BulkMoveButtons({
   cardPositions: cardPositionsProp,
   setCardPositions: setCardPositionsProp,
   mode = 'deck',
-}) {
+}: BulkMoveButtonsProps) {
   // Try to get values from context
-  let contextValue = null
+  let contextValue: ReturnType<typeof useDeckBuilder> | null = null
   try {
     contextValue = useDeckBuilder()
   } catch {
@@ -35,11 +45,11 @@ export function BulkMoveButtons({
   const isDeckEmpty = deckCardCount === 0
   const isPoolEmpty = poolCardCount === 0
 
-  const handleAddAllToDecK = (e) => {
+  const handleAddAllToDecK = (e: MouseEvent) => {
     e.stopPropagation()
     const poolCards = Object.entries(cardPositions)
       .filter(([_, position]) => (position.section === 'sideboard' || position.enabled === false) && position.visible && !position.card.isBase && !position.card.isLeader)
-    setCardPositions(prev => {
+    setCardPositions?.(prev => {
       const updated = { ...prev }
       poolCards.forEach(([cardId]) => {
         updated[cardId] = { ...updated[cardId], section: 'deck', enabled: true }
@@ -48,11 +58,11 @@ export function BulkMoveButtons({
     })
   }
 
-  const handleRemoveAllFromDeck = (e) => {
+  const handleRemoveAllFromDeck = (e: MouseEvent) => {
     e.stopPropagation()
     const deckCards = Object.entries(cardPositions)
       .filter(([_, position]) => position.section === 'deck' && position.visible && !position.card.isBase && !position.card.isLeader && position.enabled !== false)
-    setCardPositions(prev => {
+    setCardPositions?.(prev => {
       const updated = { ...prev }
       deckCards.forEach(([cardId]) => {
         updated[cardId] = { ...updated[cardId], section: 'sideboard', enabled: false }

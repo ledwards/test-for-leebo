@@ -6,8 +6,19 @@
  * AspectFilterModal gets most props from DeckBuilderContext.
  */
 
+import type { MouseEvent } from 'react'
 import Button from '../Button'
 import { AspectFilterModal } from './AspectFilterModal'
+import type { BulkMoveMode } from './BulkMoveButtons'
+
+export interface FilterWithModalProps {
+  isOpen: boolean
+  onToggle?: () => void
+  onClose?: () => void
+  mode?: BulkMoveMode
+  cardCount?: number
+  onFilterAspectsExpandedChange?: (fn: (prev: Record<string, boolean>) => Record<string, boolean>) => void
+}
 
 export function FilterWithModal({
   isOpen,
@@ -15,9 +26,8 @@ export function FilterWithModal({
   onClose,
   mode = 'deck',
   cardCount,
-  // Only pass props that override context defaults
   onFilterAspectsExpandedChange,
-}) {
+}: FilterWithModalProps) {
   return (
     <div style={{ position: 'relative' }}>
       <Button
@@ -25,7 +35,7 @@ export function FilterWithModal({
         glowColor="blue"
         active={isOpen}
         className="filter-button"
-        onClick={(e) => {
+        onClick={(e: MouseEvent) => {
           e.stopPropagation()
           onToggle?.()
         }}

@@ -13,22 +13,40 @@
  *   <AspectFilterModal isOpen={true} mode="deck" />
  */
 
+import type { MouseEvent } from 'react'
 import Button from '../Button'
 import AspectIcon from '../AspectIcon'
 import { calculateAspectPenalty } from '../../services/cards/aspectPenalties'
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
+import type { CardPosition } from './AspectPenaltyToggle'
+import type { BulkMoveMode } from './BulkMoveButtons'
+
+type AspectSize = 'small' | 'medium' | 'large'
+type IconSize = 'sm' | 'md' | 'lg'
 
 // Helper to get aspect symbol - wraps AspectIcon for inline display
-const getAspectSymbol = (aspect, size = 'medium') => {
-  const sizeMap = { 'small': 'sm', 'medium': 'md', 'large': 'lg' }
+const getAspectSymbol = (aspect: string, size: AspectSize = 'medium') => {
+  const sizeMap: Record<AspectSize, IconSize> = { 'small': 'sm', 'medium': 'md', 'large': 'lg' }
   return <AspectIcon aspect={aspect} size={sizeMap[size] || 'md'} />
+}
+
+export interface AspectFilterModalProps {
+  isOpen: boolean
+  onClose?: () => void
+  mode?: BulkMoveMode
+  cardPositions?: Record<string, CardPosition>
+  onMoveCards?: (fn: (prev: Record<string, CardPosition>) => Record<string, CardPosition>) => void
+  activeLeader?: string | null
+  activeBase?: string | null
+  filterAspectsExpanded?: Record<string, boolean>
+  onFilterAspectsExpandedChange?: (fn: (prev: Record<string, boolean>) => Record<string, boolean>) => void
+  cardCount?: number
 }
 
 export function AspectFilterModal({
   isOpen,
   onClose,
-  mode = 'deck', // 'deck' or 'pool'
-  // Props can be passed directly or will be read from context
+  mode = 'deck',
   cardPositions: cardPositionsProp,
   onMoveCards: onMoveCardsProp,
   activeLeader: activeLeaderProp,
@@ -36,9 +54,9 @@ export function AspectFilterModal({
   filterAspectsExpanded: filterAspectsExpandedProp,
   onFilterAspectsExpandedChange: onFilterAspectsExpandedChangeProp,
   cardCount: cardCountProp,
-}) {
+}: AspectFilterModalProps) {
   // Try to get values from context, fall back to props
-  let contextValue = null
+  let contextValue: ReturnType<typeof useDeckBuilder> | null = null
   try {
     contextValue = useDeckBuilder()
   } catch {
@@ -72,23 +90,26 @@ export function AspectFilterModal({
   const leaderCard = activeLeader && cardPositions[activeLeader]?.card
   const baseCard = activeBase && cardPositions[activeBase]?.card
 
+  type CardEntry = [string, CardPosition]
+  type FilterFn = (pos: CardPosition) => boolean
+
   // Helper to get cards in deck section
-  const getDeckCards = (filterFn = () => true) => {
+  const getDeckCards = (filterFn: FilterFn = () => true): CardEntry[] => {
     return Object.entries(cardPositions).filter(([_, pos]) =>
       pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false && filterFn(pos)
     )
   }
 
   // Helper to get cards in pool section
-  const getPoolCards = (filterFn = () => true) => {
+  const getPoolCards = (filterFn: FilterFn = () => true): CardEntry[] => {
     return Object.entries(cardPositions).filter(([_, pos]) =>
       (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader && filterFn(pos)
     )
   }
 
   // Move cards to deck
-  const moveToDeck = (cardIds) => {
-    onMoveCards(prev => {
+  const moveToDeck = (cardIds: string[]) => {
+    onMoveCards?.(prev => {
       const updated = { ...prev }
       cardIds.forEach(cardId => {
         updated[cardId] = { ...updated[cardId], section: 'deck', enabled: true }
@@ -98,8 +119,8 @@ export function AspectFilterModal({
   }
 
   // Move cards to pool
-  const moveToPool = (cardIds) => {
-    onMoveCards(prev => {
+  const moveToPool = (cardIds: string[]) => {
+    onMoveCards?.(prev => {
       const updated = { ...prev }
       cardIds.forEach(cardId => {
         updated[cardId] = { ...updated[cardId], section: 'sideboard', enabled: false }
@@ -109,11 +130,11 @@ export function AspectFilterModal({
   }
 
   // Get cards for aspect combo
-  const getCardsForAspectCombo = (aspects) => {
+  const getCardsForAspectCombo = (aspects: string[]) => {
     const sortedKey = [...aspects].sort().join('|')
     return {
-      deck: getDeckCards(pos => [...(pos.card.aspects || [])].sort().join('|') === sortedKey),
-      pool: getPoolCards(pos => [...(pos.card.aspects || [])].sort().join('|') === sortedKey)
+      deck: getDeckCards(pos => [...(pos.card.aspects as string[] || [])].sort().join('|') === sortedKey),
+      pool: getPoolCards(pos => [...(pos.card.aspects as string[] || [])].sort().join('|') === sortedKey)
     }
   }
 
@@ -121,7 +142,7 @@ export function AspectFilterModal({
   const renderInOutAspectFilters = () => {
     if (!activeLeader || !activeBase || !leaderCard || !baseCard) return null
 
-    const myAspects = [...(leaderCard.aspects || []), ...(baseCard.aspects || [])]
+    const myAspects = [...(leaderCard.aspects as string[] || []), ...(baseCard.aspects as string[] || [])]
     const allAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Villainy', 'Heroism']
     const outAspects = allAspects.filter(a => !myAspects.includes(a))
 
@@ -133,7 +154,6 @@ export function AspectFilterModal({
     const outAspectPoolCards = getPoolCards(pos => calculateAspectPenalty(pos.card, leaderCard, baseCard) > 0)
     const outAspectTotal = outAspectDeckCards.length + outAspectPoolCards.length
 
-    // For deck mode: check if all in deck. For pool mode: check if all in pool.
     const inAspectAllChecked = isDeckMode
       ? (inAspectTotal > 0 && inAspectDeckCards.length === inAspectTotal)
       : (inAspectTotal > 0 && inAspectPoolCards.length === inAspectTotal)
@@ -210,7 +230,6 @@ export function AspectFilterModal({
   // Render hierarchical aspect filters for color aspects
   const renderColorAspectFilters = () => {
     return ['Vigilance', 'Command', 'Aggression', 'Cunning'].map(aspect => {
-      // Sub-groups: Aspect+Villainy, Aspect+Heroism, Double Aspect, Aspect (mono)
       const subGroups = [
         { key: `${aspect}|Villainy`, label: `${aspect} + Villainy`, aspects: [aspect, 'Villainy'] },
         { key: `${aspect}|Heroism`, label: `${aspect} + Heroism`, aspects: [aspect, 'Heroism'] },
@@ -218,7 +237,6 @@ export function AspectFilterModal({
         { key: aspect, label: `${aspect} (mono)`, aspects: [aspect] }
       ]
 
-      // Calculate totals
       let parentDeckCount = 0, parentPoolCount = 0, parentTotalCount = 0
       const validSubGroups = subGroups.map(sg => {
         const cards = getCardsForAspectCombo(sg.aspects)
@@ -264,7 +282,7 @@ export function AspectFilterModal({
         <div key={aspect} style={{ marginBottom: '0.25rem' }}>
           <div
             style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.2rem', color: 'white', fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none' }}
-            onClick={() => onFilterAspectsExpandedChange(prev => ({ ...prev, [aspect]: !isExpanded }))}
+            onClick={() => onFilterAspectsExpandedChange?.(prev => ({ ...prev, [aspect]: !isExpanded }))}
           >
             <span style={{ fontSize: '0.7rem', width: '12px' }}>
               {isExpanded ? '▼' : '▶'}
@@ -281,7 +299,6 @@ export function AspectFilterModal({
             <span style={{ textTransform: 'uppercase' }}>{aspect}</span>
             <span style={{ marginLeft: 'auto', opacity: 0.6, fontSize: '0.75rem' }}>{displayCount}/{parentTotalCount}</span>
           </div>
-          {/* Sub-groups - only show when expanded */}
           {isExpanded && validSubGroups.map(sg => {
             const sgDisplayCount = isDeckMode ? sg.deckCount : sg.poolCount
             const sgAllChecked = isDeckMode
@@ -329,18 +346,17 @@ export function AspectFilterModal({
       const getCardsForFlatAspect = () => {
         if (aspect === 'Neutral') {
           return {
-            deck: getDeckCards(pos => !pos.card.aspects || pos.card.aspects.length === 0),
-            pool: getPoolCards(pos => !pos.card.aspects || pos.card.aspects.length === 0)
+            deck: getDeckCards(pos => !pos.card.aspects || (pos.card.aspects as string[]).length === 0),
+            pool: getPoolCards(pos => !pos.card.aspects || (pos.card.aspects as string[]).length === 0)
           }
         }
-        // For Villainy/Heroism: mono or double
         return {
           deck: getDeckCards(pos => {
-            const aspects = pos.card.aspects || []
+            const aspects = (pos.card.aspects as string[]) || []
             return aspects.length > 0 && aspects.every(a => a === aspect)
           }),
           pool: getPoolCards(pos => {
-            const aspects = pos.card.aspects || []
+            const aspects = (pos.card.aspects as string[]) || []
             return aspects.length > 0 && aspects.every(a => a === aspect)
           })
         }
@@ -351,7 +367,6 @@ export function AspectFilterModal({
       const poolCount = cards.pool.length
       const totalCount = deckCount + poolCount
 
-      // Only hide Villainy/Heroism when 0/0, always show Neutral
       if (totalCount === 0 && aspect !== 'Neutral') return null
 
       const displayCount = isDeckMode ? deckCount : poolCount
@@ -422,7 +437,7 @@ export function AspectFilterModal({
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           textTransform: 'none'
         }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: MouseEvent) => e.stopPropagation()}
       >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '0.5rem' }}>

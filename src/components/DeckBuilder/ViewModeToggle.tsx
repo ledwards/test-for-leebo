@@ -4,9 +4,19 @@
  * Toggle button between grid (playmat) and list (table) views.
  */
 
+import type { MouseEvent } from 'react'
 import Button from '../Button'
 
-export function ViewModeToggle({ viewMode, setViewMode, showNavTooltip, hideTooltip }) {
+export type ViewMode = 'grid' | 'list'
+
+export interface ViewModeToggleProps {
+  viewMode: ViewMode
+  setViewMode: (mode: ViewMode) => void
+  showNavTooltip: (text: string, e: MouseEvent) => void
+  hideTooltip: () => void
+}
+
+export function ViewModeToggle({ viewMode, setViewMode, showNavTooltip, hideTooltip }: ViewModeToggleProps) {
   return (
     <div className="view-controls">
       <Button
