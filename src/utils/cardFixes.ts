@@ -7,19 +7,49 @@
  */
 
 import { cardFixes, batchFixes, customTransforms } from '../../scripts/cardFixes.js'
+import type { RawCard } from './cardData.js'
+
+interface CardFix {
+  id: string
+  field: string
+  value: unknown
+}
+
+interface BatchFix {
+  field: string
+  condition: (card: RawCard) => boolean
+  value: unknown
+}
+
+interface CustomTransform {
+  isArrayTransform?: boolean
+  transform: (cardOrCards: RawCard | RawCard[]) => RawCard | RawCard[]
+}
+
+interface CardData {
+  cards: RawCard[]
+  metadata?: Record<string, unknown>
+}
+
+interface FixStats {
+  individualFixes: number
+  batchFixes: number
+  customTransforms: number
+  total: number
+}
 
 /**
  * Apply individual card fixes
- * @param {Array} cards - Array of card objects
- * @returns {number} Number of fixes applied
+ * @param cards - Array of card objects
+ * @returns Number of fixes applied
  */
-function applyIndividualFixes(cards) {
+function applyIndividualFixes(cards: RawCard[]): number {
   let fixCount = 0
 
-  cardFixes.forEach(fix => {
+  ;(cardFixes as CardFix[]).forEach(fix => {
     const card = cards.find(c => c.id === fix.id)
     if (card) {
-      card[fix.field] = fix.value
+      (card as unknown as Record<string, unknown>)[fix.field] = fix.value
       fixCount++
     }
   })
@@ -29,43 +59,38 @@ function applyIndividualFixes(cards) {
 
 /**
  * Apply batch fixes based on conditions
- * @param {Array} cards - Array of card objects
- * @returns {number} Number of fixes applied
+ * @param cards - Array of card objects
+ * @returns Number of fixes applied
  */
-function applyBatchFixes(cards) {
+function applyBatchFixes(cards: RawCard[]): number {
   let fixCount = 0
 
-  batchFixes.forEach(batchFix => {
+  ;(batchFixes as BatchFix[]).forEach(batchFix => {
     cards.forEach(card => {
       if (batchFix.condition(card)) {
-        const oldValue = card[batchFix.field]
-        card[batchFix.field] = batchFix.value
+        (card as unknown as Record<string, unknown>)[batchFix.field] = batchFix.value
         fixCount++
-
-
       }
     })
   })
-
-
 
   return fixCount
 }
 
 /**
  * Apply custom transformation functions
- * @param {Array} cards - Array of card objects
- * @returns {number} Number of cards transformed
+ * @param cards - Array of card objects
+ * @returns Number of cards transformed
  */
-function applyCustomTransforms(cards) {
+function applyCustomTransforms(cards: RawCard[]): number {
   let transformCount = 0
   let currentCards = cards
 
-  customTransforms.forEach(transform => {
+  ;(customTransforms as CustomTransform[]).forEach(transform => {
     // Check if this is an array-level transform
     if (transform.isArrayTransform) {
       const originalLength = currentCards.length
-      currentCards = transform.transform(currentCards)
+      currentCards = transform.transform(currentCards) as RawCard[]
       const newLength = currentCards.length
 
       // Count how many cards were filtered out
@@ -76,7 +101,7 @@ function applyCustomTransforms(cards) {
       // Per-card transform
       currentCards.forEach((card, index) => {
         const original = JSON.stringify(card)
-        const transformed = transform.transform(card)
+        const transformed = transform.transform(card) as RawCard
         const modified = JSON.stringify(transformed)
 
         if (original !== modified) {
@@ -98,16 +123,16 @@ function applyCustomTransforms(cards) {
  * Apply all fixes to card data
  * This is the main entry point called by cardData.js
  *
- * @param {Object} cardData - Raw card data from JSON { cards: [], metadata: {} }
- * @returns {Object} Fixed card data with same structure
+ * @param cardData - Raw card data from JSON { cards: [], metadata: {} }
+ * @returns Fixed card data with same structure
  */
-export function applyCardFixes(cardData) {
+export function applyCardFixes(cardData: CardData | RawCard[]): CardData {
   // Handle both formats: { cards: [...] } or just [...]
   const rawCards = Array.isArray(cardData) ? cardData : (cardData.cards || [])
   const metadata = Array.isArray(cardData) ? {} : (cardData.metadata || {})
 
   // Clone the data to avoid mutations of the imported module
-  const cards = JSON.parse(JSON.stringify(rawCards))
+  const cards: RawCard[] = JSON.parse(JSON.stringify(rawCards))
 
   if (cards.length === 0) {
     return { cards, metadata }
@@ -125,7 +150,7 @@ export function applyCardFixes(cardData) {
   totalFixes += batchFixCount
 
   // Apply custom transforms
-  const transformCount = applyCustomTransforms(cards)
+  applyCustomTransforms(cards)
 
   return {
     cards,
@@ -139,13 +164,13 @@ export function applyCardFixes(cardData) {
 
 /**
  * Get statistics about available fixes (useful for debugging)
- * @returns {Object} Stats about configured fixes
+ * @returns Stats about configured fixes
  */
-export function getFixStats() {
+export function getFixStats(): FixStats {
   return {
-    individualFixes: cardFixes.length,
-    batchFixes: batchFixes.length,
-    customTransforms: customTransforms.length,
-    total: cardFixes.length + batchFixes.length + customTransforms.length,
+    individualFixes: (cardFixes as CardFix[]).length,
+    batchFixes: (batchFixes as BatchFix[]).length,
+    customTransforms: (customTransforms as CustomTransform[]).length,
+    total: (cardFixes as CardFix[]).length + (batchFixes as BatchFix[]).length + (customTransforms as CustomTransform[]).length,
   }
 }
