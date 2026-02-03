@@ -69,18 +69,18 @@ export async function processAllStagedPicks(podId, draftState, pod) {
 
         draftedLeaders.push(pickedLeader)
 
-        // Track showcase leaders for the player who drafted them
+        // Track leader pick with correct attribution
         // Skip bots (no user_id) - only track for real users
-        if (pickedLeader.variantType === 'Showcase' && pickedLeader.isLeader && player.user_id) {
+        if (player.user_id) {
           trackCardGeneration(pickedLeader, {
             packType: 'leader',
             sourceType: 'draft',
             sourceId: podId,
             sourceShareId: pod.share_id,
             slotType: 'leader',
-            userId: player.user_id  // The player who actually drafted it!
+            userId: player.user_id
           }).catch(err => {
-            console.error('Failed to track showcase leader pick:', err)
+            console.error('Failed to track leader pick:', err)
           })
         }
 
@@ -131,6 +131,21 @@ export async function processAllStagedPicks(podId, draftState, pod) {
         pickedCard.pickInPack = pickInPack
 
         draftedCards.push(pickedCard)
+
+        // Track card pick with correct attribution
+        // Skip bots (no user_id) - only track for real users
+        if (player.user_id) {
+          trackCardGeneration(pickedCard, {
+            packType: 'booster',
+            sourceType: 'draft',
+            sourceId: podId,
+            sourceShareId: pod.share_id,
+            slotType: pickedCard.isLeader ? 'leader' : (pickedCard.isBase ? 'base' : 'card'),
+            userId: player.user_id
+          }).catch(err => {
+            console.error('Failed to track card pick:', err)
+          })
+        }
 
         await query(
           `UPDATE draft_pod_players
