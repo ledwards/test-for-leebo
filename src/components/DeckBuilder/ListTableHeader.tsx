@@ -5,19 +5,34 @@
  * Displays column headers with sort arrows based on current sort state.
  */
 
-/**
- * Table header row with sortable columns.
- *
- * @param {Object} props
- * @param {string} props.sectionId - Section identifier for sorting
- * @param {Object} props.tableSort - Current sort state { field, direction }
- * @param {function} props.onSort - Handler for column sort clicks
- * @param {Object[]} props.columns - Column definitions [{ field, label, className? }]
- * @param {boolean} props.showCheckbox - Whether to show checkbox column
- * @param {boolean} props.checkboxVisible - Whether checkbox is visible (vs hidden placeholder)
- * @param {boolean} props.checkboxChecked - Whether checkbox is checked (for functional checkboxes)
- * @param {function} props.onCheckboxChange - Handler for checkbox changes (makes checkbox functional)
- */
+import type { ChangeEvent } from 'react'
+
+export interface TableSortState {
+  field: string | null
+  direction: 'asc' | 'desc'
+}
+
+export interface TableSortMap {
+  [sectionId: string]: TableSortState
+}
+
+export interface ColumnDefinition {
+  field: string
+  label: string
+  className?: string
+}
+
+export interface ListTableHeaderProps {
+  sectionId: string
+  tableSort: TableSortMap
+  onSort: (sectionId: string, field: string) => void
+  columns: ColumnDefinition[]
+  showCheckbox?: boolean
+  checkboxVisible?: boolean
+  checkboxChecked?: boolean
+  onCheckboxChange?: ((e: ChangeEvent<HTMLInputElement>) => void) | null
+}
+
 export function ListTableHeader({
   sectionId,
   tableSort,
@@ -27,10 +42,10 @@ export function ListTableHeader({
   checkboxVisible = true,
   checkboxChecked = false,
   onCheckboxChange = null,
-}) {
+}: ListTableHeaderProps) {
   const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' }
 
-  const getSortArrow = (field) => {
+  const getSortArrow = (field: string) => {
     if (sectionSort.field !== field) {
       return <span className="sort-arrow">↕</span>
     }

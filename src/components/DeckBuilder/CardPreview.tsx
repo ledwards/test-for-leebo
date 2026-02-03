@@ -5,8 +5,27 @@
  * Shows both front and back for leaders with back images.
  */
 
+export interface PreviewCard {
+  name?: string
+  imageUrl?: string
+  backImageUrl?: string
+  isLeader?: boolean
+  isBase?: boolean
+  isFoil?: boolean
+  isShowcase?: boolean
+  rarity?: string
+}
+
+export interface CardPreviewProps {
+  card: PreviewCard | null
+  x: number
+  y: number
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
+}
+
 // Helper to get rarity color for placeholder cards
-const getRarityColor = (rarity) => {
+const getRarityColor = (rarity?: string): string => {
   switch (rarity) {
     case 'Common': return '#999'
     case 'Uncommon': return '#4CAF50'
@@ -22,7 +41,7 @@ export function CardPreview({
   y,
   onMouseEnter,
   onMouseLeave,
-}) {
+}: CardPreviewProps) {
   if (!card) return null
 
   const hasBackImage = card.backImageUrl && card.isLeader
@@ -32,7 +51,7 @@ export function CardPreview({
   // Calculate dimensions
   // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
   // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
-  let previewWidth, previewHeight
+  let previewWidth: number, previewHeight: number
   if (hasBackImage) {
     // Leader with back: side by side (horizontal front + vertical back)
     previewWidth = 504 + 360 + 20 // 504px front + 360px back + 20px gap

@@ -5,9 +5,36 @@
  * Supports grouping by cost or aspect.
  */
 
+import type { ReactNode, MouseEvent, ChangeEvent } from 'react'
 import CostIcon from '../CostIcon'
 import { getRarityColor } from '../../utils/aspectColors'
 import { ListTableHeader } from './ListTableHeader'
+import type { TableSortMap } from './ListTableHeader'
+import type { SortOption } from './SortControls'
+
+interface CardData {
+  name?: string
+  subtitle?: string
+  cost?: number
+  rarity?: string
+  isBase?: boolean
+  isLeader?: boolean
+  [key: string]: unknown
+}
+
+interface CardPositionData {
+  section: string
+  visible?: boolean
+  enabled?: boolean
+  card: CardData
+  x?: number
+  y?: number
+}
+
+interface CardWithData {
+  cardId: string
+  card: CardData
+}
 
 // Column configurations
 const DECK_COLUMNS = [
@@ -25,43 +52,61 @@ const SIDEBOARD_COLUMNS = [
   { field: 'rarity', label: 'Rarity' },
 ]
 
+export interface PoolListSectionProps {
+  cardPositions: Record<string, CardPositionData>
+  setCardPositions: (fn: (prev: Record<string, CardPositionData>) => Record<string, CardPositionData>) => void
+  deckSortOption: SortOption
+  isDraftMode: boolean
+  tableSort: TableSortMap
+  handleTableSort: (sectionId: string, field: string) => void
+  defaultSort: (a: CardData, b: CardData) => number
+  sortTableData: (a: CardData, b: CardData, field: string, direction: 'asc' | 'desc') => number
+  getAspectIcons: (card: CardData) => ReactNode[]
+  getDefaultAspectSortKey: (card: CardData) => string
+  getFormattedType: (card: CardData) => string
+  getAspectCombinationKey: (card: CardData) => string
+  getAspectCombinationDisplayName: (key: string) => string
+  getAspectCombinationIcons: (key: string) => ReactNode
+  deckCostSectionsExpanded: Record<string | number, boolean>
+  setDeckCostSectionsExpanded: (fn: (prev: Record<string | number, boolean>) => Record<string | number, boolean>) => void
+  deckAspectSectionsExpanded: Record<string, boolean>
+  setDeckAspectSectionsExpanded: (fn: (prev: Record<string, boolean>) => Record<string, boolean>) => void
+  onCardHover: (cardId: string, card: CardData, e: MouseEvent) => void
+  onCardLeave: () => void
+}
+
 export function PoolListSection({
-  // Data
   cardPositions,
   setCardPositions,
   deckSortOption,
   isDraftMode,
-  // Sorting
   tableSort,
   handleTableSort,
   defaultSort,
   sortTableData,
-  // Helpers
   getAspectIcons,
   getDefaultAspectSortKey,
   getFormattedType,
   getAspectCombinationKey,
   getAspectCombinationDisplayName,
   getAspectCombinationIcons,
-  // Expansion state
   deckCostSectionsExpanded,
   setDeckCostSectionsExpanded,
   deckAspectSectionsExpanded,
   setDeckAspectSectionsExpanded,
-  // Hover handlers
   onCardHover,
   onCardLeave,
-}) {
-  const deckCardPositions = Object.entries(cardPositions)
+}: PoolListSectionProps) {
+  const deckCardPositions: CardWithData[] = Object.entries(cardPositions)
     .filter(([_, pos]) => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false)
     .map(([cardId, pos]) => ({ cardId, card: pos.card }))
 
-  const sideboardCardPositions = Object.entries(cardPositions)
+  const sideboardCardPositions: CardWithData[] = Object.entries(cardPositions)
     .filter(([_, pos]) => (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card.isBase && !pos.card.isLeader)
     .map(([cardId, pos]) => ({ cardId, card: pos.card }))
 
   // Render card row for deck table
-  const renderDeckCardRow = (cardId, card, idx, keyPrefix) => {
+  const renderDeckCardRow = (cardId: string, card: CardData, idx: number, keyPrefix: string) => {
     const aspectSymbols = getAspectIcons(card)
     return (
       <tr key={`${keyPrefix}-${cardId}-${idx}`}>
@@ -107,8 +152,8 @@ export function PoolListSection({
 
     if (deckSortOption === 'cost') {
       // Group by cost segments: 1, 2, 3, 4, 5, 6, 7, 8+
-      const costSegments = [1, 2, 3, 4, 5, 6, 7, '8+']
-      const groupedByCost = {}
+      const costSegments: (number | string)[] = [1, 2, 3, 4, 5, 6, 7, '8+']
+      const groupedByCost: Record<string | number, CardWithData[]> = {}
 
       // Initialize all cost segments (even if empty)
       costSegments.forEach(segment => {
@@ -118,7 +163,7 @@ export function PoolListSection({
       // Group cards by cost segment
       deckCardPositions.forEach(({ cardId, card }) => {
         const cost = card.cost
-        let segment
+        let segment: number | string
         if (cost === null || cost === undefined || cost === 0) {
           segment = 1
         } else if (cost >= 8) {
@@ -141,7 +186,7 @@ export function PoolListSection({
 
         // Sort cards within this cost segment
         const sectionId = `deck-cost-${costSegment}`
-        const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' }
+        const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' as const }
         const sortedCards = [...cards].sort((a, b) => {
           if (sectionSort.field) {
             return sortTableData(a.card, b.card, sectionSort.field, sectionSort.direction)
@@ -177,7 +222,7 @@ export function PoolListSection({
                   onSort={handleTableSort}
                   columns={DECK_COLUMNS}
                   checkboxChecked={allEnabled}
-                  onCheckboxChange={(e) => {
+                  onCheckboxChange={(e: ChangeEvent<HTMLInputElement>) => {
                     const shouldEnable = e.target.checked
                     setCardPositions(prev => {
                       const updated = { ...prev }
@@ -215,7 +260,7 @@ export function PoolListSection({
       ]
 
       // Initialize all aspect combinations
-      const groupedByAspect = {}
+      const groupedByAspect: Record<string, CardWithData[]> = {}
       aspectOrder.forEach(key => {
         groupedByAspect[key] = []
       })
@@ -244,7 +289,7 @@ export function PoolListSection({
 
         // Sort cards within this aspect combination
         const sectionId = `deck-aspect-${aspectKey}`
-        const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' }
+        const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' as const }
         const sortedCards = [...cards].sort((a, b) => {
           if (sectionSort.field) {
             return sortTableData(a.card, b.card, sectionSort.field, sectionSort.direction)
@@ -278,7 +323,7 @@ export function PoolListSection({
                   onSort={handleTableSort}
                   columns={DECK_COLUMNS}
                   checkboxChecked={allEnabled}
-                  onCheckboxChange={(e) => {
+                  onCheckboxChange={(e: ChangeEvent<HTMLInputElement>) => {
                     const shouldEnable = e.target.checked
                     setCardPositions(prev => {
                       const updated = { ...prev }
@@ -332,7 +377,7 @@ export function PoolListSection({
   // Render sideboard content
   const renderSideboardContent = () => {
     const sectionId = 'sideboard'
-    const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' }
+    const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' as const }
     const sortedSideboard = [...sideboardCardPositions].sort((a, b) => {
       if (!sectionSort.field) {
         return defaultSort(a.card, b.card)
@@ -342,7 +387,7 @@ export function PoolListSection({
 
     if (sortedSideboard.length === 0) return null
 
-    const handleSideboardCheckbox = (e) => {
+    const handleSideboardCheckbox = (e: ChangeEvent<HTMLInputElement>) => {
       const shouldEnable = e.target.checked
       setCardPositions(prev => {
         const updated = { ...prev }

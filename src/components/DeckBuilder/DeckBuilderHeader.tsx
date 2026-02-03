@@ -11,6 +11,31 @@
 import EditableTitle from '../EditableTitle'
 import Button from '../Button'
 import { savePool } from '../../utils/poolApi'
+import type { CardPosition } from './AspectPenaltyToggle'
+import type { MessageType } from './DeleteDeckSection'
+import type { PoolType } from './DeckImageModal'
+
+export interface DeckBuilderHeaderProps {
+  currentPoolName?: string
+  onRenamePool: (name: string) => void
+  isOwner: boolean
+  isDraftMode: boolean
+  isInfoBarSticky: boolean
+  isAuthenticated: boolean
+  signIn: () => void
+  shareId?: string
+  cardPositions: Record<string, CardPosition>
+  activeLeader: string | null
+  activeBase: string | null
+  setCode: string
+  cards: unknown[]
+  savedState: unknown
+  poolType: PoolType
+  errorMessage: string | null
+  setErrorMessage: (message: string | null) => void
+  messageType: MessageType | null
+  setMessageType: (type: MessageType | null) => void
+}
 
 export function DeckBuilderHeader({
   currentPoolName,
@@ -32,7 +57,7 @@ export function DeckBuilderHeader({
   setErrorMessage,
   messageType,
   setMessageType,
-}) {
+}: DeckBuilderHeaderProps) {
   // Calculate deck legality for Play button
   const deckCardCount = Object.values(cardPositions)
     .filter(pos => pos.section === 'deck' && pos.visible && !pos.card.isBase && !pos.card.isLeader && pos.enabled !== false).length

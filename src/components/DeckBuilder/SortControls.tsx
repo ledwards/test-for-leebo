@@ -11,13 +11,22 @@
  * - type: Group by card type
  */
 
+import type { MouseEvent } from 'react'
 import Button from '../Button'
+
+export type SortOption = 'default' | 'aspect' | 'cost' | 'type'
+
+export interface SortControlsProps {
+  value?: SortOption
+  onChange?: (value: SortOption) => void
+  className?: string
+}
 
 export function SortControls({
   value = 'aspect',
   onChange,
   className = '',
-}) {
+}: SortControlsProps) {
   return (
     <div className={`inline-sort-controls ${className}`} style={{ display: 'flex', gap: '4px' }}>
       {/* Default (single container) */}
@@ -26,7 +35,7 @@ export function SortControls({
         glowColor="blue"
         active={value === 'default'}
         className="sort-button-icon"
-        onClick={(e) => { e.stopPropagation(); onChange?.('default'); }}
+        onClick={(e: MouseEvent) => { e.stopPropagation(); onChange?.('default'); }}
         title="Default (single container)"
         style={{ opacity: value === 'default' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
       >
@@ -41,7 +50,7 @@ export function SortControls({
         glowColor="blue"
         active={value === 'aspect'}
         className="sort-button-icon"
-        onClick={(e) => { e.stopPropagation(); onChange?.('aspect'); }}
+        onClick={(e: MouseEvent) => { e.stopPropagation(); onChange?.('aspect'); }}
         title="Group by Aspect"
         style={{ opacity: value === 'aspect' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
       >
@@ -54,7 +63,7 @@ export function SortControls({
         glowColor="blue"
         active={value === 'cost'}
         className="sort-button-icon"
-        onClick={(e) => { e.stopPropagation(); onChange?.('cost'); }}
+        onClick={(e: MouseEvent) => { e.stopPropagation(); onChange?.('cost'); }}
         title="Group by Cost"
         style={{ opacity: value === 'cost' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
       >
@@ -81,7 +90,7 @@ export function SortControls({
         glowColor="blue"
         active={value === 'type'}
         className="sort-button-icon"
-        onClick={(e) => { e.stopPropagation(); onChange?.('type'); }}
+        onClick={(e: MouseEvent) => { e.stopPropagation(); onChange?.('type'); }}
         title="Group by Type"
         style={{ opacity: value === 'type' ? 1 : 0.5, width: '28px', height: '28px', padding: '4px' }}
       >

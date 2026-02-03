@@ -9,9 +9,32 @@
  * Can use DeckBuilderContext or receive props directly.
  */
 
+import type { MouseEvent } from 'react'
 import Button from '../Button'
 import { getLeaderAbilityDescription } from '../../services/cards/aspectPenalties'
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
+import type { SortOption } from './SortControls'
+
+export interface CardPosition {
+  card: {
+    name: string
+    isBase?: boolean
+    isLeader?: boolean
+    [key: string]: unknown
+  }
+  section: string
+  visible?: boolean
+  enabled?: boolean
+}
+
+export interface AspectPenaltyToggleProps {
+  sortOption: SortOption
+  activeLeader?: string | null
+  activeBase?: string | null
+  cardPositions?: Record<string, CardPosition>
+  showAspectPenalties?: boolean
+  setShowAspectPenalties?: (show: boolean) => void
+}
 
 export function AspectPenaltyToggle({
   sortOption,
@@ -20,9 +43,9 @@ export function AspectPenaltyToggle({
   cardPositions: cardPositionsProp,
   showAspectPenalties: showAspectPenaltiesProp,
   setShowAspectPenalties: setShowAspectPenaltiesProp,
-}) {
+}: AspectPenaltyToggleProps) {
   // Try to get values from context
-  let contextValue = null
+  let contextValue: ReturnType<typeof useDeckBuilder> | null = null
   try {
     contextValue = useDeckBuilder()
   } catch {
@@ -52,9 +75,9 @@ export function AspectPenaltyToggle({
           size="xs"
           active={showAspectPenalties}
           className={showAspectPenalties ? "aspect-penalty-button-active" : "aspect-penalty-button"}
-          onClick={(e) => {
+          onClick={(e: MouseEvent) => {
             e.stopPropagation()
-            setShowAspectPenalties(!showAspectPenalties)
+            setShowAspectPenalties?.(!showAspectPenalties)
           }}
         >
           <span className="desktop-text">

@@ -6,17 +6,45 @@
  * Uses DeckBuilderContext for shared state.
  */
 
-import { useMemo } from 'react'
+import type { ReactNode, MouseEvent } from 'react'
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
 import { SectionHeader } from './SectionHeader'
 import { GroupHeader } from './GroupHeader'
 import { CardGrid } from './CardGrid'
+import type { CardGroup } from './CardGrid'
 import Button from '../Button'
 import { sortGroupKeys, createGetGroupKey, createDefaultSortFn, createGroupCardSortFn } from '../../utils/cardSort'
 import { calculateAspectPenalty } from '../../services/cards/aspectPenalties'
+import type { SortOption } from './SortControls'
+import type { CardPosition } from './AspectPenaltyToggle'
+
+interface CardWithPosition {
+  cardId: string
+  position: CardPosition
+}
+
+type CardRenderer = (card: unknown, index: number) => ReactNode
+
+export interface PoolSectionProps {
+  getPoolCards: () => CardWithPosition[]
+  getDeckCards: () => CardWithPosition[]
+  groupCardsByName: (cards: CardWithPosition[]) => CardGroup[]
+  renderCardStack: (group: CardGroup, renderCard: CardRenderer) => ReactNode
+  createCardRenderer: (leaderCard: CardPosition['card'] | null, baseCard: CardPosition['card'] | null, options?: { showDisabled?: boolean }) => CardRenderer
+  getAspectSymbol: (aspect: string, size: string) => ReactNode
+  getDefaultAspectSortKey: (card: CardPosition['card']) => string
+  getAspectKey: (card: CardPosition['card']) => string
+  sideboardExpanded: boolean
+  setSideboardExpanded: (expanded: boolean) => void
+  poolGroupsExpanded: Record<string, boolean>
+  setPoolGroupsExpanded: (fn: (prev: Record<string, boolean>) => Record<string, boolean>) => void
+  poolFilterOpen: boolean
+  setPoolFilterOpen: (open: boolean) => void
+  setDeckFilterOpen: (open: boolean) => void
+  setFilterAspectsExpanded: (fn: (prev: Record<string, boolean>) => Record<string, boolean>) => void
+}
 
 export function PoolSection({
-  // Required props
   getPoolCards,
   getDeckCards,
   groupCardsByName,
@@ -25,17 +53,15 @@ export function PoolSection({
   getAspectSymbol,
   getDefaultAspectSortKey,
   getAspectKey,
-  // Expansion state
   sideboardExpanded,
   setSideboardExpanded,
   poolGroupsExpanded,
   setPoolGroupsExpanded,
-  // Filter state (not in context)
   poolFilterOpen,
   setPoolFilterOpen,
   setDeckFilterOpen,
   setFilterAspectsExpanded,
-}) {
+}: PoolSectionProps) {
   // Get values from context
   const {
     poolSortOption,
@@ -50,7 +76,7 @@ export function PoolSection({
   const poolCards = getPoolCards()
 
   // Toggle group expanded state
-  const toggleGroupExpanded = (key) => {
+  const toggleGroupExpanded = (key: string) => {
     setPoolGroupsExpanded(prev => ({
       ...prev,
       [key]: prev[key] === false ? true : false
@@ -58,10 +84,10 @@ export function PoolSection({
   }
 
   // Check if group is expanded (default true)
-  const isGroupExpanded = (key) => poolGroupsExpanded[key] !== false
+  const isGroupExpanded = (key: string) => poolGroupsExpanded[key] !== false
 
   // Helper to determine if a group key is a mono-aspect
-  const isMonoAspect = (key) => {
+  const isMonoAspect = (key: string) => {
     if (poolSortOption !== 'aspect') return false
     return key === 'A_Vigilance' || key === 'B_Command' || key === 'C_Aggression' || key === 'D_Cunning'
   }
@@ -106,7 +132,7 @@ export function PoolSection({
     const cardSortFn = createGroupCardSortFn(poolSortOption, getDefaultAspectSortKey)
 
     // Group pool cards
-    const groups = {}
+    const groups: Record<string, CardWithPosition[]> = {}
     poolCards.forEach(({ cardId, position }) => {
       const key = getGroupKey(position.card)
       if (!groups[key]) groups[key] = []
@@ -115,7 +141,7 @@ export function PoolSection({
 
     // Group deck cards for -All button
     const deckCardsAll = getDeckCards()
-    const deckGroups = {}
+    const deckGroups: Record<string, CardWithPosition[]> = {}
     deckCardsAll.forEach(({ cardId, position }) => {
       const key = getGroupKey(position.card)
       if (!deckGroups[key]) deckGroups[key] = []
@@ -147,7 +173,7 @@ export function PoolSection({
                 <Button
                   variant="primary"
                   size="xs"
-                  onClick={(e) => {
+                  onClick={(e: MouseEvent) => {
                     e.stopPropagation()
                     moveCardsToDeck(groupCards.map(({ cardId }) => cardId))
                   }}
@@ -159,7 +185,7 @@ export function PoolSection({
                 <Button
                   variant="danger"
                   size="xs"
-                  onClick={(e) => {
+                  onClick={(e: MouseEvent) => {
                     e.stopPropagation()
                     moveCardsToPool(matchingDeckCards.map(({ cardId }) => cardId))
                   }}

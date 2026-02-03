@@ -7,16 +7,20 @@
  * - Action buttons (Clone, Play, Share) when sticky
  */
 
-import { useRef } from 'react'
+import { useRef, type RefObject, type MouseEvent, type TouchEvent } from 'react'
 import Button from '../Button'
 import { getAspectColor } from '../../utils/aspectColors'
 import { savePool } from '../../utils/poolApi'
+import type { CardPosition } from './AspectPenaltyToggle'
+import type { MessageType } from './DeleteDeckSection'
+import type { PoolType } from './DeckImageModal'
 
 // Helper to scroll to an element with offset
-function scrollToElement(selector, wasCollapsed) {
+function scrollToElement(selector: string, wasCollapsed: boolean) {
   const element = document.querySelector(selector)
   if (element) {
-    const headerHeight = document.querySelector('.deck-info-bar')?.offsetHeight || 0
+    const headerElement = document.querySelector('.deck-info-bar') as HTMLElement | null
+    const headerHeight = headerElement?.offsetHeight || 0
     const topOffset = 20
     const scrollOffset = headerHeight + topOffset + 10
     setTimeout(() => {
@@ -27,6 +31,36 @@ function scrollToElement(selector, wasCollapsed) {
       })
     }, wasCollapsed ? 400 : 0)
   }
+}
+
+export interface StickyInfoBarProps {
+  infoBarRef: RefObject<HTMLDivElement | null>
+  isInfoBarSticky: boolean
+  activeLeader: string | null
+  activeBase: string | null
+  cardPositions: Record<string, CardPosition>
+  leadersExpanded: boolean
+  setLeadersExpanded: (expanded: boolean) => void
+  basesExpanded: boolean
+  setBasesExpanded: (expanded: boolean) => void
+  deckExpanded: boolean
+  setDeckExpanded: (expanded: boolean) => void
+  sideboardExpanded: boolean
+  setSideboardExpanded: (expanded: boolean) => void
+  onCardMouseEnter: (card: CardPosition['card'], e: MouseEvent | TouchEvent) => void
+  onCardMouseLeave: () => void
+  isDraftMode: boolean
+  isOwner: boolean
+  isAuthenticated: boolean
+  signIn: () => void
+  shareId?: string
+  setErrorMessage: (message: string | null) => void
+  setMessageType: (type: MessageType | null) => void
+  setCode: string
+  cards: unknown[]
+  savedState: unknown
+  poolType: PoolType
+  currentPoolName?: string
 }
 
 export function StickyInfoBar({
@@ -57,8 +91,8 @@ export function StickyInfoBar({
   savedState,
   poolType,
   currentPoolName,
-}) {
-  const longPressTimeoutRef = useRef(null)
+}: StickyInfoBarProps) {
+  const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Calculate deck counts
   const deckCardCount = Object.values(cardPositions)
@@ -140,7 +174,7 @@ export function StickyInfoBar({
   }
 
   // Touch handlers for long press preview
-  const handleTouchStart = (card, e) => {
+  const handleTouchStart = (card: CardPosition['card'], e: TouchEvent) => {
     if (isInfoBarSticky) {
       longPressTimeoutRef.current = setTimeout(() => {
         onCardMouseEnter(card, e)
@@ -185,7 +219,7 @@ export function StickyInfoBar({
                 {leaderCard.name}
               </span>
               {leaderCard.subtitle && (
-                <span className="selected-card-subtitle">{leaderCard.subtitle}</span>
+                <span className="selected-card-subtitle">{leaderCard.subtitle as string}</span>
               )}
             </>
           ) : (

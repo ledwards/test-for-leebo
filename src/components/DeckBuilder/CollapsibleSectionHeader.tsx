@@ -4,7 +4,14 @@
  * A header that toggles section expansion with arrow indicator.
  */
 
-export function CollapsibleSectionHeader({ title, expanded, onToggle, className = '' }) {
+export interface CollapsibleSectionHeaderProps {
+  title: string
+  expanded: boolean
+  onToggle: () => void
+  className?: string
+}
+
+export function CollapsibleSectionHeader({ title, expanded, onToggle, className = '' }: CollapsibleSectionHeaderProps) {
   return (
     <div
       className={`collapsible-section-header ${className}`}

@@ -5,7 +5,11 @@
  * Used in card group headers when sorting by type.
  */
 
-export function TypeIcon({ type }) {
+export interface TypeIconProps {
+  type: string
+}
+
+export function TypeIcon({ type }: TypeIconProps) {
   if (type === 'Ground Units' || type === 'Units') {
     return (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

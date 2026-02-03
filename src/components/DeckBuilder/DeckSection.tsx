@@ -6,16 +6,46 @@
  * Uses DeckBuilderContext for shared state.
  */
 
+import type { ReactNode, RefObject, MouseEvent } from 'react'
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
 import { SectionHeader } from './SectionHeader'
 import { GroupHeader } from './GroupHeader'
 import { CardGrid } from './CardGrid'
+import type { CardGroup } from './CardGrid'
 import Button from '../Button'
 import { sortGroupKeys, createGetGroupKey, createDefaultSortFn, createGroupCardSortFn } from '../../utils/cardSort'
 import { calculateAspectPenalty } from '../../services/cards/aspectPenalties'
+import type { SortOption } from './SortControls'
+import type { CardPosition } from './AspectPenaltyToggle'
+
+interface CardWithPosition {
+  cardId: string
+  position: CardPosition
+}
+
+type CardRenderer = (card: unknown, index: number) => ReactNode
+
+export interface DeckSectionProps {
+  getDeckCards: () => CardWithPosition[]
+  getPoolCards: () => CardWithPosition[]
+  groupCardsByName: (cards: CardWithPosition[]) => CardGroup[]
+  renderCardStack: (group: CardGroup, renderCard: CardRenderer) => ReactNode
+  createCardRenderer: (leaderCard: CardPosition['card'] | null, baseCard: CardPosition['card'] | null, options?: { showDisabled?: boolean }) => CardRenderer
+  getAspectSymbol: (aspect: string, size: string) => ReactNode
+  getDefaultAspectSortKey: (card: CardPosition['card']) => string
+  getAspectKey: (card: CardPosition['card']) => string
+  deckExpanded: boolean
+  setDeckExpanded: (expanded: boolean) => void
+  deckGroupsExpanded: Record<string, boolean>
+  setDeckGroupsExpanded: (fn: (prev: Record<string, boolean>) => Record<string, boolean>) => void
+  deckFilterOpen: boolean
+  setDeckFilterOpen: (open: boolean) => void
+  setPoolFilterOpen: (open: boolean) => void
+  setFilterAspectsExpanded: (fn: (prev: Record<string, boolean>) => Record<string, boolean>) => void
+  deckBlocksRowRef: RefObject<HTMLDivElement | null>
+}
 
 export function DeckSection({
-  // Required props
   getDeckCards,
   getPoolCards,
   groupCardsByName,
@@ -24,19 +54,16 @@ export function DeckSection({
   getAspectSymbol,
   getDefaultAspectSortKey,
   getAspectKey,
-  // Expansion state
   deckExpanded,
   setDeckExpanded,
   deckGroupsExpanded,
   setDeckGroupsExpanded,
-  // Filter state (not in context)
   deckFilterOpen,
   setDeckFilterOpen,
   setPoolFilterOpen,
   setFilterAspectsExpanded,
-  // Ref for scroll
   deckBlocksRowRef,
-}) {
+}: DeckSectionProps) {
   // Get values from context
   const {
     deckSortOption,
@@ -51,7 +78,7 @@ export function DeckSection({
   const deckCards = getDeckCards()
 
   // Toggle group expanded state
-  const toggleDeckGroupExpanded = (key) => {
+  const toggleDeckGroupExpanded = (key: string) => {
     setDeckGroupsExpanded(prev => ({
       ...prev,
       [key]: prev[key] === false ? true : false
@@ -59,10 +86,10 @@ export function DeckSection({
   }
 
   // Check if group is expanded (default true)
-  const isDeckGroupExpanded = (key) => deckGroupsExpanded[key] !== false
+  const isDeckGroupExpanded = (key: string) => deckGroupsExpanded[key] !== false
 
   // Helper to determine if a group key is a mono-aspect
-  const isMonoAspect = (key) => {
+  const isMonoAspect = (key: string) => {
     if (deckSortOption !== 'aspect') return false
     return key === 'A_Vigilance' || key === 'B_Command' || key === 'C_Aggression' || key === 'D_Cunning'
   }
@@ -103,7 +130,7 @@ export function DeckSection({
     const cardSortFn = createGroupCardSortFn(deckSortOption, getDefaultAspectSortKey)
 
     // Group deck cards
-    const groups = {}
+    const groups: Record<string, CardWithPosition[]> = {}
     deckCards.forEach(({ cardId, position }) => {
       const key = getGroupKey(position.card)
       if (!groups[key]) groups[key] = []
@@ -112,7 +139,7 @@ export function DeckSection({
 
     // Group pool cards for +All button
     const poolCardsAll = getPoolCards()
-    const poolGroups = {}
+    const poolGroups: Record<string, CardWithPosition[]> = {}
     poolCardsAll.forEach(({ cardId, position }) => {
       const key = getGroupKey(position.card)
       if (!poolGroups[key]) poolGroups[key] = []
@@ -144,7 +171,7 @@ export function DeckSection({
                 <Button
                   variant="danger"
                   size="xs"
-                  onClick={(e) => {
+                  onClick={(e: MouseEvent) => {
                     e.stopPropagation()
                     moveCardsToPool(groupCards.map(({ cardId }) => cardId))
                   }}
@@ -156,7 +183,7 @@ export function DeckSection({
                 <Button
                   variant="primary"
                   size="xs"
-                  onClick={(e) => {
+                  onClick={(e: MouseEvent) => {
                     e.stopPropagation()
                     moveCardsToDeck(matchingPoolCards.map(({ cardId }) => cardId))
                   }}
