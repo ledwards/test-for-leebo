@@ -8,6 +8,14 @@
  */
 
 /**
+ * Distribution period constants
+ */
+export const DISTRIBUTION_PERIODS = {
+  PRE_LAWLESS_TIME: 'PRE_LAWLESS_TIME',
+  A_LAWLESS_TIME_ONWARD: 'A_LAWLESS_TIME_ONWARD'
+}
+
+/**
  * Rarity distribution configuration for each period
  */
 export const RARITY_DISTRIBUTIONS = {
@@ -141,6 +149,11 @@ export function getSetDistributionPeriod(setCode) {
   if (!config) {
     return DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
   }
+  // Sets 7+ (LAW onward) use the new distribution
+  return config.setNumber >= 7
+    ? DISTRIBUTION_PERIODS.A_LAWLESS_TIME_ONWARD
+    : DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
+}
 
 /**
  * Check if a set allows Special rarity in foil slots

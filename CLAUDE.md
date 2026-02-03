@@ -312,9 +312,13 @@ describe('Feature X', () => {
 
 **Plans go in `/plans/` directory.** When creating implementation plans, feature specs, or migration plans, save them to `/plans/PLAN_NAME.md`.
 
+**When a plan is complete, move it to `/docs/`.** Completed plans become documentation.
+
 Current plans:
 - `plans/TYPESCRIPT_MIGRATION_PLAN.md` - Type system spec and TS migration strategy
-- `plans/HIDE_POOL_FEATURE.md` - Hide/show pools in history
+
+Completed plans (now in docs/):
+- `docs/HIDE_POOL_FEATURE.md` - Hide/show pools in history
 
 ## Architecture & Refactoring
 
