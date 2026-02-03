@@ -6,12 +6,89 @@
  */
 import { queryRow, queryRows } from '@/lib/db.js'
 import { jsonParse } from '@/src/utils/json.js'
+import type { Server as SocketIOServer } from 'socket.io'
+
+// Extend global with io
+declare global {
+  // eslint-disable-next-line no-var
+  var io: SocketIOServer | undefined
+}
+
+interface DraftPod {
+  id: string
+  share_id: string
+  status: string
+  state_version: number
+  draft_state: string | Record<string, unknown>
+  host_id: string
+  timed: boolean
+  timer_enabled: boolean
+  timer_seconds: number
+  pick_timeout_seconds: number
+  started_at: string | null
+  completed_at: string | null
+  pick_started_at: string | null
+  paused: boolean
+  paused_at: string | null
+  paused_duration_seconds: number
+}
+
+interface DraftPlayer {
+  id: string
+  user_id: string
+  seat_number: number
+  pick_status: string
+  is_bot: boolean
+  leaders: string | unknown[]
+  drafted_leaders: string | unknown[]
+  drafted_cards: string | unknown[]
+  username: string
+  avatar_url: string
+}
+
+interface PublicLeader {
+  name: string
+  aspects: string[]
+  imageUrl: string
+  backImageUrl: string
+}
+
+interface PublicPlayer {
+  id: string
+  odId: string
+  username: string
+  avatarUrl: string
+  seatNumber: number
+  pickStatus: string
+  isBot: boolean
+  leaderPack: PublicLeader[] | null
+  draftedCardsCount: number
+  draftedLeadersCount: number
+  draftedLeaders: PublicLeader[]
+}
+
+interface BroadcastState {
+  stateVersion: number
+  status: string
+  draftState: Record<string, unknown>
+  players: PublicPlayer[]
+  timed: boolean
+  timerEnabled: boolean
+  timerSeconds: number
+  pickTimeoutSeconds: number
+  startedAt: string | null
+  completedAt: string | null
+  pickStartedAt: string | null
+  paused: boolean
+  pausedAt: string | null
+  pausedDurationSeconds: number
+}
 
 /**
  * Broadcast draft state to all connected clients in a draft room.
- * @param {string} shareId - Draft share ID
+ * @param shareId - Draft share ID
  */
-export async function broadcastDraftState(shareId) {
+export async function broadcastDraftState(shareId: string): Promise<void> {
   const io = global.io
   if (!io) {
     console.warn('[Broadcast] Socket.io not initialized - broadcast skipped')
@@ -26,7 +103,7 @@ export async function broadcastDraftState(shareId) {
               dp.paused, dp.paused_at, dp.paused_duration_seconds
        FROM draft_pods dp WHERE dp.share_id = $1`,
       [shareId]
-    )
+    ) as DraftPod | null
 
     if (!pod) {
       io.to(`draft:${shareId}`).emit('deleted')
@@ -43,15 +120,15 @@ export async function broadcastDraftState(shareId) {
        WHERE dpp.draft_pod_id = $1
        ORDER BY dpp.seat_number`,
       [pod.id]
-    )
+    ) as DraftPlayer[]
 
-    const draftState = jsonParse(pod.draft_state, {})
-    const isLeaderDraftPhase = draftState?.phase === 'leader_draft'
+    const draftState = jsonParse<Record<string, unknown>>(pod.draft_state, {}) as Record<string, unknown>
+    const isLeaderDraftPhase = draftState?.['phase'] === 'leader_draft'
 
     // Build PUBLIC player data (visible to all)
-    const publicPlayers = players.map(p => {
-      const draftedLeaders = jsonParse(p.drafted_leaders, [])
-      const leadersPack = jsonParse(p.leaders, [])
+    const publicPlayers: PublicPlayer[] = players.map(p => {
+      const draftedLeaders = jsonParse<unknown[]>(p.drafted_leaders, []) as { name: string; aspects?: string[]; imageUrl: string; backImageUrl: string }[]
+      const leadersPack = jsonParse<unknown[]>(p.leaders, []) as { name: string; aspects?: string[]; imageUrl: string; backImageUrl: string }[]
 
       return {
         id: p.id,
@@ -68,7 +145,7 @@ export async function broadcastDraftState(shareId) {
           imageUrl: l.imageUrl,
           backImageUrl: l.backImageUrl,
         })) : null,
-        draftedCardsCount: jsonParse(p.drafted_cards, []).length,
+        draftedCardsCount: (jsonParse<unknown[]>(p.drafted_cards, []) as unknown[]).length,
         draftedLeadersCount: draftedLeaders.length,
         draftedLeaders: draftedLeaders.map(l => ({
           name: l.name,
@@ -80,7 +157,7 @@ export async function broadcastDraftState(shareId) {
     })
 
     // Broadcast public state to all clients in the room
-    io.to(`draft:${shareId}`).emit('state', {
+    const broadcastPayload: BroadcastState = {
       stateVersion: pod.state_version,
       status: pod.status,
       draftState,
@@ -95,7 +172,8 @@ export async function broadcastDraftState(shareId) {
       paused: pod.paused === true,
       pausedAt: pod.paused_at,
       pausedDurationSeconds: pod.paused_duration_seconds || 0,
-    })
+    }
+    io.to(`draft:${shareId}`).emit('state', broadcastPayload)
   } catch (err) {
     console.error('Error broadcasting draft state:', err)
   }
@@ -103,11 +181,11 @@ export async function broadcastDraftState(shareId) {
 
 /**
  * Broadcast a simple event to all clients in a draft room
- * @param {string} shareId - Draft share ID
- * @param {string} eventType - Event type
- * @param {object} data - Event data
+ * @param shareId - Draft share ID
+ * @param eventType - Event type
+ * @param data - Event data
  */
-export function broadcastEvent(shareId, eventType, data = {}) {
+export function broadcastEvent(shareId: string, eventType: string, data: Record<string, unknown> = {}): void {
   const io = global.io
   if (!io) {
     console.warn('Socket.io not initialized - event broadcast skipped')
