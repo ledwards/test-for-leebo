@@ -6,7 +6,7 @@ import SetSelection from '../../src/components/SetSelection'
 import { initializeCardCache } from '../../src/utils/cardCache'
 
 export default function SetsPage() {
-  const [selectedSet, setSelectedSet] = useState(null)
+  const [selectedSet, setSelectedSet] = useState<string | null>(null)
 
   // Preload all cards on initial page load
   useEffect(() => {
@@ -15,7 +15,7 @@ export default function SetsPage() {
     })
   }, [])
 
-  const handleSetSelect = (setCode) => {
+  const handleSetSelect = (setCode: string) => {
     // Navigate to create a new pool for this set
     window.location.href = `/pools/new?set=${setCode}`
   }

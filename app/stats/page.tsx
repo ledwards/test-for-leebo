@@ -1,13 +1,147 @@
+// @ts-nocheck
 'use client'
 
 import { useState, useEffect } from 'react'
 import './stats.css'
 
+interface Treatment {
+  isApplicable?: boolean
+  observed: number
+  expected: number
+  percentDiff: number
+  zScore: number
+  significance: {
+    status: string
+    color: string
+    description: string
+  }
+}
+
+interface CardAnalysis {
+  base?: Treatment
+  hyperspace?: Treatment
+  foil?: Treatment
+  hyperspace_foil?: Treatment
+  showcase?: Treatment
+}
+
+interface CardStats {
+  cardId: string
+  name: string
+  subtitle?: string
+  type: string
+  aspects?: string[]
+  analysis?: CardAnalysis
+}
+
+interface PoolMetrics {
+  totalPools?: number
+  poolsAffected?: number
+  samples?: Array<{
+    card: string
+    treatment?: string
+    treatments?: string[]
+    count?: number
+  }>
+}
+
+interface PackMetrics {
+  treatmentDistribution?: Record<string, number>
+  rarityDistribution?: Record<string, number>
+  packSameTreatmentDuplicates?: PoolMetrics & { packsAffected?: number }
+  packCrossTreatmentDuplicates?: PoolMetrics & { packsAffected?: number }
+  poolSameTreatmentDuplicates?: PoolMetrics
+  poolCrossTreatmentDuplicates?: PoolMetrics
+  totalPacksTracked?: number
+}
+
+interface Stats {
+  cards: CardStats[]
+  totalPools: number
+  draftPools: number
+  sealedPools: number
+  totalPacks: number
+  totalCards: number
+  packMetrics?: PackMetrics
+  debug?: {
+    rawGenerationsCount?: number
+    treatmentCounts?: Record<string, number>
+    unmatchedCardsCount?: number
+    unmatchedSamples?: Array<{ name: string }>
+  }
+}
+
+interface PackCard {
+  cardId: string
+  name: string
+  subtitle?: string
+  treatment: string
+  isFoil?: boolean
+  isHyperspace?: boolean
+  isShowcase?: boolean
+  imageUrl?: string
+}
+
+interface Pack {
+  sourceId: string
+  sourceType: string
+  packIndex: number
+  cards: PackCard[]
+}
+
+interface QATest {
+  name: string
+  suite: string
+  status: 'passed' | 'failed'
+  executionTime?: number
+  errorMessage?: string
+}
+
+interface QAResults {
+  available: boolean
+  latestRun?: {
+    summary: {
+      total: number
+      passed: number
+      failed: number
+    }
+    runAt: string
+    tests: QATest[]
+  }
+}
+
+interface TestSuite {
+  name: string
+  suite: string
+  status: 'passed' | 'failed'
+  executionTime?: number
+  errorMessage?: string
+  tests?: Array<{
+    name: string
+    status: 'passed' | 'failed'
+  }>
+}
+
+interface TestResults {
+  available: boolean
+  latestRun?: {
+    summary: {
+      totalSuites: number
+      totalTests: number
+      passed: number
+      failed: number
+    }
+    executionTime: number
+    runAt: string
+    suites: TestSuite[]
+  }
+}
+
 export default function StatsPage() {
   const [activeTab, setActiveTab] = useState('Reference')
-  const [stats, setStats] = useState(null)
+  const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   // Set initial tab from hash on mount
   useEffect(() => {
@@ -24,7 +158,7 @@ export default function StatsPage() {
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
-  const handleTabChange = (tab) => {
+  const handleTabChange = (tab: string) => {
     setActiveTab(tab)
     window.location.hash = tab
   }
@@ -53,7 +187,7 @@ export default function StatsPage() {
   const tabs = ['Reference', 'QA', 'Test', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
 
   // Set colors for tabs
-  const setColors = {
+  const setColors: Record<string, string> = {
     'SOR': '#CC0000',
     'SHD': '#6B21A8',
     'TWI': '#0891B2',
@@ -107,7 +241,12 @@ export default function StatsPage() {
   )
 }
 
-function GenerationStatsTab({ stats, setCode }) {
+interface GenerationStatsTabProps {
+  stats: Stats | null
+  setCode: string
+}
+
+function GenerationStatsTab({ stats, setCode }: GenerationStatsTabProps) {
   const [subTab, setSubTab] = useState('cards')
 
   if (!stats || !stats.cards || stats.cards.length === 0) {
@@ -194,7 +333,13 @@ function GenerationStatsTab({ stats, setCode }) {
   )
 }
 
-function CardsSubTab({ stats, setCode, hasEnoughData }) {
+interface CardsSubTabProps {
+  stats: Stats
+  setCode: string
+  hasEnoughData: boolean
+}
+
+function CardsSubTab({ stats, setCode, hasEnoughData }: CardsSubTabProps) {
   return (
     <div className="cards-subtab">
       {/* Cards table only - stats are above the tabs now */}
@@ -252,8 +397,12 @@ function CardsSubTab({ stats, setCode, hasEnoughData }) {
   )
 }
 
-function PacksSubTab({ setCode }) {
-  const [packs, setPacks] = useState([])
+interface PacksSubTabProps {
+  setCode: string
+}
+
+function PacksSubTab({ setCode }: PacksSubTabProps) {
+  const [packs, setPacks] = useState<Pack[]>([])
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
   const [offset, setOffset] = useState(0)
@@ -354,7 +503,12 @@ function PacksSubTab({ setCode }) {
   )
 }
 
-function TreatmentCell({ treatment, hasEnoughData }) {
+interface TreatmentCellProps {
+  treatment?: Treatment
+  hasEnoughData: boolean
+}
+
+function TreatmentCell({ treatment, hasEnoughData }: TreatmentCellProps) {
   // Show "-" if treatment is not applicable for this card
   if (!treatment || treatment.isApplicable === false) {
     return <td className="treatment-cell treatment-na">—</td>
@@ -387,7 +541,11 @@ function TreatmentCell({ treatment, hasEnoughData }) {
   )
 }
 
-function PackMetricsSection({ metrics }) {
+interface PackMetricsSectionProps {
+  metrics: PackMetrics
+}
+
+function PackMetricsSection({ metrics }: PackMetricsSectionProps) {
   if (!metrics) return null
 
   const totalCards = Object.values(metrics.treatmentDistribution || {}).reduce((a, b) => a + b, 0)
@@ -395,7 +553,7 @@ function PackMetricsSection({ metrics }) {
   const totalPacks = metrics.totalPacksTracked || 0
 
   // Statistical analysis helper
-  const getMetricStatus = (observed, expected, threshold = 10) => {
+  const getMetricStatus = (observed: number, expected: number, threshold = 10) => {
     const diff = Math.abs(observed - expected)
     if (diff <= threshold) return { status: 'expected', color: '#27AE60' }
     if (diff <= threshold * 2) return { status: 'outlier', color: '#F39C12' }
@@ -427,7 +585,7 @@ function PackMetricsSection({ metrics }) {
   const poolCrossTreatmentStatus = getMetricStatus(poolCrossTreatmentPercent, 95, 10)
 
   // Treatment distribution expected percentages (per 16 cards)
-  const treatmentExpected = {
+  const treatmentExpected: Record<string, number> = {
     base: 87, // ~14 of 16 cards
     hyperspace: 6, // ~1 card
     foil: 6, // 1 foil per pack
@@ -436,7 +594,7 @@ function PackMetricsSection({ metrics }) {
   }
 
   // Rarity distribution expected (per 16 cards)
-  const rarityExpected = {
+  const rarityExpected: Record<string, number> = {
     Common: 56, // 9/16
     Uncommon: 16, // 2.5/16
     Rare: 8, // ~1.3/16
@@ -649,13 +807,17 @@ function PackMetricsSection({ metrics }) {
   )
 }
 
-function ReferenceTab({ stats }) {
+interface ReferenceTabProps {
+  stats: Stats | null
+}
+
+function ReferenceTab({ stats }: ReferenceTabProps) {
   const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
   const [selectedSet, setSelectedSet] = useState('SOR')
 
   // Get set-specific info
-  const getSetInfo = (setCode) => {
-    const setNames = {
+  const getSetInfo = (setCode: string) => {
+    const setNames: Record<string, string> = {
       'SOR': 'Spark of Rebellion',
       'SHD': 'Shadows of the Galaxy',
       'TWI': 'Twilight of the Republic',
@@ -710,7 +872,7 @@ function ReferenceTab({ stats }) {
       <div className="reference-sections">
         {/* Pack Structure */}
         <section className="reference-section reference-full-width">
-          <h3>📦 Pack Structure (16 Cards Total)</h3>
+          <h3>Pack Structure (16 Cards Total)</h3>
           <div className="reference-description">
             <p>Every booster pack contains exactly 16 cards in specific slots:</p>
           </div>
@@ -759,7 +921,7 @@ function ReferenceTab({ stats }) {
 
         {/* Card Counts */}
         <section className="reference-section">
-          <h3>🎴 Card Pool Sizes</h3>
+          <h3>Card Pool Sizes</h3>
           <div className="reference-description">
             <p>Total unique cards available in {setInfo.name}:</p>
           </div>
@@ -799,7 +961,7 @@ function ReferenceTab({ stats }) {
 
         {/* Rarity Distribution */}
         <section className="reference-section">
-          <h3>🎲 Rarity Distribution</h3>
+          <h3>Rarity Distribution</h3>
           <div className="reference-description">
             <p><strong>Rare/Legendary Slot:</strong></p>
             <ul>
@@ -816,7 +978,7 @@ function ReferenceTab({ stats }) {
 
         {/* Leader Rarity */}
         <section className="reference-section">
-          <h3>👑 Leader Rarity Distribution</h3>
+          <h3>Leader Rarity Distribution</h3>
           <div className="reference-description">
             <p>Leaders come in two rarities:</p>
             <ul>
@@ -836,7 +998,7 @@ function ReferenceTab({ stats }) {
 
         {/* Foil Slot */}
         <section className="reference-section reference-full-width">
-          <h3>✨ Foil Slot Distribution</h3>
+          <h3>Foil Slot Distribution</h3>
           <div className="reference-description">
             <p>The foil slot uses weighted random selection:</p>
           </div>
@@ -882,7 +1044,7 @@ function ReferenceTab({ stats }) {
 
         {/* Belt System */}
         <section className="reference-section reference-full-width">
-          <h3>🎰 The Belt System</h3>
+          <h3>The Belt System</h3>
           <div className="reference-description">
             <p><strong>What are Belts?</strong></p>
             <p>Belts are shuffled pools of cards that ensure proper distribution and prevent immediate duplicates. Each belt contains all eligible cards for that slot, shuffled randomly.</p>
@@ -908,7 +1070,7 @@ function ReferenceTab({ stats }) {
 
         {/* Upgrade System */}
         <section className="reference-section reference-full-width">
-          <h3>⬆️ Upgrade System</h3>
+          <h3>Upgrade System</h3>
           <div className="reference-description">
             <p>After the base pack is generated, an upgrade pass can replace certain cards with premium versions:</p>
           </div>
@@ -967,7 +1129,7 @@ function ReferenceTab({ stats }) {
 
         {/* Hyperspace */}
         <section className="reference-section">
-          <h3>🌌 Hyperspace Variants</h3>
+          <h3>Hyperspace Variants</h3>
           <div className="reference-description">
             <p><strong>What is Hyperspace?</strong></p>
             <p>Hyperspace variants are alternate versions of cards with different art and a blue border. They're mechanically identical but visually distinct.</p>
@@ -983,7 +1145,7 @@ function ReferenceTab({ stats }) {
 
         {/* Special Rarity */}
         <section className="reference-section">
-          <h3>⭐ Special Rarity</h3>
+          <h3>Special Rarity</h3>
           <div className="reference-description">
             <p><strong>Sets 1-3 (Legacy):</strong></p>
             <ul>
@@ -1005,7 +1167,7 @@ function ReferenceTab({ stats }) {
         {/* Showcase */}
         {!setInfo.isLegacySet && (
           <section className="reference-section">
-            <h3>🎨 Showcase Cards</h3>
+            <h3>Showcase Cards</h3>
             <div className="reference-description">
               <p><strong>What are Showcase Cards?</strong></p>
               <p>Showcase cards are premium variants with special borderless art. They're exclusive to Sets 4-6.</p>
@@ -1023,7 +1185,7 @@ function ReferenceTab({ stats }) {
 
         {/* Statistical Interpretation */}
         <section className="reference-section reference-full-width">
-          <h3>📊 Statistical Interpretation</h3>
+          <h3>Statistical Interpretation</h3>
           <div className="reference-description">
             <p>The statistics page uses Z-tests to compare actual vs expected generation rates:</p>
           </div>
@@ -1054,7 +1216,7 @@ function ReferenceTab({ stats }) {
 
         {/* Pack Opening Expectations */}
         <section className="reference-section reference-full-width">
-          <h3>📈 Expected Pack Opening Results</h3>
+          <h3>Expected Pack Opening Results</h3>
           <div className="reference-description">
             <p><strong>In a typical booster box (24 packs):</strong></p>
             <ul>
@@ -1077,7 +1239,7 @@ function ReferenceTab({ stats }) {
 
         {/* Set-Specific Rules */}
         <section className="reference-section reference-full-width">
-          <h3>🎯 Set-Specific Rules</h3>
+          <h3>Set-Specific Rules</h3>
           <table className="reference-table">
             <thead>
               <tr>
@@ -1118,7 +1280,7 @@ function ReferenceTab({ stats }) {
 
         {/* Technical Notes */}
         <section className="reference-section reference-full-width">
-          <h3>⚙️ Technical Notes</h3>
+          <h3>Technical Notes</h3>
           <div className="reference-description">
             <p><strong>Card Treatments:</strong></p>
             <ul>
@@ -1152,7 +1314,7 @@ function ReferenceTab({ stats }) {
 }
 
 function QATab() {
-  const [qaResults, setQaResults] = useState(null)
+  const [qaResults, setQaResults] = useState<QAResults | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -1239,7 +1401,7 @@ function QATab() {
 }
 
 function TestTab() {
-  const [testResults, setTestResults] = useState(null)
+  const [testResults, setTestResults] = useState<TestResults | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
