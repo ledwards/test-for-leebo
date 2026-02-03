@@ -3,7 +3,12 @@
 import '../src/styles/backgrounds.css'
 import Button from '../src/components/Button'
 
-export default function Error({ reset }) {
+interface ErrorProps {
+  error?: Error
+  reset: () => void
+}
+
+export default function Error({ reset }: ErrorProps) {
   return (
     <div className="page-background" style={{
       minHeight: '100vh',
