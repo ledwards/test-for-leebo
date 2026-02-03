@@ -1,20 +1,21 @@
-#!/usr/bin/env node
+#!/usr/bin/env npx tsx
+// @ts-nocheck
 /**
  * E2E Test Runner
  *
  * A friendlier interface for running Playwright E2E tests with pattern matching.
  *
  * Usage:
- *   node scripts/e2e.js <pattern>              # Exact match (default)
- *   node scripts/e2e.js -f <pattern>           # Fuzzy/grep match
- *   node scripts/e2e.js --fuzzy <pattern>      # Fuzzy/grep match
- *   node scripts/e2e.js                        # Run all tests
- *   node scripts/e2e.js --list                 # List available tests
+ *   npx tsx scripts/e2e.ts <pattern>              # Exact match (default)
+ *   npx tsx scripts/e2e.ts -f <pattern>           # Fuzzy/grep match
+ *   npx tsx scripts/e2e.ts --fuzzy <pattern>      # Fuzzy/grep match
+ *   npx tsx scripts/e2e.ts                        # Run all tests
+ *   npx tsx scripts/e2e.ts --list                 # List available tests
  *
  * Additional flags are passed through to Playwright:
- *   node scripts/e2e.js "Drop from Draft" --headed    # Run with browser visible
- *   node scripts/e2e.js -f drop --debug               # Run in debug mode
- *   node scripts/e2e.js -f drop --ui                  # Run with Playwright UI
+ *   npx tsx scripts/e2e.ts "Drop from Draft" --headed    # Run with browser visible
+ *   npx tsx scripts/e2e.ts -f drop --debug               # Run in debug mode
+ *   npx tsx scripts/e2e.ts -f drop --ui                  # Run with Playwright UI
  *
  * Examples:
  *   npm run e2e "Drop from Draft"       # Exact match
@@ -44,11 +45,11 @@ const colors = {
   magenta: '\x1b[35m',
 }
 
-function log(msg, color = '') {
+function log(msg: string, color: string = ''): void {
   console.log(`${color}${msg}${colors.reset}`)
 }
 
-function printUsage() {
+function printUsage(): void {
   log('\nE2E Test Runner', colors.bright + colors.cyan)
   log('===============\n', colors.cyan)
   log('Usage:', colors.bright)
@@ -65,7 +66,7 @@ function printUsage() {
   log('')
 }
 
-function listTests() {
+function listTests(): void {
   const testsDir = join(projectRoot, 'tests', 'e2e')
   const files = readdirSync(testsDir).filter(f => f.endsWith('.spec.js'))
 
@@ -82,10 +83,16 @@ function listTests() {
   log('')
 }
 
-function parseArgs(args) {
-  let pattern = null
-  let matchType = 'exact' // default to exact
-  const playwrightArgs = []
+interface ParsedArgs {
+  pattern: string | null
+  matchType: 'exact' | 'fuzzy'
+  playwrightArgs: string[]
+}
+
+function parseArgs(args: string[]): ParsedArgs {
+  let pattern: string | null = null
+  let matchType: 'exact' | 'fuzzy' = 'exact' // default to exact
+  const playwrightArgs: string[] = []
 
   let i = 0
   while (i < args.length) {
@@ -138,7 +145,7 @@ function parseArgs(args) {
   return { pattern, matchType, playwrightArgs }
 }
 
-function buildCommand(pattern, matchType, playwrightArgs) {
+function buildCommand(pattern: string | null, matchType: 'exact' | 'fuzzy', playwrightArgs: string[]): string[] {
   const args = ['playwright', 'test']
 
   if (pattern) {
@@ -159,7 +166,7 @@ function buildCommand(pattern, matchType, playwrightArgs) {
   return args
 }
 
-function main() {
+function main(): void {
   const args = process.argv.slice(2)
   const { pattern, matchType, playwrightArgs } = parseArgs(args)
 
@@ -187,7 +194,7 @@ function main() {
   })
 
   proc.on('close', (code) => {
-    process.exit(code)
+    process.exit(code || 0)
   })
 
   proc.on('error', (err) => {

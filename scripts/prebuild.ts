@@ -1,4 +1,5 @@
-#!/usr/bin/env node
+#!/usr/bin/env npx tsx
+// @ts-nocheck
 /**
  * Pre-build script for deployment
  *
@@ -7,7 +8,7 @@
  * 2. Run QA tests and generate results.json
  * 3. Ensure QA results are available for the build
  *
- * Usage: node scripts/prebuild.js
+ * Usage: npx tsx scripts/prebuild.ts
  */
 
 import { execSync } from 'child_process'
@@ -20,7 +21,7 @@ const __dirname = dirname(__filename)
 const projectRoot = join(__dirname, '..')
 
 // ANSI color codes
-const colors = {
+const colors: Record<string, string> = {
   reset: '\x1b[0m',
   bold: '\x1b[1m',
   red: '\x1b[31m',
@@ -30,11 +31,11 @@ const colors = {
   cyan: '\x1b[36m'
 }
 
-function log(message, color = 'reset') {
+function log(message: string, color: string = 'reset'): void {
   console.log(`${colors[color]}${message}${colors.reset}`)
 }
 
-function logSection(title) {
+function logSection(title: string): void {
   console.log('')
   log(`${'='.repeat(60)}`, 'cyan')
   log(`  ${title}`, 'bold')
@@ -42,7 +43,7 @@ function logSection(title) {
   console.log('')
 }
 
-function runCommand(command, description) {
+function runCommand(command: string, description: string): boolean {
   try {
     log(`▶️  ${description}...`, 'cyan')
     execSync(command, {
@@ -58,7 +59,7 @@ function runCommand(command, description) {
   }
 }
 
-async function main() {
+async function main(): Promise<void> {
   const startTime = Date.now()
 
   logSection('🚀 Pre-Build Checks')
@@ -125,9 +126,9 @@ async function main() {
 }
 
 main().catch(error => {
-  log(`❌ Pre-build script error: ${error.message}`, 'red')
-  if (error.stack) {
-    console.error(error.stack)
+  log(`❌ Pre-build script error: ${(error as Error).message}`, 'red')
+  if ((error as Error).stack) {
+    console.error((error as Error).stack)
   }
   // Don't fail the build on script errors
   process.exit(0)

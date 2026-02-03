@@ -1,4 +1,5 @@
-#!/usr/bin/env node
+#!/usr/bin/env npx tsx
+// @ts-nocheck
 /**
  * Debug script to check for duplicates in pack generation
  */
@@ -6,7 +7,25 @@
 import { initializeCardCache, getCachedCards } from '../src/utils/cardCache.js'
 import { generateBoosterPack, clearBeltCache } from '../src/utils/boosterPack.js'
 
-async function main() {
+interface Card {
+  id: string
+  name: string
+  rarity: string
+  isFoil: boolean
+}
+
+interface DuplicateDetail {
+  packNum: number
+  cardName: string
+  cardId: string
+  rarity: string
+  positions: number[]
+  distance: number
+  firstIsFoil: boolean
+  secondIsFoil: boolean
+}
+
+async function main(): Promise<void> {
   console.log('Initializing card cache...')
   await initializeCardCache()
 
@@ -17,17 +36,17 @@ async function main() {
   clearBeltCache()
 
   let packsWithDuplicates = 0
-  const duplicateDetails = []
+  const duplicateDetails: DuplicateDetail[] = []
 
   for (let i = 0; i < 100; i++) {
     const pack = generateBoosterPack(cards, 'SOR')
 
     // Check for duplicates by comparing both ID and foil status
-    const seen = new Map() // Map of card.id to array of {index, isFoil}
+    const seen = new Map<string, { index: number; isFoil: boolean }[]>() // Map of card.id to array of {index, isFoil}
     let hasDuplicate = false
 
     for (let j = 0; j < pack.cards.length; j++) {
-      const card = pack.cards[j]
+      const card = pack.cards[j] as Card
       const key = card.id
 
       if (!seen.has(key)) {
@@ -35,7 +54,7 @@ async function main() {
       }
 
       // Check if we've seen this card with the same foil status
-      const matchingCards = seen.get(key).filter(c => c.isFoil === card.isFoil)
+      const matchingCards = seen.get(key)!.filter(c => c.isFoil === card.isFoil)
 
       if (matchingCards.length > 0) {
         // True duplicate found (same ID and same foil status)
@@ -53,7 +72,7 @@ async function main() {
         })
       }
 
-      seen.get(key).push({ index: j, isFoil: card.isFoil })
+      seen.get(key)!.push({ index: j, isFoil: card.isFoil })
     }
 
     if (hasDuplicate) {

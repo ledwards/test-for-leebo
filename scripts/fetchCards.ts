@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Script to fetch all cards from swuapi.com API and populate cards.json
 // Automatically runs post-processing to apply fixes
 
@@ -23,10 +24,71 @@ const SETS = [
 // Set codes we want to include
 const VALID_SET_CODES = new Set(SETS.map(s => s.code))
 
+interface ApiCard {
+  strapiId: number
+  setCode: string
+  cardNumber: string
+  name: string
+  subtitle?: string
+  rarity: string
+  type: string
+  aspects?: string[]
+  traits?: string[]
+  arena?: string | string[]
+  cost?: number
+  power?: number
+  hp?: number
+  text?: string
+  backText?: string
+  epicAction?: string
+  keywords?: string[]
+  artist?: string
+  isUnique?: boolean
+  variantType?: string
+  isLeader?: boolean
+  isBase?: boolean
+  frontImageUrl?: string
+  backImageUrl?: string
+}
+
+interface TransformedCard {
+  id: string
+  cardId: string
+  name: string
+  subtitle: string | null
+  set: string
+  number: string
+  rarity: string
+  type: string
+  aspects: string[]
+  traits: string[]
+  arenas: string[]
+  cost: number | null
+  power: number | null
+  hp: number | null
+  frontText: string | null
+  backText: string | null
+  epicAction: string | null
+  keywords: string[]
+  artist: string | null
+  unique: boolean
+  doubleSided: boolean
+  variantType: string
+  marketPrice: null
+  lowPrice: null
+  isLeader: boolean
+  isBase: boolean
+  isFoil: boolean
+  isHyperspace: boolean
+  isShowcase: boolean
+  imageUrl: string | null
+  backImageUrl: string | null
+}
+
 /**
  * Fetch all cards from the export endpoint
  */
-async function fetchAllCardsFromAPI() {
+async function fetchAllCardsFromAPI(): Promise<ApiCard[]> {
   console.log(`Fetching all cards from ${API_URL}...`)
 
   try {
@@ -40,7 +102,7 @@ async function fetchAllCardsFromAPI() {
       return []
     }
   } catch (error) {
-    console.error(`Error fetching cards:`, error.message)
+    console.error(`Error fetching cards:`, (error as Error).message)
     return []
   }
 }
@@ -48,7 +110,7 @@ async function fetchAllCardsFromAPI() {
 /**
  * Transform API card data to our card schema
  */
-function transformCard(apiCard) {
+function transformCard(apiCard: ApiCard): TransformedCard {
   const setCode = apiCard.setCode || ''
   const cardNumber = apiCard.cardNumber || ''
   // Use strapiId as unique identifier (setCode-cardNumber is NOT unique across variants)
@@ -57,7 +119,7 @@ function transformCard(apiCard) {
   const cardId = `${setCode}-${cardNumber}`
 
   // Normalize arena to array (API uses singular 'arena')
-  let arenas = []
+  let arenas: string[] = []
   if (apiCard.arena) {
     arenas = Array.isArray(apiCard.arena) ? apiCard.arena : [apiCard.arena]
   }
@@ -65,7 +127,7 @@ function transformCard(apiCard) {
   // Normalize variantType - map API values to our expected values
   let variantType = apiCard.variantType || 'Normal'
   // Map swuapi.com variant types to our expected values
-  const variantTypeMap = {
+  const variantTypeMap: Record<string, string> = {
     'Standard': 'Normal',
     'Standard Foil': 'Foil',
     // 'Hyperspace' stays as is
@@ -91,9 +153,9 @@ function transformCard(apiCard) {
     aspects: apiCard.aspects || [],
     traits: apiCard.traits || [],
     arenas,
-    cost: apiCard.cost !== null && apiCard.cost !== undefined ? parseInt(apiCard.cost) : null,
-    power: apiCard.power !== null && apiCard.power !== undefined ? parseInt(apiCard.power) : null,
-    hp: apiCard.hp !== null && apiCard.hp !== undefined ? parseInt(apiCard.hp) : null,
+    cost: apiCard.cost !== null && apiCard.cost !== undefined ? parseInt(String(apiCard.cost)) : null,
+    power: apiCard.power !== null && apiCard.power !== undefined ? parseInt(String(apiCard.power)) : null,
+    hp: apiCard.hp !== null && apiCard.hp !== undefined ? parseInt(String(apiCard.hp)) : null,
     frontText: apiCard.text || null,
     backText: apiCard.backText || null,
     epicAction: apiCard.epicAction || null,
@@ -117,7 +179,7 @@ function transformCard(apiCard) {
 /**
  * Main function
  */
-async function main() {
+async function main(): Promise<void> {
   console.log('Starting card data fetch from swuapi.com API...')
   console.log(`Sets to include: ${SETS.map(s => s.code).join(', ')}`)
 
@@ -175,12 +237,12 @@ async function main() {
   console.log('='.repeat(50) + '\n')
 
   try {
-    execSync('node scripts/postProcessCards.js', {
+    execSync('npx tsx scripts/postProcessCards.ts', {
       cwd: path.join(__dirname, '..'),
       stdio: 'inherit'
     })
   } catch (error) {
-    console.error('Error running post-processing:', error.message)
+    console.error('Error running post-processing:', (error as Error).message)
     process.exit(1)
   }
 }

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Post-Process Card Data
  *
@@ -13,7 +14,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { cardFixes, batchFixes, customTransforms } from './cardFixes.js'
+import { cardFixes, batchFixes, customTransforms } from './cardFixes.ts'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -33,10 +34,45 @@ const OUTPUT_FILE = outputArg
 
 const REPORT_FILE = path.join(__dirname, '../src/data/card-fixes-report.json')
 
+interface Card {
+  id: string
+  name: string
+  [key: string]: any
+}
+
+interface CardData {
+  cards: Card[]
+  metadata: Record<string, any> | null
+}
+
+interface Fix {
+  type: string
+  cardId?: string
+  cardName?: string
+  field?: string
+  oldValue?: any
+  newValue?: any
+  reason?: string
+  transform?: string
+  cardsRemoved?: number
+}
+
+interface FixReport {
+  timestamp: string
+  totalFixes: number
+  byType: {
+    individual: number
+    batch: number
+    custom: number
+  }
+  byField: Record<string, number>
+  fixes: Fix[]
+}
+
 /**
  * Load card data from JSON file
  */
-function loadCardData(filePath) {
+function loadCardData(filePath: string): CardData {
   const content = fs.readFileSync(filePath, 'utf8')
   const data = JSON.parse(content)
 
@@ -50,7 +86,7 @@ function loadCardData(filePath) {
 /**
  * Save card data to JSON file
  */
-function saveCardData(filePath, cards, metadata) {
+function saveCardData(filePath: string, cards: Card[], metadata: Record<string, any> | null): void {
   const output = {
     cards,
     metadata: {
@@ -67,8 +103,8 @@ function saveCardData(filePath, cards, metadata) {
 /**
  * Apply individual card fixes
  */
-function applyIndividualFixes(cards) {
-  const fixes = []
+function applyIndividualFixes(cards: Card[]): Fix[] {
+  const fixes: Fix[] = []
 
   cardFixes.forEach(fix => {
     const card = cards.find(c => c.id === fix.id)
@@ -96,8 +132,8 @@ function applyIndividualFixes(cards) {
 /**
  * Apply batch fixes
  */
-function applyBatchFixes(cards) {
-  const fixes = []
+function applyBatchFixes(cards: Card[]): Fix[] {
+  const fixes: Fix[] = []
 
   batchFixes.forEach(batchFix => {
     cards.forEach(card => {
@@ -127,8 +163,8 @@ function applyBatchFixes(cards) {
 /**
  * Apply custom transformations
  */
-function applyCustomTransforms(cards) {
-  const fixes = []
+function applyCustomTransforms(cards: Card[]): Fix[] {
+  const fixes: Fix[] = []
   let currentCards = cards
 
   customTransforms.forEach(transform => {
@@ -182,8 +218,8 @@ function applyCustomTransforms(cards) {
 /**
  * Generate fix report
  */
-function generateReport(allFixes) {
-  const report = {
+function generateReport(allFixes: Fix[]): FixReport {
+  const report: FixReport = {
     timestamp: new Date().toISOString(),
     totalFixes: allFixes.length,
     byType: {
@@ -208,7 +244,7 @@ function generateReport(allFixes) {
 /**
  * Main function
  */
-function main() {
+function main(): void {
   console.log('Post-processing card data...\n')
   console.log(`Input:  ${INPUT_FILE}`)
   console.log(`Output: ${OUTPUT_FILE}\n`)
@@ -218,7 +254,7 @@ function main() {
   console.log(`✓ Loaded ${cards.length} cards\n`)
 
   // Apply fixes
-  const allFixes = []
+  const allFixes: Fix[] = []
 
   console.log('Applying individual fixes...')
   const individualFixes = applyIndividualFixes(cards)
