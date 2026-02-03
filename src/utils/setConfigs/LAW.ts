@@ -17,10 +17,11 @@
  */
 
 import { SET_7_PLUS_CONSTANTS } from '../packConstants.js'
+import type { SetConfig } from './index.js'
 
 const constants = SET_7_PLUS_CONSTANTS
 
-export const LAW_CONFIG = {
+export const LAW_CONFIG: SetConfig = {
   setCode: 'LAW',
   setName: 'A Lawless Time',
   setNumber: 7,
@@ -69,7 +70,13 @@ export const LAW_CONFIG = {
   // Rarity weights for different slots
   rarityWeights: {
     // Foil slot is now always Hyperspace Foil
-    hyperspaceFoilSlot: constants.hyperspaceFoilSlotWeights,
+    hyperspaceFoilSlot: constants.hyperspaceFoilSlotWeights || {
+      Common: 65,
+      Uncommon: 20,
+      Rare: 8,
+      Special: 4,
+      Legendary: 3,
+    },
     ucSlot3Upgraded: constants.ucSlot3UpgradedWeights,
     hyperspaceNonFoil: constants.hyperspaceNonFoilWeights,
   },
@@ -102,7 +109,7 @@ export const LAW_CONFIG = {
 
     // Rare slot - can be replaced by Prestige
     rareToHyperspaceRL: constants.rareSlotHyperspaceRate,
-    rareToPrestige: constants.prestigeInRareSlotRate,
+    rareToPrestige: constants.prestigeInRareSlotRate || 1/18,
   },
 
   // Triple-aspect card handling

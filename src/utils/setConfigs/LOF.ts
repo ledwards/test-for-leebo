@@ -1,17 +1,18 @@
 /**
- * Set Configuration for TWI - Twilight of the Republic
- * Set 3
+ * Set Configuration for LOF - Legends of the Force
+ * Set 5
  */
 
-import { SETS_1_3_CONSTANTS } from '../packConstants.js'
+import { SETS_4_6_CONSTANTS } from '../packConstants.js'
+import type { SetConfig } from './index.js'
 
-const constants = SETS_1_3_CONSTANTS
+const constants = SETS_4_6_CONSTANTS
 
-export const TWI_CONFIG = {
-  setCode: 'TWI',
-  setName: 'Twilight of the Republic',
-  setNumber: 3,
-  color: '#6B0000', // Reddish maroon
+export const LOF_CONFIG: SetConfig = {
+  setCode: 'LOF',
+  setName: 'Legends of the Force',
+  setNumber: 5,
+  color: '#5DADE2', // Light blue
 
   // Card counts (Normal variants only)
   cardCounts: {
@@ -25,22 +26,22 @@ export const TWI_CONFIG = {
       rare: 0,
       total: 12
     },
-    commons: 90,
+    commons: 100,
     uncommons: 60,
-    rares: 48,
-    legendaries: 16,
-    specials: 13
+    rares: 46,
+    legendaries: 20,
+    specials: 8
   },
 
   // Pack construction rules
   packRules: {
     rareBasesInRareSlot: true,
-    specialInFoilSlot: constants.specialInFoilSlot,
+    specialInFoilSlot: constants.specialInFoilSlot,  // true for Set 4+
   },
 
   // Rarity weights for different slots (from packConstants)
   rarityWeights: {
-    foilSlot: constants.foilSlotWeights,
+    foilSlot: constants.foilSlotWeights!,
     hyperfoil: constants.hyperfoilWeights,
     ucSlot3Upgraded: constants.ucSlot3UpgradedWeights,
     hyperspaceNonFoil: constants.hyperspaceNonFoilWeights,
@@ -48,7 +49,7 @@ export const TWI_CONFIG = {
 
   // Belt ratios
   beltRatios: {
-    rareToLegendary: constants.rareSlotLegendaryRatio,  // 6:1 for R slot
+    rareToLegendary: constants.rareSlotLegendaryRatio,  // 5:1 for R slot
   },
 
   // Upgrade probabilities (chance for slot to be upgraded)
@@ -64,9 +65,9 @@ export const TWI_CONFIG = {
     foilToHyperfoil: constants.hyperfoilRate,                   // ~1/50
 
     // UC slot upgrades
-    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,        // ~1/5.5
-    firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,    // ~1/8.5
-    secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // ~1/8.5
+    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,        // ~1/5
+    firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,    // ~1/8
+    secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // ~1/8
 
     // Common upgrade
     commonToHyperspace: constants.commonHyperspaceRate,         // ~1/3

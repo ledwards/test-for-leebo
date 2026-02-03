@@ -1,17 +1,18 @@
 /**
- * Set Configuration for LOF - Legends of the Force
- * Set 5
+ * Set Configuration for JTL - Jump to Lightspeed
+ * Set 4
  */
 
 import { SETS_4_6_CONSTANTS } from '../packConstants.js'
+import type { SetConfig } from './index.js'
 
 const constants = SETS_4_6_CONSTANTS
 
-export const LOF_CONFIG = {
-  setCode: 'LOF',
-  setName: 'Legends of the Force',
-  setNumber: 5,
-  color: '#5DADE2', // Light blue
+export const JTL_CONFIG: SetConfig = {
+  setCode: 'JTL',
+  setName: 'Jump to Lightspeed',
+  setNumber: 4,
+  color: '#FFD700', // Yellow
 
   // Card counts (Normal variants only)
   cardCounts: {
@@ -21,13 +22,13 @@ export const LOF_CONFIG = {
       total: 18
     },
     bases: {
-      common: 12,
+      common: 13,
       rare: 0,
-      total: 12
+      total: 13
     },
-    commons: 100,
+    commons: 98,
     uncommons: 60,
-    rares: 46,
+    rares: 45,
     legendaries: 20,
     specials: 8
   },
@@ -40,7 +41,7 @@ export const LOF_CONFIG = {
 
   // Rarity weights for different slots (from packConstants)
   rarityWeights: {
-    foilSlot: constants.foilSlotWeights,
+    foilSlot: constants.foilSlotWeights!,
     hyperfoil: constants.hyperfoilWeights,
     ucSlot3Upgraded: constants.ucSlot3UpgradedWeights,
     hyperspaceNonFoil: constants.hyperspaceNonFoilWeights,
