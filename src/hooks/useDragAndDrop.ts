@@ -4,10 +4,78 @@
  * Handles card drag and drop, selection, and overlap cleanup in the deck builder.
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, RefObject, Dispatch, SetStateAction } from 'react'
+
+// === TYPES ===
+
+/** Card with drag-relevant properties */
+interface DragCard {
+  isLeader?: boolean;
+  isBase?: boolean;
+  [key: string]: unknown;
+}
+
+/** Card position in deck builder */
+interface CardPosition {
+  x: number;
+  y: number;
+  section: string;
+  visible: boolean;
+  enabled?: boolean;
+  zIndex?: number;
+  card: DragCard;
+}
+
+/** Card positions map */
+type CardPositionsMap = Record<string, CardPosition>;
+
+/** Section bounds */
+interface SectionBounds {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+/** Selection box state */
+interface SelectionBox {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+}
+
+/** Props for useDragAndDrop hook */
+interface UseDragAndDropProps {
+  cardPositions: CardPositionsMap;
+  setCardPositions: Dispatch<SetStateAction<CardPositionsMap>>;
+  sectionBounds: Record<string, SectionBounds>;
+  activeLeader: string | null;
+  setActiveLeader: Dispatch<SetStateAction<string | null>>;
+  activeBase: string | null;
+  setActiveBase: Dispatch<SetStateAction<string | null>>;
+  poolSortOption: string;
+  deckSortOption: string;
+  setShowAspectPenalties: Dispatch<SetStateAction<boolean>>;
+  setHoveredCard: Dispatch<SetStateAction<DragCard | null>>;
+  canvasRef: RefObject<HTMLDivElement | null>;
+}
+
+/** Return type for useDragAndDrop hook */
+export interface UseDragAndDropReturn {
+  draggedCard: string | null;
+  selectedCards: Set<string>;
+  setSelectedCards: Dispatch<SetStateAction<Set<string>>>;
+  selectionBox: SelectionBox | null;
+  isSelecting: boolean;
+  handleMouseDown: (e: React.MouseEvent, cardId: string) => void;
+  handleCanvasMouseDown: (e: React.MouseEvent) => void;
+}
+
+// === HELPERS ===
 
 // Find cards that are touching a given card
-function findTouchingCards(cardId, positions) {
+function findTouchingCards(cardId: string, positions: CardPositionsMap): Set<string> {
   const card = positions[cardId]
   if (!card) return new Set()
 
@@ -44,6 +112,8 @@ function findTouchingCards(cardId, positions) {
   return touching
 }
 
+// === HOOK ===
+
 export function useDragAndDrop({
   cardPositions,
   setCardPositions,
@@ -57,22 +127,23 @@ export function useDragAndDrop({
   setShowAspectPenalties,
   setHoveredCard,
   canvasRef,
-}) {
+}: UseDragAndDropProps): UseDragAndDropReturn {
   // Drag state
-  const [draggedCard, setDraggedCard] = useState(null)
+  const [draggedCard, setDraggedCard] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
-  const [selectedCards, setSelectedCards] = useState(new Set())
+  const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set())
   const [isSelecting, setIsSelecting] = useState(false)
-  const [selectionBox, setSelectionBox] = useState(null)
+  const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null)
   const [isShiftDrag, setIsShiftDrag] = useState(false)
-  const [touchingCards, setTouchingCards] = useState(new Set())
-  const [zIndexCounter, setZIndexCounter] = useState(1000)
+  const [touchingCards, setTouchingCards] = useState<Set<string>>(new Set())
+  // _zIndexCounter is only used via setZIndexCounter callback to generate unique z-indices
+  const [_zIndexCounter, setZIndexCounter] = useState(1000)
 
   // Refs
   const hasDraggedRef = useRef(false)
-  const finalDragPositionRef = useRef(null)
+  const finalDragPositionRef = useRef<{ x: number; y: number } | null>(null)
 
-  const handleMouseDown = useCallback((e, cardId) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent, cardId: string) => {
     if (e.button !== 0) return // Only left click
     e.preventDefault()
     e.stopPropagation()
@@ -105,17 +176,22 @@ export function useDragAndDrop({
       // Multi-select (only within same section)
       setZIndexCounter(prev => {
         const newZ = prev + 1
-        setCardPositions(prevPos => ({
-          ...prevPos,
-          [cardId]: { ...prevPos[cardId], zIndex: newZ }
-        }))
+        setCardPositions(prevPos => {
+          const existing = prevPos[cardId]
+          if (!existing) return prevPos
+          return {
+            ...prevPos,
+            [cardId]: { ...existing, zIndex: newZ }
+          }
+        })
         return newZ
       })
 
       setSelectedCards(prev => {
         const newSet = new Set(prev)
         if (prev.size > 0) {
-          const firstCard = cardPositions[Array.from(prev)[0]]
+          const firstCardId = Array.from(prev)[0]
+          const firstCard = firstCardId ? cardPositions[firstCardId] : undefined
           if (firstCard && firstCard.section !== card.section) {
             newSet.clear()
           }
@@ -134,14 +210,21 @@ export function useDragAndDrop({
     // Bring to front
     setZIndexCounter(prev => {
       const newZ = prev + 1
-      setCardPositions(prevPos => ({
-        ...prevPos,
-        [cardId]: { ...prevPos[cardId], zIndex: newZ }
-      }))
+      setCardPositions(prevPos => {
+        const existing = prevPos[cardId]
+        if (!existing) return prevPos
+        return {
+          ...prevPos,
+          [cardId]: { ...existing, zIndex: newZ }
+        }
+      })
       return newZ
     })
 
-    const rect = canvasRef.current.getBoundingClientRect()
+    const canvasElement = canvasRef.current
+    if (!canvasElement) return
+
+    const rect = canvasElement.getBoundingClientRect()
     const offsetX = (e.clientX - rect.left) - card.x
     const offsetY = (e.clientY - rect.top) - card.y
 
@@ -163,12 +246,16 @@ export function useDragAndDrop({
     setDraggedCard(cardId)
     setDragOffset({ x: offsetX, y: offsetY })
     hasDraggedRef.current = false
-  }, [cardPositions, activeLeader, activeBase, poolSortOption, deckSortOption, selectedCards, setActiveLeader, setActiveBase, setShowAspectPenalties, setCardPositions, findTouchingCards, canvasRef])
+  }, [cardPositions, activeLeader, activeBase, poolSortOption, deckSortOption, selectedCards, setActiveLeader, setActiveBase, setShowAspectPenalties, setCardPositions, canvasRef])
 
-  const handleCanvasMouseDown = useCallback((e) => {
+  const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return
-    if (e.target === canvasRef.current || e.target.classList.contains('deck-canvas')) {
-      const rect = canvasRef.current.getBoundingClientRect()
+    const target = e.target as HTMLElement
+    const canvasElement = canvasRef.current
+    if (!canvasElement) return
+
+    if (target === canvasElement || target.classList.contains('deck-canvas')) {
+      const rect = canvasElement.getBoundingClientRect()
       const startX = (e.clientX - rect.left)
       const startY = (e.clientY - rect.top)
       setIsSelecting(true)
@@ -177,7 +264,7 @@ export function useDragAndDrop({
     }
   }, [canvasRef])
 
-  const handleMouseMove = useCallback((e) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isSelecting && selectionBox) {
       const rect = canvasRef.current?.getBoundingClientRect()
       if (!rect) return
@@ -192,7 +279,7 @@ export function useDragAndDrop({
       const minY = Math.min(selectionBox.startY, endY)
       const maxY = Math.max(selectionBox.startY, endY)
 
-      const newSelected = new Set()
+      const newSelected = new Set<string>()
       Object.entries(cardPositions).forEach(([cardId, pos]) => {
         if (!pos.visible) return
         const cardWidth = pos.card.isLeader || pos.card.isBase ? 168 : 120
@@ -209,8 +296,9 @@ export function useDragAndDrop({
       if (newSelected.size > 1) {
         const sections = new Set(Array.from(newSelected).map(id => cardPositions[id]?.section))
         if (sections.size > 1) {
-          const firstSection = Array.from(newSelected)[0] ? cardPositions[Array.from(newSelected)[0]]?.section : null
-          const filtered = new Set()
+          const firstId = Array.from(newSelected)[0]
+          const firstSection = firstId ? cardPositions[firstId]?.section : null
+          const filtered = new Set<string>()
           newSelected.forEach(id => {
             if (cardPositions[id]?.section === firstSection) {
               filtered.add(id)
@@ -264,13 +352,14 @@ export function useDragAndDrop({
           const deltaY = constrainedY - currentCard.y
 
           cardsToMove.forEach(id => {
-            if (updates[id] && updates[id].section === section) {
-              const cardW = updates[id].card.isLeader || updates[id].card.isBase ? 168 : 120
-              const cardH = updates[id].card.isLeader || updates[id].card.isBase ? 120 : 168
-              const newCardX = Math.max(minX, Math.min(updates[id].x + deltaX, bounds.maxX - cardW))
-              const newCardY = Math.max(minY, Math.min(updates[id].y + deltaY, bounds.maxY - cardH))
+            const cardPos = updates[id]
+            if (cardPos && cardPos.section === section) {
+              const cardW = cardPos.card.isLeader || cardPos.card.isBase ? 168 : 120
+              const cardH = cardPos.card.isLeader || cardPos.card.isBase ? 120 : 168
+              const newCardX = Math.max(minX, Math.min(cardPos.x + deltaX, bounds.maxX - cardW))
+              const newCardY = Math.max(minY, Math.min(cardPos.y + deltaY, bounds.maxY - cardH))
               updates[id] = {
-                ...updates[id],
+                ...cardPos,
                 x: newCardX,
                 y: newCardY
               }
@@ -301,14 +390,18 @@ export function useDragAndDrop({
       const card = cardPositions[draggedCard]
       if (card && (card.section === 'deck' || card.section === 'sideboard')) {
         setHoveredCard(null)
-        setCardPositions(prev => ({
-          ...prev,
-          [draggedCard]: {
-            ...prev[draggedCard],
-            section: prev[draggedCard].section === 'deck' ? 'sideboard' : 'deck',
-            enabled: prev[draggedCard].section === 'deck' ? false : true
+        setCardPositions(prev => {
+          const prevCard = prev[draggedCard]
+          if (!prevCard) return prev
+          return {
+            ...prev,
+            [draggedCard]: {
+              ...prevCard,
+              section: prevCard.section === 'deck' ? 'sideboard' : 'deck',
+              enabled: prevCard.section === 'deck' ? false : true
+            }
           }
-        }))
+        })
         setDraggedCard(null)
         setDragOffset({ x: 0, y: 0 })
         return
@@ -337,7 +430,7 @@ export function useDragAndDrop({
         const draggedCenterY = dragY + draggedHeight / 2
 
         // Find all cards that the dragged card overlaps with
-        const overlappingCards = []
+        const overlappingCards: Array<{ cardId: string; pos: CardPosition }> = []
         Object.entries(prev).forEach(([cardId, pos]) => {
           if (cardId === currentDraggedCard || !pos.visible || pos.section !== draggedCardPos.section) return
 
@@ -380,7 +473,7 @@ export function useDragAndDrop({
 
           const allCardsToCleanup = [{ cardId: currentDraggedCard, pos: updatedDraggedPos }, ...overlappingCards]
 
-          const uniqueCardsMap = new Map()
+          const uniqueCardsMap = new Map<string, { cardId: string; pos: CardPosition }>()
           allCardsToCleanup.forEach(({ cardId, pos }) => {
             uniqueCardsMap.set(cardId, { cardId, pos })
           })
@@ -410,7 +503,7 @@ export function useDragAndDrop({
               const constrainedY = Math.max(bounds.minY, Math.min(currentY, bounds.maxY - cardHeight))
 
               updates[cardId] = {
-                ...updates[cardId] || pos,
+                ...(updates[cardId] || pos),
                 x: constrainedX,
                 y: constrainedY
               }
