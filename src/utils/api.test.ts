@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Tests for API utilities - beta set filtering
 import { describe, it } from 'node:test'
 import assert from 'node:assert'

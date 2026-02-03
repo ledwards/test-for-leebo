@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SWUDB Export Format Tests
  *
@@ -17,14 +18,14 @@ import { buildBaseCardMap, getBaseCardId } from './variantDowngrade.js'
 // Simple test framework
 const results = { passed: 0, failed: 0 }
 
-function test(name, fn) {
+function test(name: string, fn: () => void): void {
   try {
     fn()
     console.log(`\x1b[32m✅ ${name}\x1b[0m`)
     results.passed++
   } catch (error) {
     console.log(`\x1b[31m❌ ${name}\x1b[0m`)
-    console.log(`\x1b[33m   ${error.message}\x1b[0m`)
+    console.log(`\x1b[33m   ${(error as Error).message}\x1b[0m`)
     results.failed++
   }
 }

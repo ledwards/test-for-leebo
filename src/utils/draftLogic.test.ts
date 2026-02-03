@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Tests for draft pack format
  *
@@ -50,7 +51,7 @@ describe('Draft pack format', () => {
     assert.ok(firstPack.cards[0].instanceId, 'cards should have instanceId')
 
     // instanceIds should be unique across all packs
-    const allInstanceIds = new Set()
+    const allInstanceIds = new Set<string>()
     for (const playerPacks of packs) {
       for (const pack of playerPacks) {
         for (const card of pack.cards) {
@@ -80,7 +81,7 @@ describe('Draft pack format', () => {
 describe('Draft pack format - demonstrating the bug', () => {
   it('OLD CODE would have returned raw arrays (wrong)', () => {
     // This is what the buggy code did:
-    const buggyResult = []
+    const buggyResult: any[] = []
     const mockPack = { cards: [{ id: '1', name: 'Test' }] }
 
     // BUGGY: pushed pack.cards (the array) instead of pack (the object)
@@ -94,7 +95,7 @@ describe('Draft pack format - demonstrating the bug', () => {
 
   it('NEW CODE returns objects (correct)', () => {
     // This is what the fixed code does:
-    const fixedResult = []
+    const fixedResult: any[] = []
     const mockPack = { cards: [{ id: '1', name: 'Test' }] }
 
     // FIXED: push the pack object, not pack.cards
