@@ -9,31 +9,7 @@ function ReleaseNotes() {
   const [loading, setLoading] = useState(true)
   const [isVisible, setIsVisible] = useState(true)
 
-  useEffect(() => {
-    // Add cache-busting query parameter to always fetch fresh content
-    fetch(`/RELEASE_NOTES.md?v=${Date.now()}`)
-      .then(response => response.text())
-      .then(text => {
-        // Remove everything after triple HR
-        const tripleHrIndex = text.indexOf('---\n\n---\n\n---')
-        let contentToDisplay = tripleHrIndex !== -1 ? text.substring(0, tripleHrIndex) : text
-        // Remove leading whitespace/newlines
-        contentToDisplay = contentToDisplay.trimStart()
-        const html = parseMarkdownToHTML(contentToDisplay)
-        setContent(html)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('Failed to load release notes:', err)
-        setLoading(false)
-      })
-  }, [])
-
-  if (!isVisible) {
-    return null
-  }
-
-  const parseMarkdownToHTML = (markdown) => {
+  const parseMarkdownToHTML = (markdown: string): string => {
     let html = markdown
 
     // Headers
@@ -69,6 +45,30 @@ function ReleaseNotes() {
     }).join('\n')
 
     return html
+  }
+
+  useEffect(() => {
+    // Add cache-busting query parameter to always fetch fresh content
+    fetch(`/RELEASE_NOTES.md?v=${Date.now()}`)
+      .then(response => response.text())
+      .then(text => {
+        // Remove everything after triple HR
+        const tripleHrIndex = text.indexOf('---\n\n---\n\n---')
+        let contentToDisplay = tripleHrIndex !== -1 ? text.substring(0, tripleHrIndex) : text
+        // Remove leading whitespace/newlines
+        contentToDisplay = contentToDisplay.trimStart()
+        const html = parseMarkdownToHTML(contentToDisplay)
+        setContent(html)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Failed to load release notes:', err)
+        setLoading(false)
+      })
+  }, [])
+
+  if (!isVisible) {
+    return null
   }
 
   if (loading) {

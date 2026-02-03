@@ -1,12 +1,16 @@
 import './TermsOfService.css'
 
-function TermsOfService({ onBack }) {
+export interface TermsOfServiceProps {
+  onBack?: () => void
+}
+
+function TermsOfService({ onBack }: TermsOfServiceProps) {
   return (
     <div className="legal-page">
       <div className="legal-content">
         <h1>Terms of Service</h1>
         <p className="last-updated">Last Updated: {new Date().toLocaleDateString()}</p>
-        
+
         <section>
           <h2>1. Acceptance of Terms</h2>
           <p>
@@ -17,7 +21,7 @@ function TermsOfService({ onBack }) {
         <section>
           <h2>2. Description of Service</h2>
           <p>
-            Protect the Pod is a web application that simulates opening sealed pods of Star Wars: Unlimited booster packs. 
+            Protect the Pod is a web application that simulates opening sealed pods of Star Wars: Unlimited booster packs.
             The Service allows users to generate virtual booster packs, build decks, and share card pools.
           </p>
         </section>
@@ -25,7 +29,7 @@ function TermsOfService({ onBack }) {
         <section>
           <h2>3. User Accounts</h2>
           <p>
-            You may use the Service with or without creating an account. When you create an account using Discord OAuth, 
+            You may use the Service with or without creating an account. When you create an account using Discord OAuth,
             you are responsible for maintaining the security of your account. You are responsible for all activities that occur under your account.
           </p>
         </section>
@@ -33,7 +37,7 @@ function TermsOfService({ onBack }) {
         <section>
           <h2>4. User Content</h2>
           <p>
-            You retain ownership of any content you create or share through the Service, including card pools and deck configurations. 
+            You retain ownership of any content you create or share through the Service, including card pools and deck configurations.
             By sharing content, you grant us a license to display and distribute that content through the Service.
           </p>
         </section>
@@ -41,11 +45,11 @@ function TermsOfService({ onBack }) {
         <section>
           <h2>5. Intellectual Property</h2>
           <p>
-            The Service and its original content, features, and functionality are owned by Protect the Pod and are protected by international 
+            The Service and its original content, features, and functionality are owned by Protect the Pod and are protected by international
             copyright, trademark, patent, trade secret, and other intellectual property laws.
           </p>
           <p>
-            Star Wars: Unlimited is a trademark of Fantasy Flight Games and The Walt Disney Company. This Service is not affiliated with, 
+            Star Wars: Unlimited is a trademark of Fantasy Flight Games and The Walt Disney Company. This Service is not affiliated with,
             endorsed by, or sponsored by Fantasy Flight Games or The Walt Disney Company.
           </p>
         </section>
@@ -66,7 +70,7 @@ function TermsOfService({ onBack }) {
         <section>
           <h2>7. Disclaimer</h2>
           <p>
-            The Service is provided "as is" and "as available" without any warranties of any kind, either express or implied. 
+            The Service is provided "as is" and "as available" without any warranties of any kind, either express or implied.
             We do not guarantee that the Service will be available at all times or that it will be error-free.
           </p>
         </section>
@@ -74,7 +78,7 @@ function TermsOfService({ onBack }) {
         <section>
           <h2>8. Limitation of Liability</h2>
           <p>
-            In no event shall Protect the Pod, its directors, employees, or agents be liable for any indirect, incidental, special, 
+            In no event shall Protect the Pod, its directors, employees, or agents be liable for any indirect, incidental, special,
             consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses.
           </p>
         </section>
@@ -82,7 +86,7 @@ function TermsOfService({ onBack }) {
         <section>
           <h2>9. Changes to Terms</h2>
           <p>
-            We reserve the right to modify or replace these Terms at any time. If a revision is material, we will provide at least 
+            We reserve the right to modify or replace these Terms at any time. If a revision is material, we will provide at least
             30 days notice prior to any new terms taking effect.
           </p>
         </section>

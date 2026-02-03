@@ -1,12 +1,16 @@
 import './PrivacyPolicy.css'
 
-function PrivacyPolicy({ onBack }) {
+export interface PrivacyPolicyProps {
+  onBack?: () => void
+}
+
+function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
   return (
     <div className="legal-page">
       <div className="legal-content">
         <h1>Privacy Policy</h1>
         <p className="last-updated">Last Updated: {new Date().toLocaleDateString()}</p>
-        
+
         <section>
           <h2>1. Information We Collect</h2>
           <p>
@@ -35,7 +39,7 @@ function PrivacyPolicy({ onBack }) {
         <section>
           <h2>3. Data Storage</h2>
           <p>
-            Your data is stored securely using industry-standard practices. Card pools and deck configurations are stored in our database 
+            Your data is stored securely using industry-standard practices. Card pools and deck configurations are stored in our database
             and associated with your account (if you are signed in) or stored temporarily in your browser session (if you are not signed in).
           </p>
         </section>
@@ -55,7 +59,7 @@ function PrivacyPolicy({ onBack }) {
         <section>
           <h2>5. Cookies and Tracking</h2>
           <p>
-            We use cookies and similar technologies to maintain your session and remember your preferences. 
+            We use cookies and similar technologies to maintain your session and remember your preferences.
             We do not use third-party tracking cookies or advertising cookies.
           </p>
         </section>
@@ -63,7 +67,7 @@ function PrivacyPolicy({ onBack }) {
         <section>
           <h2>6. Third-Party Services</h2>
           <p>
-            The Service uses Discord OAuth for authentication. When you sign in with Discord, you are subject to Discord's Privacy Policy. 
+            The Service uses Discord OAuth for authentication. When you sign in with Discord, you are subject to Discord's Privacy Policy.
             We only receive the information that Discord provides through their OAuth API.
           </p>
         </section>
@@ -71,7 +75,7 @@ function PrivacyPolicy({ onBack }) {
         <section>
           <h2>7. Data Security</h2>
           <p>
-            We implement appropriate technical and organizational measures to protect your personal information. 
+            We implement appropriate technical and organizational measures to protect your personal information.
             However, no method of transmission over the Internet or electronic storage is 100% secure.
           </p>
         </section>
@@ -100,7 +104,7 @@ function PrivacyPolicy({ onBack }) {
         <section>
           <h2>10. Changes to This Privacy Policy</h2>
           <p>
-            We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page 
+            We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page
             and updating the "Last Updated" date.
           </p>
         </section>
