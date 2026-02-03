@@ -13,7 +13,7 @@ export default function NewDraftPage() {
   const router = useRouter()
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [creating, setCreating] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   // Preload cards on mount
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function NewDraftPage() {
     }
   }, [authLoading, isAuthenticated, router])
 
-  const handleSetSelect = async (setCode) => {
+  const handleSetSelect = async (setCode: string) => {
     if (creating) return
 
     setCreating(true)
@@ -40,7 +40,7 @@ export default function NewDraftPage() {
       router.push(`/draft/${result.shareId}`)
     } catch (err) {
       console.error('Failed to create draft:', err)
-      setError(err.message || 'Failed to create draft')
+      setError(err instanceof Error ? err.message : 'Failed to create draft')
       setCreating(false)
     }
   }

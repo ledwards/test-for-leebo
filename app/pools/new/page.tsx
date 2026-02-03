@@ -12,12 +12,31 @@ import SealedPod from '../../../src/components/SealedPod'
 import PackOpeningAnimation from '../../../src/components/PackOpeningAnimation'
 import '../../../src/App.css'
 
+interface CardType {
+  id?: string
+  name?: string
+  [key: string]: unknown
+}
+
+interface PackType {
+  cards: CardType[]
+  [key: string]: unknown
+}
+
+interface PoolData {
+  shareId: string
+  setCode: string
+  cards: CardType[]
+  packs: PackType[]
+  isPublic: boolean
+}
+
 export default function NewPoolPage() {
   const router = useRouter()
-  const [pool, setPool] = useState(null)
+  const [pool, setPool] = useState<PoolData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [setCode, setSetCode] = useState(null)
+  const [error, setError] = useState<string | null>(null)
+  const [setCode, setSetCode] = useState<string | null>(null)
   const [showAnimation, setShowAnimation] = useState(true)
   const [poolReady, setPoolReady] = useState(false)
 
@@ -49,7 +68,7 @@ export default function NewPoolPage() {
         }
 
         // Load cards for the set - try cache first, then API
-        let cards = []
+        let cards: CardType[] = []
         if (isCacheInitialized()) {
           cards = getCachedCards(urlSetCode)
         }
@@ -78,7 +97,7 @@ export default function NewPoolPage() {
         const shareId = nanoid(8)
 
         // Create pool object immediately
-        const poolData = {
+        const poolData: PoolData = {
           shareId,
           setCode: urlSetCode,
           cards: allCards,
@@ -106,7 +125,7 @@ export default function NewPoolPage() {
           // Server should use the same shareId, but handle mismatch just in case
           if (saved && saved.shareId && saved.shareId !== shareId) {
             window.history.replaceState({}, '', `/pool/${saved.shareId}`)
-            setPool(prev => ({ ...prev, shareId: saved.shareId }))
+            setPool(prev => prev ? { ...prev, shareId: saved.shareId } : null)
           }
         }).catch((err) => {
           console.error('Failed to save pool to database:', err)
@@ -114,7 +133,7 @@ export default function NewPoolPage() {
         })
       } catch (err) {
         console.error('Failed to create pool:', err)
-        setError(err.message || 'Failed to create pool')
+        setError(err instanceof Error ? err.message : 'Failed to create pool')
         setLoading(false)
       }
     }
@@ -169,7 +188,7 @@ export default function NewPoolPage() {
       <SealedPod
         setCode={pool.setCode}
         onBack={handleBack}
-        onBuildDeck={(cards, setCode) => {
+        onBuildDeck={(cards: CardType[], setCode: string) => {
           router.push(`/pool/${pool.shareId}/deck`)
         }}
         initialPacks={pool.packs}
