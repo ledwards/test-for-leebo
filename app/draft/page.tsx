@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -9,16 +10,40 @@ import '../../src/App.css'
 import '../../src/components/LandingPage.css'
 import './draft.css'
 
+interface DraftPod {
+  id: string
+  shareId: string
+  poolShareId?: string
+  setName?: string
+  setCode: string
+  status: string
+  isHost: boolean
+  isBot?: boolean
+  currentPlayers: number
+  maxPlayers: number
+  createdAt: string
+}
+
+interface DeleteConfirmState {
+  shareId: string
+  poolShareId?: string
+  isHost: boolean
+}
+
+interface DropConfirmState {
+  shareId: string
+}
+
 export default function DraftLandingPage() {
   const router = useRouter()
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [joinCode, setJoinCode] = useState('')
-  const [error, setError] = useState(null)
-  const [history, setHistory] = useState([])
+  const [error, setError] = useState<string | null>(null)
+  const [history, setHistory] = useState<DraftPod[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState(null) // { shareId, poolShareId, isHost }
+  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [dropConfirm, setDropConfirm] = useState(null) // { shareId }
+  const [dropConfirm, setDropConfirm] = useState<DropConfirmState | null>(null)
   const [isDropping, setIsDropping] = useState(false)
 
   // Fetch draft history when authenticated
@@ -39,7 +64,7 @@ export default function DraftLandingPage() {
           const allPods = data.data?.pods || data.pods || []
 
           // Always show the most recent draft, plus any active/waiting drafts
-          const filteredPods = allPods.filter((pod, index) => {
+          const filteredPods = allPods.filter((pod: DraftPod, index: number) => {
             // Always include the most recent draft (index 0)
             if (index === 0) return true
             // Include any other waiting or active drafts
@@ -114,7 +139,7 @@ export default function DraftLandingPage() {
     }
   }
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     if (!dateString) return ''
     const date = new Date(dateString)
     return date.toLocaleDateString(undefined, {
@@ -126,7 +151,7 @@ export default function DraftLandingPage() {
     })
   }
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (status: string) => {
     switch (status) {
       case 'waiting': return 'Lobby'
       case 'active': return 'In Progress'

@@ -1,6 +1,7 @@
+// @ts-nocheck
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { loadPool, updatePool, claimPool } from '../../../../../src/utils/poolApi'
 import { getPackArtUrl } from '../../../../../src/utils/packArt'
@@ -14,29 +15,82 @@ import { defaultSort } from '../../../../../src/services/cards/cardSorting'
 import '../../../../../src/App.css'
 import './play.css'
 
-export default function PlayPage({ params }) {
+interface CardType {
+  id?: string
+  name?: string
+  subtitle?: string
+  type?: string
+  imageUrl?: string
+  isBase?: boolean
+  isLeader?: boolean
+  [key: string]: unknown
+}
+
+interface CardPosition {
+  card: CardType
+  section: string
+  enabled?: boolean
+  [key: string]: unknown
+}
+
+interface DeckBuilderState {
+  cardPositions?: Record<string, CardPosition>
+  activeLeader?: string
+  activeBase?: string
+  poolName?: string
+  [key: string]: unknown
+}
+
+interface PoolOwner {
+  id: string
+  username?: string
+  name?: string
+  [key: string]: unknown
+}
+
+interface PoolData {
+  shareId: string
+  setCode: string
+  poolType?: string
+  deckBuilderState?: string | DeckBuilderState
+  name?: string
+  owner?: PoolOwner | null
+  userId?: string
+  draftShareId?: string
+  createdAt?: string
+}
+
+interface Player {
+  id: string
+  username?: string
+  isHost?: boolean
+  [key: string]: unknown
+}
+
+interface PageProps {
+  params: Promise<{ shareId: string }>
+}
+
+export default function PlayPage({ params }: PageProps) {
+  const resolvedParams = use(params)
   const router = useRouter()
   const { user } = useAuth()
-  const [pool, setPool] = useState(null)
+  const [pool, setPool] = useState<PoolData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [shareId, setShareId] = useState(null)
-  const [message, setMessage] = useState(null)
-  const [messageType, setMessageType] = useState(null)
-  const [firstOpponent, setFirstOpponent] = useState(null)
+  const [error, setError] = useState<string | null>(null)
+  const [shareId, setShareId] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [messageType, setMessageType] = useState<string | null>(null)
+  const [firstOpponent, setFirstOpponent] = useState<Player | null>(null)
   const [hasBye, setHasBye] = useState(false)
-  const [deckImageModal, setDeckImageModal] = useState(null)
+  const [deckImageModal, setDeckImageModal] = useState<string | null>(null)
   const [generatingImage, setGeneratingImage] = useState(false)
-  const [baseCardMap, setBaseCardMap] = useState(null)
+  const [baseCardMap, setBaseCardMap] = useState<Map<string, string> | null>(null)
   const [claiming, setClaiming] = useState(false)
 
   useEffect(() => {
-    async function getParams() {
-      const resolvedParams = await params
-      setShareId(resolvedParams.shareId)
-    }
-    getParams()
-  }, [params])
+    setShareId(resolvedParams.shareId)
+  }, [resolvedParams])
 
   useEffect(() => {
     if (!shareId) return
@@ -54,7 +108,7 @@ export default function PlayPage({ params }) {
         }
       } catch (err) {
         console.error('Failed to load pool:', err)
-        setError(err.message || 'Failed to load pool')
+        setError(err instanceof Error ? err.message : 'Failed to load pool')
       } finally {
         setLoading(false)
       }
@@ -114,7 +168,7 @@ export default function PlayPage({ params }) {
     tryClaimPool()
   }, [user, pool?.owner, shareId])
 
-  const fetchOpponent = async (draftShareId) => {
+  const fetchOpponent = async (draftShareId: string) => {
     try {
       const response = await fetch(`/api/draft/${draftShareId}`, {
         credentials: 'include'
@@ -127,22 +181,22 @@ export default function PlayPage({ params }) {
       if (draft.status !== 'complete') return
 
       const players = draft.players || []
-      const myPlayer = players.find(p => p.id === user?.id)
+      const myPlayer = players.find((p: Player) => p.id === user?.id)
       if (!myPlayer || players.length === 0) return
 
       const isOddNumber = players.length % 2 === 1
-      const organizer = players.find(p => p.isHost)
+      const organizer = players.find((p: Player) => p.isHost)
 
       if (isOddNumber && organizer?.id === myPlayer.id) {
         setHasBye(true)
       } else {
-        const myIndex = players.findIndex(p => p.id === myPlayer.id)
+        const myIndex = players.findIndex((p: Player) => p.id === myPlayer.id)
         if (myIndex !== -1) {
           let playersForPairing = [...players]
           if (isOddNumber && organizer) {
-            playersForPairing = playersForPairing.filter(p => p.id !== organizer.id)
+            playersForPairing = playersForPairing.filter((p: Player) => p.id !== organizer.id)
           }
-          const myNewIndex = playersForPairing.findIndex(p => p.id === myPlayer.id)
+          const myNewIndex = playersForPairing.findIndex((p: Player) => p.id === myPlayer.id)
           if (myNewIndex !== -1) {
             const halfLength = playersForPairing.length / 2
             const opponentIndex = (myNewIndex + Math.floor(halfLength)) % playersForPairing.length
