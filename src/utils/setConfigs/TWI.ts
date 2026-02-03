@@ -1,17 +1,18 @@
 /**
- * Set Configuration for JTL - Jump to Lightspeed
- * Set 4
+ * Set Configuration for TWI - Twilight of the Republic
+ * Set 3
  */
 
-import { SETS_4_6_CONSTANTS } from '../packConstants.js'
+import { SETS_1_3_CONSTANTS } from '../packConstants.js'
+import type { SetConfig } from './index.js'
 
-const constants = SETS_4_6_CONSTANTS
+const constants = SETS_1_3_CONSTANTS
 
-export const JTL_CONFIG = {
-  setCode: 'JTL',
-  setName: 'Jump to Lightspeed',
-  setNumber: 4,
-  color: '#FFD700', // Yellow
+export const TWI_CONFIG: SetConfig = {
+  setCode: 'TWI',
+  setName: 'Twilight of the Republic',
+  setNumber: 3,
+  color: '#6B0000', // Reddish maroon
 
   // Card counts (Normal variants only)
   cardCounts: {
@@ -21,26 +22,26 @@ export const JTL_CONFIG = {
       total: 18
     },
     bases: {
-      common: 13,
+      common: 12,
       rare: 0,
-      total: 13
+      total: 12
     },
-    commons: 98,
+    commons: 90,
     uncommons: 60,
-    rares: 45,
-    legendaries: 20,
-    specials: 8
+    rares: 48,
+    legendaries: 16,
+    specials: 13
   },
 
   // Pack construction rules
   packRules: {
     rareBasesInRareSlot: true,
-    specialInFoilSlot: constants.specialInFoilSlot,  // true for Set 4+
+    specialInFoilSlot: constants.specialInFoilSlot,
   },
 
   // Rarity weights for different slots (from packConstants)
   rarityWeights: {
-    foilSlot: constants.foilSlotWeights,
+    foilSlot: constants.foilSlotWeights!,
     hyperfoil: constants.hyperfoilWeights,
     ucSlot3Upgraded: constants.ucSlot3UpgradedWeights,
     hyperspaceNonFoil: constants.hyperspaceNonFoilWeights,
@@ -48,7 +49,7 @@ export const JTL_CONFIG = {
 
   // Belt ratios
   beltRatios: {
-    rareToLegendary: constants.rareSlotLegendaryRatio,  // 5:1 for R slot
+    rareToLegendary: constants.rareSlotLegendaryRatio,  // 6:1 for R slot
   },
 
   // Upgrade probabilities (chance for slot to be upgraded)
@@ -64,9 +65,9 @@ export const JTL_CONFIG = {
     foilToHyperfoil: constants.hyperfoilRate,                   // ~1/50
 
     // UC slot upgrades
-    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,        // ~1/5
-    firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,    // ~1/8
-    secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // ~1/8
+    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,        // ~1/5.5
+    firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,    // ~1/8.5
+    secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // ~1/8.5
 
     // Common upgrade
     commonToHyperspace: constants.commonHyperspaceRate,         // ~1/3
