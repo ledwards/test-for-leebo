@@ -4,7 +4,95 @@
  * Provides deck export functionality including JSON export, clipboard copy, and image generation.
  */
 
-import { getBaseCardId } from '../utils/variantDowngrade'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import { getBaseCardId as getBaseCardIdRaw } from '../utils/variantDowngrade'
+
+// Wrapper that handles the optional second argument and null returns
+function getBaseCardId(card: unknown): string {
+  const result = (getBaseCardIdRaw as (card: unknown, map?: unknown) => string | null)(card, undefined)
+  return result || ''
+}
+
+// === TYPES ===
+
+/** Card with properties needed for export */
+interface ExportCard {
+  id?: string;
+  name?: string;
+  type?: string;
+  cost?: number | null;
+  isBase?: boolean;
+  isLeader?: boolean;
+  frontArt?: string;
+  [key: string]: unknown;
+}
+
+/** Card position in deck builder */
+interface CardPosition {
+  section: 'deck' | 'sideboard' | 'pool' | 'leaders' | 'bases';
+  visible: boolean;
+  enabled?: boolean;
+  card: ExportCard;
+}
+
+/** Card positions map */
+type CardPositionsMap = Record<string, CardPosition>;
+
+/** Deck card entry for export */
+interface DeckCardEntry {
+  id: string;
+  count: number;
+}
+
+/** Built deck data structure */
+interface DeckData {
+  leader: DeckCardEntry | null;
+  base: DeckCardEntry | null;
+  deck: DeckCardEntry[];
+  sideboard: DeckCardEntry[];
+}
+
+/** Export data structure for JSON export */
+interface ExportData {
+  metadata: {
+    name: string;
+    author: string;
+  };
+  leader: DeckCardEntry | null;
+  base: DeckCardEntry | null;
+  deck: DeckCardEntry[];
+  sideboard: DeckCardEntry[];
+}
+
+/** Message type for status messages */
+type MessageType = 'success' | 'error' | null;
+
+/** Props for useDeckExport hook */
+interface UseDeckExportProps {
+  cardPositions: CardPositionsMap;
+  activeLeader: string | null;
+  activeBase: string | null;
+  leaderCard: ExportCard | null;
+  baseCard: ExportCard | null;
+  allSetCards: ExportCard[];
+  setCode: string;
+  poolType: 'draft' | 'sealed';
+  currentPoolName: string | null;
+  poolOwnerUsername: string | null;
+  setErrorMessage: (message: string | null) => void;
+  setMessageType: (type: MessageType) => void;
+  setDeckImageModal: (url: string | null) => void;
+}
+
+/** Return type for useDeckExport hook */
+export interface UseDeckExportReturn {
+  buildDeckData: () => DeckData;
+  exportJSON: () => void;
+  copyJSON: () => Promise<void>;
+  exportDeckImage: () => Promise<void>;
+}
+
+// === HOOK ===
 
 export function useDeckExport({
   cardPositions,
@@ -20,13 +108,13 @@ export function useDeckExport({
   setErrorMessage,
   setMessageType,
   setDeckImageModal,
-}) {
+}: UseDeckExportProps): UseDeckExportReturn {
   const isDraftMode = poolType === 'draft'
 
   // Build deck data structure for export (uses base card IDs for Karabast compatibility)
-  const buildDeckData = () => {
+  const buildDeckData = (): DeckData => {
     // Build set of leader/base IDs to filter from final output
-    const leaderBaseIds = new Set()
+    const leaderBaseIds = new Set<string>()
     allSetCards.forEach(card => {
       if (card.type === 'Leader' || card.type === 'Base') {
         leaderBaseIds.add(getBaseCardId(card))
@@ -43,7 +131,7 @@ export function useDeckExport({
       .map(pos => pos.card)
 
     // Count cards by base ID, excluding leaders and bases
-    const deckCounts = new Map()
+    const deckCounts = new Map<string, number>()
     deckCards.forEach(card => {
       const id = getBaseCardId(card)
       if (!leaderBaseIds.has(id)) {
@@ -51,7 +139,7 @@ export function useDeckExport({
       }
     })
 
-    const sideboardCounts = new Map()
+    const sideboardCounts = new Map<string, number>()
     sideboardCards.forEach(card => {
       const id = getBaseCardId(card)
       if (!leaderBaseIds.has(id)) {
@@ -68,9 +156,9 @@ export function useDeckExport({
   }
 
   // Export as JSON
-  const exportJSON = () => {
+  const exportJSON = (): void => {
     if (!activeLeader || !activeBase) {
-      const missing = []
+      const missing: string[] = []
       if (!activeLeader) missing.push('leader')
       if (!activeBase) missing.push('base')
       setErrorMessage(`Please select a ${missing.join(' and ')} before exporting.`)
@@ -87,7 +175,7 @@ export function useDeckExport({
     const deckData = buildDeckData()
 
     const poolDisplayName = currentPoolName || `${setCode} ${isDraftMode ? 'Draft' : 'Sealed'}`
-    const exportData = {
+    const exportData: ExportData = {
       metadata: {
         name: `[PTP] ${poolDisplayName}`,
         author: "Protect the Pod"
@@ -111,9 +199,9 @@ export function useDeckExport({
   }
 
   // Copy JSON to clipboard
-  const copyJSON = async () => {
+  const copyJSON = async (): Promise<void> => {
     if (!activeLeader || !activeBase) {
-      const missing = []
+      const missing: string[] = []
       if (!activeLeader) missing.push('leader')
       if (!activeBase) missing.push('base')
       setErrorMessage(`Please select a ${missing.join(' and ')} before copying.`)
@@ -130,7 +218,7 @@ export function useDeckExport({
     const deckData = buildDeckData()
 
     const poolDisplayName = currentPoolName || `${setCode} ${isDraftMode ? 'Draft' : 'Sealed'}`
-    const exportData = {
+    const exportData: ExportData = {
       metadata: {
         name: `[PTP] ${poolDisplayName}`,
         author: "Protect the Pod"
@@ -150,7 +238,7 @@ export function useDeckExport({
         setErrorMessage(null)
         setMessageType(null)
       }, 3000)
-    } catch (err) {
+    } catch {
       setErrorMessage('Failed to copy to clipboard')
       setMessageType('error')
       setTimeout(() => {
@@ -161,13 +249,13 @@ export function useDeckExport({
   }
 
   // Export deck as image
-  const exportDeckImage = async () => {
+  const exportDeckImage = async (): Promise<void> => {
     try {
       setErrorMessage('Generating image...')
       setMessageType('success')
 
       // Sort by cost for deck image export
-      const costSort = (a, b) => {
+      const costSort = (a: ExportCard, b: ExportCard): number => {
         const costA = a.cost !== null && a.cost !== undefined ? a.cost : 999
         const costB = b.cost !== null && b.cost !== undefined ? b.cost : 999
         if (costA !== costB) return costA - costB
@@ -219,6 +307,10 @@ export function useDeckExport({
       canvas.height = totalHeight
       const ctx = canvas.getContext('2d')
 
+      if (!ctx) {
+        throw new Error('Failed to get canvas context')
+      }
+
       // Dark background
       ctx.fillStyle = '#1a1a2e'
       ctx.fillRect(0, 0, width, totalHeight)
@@ -243,65 +335,67 @@ export function useDeckExport({
       let currentY = padding
 
       // Helper to draw a single card
-      const drawCard = (card, x, y, width, height, count, grayscale) => {
+      const drawCard = (card: ExportCard, x: number, y: number, cardW: number, cardH: number, count: number | null, grayscale: boolean): Promise<void> => {
         return new Promise((resolve) => {
           const imageUrl = card.frontArt || '/card-back.png'
 
-          const drawPlaceholder = () => {
+          const drawPlaceholder = (): void => {
             ctx.fillStyle = '#333'
-            ctx.fillRect(x, y, width, height)
+            ctx.fillRect(x, y, cardW, cardH)
             ctx.strokeStyle = '#555'
-            ctx.strokeRect(x, y, width, height)
+            ctx.strokeRect(x, y, cardW, cardH)
             ctx.fillStyle = '#888'
             ctx.font = '10px Arial'
             ctx.textAlign = 'center'
             ctx.textBaseline = 'middle'
-            ctx.fillText(card.name || 'Unknown', x + width / 2, y + height / 2)
+            ctx.fillText(card.name || 'Unknown', x + cardW / 2, y + cardH / 2)
             resolve()
           }
 
           // Try to load image via blob (better for CORS)
-          const loadImageViaBlob = async () => {
+          const loadImageViaBlob = (): void => {
             const img = new Image()
             const timeoutId = setTimeout(() => {
               console.warn(`Image load timeout for ${card.name}`)
               drawPlaceholder()
             }, 5000)
 
-            img.onload = () => {
+            img.onload = (): void => {
               clearTimeout(timeoutId)
               try {
                 if (grayscale) {
                   const tempCanvas = document.createElement('canvas')
-                  tempCanvas.width = width
-                  tempCanvas.height = height
+                  tempCanvas.width = cardW
+                  tempCanvas.height = cardH
                   const tempCtx = tempCanvas.getContext('2d')
-                  tempCtx.drawImage(img, 0, 0, width, height)
-                  const imageData = tempCtx.getImageData(0, 0, width, height)
-                  const data = imageData.data
-                  for (let i = 0; i < data.length; i += 4) {
-                    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3
-                    data[i] = avg
-                    data[i + 1] = avg
-                    data[i + 2] = avg
+                  if (tempCtx) {
+                    tempCtx.drawImage(img, 0, 0, cardW, cardH)
+                    const imageData = tempCtx.getImageData(0, 0, cardW, cardH)
+                    const data = imageData.data
+                    for (let i = 0; i < data.length; i += 4) {
+                      const avg = (data[i]! + data[i + 1]! + data[i + 2]!) / 3
+                      data[i] = avg
+                      data[i + 1] = avg
+                      data[i + 2] = avg
+                    }
+                    tempCtx.putImageData(imageData, 0, 0)
+                    ctx.drawImage(tempCanvas, x, y, cardW, cardH)
                   }
-                  tempCtx.putImageData(imageData, 0, 0)
-                  ctx.drawImage(tempCanvas, x, y, width, height)
                 } else {
-                  ctx.drawImage(img, x, y, width, height)
+                  ctx.drawImage(img, x, y, cardW, cardH)
                 }
 
                 // Draw count badge if count > 1
                 if (count && count > 1) {
                   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
                   ctx.beginPath()
-                  ctx.arc(x + width - 15, y + height - 15, 12, 0, Math.PI * 2)
+                  ctx.arc(x + cardW - 15, y + cardH - 15, 12, 0, Math.PI * 2)
                   ctx.fill()
                   ctx.fillStyle = 'white'
                   ctx.font = 'bold 14px Arial'
                   ctx.textAlign = 'center'
                   ctx.textBaseline = 'middle'
-                  ctx.fillText(count.toString(), x + width - 15, y + height - 15)
+                  ctx.fillText(count.toString(), x + cardW - 15, y + cardH - 15)
                 }
 
                 resolve()
@@ -311,7 +405,7 @@ export function useDeckExport({
               }
             }
 
-            img.onerror = () => {
+            img.onerror = (): void => {
               clearTimeout(timeoutId)
               console.warn(`Image load error for ${card.name}: ${imageUrl}`)
               drawPlaceholder()
@@ -430,14 +524,16 @@ export function useDeckExport({
 
       // Show image in modal instead of downloading
       canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob)
-        setDeckImageModal(url)
-        setErrorMessage('Image generated!')
-        setMessageType('success')
-        setTimeout(() => {
-          setErrorMessage(null)
-          setMessageType(null)
-        }, 3000)
+        if (blob) {
+          const url = URL.createObjectURL(blob)
+          setDeckImageModal(url)
+          setErrorMessage('Image generated!')
+          setMessageType('success')
+          setTimeout(() => {
+            setErrorMessage(null)
+            setMessageType(null)
+          }, 3000)
+        }
       }, 'image/png')
 
     } catch (error) {

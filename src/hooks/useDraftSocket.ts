@@ -1,8 +1,97 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { io } from 'socket.io-client'
-import { loadDraft } from '@/src/utils/draftApi.js'
+import { io, Socket } from 'socket.io-client'
+import { loadDraft } from '../utils/draftApi.js'
+
+// === TYPES ===
+
+/** Draft player information */
+interface DraftPlayer {
+  seat: number;
+  username: string | null;
+  discordId: string | null;
+  isBot: boolean;
+  isHost: boolean;
+  [key: string]: unknown;
+}
+
+/** Draft state from server */
+interface DraftState {
+  round?: number;
+  pick?: number;
+  pack?: unknown[];
+  picks?: unknown[];
+  [key: string]: unknown;
+}
+
+/** Full draft data */
+interface Draft {
+  id: string;
+  shareId: string;
+  status: 'waiting' | 'active' | 'completed' | 'cancelled';
+  setCode: string;
+  maxPlayers: number;
+  isHost: boolean;
+  isPlayer: boolean;
+  players: DraftPlayer[];
+  myPlayer: DraftPlayer | null;
+  draftState: DraftState;
+  timed: boolean;
+  timerEnabled: boolean;
+  timerSeconds: number;
+  pickTimeoutSeconds: number;
+  startedAt: string | null;
+  completedAt: string | null;
+  pickStartedAt: string | null;
+  stateVersion: number;
+  paused: boolean;
+  pausedAt: string | null;
+  pausedDurationSeconds: number;
+  [key: string]: unknown;
+}
+
+/** Socket state update data */
+interface SocketStateData {
+  status: Draft['status'];
+  draftState: DraftState;
+  players: DraftPlayer[];
+  timed: boolean;
+  timerEnabled: boolean;
+  timerSeconds: number;
+  pickTimeoutSeconds: number;
+  startedAt: string | null;
+  completedAt: string | null;
+  pickStartedAt: string | null;
+  stateVersion: number;
+  paused: boolean;
+  pausedAt: string | null;
+  pausedDurationSeconds: number;
+}
+
+/** Options for useDraftSocket hook */
+interface UseDraftSocketOptions {
+  enabled?: boolean;
+}
+
+/** Return type for useDraftSocket hook */
+export interface UseDraftSocketReturn {
+  draft: Draft | null;
+  loading: boolean;
+  error: string | null;
+  deleted: boolean;
+  connected: boolean;
+  refresh: () => Promise<void>;
+  reconnect: () => void;
+  isHost: boolean;
+  isPlayer: boolean;
+  players: DraftPlayer[];
+  myPlayer: DraftPlayer | null;
+  draftState: DraftState;
+  status: string;
+}
+
+// === HOOK ===
 
 /**
  * Hook for syncing draft state via WebSocket (Socket.io)
@@ -10,19 +99,21 @@ import { loadDraft } from '@/src/utils/draftApi.js'
  * WebSocket pushes public state changes instantly.
  * User-specific data (myPlayer, currentPack, leaders) is fetched via HTTP.
  *
- * @param {string} shareId - Draft share ID
- * @param {Object} options - Options
- * @param {boolean} options.enabled - Whether sync is enabled (default true)
- * @returns {Object} Draft state and controls
+ * @param shareId - Draft share ID
+ * @param options - Options
+ * @returns Draft state and controls
  */
-export function useDraftSocket(shareId, { enabled = true } = {}) {
-  const [draft, setDraft] = useState(null)
+export function useDraftSocket(
+  shareId: string | null,
+  { enabled = true }: UseDraftSocketOptions = {}
+): UseDraftSocketReturn {
+  const [draft, setDraft] = useState<Draft | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [deleted, setDeleted] = useState(false)
   const [connected, setConnected] = useState(false)
 
-  const socketRef = useRef(null)
+  const socketRef = useRef<Socket | null>(null)
   const stateVersionRef = useRef(0)
 
   // Fetch full draft state including user-specific data via HTTP
@@ -33,11 +124,12 @@ export function useDraftSocket(shareId, { enabled = true } = {}) {
     }
     setError(null)
     try {
-      const data = await loadDraft(shareId)
+      const data = await loadDraft(shareId) as Draft
       setDraft(data)
       stateVersionRef.current = data.stateVersion || 0
     } catch (err) {
-      setError(err.message)
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      setError(errorMessage)
     } finally {
       if (showLoading) {
         setLoading(false)
@@ -65,19 +157,19 @@ export function useDraftSocket(shareId, { enabled = true } = {}) {
       setConnected(false)
     })
 
-    socket.on('connect_error', (err) => {
+    socket.on('connect_error', (err: Error) => {
       console.error('Socket connection error:', err)
       setError('Connection error')
     })
 
     // When state changes, fetch fresh data via HTTP
-    socket.on('state', async (data) => {
+    socket.on('state', async (data: SocketStateData) => {
       // Only fetch if version is newer
       if (data.stateVersion > stateVersionRef.current) {
         stateVersionRef.current = data.stateVersion
 
         // Update public state immediately for responsiveness
-        setDraft(prev => ({
+        setDraft(prev => prev ? {
           ...prev,
           status: data.status,
           draftState: data.draftState,
@@ -93,17 +185,17 @@ export function useDraftSocket(shareId, { enabled = true } = {}) {
           paused: data.paused,
           pausedAt: data.pausedAt,
           pausedDurationSeconds: data.pausedDurationSeconds,
-        }))
+        } : null)
 
         // Fetch user-specific data via HTTP (uses auth cookie)
         try {
-          const fullData = await loadDraft(shareId)
-          setDraft(prev => ({
+          const fullData = await loadDraft(shareId) as Draft
+          setDraft(prev => prev ? {
             ...prev,
             myPlayer: fullData.myPlayer,
             isHost: fullData.isHost,
             isPlayer: fullData.isPlayer,
-          }))
+          } : null)
         } catch (err) {
           console.error('Error fetching user data:', err)
         }
@@ -121,12 +213,12 @@ export function useDraftSocket(shareId, { enabled = true } = {}) {
   }, [shareId, enabled, fetchDraft])
 
   // Manual refresh
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<void> => {
     await fetchDraft(false)
   }, [fetchDraft])
 
   // Force reconnect
-  const reconnect = useCallback(() => {
+  const reconnect = useCallback((): void => {
     if (socketRef.current) {
       socketRef.current.disconnect()
       socketRef.current.connect()
