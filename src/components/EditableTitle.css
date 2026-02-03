@@ -25,19 +25,9 @@
   border-radius: 4px;
 }
 
-.editable-title-edit-button:hover:not(.disabled) {
+.editable-title-edit-button:hover {
   color: rgba(255, 255, 255, 0.8);
   background: rgba(255, 255, 255, 0.1);
-}
-
-.editable-title-edit-button.disabled {
-  color: rgba(255, 100, 100, 0.6);
-  cursor: not-allowed;
-}
-
-.editable-title-edit-button.disabled:hover {
-  color: rgba(255, 100, 100, 0.8);
-  background: transparent;
 }
 
 .editable-title-input {

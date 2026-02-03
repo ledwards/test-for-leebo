@@ -21,6 +21,8 @@ export default function HistoryPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [dropConfirm, setDropConfirm] = useState(null) // { shareId }
   const [isDropping, setIsDropping] = useState(false)
+  const [showHiddenSealed, setShowHiddenSealed] = useState(false)
+  const [showHiddenDraft, setShowHiddenDraft] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -170,6 +172,29 @@ export default function HistoryPage() {
     }
   }
 
+  const handleToggleHidden = async (shareId, currentHidden, type) => {
+    try {
+      await updatePool(shareId, { hidden: !currentHidden })
+      if (type === 'sealed') {
+        setSealedPools(pools => pools.map(p =>
+          p.shareId === shareId ? { ...p, hidden: !currentHidden } : p
+        ))
+      } else {
+        setDraftPods(pods => pods.map(p =>
+          p.poolShareId === shareId ? { ...p, hidden: !currentHidden } : p
+        ))
+      }
+    } catch (err) {
+      console.error('Failed to toggle hidden:', err)
+    }
+  }
+
+  // Filter pools into visible and hidden
+  const visibleSealedPools = sealedPools.filter(p => !p.hidden)
+  const hiddenSealedPools = sealedPools.filter(p => p.hidden)
+  const visibleDraftPods = draftPods.filter(p => !p.hidden)
+  const hiddenDraftPods = draftPods.filter(p => p.hidden)
+
   if (authLoading || loading) {
     return (
       <div className="app">
@@ -226,64 +251,181 @@ export default function HistoryPage() {
                 <p>No sealed pools found. Create your first pool to get started!</p>
               </div>
             ) : (
-              <div className="history-table-container">
-                <table className="history-table">
-                  <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>Set</th>
-                      <th>Leader</th>
-                      <th>Base</th>
-                      <th>Date</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sealedPools.map((pool) => (
-                      <tr key={pool.id}>
-                        <td>
-                          <EditableTitle
-                            value={pool.name}
-                            onSave={(newName) => handleRenamePool(pool.shareId, newName)}
-                            onTitleClick={() => window.location.href = `/pool/${pool.shareId}/deck`}
-                            isEditable={true}
-                            placeholder="Untitled Pool"
-                            className="history-editable-title"
-                          />
-                        </td>
-                        <td style={{ color: 'white', fontWeight: '600' }}>
-                          {getSetName(pool.setCode)}
-                        </td>
-                        <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                          {pool.leaderName || '-'}
-                        </td>
-                        <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                          {pool.baseName || '-'}
-                        </td>
-                        <td>{formatDate(pool.createdAt)}</td>
-                        <td className="history-actions-cell">
-                          <button
-                            className="history-view-button"
-                            onClick={() => window.location.href = `/pool/${pool.shareId}/deck`}
-                          >
-                            View
-                          </button>
-                          <button
-                            className="history-delete-button"
-                            onClick={() => setDeleteConfirm({ shareId: pool.shareId, type: 'sealed' })}
-                            title="Delete"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="3 6 5 6 21 6"></polyline>
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            </svg>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                {visibleSealedPools.length > 0 && (
+                  <div className="history-table-container">
+                    <table className="history-table">
+                      <thead>
+                        <tr>
+                          <th>Title</th>
+                          <th>Set</th>
+                          <th>Leader</th>
+                          <th>Base</th>
+                          <th>Date</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {visibleSealedPools.map((pool) => (
+                          <tr key={pool.id}>
+                            <td>
+                              <EditableTitle
+                                value={pool.name}
+                                onSave={(newName) => handleRenamePool(pool.shareId, newName)}
+                                onTitleClick={() => window.location.href = `/pool/${pool.shareId}/deck`}
+                                isEditable={true}
+                                placeholder="Untitled Pool"
+                                className="history-editable-title"
+                              />
+                            </td>
+                            <td style={{ color: 'white', fontWeight: '600' }}>
+                              {getSetName(pool.setCode)}
+                            </td>
+                            <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                              {pool.leaderName || '-'}
+                            </td>
+                            <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                              {pool.baseName || '-'}
+                            </td>
+                            <td>{formatDate(pool.createdAt)}</td>
+                            <td className="history-actions-cell">
+                              <div className="actions-wrapper">
+                                <button
+                                  className="history-view-button"
+                                  onClick={() => window.location.href = `/pool/${pool.shareId}/deck`}
+                                >
+                                  View
+                                </button>
+                                <button
+                                  className="history-hide-button"
+                                  onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'sealed')}
+                                  title="Hide"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                  </svg>
+                                </button>
+                                <button
+                                  className="history-delete-button"
+                                  onClick={() => setDeleteConfirm({ shareId: pool.shareId, type: 'sealed' })}
+                                  title="Delete"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                  </svg>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Hidden sealed pools section */}
+                {hiddenSealedPools.length > 0 && (
+                  <div className="hidden-pools-section">
+                    <button
+                      className={`hidden-pools-toggle ${showHiddenSealed ? 'expanded' : ''}`}
+                      onClick={() => setShowHiddenSealed(!showHiddenSealed)}
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        style={{ transform: showHiddenSealed ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                      >
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                      Hidden ({hiddenSealedPools.length})
+                    </button>
+                    {showHiddenSealed && (
+                      <div className="history-table-container hidden-pools-table-container">
+                        <table className="history-table">
+                          <thead>
+                            <tr>
+                              <th>Title</th>
+                              <th>Set</th>
+                              <th>Leader</th>
+                              <th>Base</th>
+                              <th>Date</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {hiddenSealedPools.map((pool) => (
+                              <tr key={pool.id}>
+                                <td>
+                                  <EditableTitle
+                                    value={pool.name}
+                                    onSave={(newName) => handleRenamePool(pool.shareId, newName)}
+                                    onTitleClick={() => window.location.href = `/pool/${pool.shareId}/deck`}
+                                    isEditable={true}
+                                    placeholder="Untitled Pool"
+                                    className="history-editable-title"
+                                  />
+                                </td>
+                                <td style={{ color: 'white', fontWeight: '600' }}>
+                                  {getSetName(pool.setCode)}
+                                </td>
+                                <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                  {pool.leaderName || '-'}
+                                </td>
+                                <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                  {pool.baseName || '-'}
+                                </td>
+                                <td>{formatDate(pool.createdAt)}</td>
+                                <td className="history-actions-cell">
+                                  <div className="actions-wrapper">
+                                    <button
+                                      className="history-view-button"
+                                      onClick={() => window.location.href = `/pool/${pool.shareId}/deck`}
+                                    >
+                                      View
+                                    </button>
+                                    <button
+                                      className="history-unhide-button"
+                                      onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'sealed')}
+                                      title="Show"
+                                    >
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                      </svg>
+                                    </button>
+                                    <button
+                                      className="history-delete-button"
+                                      onClick={() => setDeleteConfirm({ shareId: pool.shareId, type: 'sealed' })}
+                                      title="Delete"
+                                    >
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {visibleSealedPools.length === 0 && hiddenSealedPools.length > 0 && !showHiddenSealed && (
+                  <div className="history-empty">
+                    <p>All pools are hidden. Click "Hidden" above to show them.</p>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -295,111 +437,246 @@ export default function HistoryPage() {
                 <p>No drafts found. Join or create a draft to get started!</p>
               </div>
             ) : (
-              <div className="history-table-container">
-                <table className="history-table">
-                  <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>Set</th>
-                      <th>Status</th>
-                      <th>Leader</th>
-                      <th>Base</th>
-                      <th>Date</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {draftPods.map((pod) => {
-                      const isActive = pod.status === 'waiting' || pod.status === 'active' || pod.status === 'leader_draft' || pod.status === 'pack_draft'
-                      const handleTitleClick = () => {
-                        if (isActive) {
-                          window.location.href = `/draft/${pod.shareId}`
-                        } else if (pod.poolShareId) {
-                          window.location.href = `/draft_pool/${pod.poolShareId}/`
-                        }
-                      }
-                      return (
-                        <tr key={pod.id}>
-                          <td>
-                            <EditableTitle
-                              value={isActive ? null : pod.draftName}
-                              onSave={(newName) => handleRenameDraft(pod.poolShareId, newName)}
-                              onTitleClick={handleTitleClick}
-                              isEditable={!isActive && !!pod.poolShareId}
-                              editDisabled={isActive}
-                              placeholder={isActive ? "Active Draft Pod" : "Untitled Draft"}
-                              className="history-editable-title"
-                            />
-                          </td>
-                          <td style={{ color: 'white', fontWeight: '600' }}>
-                            {getSetName(pod.setCode)}
-                          </td>
-                          <td>
-                            <span style={{
-                              color: isActive ? '#4ade80' : 'rgba(255, 255, 255, 0.6)',
-                              fontWeight: isActive ? '600' : '400'
-                            }}>
-                              {isActive ? 'Active' : 'Completed'}
-                            </span>
-                          </td>
-                          <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                            {pod.leaderName || '-'}
-                          </td>
-                          <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                            {pod.baseName || '-'}
-                          </td>
-                          <td>{formatDate(pod.createdAt)}</td>
-                          <td className="history-actions-cell">
-                            <button
-                              className="history-view-button"
-                              onClick={() => window.location.href = `/draft/${pod.shareId}`}
-                            >
-                              View
-                            </button>
-                            {isActive && pod.isHost && (
-                              <button
-                                className="history-delete-button"
-                                onClick={() => setDeleteConfirm({ shareId: pod.shareId, type: 'draft', isActiveDraft: true })}
-                                title="Cancel Draft"
-                              >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                              </button>
-                            )}
-                            {isActive && !pod.isHost && !pod.isBot && (
-                              <button
-                                className="history-drop-button"
-                                onClick={() => setDropConfirm({ shareId: pod.shareId })}
-                                title="Drop from Draft"
-                              >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                  <polyline points="16 17 21 12 16 7"></polyline>
-                                  <line x1="21" y1="12" x2="9" y2="12"></line>
-                                </svg>
-                              </button>
-                            )}
-                            {!isActive && pod.poolShareId && (
-                              <button
-                                className="history-delete-button"
-                                onClick={() => setDeleteConfirm({ shareId: pod.poolShareId, type: 'draft', isActiveDraft: false })}
-                                title="Delete"
-                              >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <polyline points="3 6 5 6 21 6"></polyline>
-                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                </svg>
-                              </button>
-                            )}
-                          </td>
+              <>
+                {visibleDraftPods.length > 0 && (
+                  <div className="history-table-container">
+                    <table className="history-table">
+                      <thead>
+                        <tr>
+                          <th>Title</th>
+                          <th>Set</th>
+                          <th>Status</th>
+                          <th>Leader</th>
+                          <th>Base</th>
+                          <th>Date</th>
+                          <th>Actions</th>
                         </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                      </thead>
+                      <tbody>
+                        {visibleDraftPods.map((pod) => {
+                          const isActive = pod.status === 'waiting' || pod.status === 'active' || pod.status === 'leader_draft' || pod.status === 'pack_draft'
+                          const handleTitleClick = () => {
+                            if (isActive) {
+                              window.location.href = `/draft/${pod.shareId}`
+                            } else if (pod.poolShareId) {
+                              window.location.href = `/draft_pool/${pod.poolShareId}/`
+                            }
+                          }
+                          return (
+                            <tr key={pod.id}>
+                              <td>
+                                <EditableTitle
+                                  value={isActive ? null : pod.draftName}
+                                  onSave={(newName) => handleRenameDraft(pod.poolShareId, newName)}
+                                  onTitleClick={handleTitleClick}
+                                  isEditable={!isActive && !!pod.poolShareId}
+                                  placeholder={isActive ? "Active Draft Pod" : "Untitled Draft"}
+                                  className="history-editable-title"
+                                />
+                              </td>
+                              <td style={{ color: 'white', fontWeight: '600' }}>
+                                {getSetName(pod.setCode)}
+                              </td>
+                              <td>
+                                <span style={{
+                                  color: isActive ? '#4ade80' : 'rgba(255, 255, 255, 0.6)',
+                                  fontWeight: isActive ? '600' : '400'
+                                }}>
+                                  {isActive ? 'Active' : 'Completed'}
+                                </span>
+                              </td>
+                              <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                {pod.leaderName || '-'}
+                              </td>
+                              <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                {pod.baseName || '-'}
+                              </td>
+                              <td>{formatDate(pod.createdAt)}</td>
+                              <td className="history-actions-cell">
+                                <div className="actions-wrapper">
+                                  <button
+                                    className="history-view-button"
+                                    onClick={() => window.location.href = `/draft/${pod.shareId}`}
+                                  >
+                                    View
+                                  </button>
+                                  {isActive && pod.isHost && (
+                                    <button
+                                      className="history-delete-button"
+                                      onClick={() => setDeleteConfirm({ shareId: pod.shareId, type: 'draft', isActiveDraft: true })}
+                                      title="Cancel Draft"
+                                    >
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                      </svg>
+                                    </button>
+                                  )}
+                                  {isActive && !pod.isHost && !pod.isBot && (
+                                    <button
+                                      className="history-drop-button"
+                                      onClick={() => setDropConfirm({ shareId: pod.shareId })}
+                                      title="Drop from Draft"
+                                    >
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                        <polyline points="16 17 21 12 16 7"></polyline>
+                                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                                      </svg>
+                                    </button>
+                                  )}
+                                  {!isActive && pod.poolShareId && (
+                                    <>
+                                      <button
+                                        className="history-hide-button"
+                                        onClick={() => handleToggleHidden(pod.poolShareId, pod.hidden, 'draft')}
+                                        title="Hide"
+                                      >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                                        </svg>
+                                      </button>
+                                      <button
+                                        className="history-delete-button"
+                                        onClick={() => setDeleteConfirm({ shareId: pod.poolShareId, type: 'draft', isActiveDraft: false })}
+                                        title="Delete"
+                                      >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                          <polyline points="3 6 5 6 21 6"></polyline>
+                                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Hidden draft pods section */}
+                {hiddenDraftPods.length > 0 && (
+                  <div className="hidden-pools-section">
+                    <button
+                      className={`hidden-pools-toggle ${showHiddenDraft ? 'expanded' : ''}`}
+                      onClick={() => setShowHiddenDraft(!showHiddenDraft)}
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        style={{ transform: showHiddenDraft ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                      >
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                      Hidden ({hiddenDraftPods.length})
+                    </button>
+                    {showHiddenDraft && (
+                      <div className="history-table-container hidden-pools-table-container">
+                        <table className="history-table">
+                          <thead>
+                            <tr>
+                              <th>Title</th>
+                              <th>Set</th>
+                              <th>Status</th>
+                              <th>Leader</th>
+                              <th>Base</th>
+                              <th>Date</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {hiddenDraftPods.map((pod) => {
+                              const handleTitleClick = () => {
+                                if (pod.poolShareId) {
+                                  window.location.href = `/draft_pool/${pod.poolShareId}/`
+                                }
+                              }
+                              return (
+                                <tr key={pod.id}>
+                                  <td>
+                                    <EditableTitle
+                                      value={pod.draftName}
+                                      onSave={(newName) => handleRenameDraft(pod.poolShareId, newName)}
+                                      onTitleClick={handleTitleClick}
+                                      isEditable={!!pod.poolShareId}
+                                      placeholder="Untitled Draft"
+                                      className="history-editable-title"
+                                    />
+                                  </td>
+                                  <td style={{ color: 'white', fontWeight: '600' }}>
+                                    {getSetName(pod.setCode)}
+                                  </td>
+                                  <td>
+                                    <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontWeight: '400' }}>
+                                      Completed
+                                    </span>
+                                  </td>
+                                  <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                    {pod.leaderName || '-'}
+                                  </td>
+                                  <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                    {pod.baseName || '-'}
+                                  </td>
+                                  <td>{formatDate(pod.createdAt)}</td>
+                                  <td className="history-actions-cell">
+                                    <div className="actions-wrapper">
+                                      <button
+                                        className="history-view-button"
+                                        onClick={() => window.location.href = `/draft/${pod.shareId}`}
+                                      >
+                                        View
+                                      </button>
+                                      {pod.poolShareId && (
+                                        <>
+                                          <button
+                                            className="history-unhide-button"
+                                            onClick={() => handleToggleHidden(pod.poolShareId, pod.hidden, 'draft')}
+                                            title="Show"
+                                          >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                              <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                          </button>
+                                          <button
+                                            className="history-delete-button"
+                                            onClick={() => setDeleteConfirm({ shareId: pod.poolShareId, type: 'draft', isActiveDraft: false })}
+                                            title="Delete"
+                                          >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                              <polyline points="3 6 5 6 21 6"></polyline>
+                                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            </svg>
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {visibleDraftPods.length === 0 && hiddenDraftPods.length > 0 && !showHiddenDraft && (
+                  <div className="history-empty">
+                    <p>All drafts are hidden. Click "Hidden" above to show them.</p>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

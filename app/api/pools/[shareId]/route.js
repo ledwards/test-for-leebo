@@ -209,6 +209,10 @@ export async function PUT(request, { params }) {
       updates.push(`name = $${paramIndex++}`)
       values.push(body.name)
     }
+    if (typeof body.hidden === 'boolean') {
+      updates.push(`hidden = $${paramIndex++}`)
+      values.push(body.hidden)
+    }
 
     if (updates.length === 0) {
       return errorResponse('No fields to update', 400)
