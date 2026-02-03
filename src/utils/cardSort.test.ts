@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import {
@@ -191,7 +192,7 @@ describe('cardSort', () => {
 
     describe('aspect grouping', () => {
       it('uses getAspectKey function', () => {
-        const mockGetAspectKey = (card) => card.aspects?.join('_') || 'Neutral'
+        const mockGetAspectKey = (card: { aspects?: string[] }) => card.aspects?.join('_') || 'Neutral'
         const getGroupKey = createGetGroupKey('aspect', { getAspectKey: mockGetAspectKey })
         const card = { aspects: ['Vigilance', 'Villainy'] }
         assert.strictEqual(getGroupKey(card), 'Vigilance_Villainy')
@@ -201,10 +202,10 @@ describe('cardSort', () => {
 
   describe('createDefaultSortFn', () => {
     // Mock returns A_, B_, C_ prefixes to simulate actual aspect sort key behavior
-    const mockGetAspectSortKey = (card) => {
+    const mockGetAspectSortKey = (card: { aspects?: string[] }) => {
       const aspect = card.aspects?.[0]
-      const priorities = { 'Vigilance': 'A', 'Command': 'B', 'Aggression': 'C', 'Cunning': 'D' }
-      return priorities[aspect] ? `${priorities[aspect]}_${aspect}` : 'ZZZ_Neutral'
+      const priorities: Record<string, string> = { 'Vigilance': 'A', 'Command': 'B', 'Aggression': 'C', 'Cunning': 'D' }
+      return priorities[aspect!] ? `${priorities[aspect!]}_${aspect}` : 'ZZZ_Neutral'
     }
 
     it('sorts by aspect first', () => {
@@ -246,10 +247,10 @@ describe('cardSort', () => {
 
   describe('createGroupCardSortFn', () => {
     // Mock returns A_, B_, C_ prefixes to simulate actual aspect sort key behavior
-    const mockGetAspectSortKey = (card) => {
+    const mockGetAspectSortKey = (card: { aspects?: string[] }) => {
       const aspect = card.aspects?.[0]
-      const priorities = { 'Vigilance': 'A', 'Command': 'B', 'Aggression': 'C', 'Cunning': 'D' }
-      return priorities[aspect] ? `${priorities[aspect]}_${aspect}` : 'ZZZ_Neutral'
+      const priorities: Record<string, string> = { 'Vigilance': 'A', 'Command': 'B', 'Aggression': 'C', 'Cunning': 'D' }
+      return priorities[aspect!] ? `${priorities[aspect!]}_${aspect}` : 'ZZZ_Neutral'
     }
 
     describe('cost sort option', () => {

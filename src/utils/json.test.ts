@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { jsonParse, jsonStringify } from './json.js'
@@ -60,7 +61,7 @@ describe('jsonParse', () => {
     })
 
     it('returns empty array as-is', () => {
-      const arr = []
+      const arr: number[] = []
       const result = jsonParse(arr)
       assert.strictEqual(result, arr)
     })
