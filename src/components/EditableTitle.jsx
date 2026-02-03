@@ -8,7 +8,6 @@ export default function EditableTitle({
   onSave,
   onTitleClick,
   isEditable = false,
-  editDisabled = false,
   placeholder = 'Untitled',
   className = ''
 }) {
@@ -74,7 +73,7 @@ export default function EditableTitle({
   }
 
   return (
-    <div className={`editable-title ${isEditable || editDisabled ? 'hoverable' : ''} ${className}`}>
+    <div className={`editable-title ${isEditable ? 'hoverable' : ''} ${className}`}>
       <span
         className={`editable-title-text ${onTitleClick ? 'clickable' : ''}`}
         onClick={onTitleClick}
@@ -82,12 +81,11 @@ export default function EditableTitle({
       >
         {value || placeholder}
       </span>
-      {(isEditable || editDisabled) && (
+      {isEditable && (
         <button
-          className={`editable-title-edit-button ${editDisabled ? 'disabled' : ''}`}
-          onClick={editDisabled ? undefined : handleStartEdit}
-          aria-label={editDisabled ? "Cannot edit" : "Edit title"}
-          disabled={editDisabled}
+          className="editable-title-edit-button"
+          onClick={handleStartEdit}
+          aria-label="Edit title"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>

@@ -23,7 +23,8 @@ export async function GET(request) {
         dpp.is_bot as player_is_bot,
         cp.name as pool_name,
         cp.share_id as pool_share_id,
-        cp.deck_builder_state
+        cp.deck_builder_state,
+        cp.hidden as pool_hidden
        FROM draft_pods dp
        JOIN draft_pod_players dpp ON dp.id = dpp.draft_pod_id
        LEFT JOIN card_pools cp ON cp.draft_pod_id = dp.id AND cp.user_id = $1
@@ -81,6 +82,7 @@ export async function GET(request) {
         completedAt: pod.completed_at,
         draftName: poolNameFromState || pod.pool_name,
         poolShareId: pod.pool_share_id,
+        hidden: pod.pool_hidden === true,
         leaderName,
         baseName,
       }
