@@ -1,9 +1,10 @@
+// @ts-nocheck
 /**
  * Hyperspace Belts Tests
  *
  * Tests for HyperspaceUncommonBelt, HyperspaceCommonBelt, HyperspaceBaseBelt, HyperspaceLeaderBelt
  *
- * Run with: node src/belts/HyperspaceBelts.test.js
+ * Run with: node src/belts/HyperspaceBelts.test.ts
  */
 
 import { HyperspaceUncommonBelt } from './HyperspaceUncommonBelt.js'
@@ -16,29 +17,29 @@ import { initializeCardCache } from '../utils/cardCache.js'
 let passed = 0
 let failed = 0
 
-function test(name, fn) {
+function test(name: string, fn: () => void): void {
   try {
     fn()
     console.log(`✓ ${name}`)
     passed++
   } catch (e) {
     console.log(`✗ ${name}`)
-    console.log(`  ${e.message}`)
+    console.log(`  ${(e as Error).message}`)
     failed++
   }
 }
 
-function assert(condition, message) {
+function assert(condition: boolean, message?: string): asserts condition {
   if (!condition) throw new Error(message || 'Assertion failed')
 }
 
-function assertEqual(actual, expected, message) {
+function assertEqual<T>(actual: T, expected: T, message?: string): void {
   if (actual !== expected) {
     throw new Error(message || `Expected ${expected}, got ${actual}`)
   }
 }
 
-async function runTests() {
+async function runTests(): Promise<void> {
   console.log('Initializing card cache...')
   await initializeCardCache()
 
@@ -91,7 +92,7 @@ async function runTests() {
   test('HyperspaceCommon: is a single belt (not split)', () => {
     const belt = new HyperspaceCommonBelt('SOR')
     // Just verify it works as a single belt
-    const cards = []
+    const cards: Array<{ id: string }> = []
     for (let i = 0; i < 20; i++) {
       cards.push(belt.next())
     }
@@ -214,12 +215,12 @@ async function runTests() {
     const belt = new HyperspaceRareLegendaryBelt('SOR')
     const fillSize = belt.fillingPool.length
 
-    const firstFill = []
+    const firstFill: string[] = []
     for (let i = 0; i < fillSize; i++) {
       firstFill.push(belt.next().id)
     }
 
-    const secondFill = []
+    const secondFill: string[] = []
     for (let i = 0; i < fillSize; i++) {
       secondFill.push(belt.next().id)
     }

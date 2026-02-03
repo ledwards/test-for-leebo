@@ -1,7 +1,8 @@
+// @ts-nocheck
 /**
  * ShowcaseLeaderBelt Tests
  *
- * Run with: node src/belts/ShowcaseLeaderBelt.test.js
+ * Run with: node src/belts/ShowcaseLeaderBelt.test.ts
  */
 
 import { ShowcaseLeaderBelt } from './ShowcaseLeaderBelt.js'
@@ -10,29 +11,29 @@ import { initializeCardCache } from '../utils/cardCache.js'
 let passed = 0
 let failed = 0
 
-function test(name, fn) {
+function test(name: string, fn: () => void): void {
   try {
     fn()
     console.log(`\x1b[32m✅ ${name}\x1b[0m`)
     passed++
   } catch (e) {
     console.log(`\x1b[31m❌ ${name}\x1b[0m`)
-    console.log(`\x1b[33m   ${e.message}\x1b[0m`)
+    console.log(`\x1b[33m   ${(e as Error).message}\x1b[0m`)
     failed++
   }
 }
 
-function assert(condition, message) {
+function assert(condition: boolean, message?: string): asserts condition {
   if (!condition) throw new Error(message || 'Assertion failed')
 }
 
-function assertEqual(actual, expected, message) {
+function assertEqual<T>(actual: T, expected: T, message?: string): void {
   if (actual !== expected) {
     throw new Error(message || `Expected ${expected}, got ${actual}`)
   }
 }
 
-async function runTests() {
+async function runTests(): Promise<void> {
   console.log('\x1b[36m🔄 Initializing card cache...\x1b[0m')
   await initializeCardCache()
   console.log('')
@@ -91,7 +92,7 @@ async function runTests() {
   })
 
   test('different belt instances start at different positions', () => {
-    const firstCards = new Set()
+    const firstCards = new Set<string>()
     for (let i = 0; i < 10; i++) {
       const belt = new ShowcaseLeaderBelt('SOR')
       firstCards.add(belt.peek(1)[0].id)
@@ -104,13 +105,13 @@ async function runTests() {
     const fillSize = belt.fillingPool.length
 
     // Deploy entire first fill into an array
-    const firstFill = []
+    const firstFill: string[] = []
     for (let i = 0; i < fillSize; i++) {
       firstFill.push(belt.next().id)
     }
 
     // Deploy second fill into an array
-    const secondFill = []
+    const secondFill: string[] = []
     for (let i = 0; i < fillSize; i++) {
       secondFill.push(belt.next().id)
     }

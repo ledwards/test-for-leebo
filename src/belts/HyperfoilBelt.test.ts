@@ -1,7 +1,8 @@
+// @ts-nocheck
 /**
  * HyperfoilBelt Tests
  *
- * Run with: node src/belts/HyperfoilBelt.test.js
+ * Run with: node src/belts/HyperfoilBelt.test.ts
  */
 
 import { HyperfoilBelt } from './HyperfoilBelt.js'
@@ -10,29 +11,29 @@ import { initializeCardCache } from '../utils/cardCache.js'
 let passed = 0
 let failed = 0
 
-function test(name, fn) {
+function test(name: string, fn: () => void): void {
   try {
     fn()
     console.log(`\x1b[32m✅ ${name}\x1b[0m`)
     passed++
   } catch (e) {
     console.log(`\x1b[31m❌ ${name}\x1b[0m`)
-    console.log(`\x1b[33m   ${e.message}\x1b[0m`)
+    console.log(`\x1b[33m   ${(e as Error).message}\x1b[0m`)
     failed++
   }
 }
 
-function assert(condition, message) {
+function assert(condition: boolean, message?: string): asserts condition {
   if (!condition) throw new Error(message || 'Assertion failed')
 }
 
-function assertEqual(actual, expected, message) {
+function assertEqual<T>(actual: T, expected: T, message?: string): void {
   if (actual !== expected) {
     throw new Error(message || `Expected ${expected}, got ${actual}`)
   }
 }
 
-async function runTests() {
+async function runTests(): Promise<void> {
   console.log('\x1b[36m🔄 Initializing card cache...\x1b[0m')
   await initializeCardCache()
   console.log('')
@@ -64,7 +65,7 @@ async function runTests() {
 
   test('commons appear most frequently', () => {
     const belt = new HyperfoilBelt('SOR')
-    const counts = { Common: 0, Uncommon: 0, Rare: 0, Legendary: 0 }
+    const counts: Record<string, number> = { Common: 0, Uncommon: 0, Rare: 0, Legendary: 0 }
     for (let i = 0; i < 200; i++) {
       const card = belt.next()
       counts[card.rarity] = (counts[card.rarity] || 0) + 1
@@ -105,13 +106,13 @@ async function runTests() {
     const fillSize = Math.min(belt.fillingPool.length, 30)
 
     // Deploy first batch into an array
-    const firstFill = []
+    const firstFill: string[] = []
     for (let i = 0; i < fillSize; i++) {
       firstFill.push(belt.next().id)
     }
 
     // Deploy second batch into an array
-    const secondFill = []
+    const secondFill: string[] = []
     for (let i = 0; i < fillSize; i++) {
       secondFill.push(belt.next().id)
     }

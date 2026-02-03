@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Tests for common belt assignments and pack generation slot patterns
  */
