@@ -1,3 +1,4 @@
+// @ts-nocheck - Gradual migration
 /**
  * Draft Timeout Logic
  *
@@ -8,14 +9,43 @@
 import { query, queryRow, queryRows } from '@/lib/db.js'
 import { processAllStagedPicks } from './draftAdvance.js'
 import { processBotTurns } from './botLogic.js'
+import type { RawCard } from './cardData.js'
+
+interface DraftPod {
+  id: string
+  share_id: string
+  status: string
+  draft_state: string | Record<string, unknown>
+  state_version: number
+  timed: boolean
+  timer_enabled: boolean
+  timer_seconds: number
+  pick_timeout_seconds: number
+  pick_started_at: string | null
+  paused: boolean
+  paused_duration_seconds: number
+}
+
+interface DraftPlayer {
+  id: string
+  draft_pod_id: string
+  pick_status: string
+  leaders: string | RawCard[]
+  current_pack: string | RawCard[]
+}
+
+interface DraftState {
+  phase?: string
+  lastPlayerStartedAt?: string
+}
 
 /**
  * Check if timeout has been exceeded and force picks if needed
  * Uses atomic locking to prevent concurrent timeout enforcement
- * @param {string} podId - Draft pod ID
- * @returns {boolean} - Whether any picks were forced
+ * @param podId - Draft pod ID
+ * @returns Whether any picks were forced
  */
-export async function checkAndEnforceTimeout(podId) {
+export async function checkAndEnforceTimeout(podId: string): Promise<boolean> {
   // Get pod with timeout settings (exclude all_packs to save memory)
   const pod = await queryRow(
     `SELECT id, share_id, status, draft_state, state_version,
@@ -75,7 +105,7 @@ export async function checkAndEnforceTimeout(podId) {
 
   // Last player timer uses the time since they became the last player
   // This is stored in draft_state.lastPlayerStartedAt when bots finish picking
-  const draftState = typeof pod.draft_state === 'string'
+  const draftState: DraftState = typeof pod.draft_state === 'string'
     ? JSON.parse(pod.draft_state)
     : pod.draft_state || {}
 
@@ -120,7 +150,7 @@ export async function checkAndEnforceTimeout(podId) {
   }
 
   // Process all staged picks (including forced ones) and advance
-  await processAllStagedPicks(podId, draftState, pod)
+  await processAllStagedPicks(podId, draftState, pod as unknown as Record<string, unknown>)
 
   // Trigger bot turns for the next round
   processBotTurns(podId).catch(err => {
@@ -133,8 +163,8 @@ export async function checkAndEnforceTimeout(podId) {
 /**
  * Force a random leader selection for a player (using staged pick system)
  */
-async function forceLeaderSelect(player) {
-  const leaders = typeof player.leaders === 'string'
+async function forceLeaderSelect(player: DraftPlayer): Promise<void> {
+  const leaders: RawCard[] = typeof player.leaders === 'string'
     ? JSON.parse(player.leaders)
     : player.leaders || []
 
@@ -150,7 +180,7 @@ async function forceLeaderSelect(player) {
   // Select a random leader
   const randomIndex = Math.floor(Math.random() * leaders.length)
   const selectedLeader = leaders[randomIndex]
-  const cardId = selectedLeader.instanceId || selectedLeader.id
+  const cardId = (selectedLeader as RawCard & { instanceId?: string }).instanceId || selectedLeader.id
 
   await query(
     `UPDATE draft_pod_players
@@ -164,8 +194,8 @@ async function forceLeaderSelect(player) {
 /**
  * Force a random card selection for a player (using staged pick system)
  */
-async function forcePackSelect(player) {
-  const currentPack = typeof player.current_pack === 'string'
+async function forcePackSelect(player: DraftPlayer): Promise<void> {
+  const currentPack: RawCard[] = typeof player.current_pack === 'string'
     ? JSON.parse(player.current_pack)
     : player.current_pack || []
 
@@ -181,7 +211,7 @@ async function forcePackSelect(player) {
   // Select a random card
   const randomIndex = Math.floor(Math.random() * currentPack.length)
   const selectedCard = currentPack[randomIndex]
-  const cardId = selectedCard.instanceId || selectedCard.id
+  const cardId = (selectedCard as RawCard & { instanceId?: string }).instanceId || selectedCard.id
 
   await query(
     `UPDATE draft_pod_players
