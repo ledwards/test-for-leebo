@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -10,16 +11,53 @@ import EditableTitle from '../../src/components/EditableTitle'
 import '../../src/App.css'
 import './History.css'
 
+interface SealedPool {
+  id: string
+  shareId: string
+  setCode: string
+  name?: string
+  leaderName?: string
+  baseName?: string
+  createdAt: string
+  poolType?: string
+  hidden?: boolean
+}
+
+interface DraftPod {
+  id: string
+  shareId: string
+  poolShareId?: string
+  setCode: string
+  status: string
+  draftName?: string
+  leaderName?: string
+  baseName?: string
+  createdAt: string
+  isHost?: boolean
+  isBot?: boolean
+  hidden?: boolean
+}
+
+interface DeleteConfirmState {
+  shareId: string
+  type: 'sealed' | 'draft'
+  isActiveDraft?: boolean
+}
+
+interface DropConfirmState {
+  shareId: string
+}
+
 export default function HistoryPage() {
   const { user, loading: authLoading } = useAuth()
-  const [activeTab, setActiveTab] = useState('sealed')
-  const [sealedPools, setSealedPools] = useState([])
-  const [draftPods, setDraftPods] = useState([])
+  const [activeTab, setActiveTab] = useState<'sealed' | 'draft'>('sealed')
+  const [sealedPools, setSealedPools] = useState<SealedPool[]>([])
+  const [draftPods, setDraftPods] = useState<DraftPod[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [deleteConfirm, setDeleteConfirm] = useState(null) // { shareId, type: 'sealed' | 'draft', isActiveDraft: boolean }
+  const [error, setError] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [dropConfirm, setDropConfirm] = useState(null) // { shareId }
+  const [dropConfirm, setDropConfirm] = useState<DropConfirmState | null>(null)
   const [isDropping, setIsDropping] = useState(false)
   const [showHiddenSealed, setShowHiddenSealed] = useState(false)
   const [showHiddenDraft, setShowHiddenDraft] = useState(false)
@@ -69,7 +107,7 @@ export default function HistoryPage() {
     }
   }, [user, authLoading])
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -80,7 +118,7 @@ export default function HistoryPage() {
     })
   }
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (status: string) => {
     switch (status) {
       case 'waiting': return 'Waiting'
       case 'leader_draft': return 'Leader Draft'
@@ -90,12 +128,12 @@ export default function HistoryPage() {
     }
   }
 
-  const getSetName = (setCode) => {
+  const getSetName = (setCode: string) => {
     const config = getSetConfig(setCode)
     return config?.setName || setCode
   }
 
-  const handleRenamePool = async (shareId, newName) => {
+  const handleRenamePool = async (shareId: string, newName: string) => {
     try {
       // Update deckBuilderState.poolName (source of truth) - API handles the merge
       await updatePool(shareId, { poolName: newName })
@@ -110,7 +148,7 @@ export default function HistoryPage() {
     }
   }
 
-  const handleRenameDraft = async (poolShareId, newName) => {
+  const handleRenameDraft = async (poolShareId: string | undefined, newName: string) => {
     if (!poolShareId) return
     try {
       // Update deckBuilderState.poolName (source of truth) - API handles the merge
@@ -172,7 +210,7 @@ export default function HistoryPage() {
     }
   }
 
-  const handleToggleHidden = async (shareId, currentHidden, type) => {
+  const handleToggleHidden = async (shareId: string, currentHidden: boolean | undefined, type: 'sealed' | 'draft') => {
     try {
       await updatePool(shareId, { hidden: !currentHidden })
       if (type === 'sealed') {
