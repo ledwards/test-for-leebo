@@ -106,7 +106,6 @@ describe('POST /api/beta/enroll', () => {
     it('should return 404 if user not found in database', () => {
       // Edge case: valid JWT but user deleted from DB
       const error = new Error('User not found')
-      const expectedStatus = 404
 
       assert.ok(error.message.includes('not found'))
     })

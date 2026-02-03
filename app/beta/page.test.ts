@@ -48,9 +48,9 @@ describe('/beta page', () => {
     })
 
     it('should redirect to /sets on success', async () => {
-      let redirectPath = null
+      let redirectPath: string | null = null
       const router = {
-        push: (path) => { redirectPath = path }
+        push: (path: string) => { redirectPath = path }
       }
 
       const success = true
@@ -62,9 +62,9 @@ describe('/beta page', () => {
     })
 
     it('should not redirect on failure', async () => {
-      let redirectPath = null
+      let redirectPath: string | null = null
       const router = {
-        push: (path) => { redirectPath = path }
+        push: (path: string) => { redirectPath = path }
       }
 
       const success = false
@@ -94,9 +94,9 @@ describe('/beta page', () => {
 
   describe('Back navigation', () => {
     it('should navigate to home on back button click', () => {
-      let navigatedTo = null
+      let navigatedTo: string | null = null
       const router = {
-        push: (path) => { navigatedTo = path }
+        push: (path: string) => { navigatedTo = path }
       }
 
       router.push('/')
