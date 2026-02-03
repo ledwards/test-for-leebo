@@ -7,15 +7,43 @@
  * which fails for objects.
  */
 
-import { describe, it, beforeEach } from 'node:test'
+import { describe, it } from 'node:test'
 import assert from 'node:assert'
 
 // Extract the tracking record building logic for testing
-// This mirrors the logic in route.js
+// This mirrors the logic in route.ts
 
-function buildTrackingRecordsBuggy(packs, cards, options) {
+interface Card {
+  id: string
+  name: string
+  type?: string
+  variantType?: string
+  isLeader?: boolean
+  isShowcase?: boolean
+}
+
+interface Pack {
+  cards: Card[]
+}
+
+interface TrackingOptions {
+  sourceType: string
+  userId: string
+  packIndex?: number | null
+}
+
+interface TrackingRecord {
+  card: Card
+  options: TrackingOptions
+}
+
+function buildTrackingRecordsBuggy(
+  packs: (Card[] | Pack)[] | undefined,
+  cards: Card[] | undefined,
+  options: TrackingOptions
+): TrackingRecord[] {
   // OLD BUGGY CODE - checks Array.isArray(pack) which fails for objects
-  const trackingRecords = []
+  const trackingRecords: TrackingRecord[] = []
   if (packs && Array.isArray(packs)) {
     packs.forEach((pack, packIndex) => {
       if (Array.isArray(pack)) {  // BUG: This fails for { cards: [...] } objects!
@@ -40,13 +68,17 @@ function buildTrackingRecordsBuggy(packs, cards, options) {
   return trackingRecords
 }
 
-function buildTrackingRecordsFixed(packs, cards, options) {
+function buildTrackingRecordsFixed(
+  packs: (Card[] | Pack)[] | undefined,
+  cards: Card[] | undefined,
+  options: TrackingOptions
+): TrackingRecord[] {
   // FIXED CODE - handles both array and object pack formats
-  const trackingRecords = []
+  const trackingRecords: TrackingRecord[] = []
   if (packs && Array.isArray(packs)) {
     packs.forEach((pack, packIndex) => {
       // Support both formats: pack as array or pack as {cards: [...]} object
-      const packCards = Array.isArray(pack) ? pack : pack.cards
+      const packCards = Array.isArray(pack) ? pack : (pack as Pack).cards
       if (Array.isArray(packCards)) {
         packCards.forEach(card => {
           trackingRecords.push({
@@ -70,17 +102,17 @@ function buildTrackingRecordsFixed(packs, cards, options) {
 }
 
 describe('Pool tracking pack format handling', () => {
-  const testOptions = { sourceType: 'sealed', userId: 'test-user' }
+  const testOptions: TrackingOptions = { sourceType: 'sealed', userId: 'test-user' }
 
   // Test data in OBJECT format (what generateSealedPod returns)
-  const objectFormatPacks = [
+  const objectFormatPacks: Pack[] = [
     { cards: [{ id: '1', name: 'Card 1' }, { id: '2', name: 'Card 2' }] },
     { cards: [{ id: '3', name: 'Card 3' }, { id: '4', name: 'Card 4' }] }
   ]
   const objectFormatCards = objectFormatPacks.flatMap(p => p.cards)
 
   // Test data in ARRAY format (what old draft code produced)
-  const arrayFormatPacks = [
+  const arrayFormatPacks: Card[][] = [
     [{ id: '1', name: 'Card 1' }, { id: '2', name: 'Card 2' }],
     [{ id: '3', name: 'Card 3' }, { id: '4', name: 'Card 4' }]
   ]
@@ -126,7 +158,7 @@ describe('Pool tracking pack format handling', () => {
   })
 
   describe('Showcase tracking specifically', () => {
-    const packsWithShowcase = [
+    const packsWithShowcase: Pack[] = [
       {
         cards: [
           { id: '1', name: 'Regular Card', type: 'Unit', variantType: 'Normal' },
@@ -141,7 +173,7 @@ describe('Pool tracking pack format handling', () => {
 
       const showcaseRecord = records.find(r => r.card.isShowcase)
       assert.ok(showcaseRecord, 'Showcase should be in records')
-      assert.strictEqual(showcaseRecord.options.packIndex, null, 'BUG: packIndex lost')
+      assert.strictEqual(showcaseRecord!.options.packIndex, null, 'BUG: packIndex lost')
     })
 
     it('FIXED: showcase leader gets tracked WITH packIndex', () => {
@@ -149,7 +181,7 @@ describe('Pool tracking pack format handling', () => {
 
       const showcaseRecord = records.find(r => r.card.isShowcase)
       assert.ok(showcaseRecord, 'Showcase should be in records')
-      assert.strictEqual(showcaseRecord.options.packIndex, 0, 'packIndex preserved')
+      assert.strictEqual(showcaseRecord!.options.packIndex, 0, 'packIndex preserved')
     })
   })
 })

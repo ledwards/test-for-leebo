@@ -59,7 +59,6 @@ describe('POST /api/auth/refresh', () => {
 
     it('should return Set-Cookie header with new token', () => {
       // Response includes new session cookie
-      const cookieName = 'swupod_session'
       const cookieOptions = {
         httpOnly: true,
         secure: true,

@@ -14,11 +14,30 @@ import assert from 'node:assert'
 // Simulate the tracking logic
 // This extracts the core logic for testing
 
+interface Card {
+  id: string
+  name: string
+  type?: string
+  isLeader?: boolean
+  isShowcase?: boolean
+  variantType?: string
+}
+
+interface TrackingRecord {
+  cardId: string
+  cardName: string
+  isShowcase?: boolean
+  isLeader?: boolean
+  userId: string
+  sourceShareId?: string
+  trackedAt: string
+}
+
 /**
  * BUGGY: Track at draft start with host's ID
  * All cards get the host's user_id regardless of who drafts them
  */
-function trackAtDraftStartBuggy(allCards, hostUserId) {
+function trackAtDraftStartBuggy(allCards: Card[], hostUserId: string): TrackingRecord[] {
   return allCards.map(card => ({
     cardId: card.id,
     cardName: card.name,
@@ -32,7 +51,11 @@ function trackAtDraftStartBuggy(allCards, hostUserId) {
 /**
  * FIXED: Track showcase leaders at pick time with picker's ID
  */
-function trackShowcaseLeaderAtPick(pickedLeader, pickerUserId, sourceShareId) {
+function trackShowcaseLeaderAtPick(
+  pickedLeader: Card,
+  pickerUserId: string,
+  sourceShareId: string
+): TrackingRecord | null {
   if (!pickedLeader.isShowcase || !pickedLeader.isLeader) {
     return null  // Only track showcase leaders
   }
@@ -54,7 +77,7 @@ describe('Draft showcase leader tracking', () => {
   const player1UserId = 'player1-user-456'
   const player2UserId = 'player2-user-789'
 
-  const showcaseLeader = {
+  const showcaseLeader: Card = {
     id: '1359',
     name: 'Director Krennic',
     type: 'Leader',
@@ -63,7 +86,7 @@ describe('Draft showcase leader tracking', () => {
     variantType: 'Showcase'
   }
 
-  const normalLeader = {
+  const normalLeader: Card = {
     id: '100',
     name: 'Luke Skywalker',
     type: 'Leader',
@@ -84,7 +107,7 @@ describe('Draft showcase leader tracking', () => {
 
       // ...but with the HOST's user_id, not the player who will draft it!
       assert.strictEqual(
-        showcaseRecord.userId,
+        showcaseRecord!.userId,
         hostUserId,
         'BUG: Showcase attributed to host, not the drafter'
       )
@@ -114,7 +137,7 @@ describe('Draft showcase leader tracking', () => {
 
       assert.ok(record, 'Showcase leader is tracked')
       assert.strictEqual(
-        record.userId,
+        record!.userId,
         player1UserId,
         'Showcase attributed to Player 1 who drafted it'
       )
@@ -142,7 +165,7 @@ describe('Draft showcase leader tracking', () => {
         'Player 1 has 1 showcase leader in their collection'
       )
       assert.strictEqual(
-        player1Showcases[0].cardName,
+        player1Showcases[0]!.cardName,
         'Director Krennic',
         'It is the leader they drafted'
       )
@@ -151,7 +174,7 @@ describe('Draft showcase leader tracking', () => {
 
   describe('End-to-end scenario', () => {
     it('different players drafting showcases each get credit', () => {
-      const showcaseLeader2 = {
+      const showcaseLeader2: Card = {
         id: '2000',
         name: 'Darth Vader',
         type: 'Leader',
@@ -165,7 +188,7 @@ describe('Draft showcase leader tracking', () => {
       // Player 2 drafts Darth Vader
       const record2 = trackShowcaseLeaderAtPick(showcaseLeader2, player2UserId, 'draft-123')
 
-      const allRecords = [record1, record2]
+      const allRecords = [record1, record2].filter((r): r is TrackingRecord => r !== null)
 
       // Player 1's collection
       const player1Collection = allRecords.filter(r => r.userId === player1UserId)
