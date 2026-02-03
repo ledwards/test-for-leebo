@@ -22,13 +22,20 @@
  */
 
 import { POWERFUL_CARDS, POWERFUL_CARD_BONUS } from '../data/powerfulCards.js'
+import type { RawCard } from '../../utils/cardData.js'
+
+interface DraftContext {
+  draftedLeaders?: RawCard[]
+  draftedCards?: RawCard[]
+  setCode?: string
+}
 
 // Leader power rankings per set (best to worst for LIMITED/DRAFT play)
 // These differ from constructed rankings - limited favors:
 // - Leaders that deploy early
 // - Straightforward abilities
 // - Aggro/midrange over control
-const LEADER_RANKINGS = {
+const LEADER_RANKINGS: Record<string, string[]> = {
   SOR: [
     'Sabine Wren',        // Dominates limited, fast aggro
     'Boba Fett',          // Most formidable overall
@@ -156,7 +163,7 @@ const LEADER_RANKINGS = {
 
 // High-value cards for limited play (format: cardName -> bonus score)
 // These are cards that consistently overperform in draft/sealed
-const HIGH_VALUE_CARDS = {
+const HIGH_VALUE_CARDS: Record<string, number> = {
   // Strong removal
   'Vanquish': 30,
   'Takedown': 25,
@@ -191,13 +198,13 @@ const HIGH_VALUE_CARDS = {
   'For a Cause I Believe In': 10,
 }
 
-// All aspects in the game
-const ALL_ASPECTS = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Heroism', 'Villainy']
-
 // Color aspects (non-alignment)
 const COLOR_ASPECTS = ['Vigilance', 'Command', 'Aggression', 'Cunning']
 
 export class PopularLeaderBehavior {
+  name: string
+  secondaryColor: string | null
+
   constructor() {
     this.name = 'popularLeader'
     this.secondaryColor = null // Chosen after first leader pick
@@ -205,11 +212,11 @@ export class PopularLeaderBehavior {
 
   /**
    * Select a leader from available options based on power rankings
-   * @param {Array} leaders - Available leaders to pick from
-   * @param {Object} context - Draft context (draftedLeaders, setCode, etc.)
-   * @returns {Object} Selected leader
+   * @param leaders - Available leaders to pick from
+   * @param context - Draft context (draftedLeaders, setCode, etc.)
+   * @returns Selected leader
    */
-  selectLeader(leaders, context = {}) {
+  selectLeader(leaders: RawCard[], context: DraftContext = {}): RawCard | null {
     if (!leaders || leaders.length === 0) return null
 
     const setCode = context.setCode || this._inferSetCode(leaders)
@@ -217,8 +224,8 @@ export class PopularLeaderBehavior {
 
     // Sort leaders by their ranking position (lower index = better)
     const sorted = [...leaders].sort((a, b) => {
-      const rankA = rankings.indexOf(a.name)
-      const rankB = rankings.indexOf(b.name)
+      const rankA = rankings.indexOf(a.name || '')
+      const rankB = rankings.indexOf(b.name || '')
 
       // Unranked leaders go to the end
       const posA = rankA >= 0 ? rankA : 999
@@ -227,16 +234,16 @@ export class PopularLeaderBehavior {
       return posA - posB
     })
 
-    return sorted[0]
+    return sorted[0] ?? null
   }
 
   /**
    * Select a card from the current pack using smart scoring
-   * @param {Array} pack - Current pack of cards
-   * @param {Object} context - Draft context (draftedCards, draftedLeaders, setCode, etc.)
-   * @returns {Object} Selected card
+   * @param pack - Current pack of cards
+   * @param context - Draft context (draftedCards, draftedLeaders, setCode, etc.)
+   * @returns Selected card
    */
-  selectCard(pack, context = {}) {
+  selectCard(pack: RawCard[], context: DraftContext = {}): RawCard | null {
     if (!pack || pack.length === 0) return null
 
     const draftedLeaders = context.draftedLeaders || []
@@ -257,14 +264,14 @@ export class PopularLeaderBehavior {
 
     scored.sort((a, b) => b.score - a.score)
 
-    return scored[0].card
+    return scored[0]?.card ?? null
   }
 
   /**
    * Get color aspects from drafted leaders
    */
-  _getColorsFromLeaders(leaders) {
-    const colors = new Set()
+  _getColorsFromLeaders(leaders: RawCard[]): string[] {
+    const colors = new Set<string>()
     for (const leader of leaders) {
       if (leader.aspects) {
         for (const aspect of leader.aspects) {
@@ -280,34 +287,34 @@ export class PopularLeaderBehavior {
   /**
    * Choose a secondary color not represented in our leaders
    */
-  _chooseSecondaryColor(leaderColors) {
+  _chooseSecondaryColor(leaderColors: string[]): void {
     // Find color aspects not in our leaders
     const missingColors = COLOR_ASPECTS.filter(c => !leaderColors.includes(c))
 
     if (missingColors.length > 0) {
       // Pick a random missing color as secondary
-      this.secondaryColor = missingColors[Math.floor(Math.random() * missingColors.length)]
+      this.secondaryColor = missingColors[Math.floor(Math.random() * missingColors.length)] ?? null
     }
   }
 
   /**
    * Score a card based on multiple factors
-   * @param {Object} card - Card to score
-   * @param {Array} myColors - Bot's color aspects
-   * @param {Object} context - Draft context including setCode
+   * @param card - Card to score
+   * @param myColors - Bot's color aspects
+   * @param context - Draft context including setCode
    */
-  _scoreCard(card, myColors, context) {
+  _scoreCard(card: RawCard, myColors: string[], context: DraftContext): number {
     const setCode = context.setCode || this._inferSetCode([card])
     let score = 0
 
     // 1. RARITY BONUS (Legendary > Rare > Uncommon > Common)
-    const rarityScores = {
+    const rarityScores: Record<string, number> = {
       'Legendary': 100,
       'Rare': 60,
       'Uncommon': 30,
       'Common': 10
     }
-    score += rarityScores[card.rarity] || 0
+    score += rarityScores[card.rarity || ''] || 0
 
     // 2. IN-COLOR BONUS - massive bonus for being in our colors
     const cardAspects = card.aspects || []
@@ -340,14 +347,14 @@ export class PopularLeaderBehavior {
     }
 
     // 5. HIGH-VALUE CARD BONUS (generic high-value cards)
-    const highValueBonus = HIGH_VALUE_CARDS[card.name] || 0
+    const highValueBonus = HIGH_VALUE_CARDS[card.name || ''] || 0
     if (highValueBonus > 0 && (inColorCount > 0 || cardAspects.length === 0)) {
       score += highValueBonus
     }
 
     // 6. SET-SPECIFIC POWERFUL CARDS BONUS
     const powerfulCardsForSet = POWERFUL_CARDS[setCode] || []
-    if (powerfulCardsForSet.includes(card.name) && (inColorCount > 0 || cardAspects.length === 0)) {
+    if (powerfulCardsForSet.includes(card.name || '') && (inColorCount > 0 || cardAspects.length === 0)) {
       score += POWERFUL_CARD_BONUS
     }
 
@@ -362,7 +369,7 @@ export class PopularLeaderBehavior {
     // 8. STATS EFFICIENCY (for units)
     if (card.type === 'Unit' && card.power && card.hp) {
       const statTotal = card.power + card.hp
-      const efficiency = statTotal / Math.max(card.cost, 1)
+      const efficiency = statTotal / Math.max(card.cost || 1, 1)
       score += Math.min(efficiency * 3, 15) // Cap at 15 bonus
     }
 
@@ -372,21 +379,22 @@ export class PopularLeaderBehavior {
   /**
    * Count how many card aspects match our colors
    */
-  _countMatchingAspects(cardAspects, myColors) {
+  _countMatchingAspects(cardAspects: string[], myColors: string[]): number {
     return cardAspects.filter(a => myColors.includes(a)).length
   }
 
   /**
    * Infer set code from card data
    */
-  _inferSetCode(cards) {
+  _inferSetCode(cards: RawCard[]): string {
     if (!cards || cards.length === 0) return 'SOR'
     // Use the set from the first card, or parse from ID
     const firstCard = cards[0]
+    if (!firstCard) return 'SOR'
     if (firstCard.set) return firstCard.set
     if (firstCard.id) {
       const match = firstCard.id.match(/^([A-Z]+)-/)
-      if (match) return match[1]
+      if (match) return match[1] ?? 'SOR'
     }
     return 'SOR'
   }
@@ -394,7 +402,7 @@ export class PopularLeaderBehavior {
   /**
    * Reset state for a new draft
    */
-  reset() {
+  reset(): void {
     this.secondaryColor = null
   }
 }
