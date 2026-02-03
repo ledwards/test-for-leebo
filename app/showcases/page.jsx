@@ -299,9 +299,11 @@ export default function ShowcasesPage() {
   const getCardData = (leader) => {
     const card = cardsData[leader.cardId]
     const aspectColor = card ? getAspectColor(card) : '#ffd700'
+    // Card should always be found in cache since we initialize it before fetching
+    // If not found, use null (will show broken image which is better than wrong URL)
     return {
-      frontImage: card?.imageUrl || `https://swudb.com/images/cards/${leader.setCode}/${String(leader.cardId).padStart(3, '0')}.png`,
-      backImage: card?.backImageUrl || card?.imageUrl || `https://swudb.com/images/cards/${leader.setCode}/${String(leader.cardId).padStart(3, '0')}.png`,
+      frontImage: card?.imageUrl || null,
+      backImage: card?.backImageUrl || card?.imageUrl || null,
       aspectColor,
       aspects: card?.aspects || []
     }
