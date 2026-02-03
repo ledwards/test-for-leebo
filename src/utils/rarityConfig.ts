@@ -7,18 +7,52 @@
  * Based on official distribution rates from FFG/Asmodee.
  */
 
+import { getSetConfig } from './setConfigs/index.js'
+import type { SetCode } from '../types'
+
 /**
  * Distribution period constants
  */
 export const DISTRIBUTION_PERIODS = {
   PRE_LAWLESS_TIME: 'PRE_LAWLESS_TIME',
   A_LAWLESS_TIME_ONWARD: 'A_LAWLESS_TIME_ONWARD'
+} as const
+
+export type DistributionPeriod = typeof DISTRIBUTION_PERIODS[keyof typeof DISTRIBUTION_PERIODS]
+
+interface SlotDistribution {
+  inStandardPack: number
+  inCarbonitePack: number | boolean | { min: number; max: number }
+}
+
+interface SerializedPrestigeDistribution extends SlotDistribution {
+  serializationTypes: string[]
+}
+
+interface VariantDistribution {
+  hyperspace: {
+    inStandardPack: number
+  }
+  hyperspaceFoil: {
+    inStandardPack: number
+  }
+}
+
+interface PeriodDistribution {
+  standardFoil: SlotDistribution
+  hyperspaceFoil: SlotDistribution
+  hyperspace: SlotDistribution
+  nonFoilPrestige: SlotDistribution
+  serializedPrestige: SerializedPrestigeDistribution
+  showcaseLeader: SlotDistribution
+  rareVariants: VariantDistribution
+  legendaryVariants: VariantDistribution
 }
 
 /**
  * Rarity distribution configuration for each period
  */
-export const RARITY_DISTRIBUTIONS = {
+export const RARITY_DISTRIBUTIONS: Record<DistributionPeriod, PeriodDistribution> = {
   [DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME]: {
     // Standard Foils: In ~ 5/6 standard packs, 7 in each Carbonite pack
     standardFoil: {
@@ -138,14 +172,13 @@ export const RARITY_DISTRIBUTIONS = {
   }
 }
 
-import { getSetConfig } from './setConfigs/index.js'
-
 /**
  * Set configuration mapping set codes to their distribution period
  * Uses set-specific configs from setConfigs/
  */
-export function getSetDistributionPeriod(setCode) {
-  const config = getSetConfig(setCode)
+export function getSetDistributionPeriod(setCode: SetCode | string): DistributionPeriod {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const config = getSetConfig(setCode as SetCode) as any
   if (!config) {
     return DISTRIBUTION_PERIODS.PRE_LAWLESS_TIME
   }
@@ -157,29 +190,30 @@ export function getSetDistributionPeriod(setCode) {
 
 /**
  * Check if a set allows Special rarity in foil slots
- * @param {string} setCode - The set code
- * @returns {boolean} True if Special rarity can appear in foil slots
+ * @param setCode - The set code
+ * @returns True if Special rarity can appear in foil slots
  */
-export function allowsSpecialInFoil(setCode) {
-  const config = getSetConfig(setCode)
+export function allowsSpecialInFoil(setCode: SetCode | string): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const config = getSetConfig(setCode as SetCode) as any
   return config ? config.packRules.specialInFoilSlot : false
 }
 
 /**
  * Get the distribution configuration for a given set code
- * @param {string} setCode - The set code (e.g., 'SOR', 'JTL')
- * @returns {Object} The distribution configuration for that set
+ * @param setCode - The set code (e.g., 'SOR', 'JTL')
+ * @returns The distribution configuration for that set
  */
-export function getDistributionForSet(setCode) {
+export function getDistributionForSet(setCode: SetCode | string): PeriodDistribution {
   const period = getSetDistributionPeriod(setCode)
   return RARITY_DISTRIBUTIONS[period]
 }
 
 /**
  * Get the distribution period for a given set code
- * @param {string} setCode - The set code (e.g., 'SOR', 'JTL')
- * @returns {string} The distribution period constant
+ * @param setCode - The set code (e.g., 'SOR', 'JTL')
+ * @returns The distribution period constant
  */
-export function getDistributionPeriod(setCode) {
+export function getDistributionPeriod(setCode: SetCode | string): DistributionPeriod {
   return getSetDistributionPeriod(setCode)
 }

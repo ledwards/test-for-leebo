@@ -4,7 +4,7 @@ import {
   getAspectCombinationKey,
   getAspectCombinationDisplayName,
   getAspectKey,
-} from './aspectCombinations.js'
+} from './aspectCombinations.ts'
 
 describe('aspectCombinations', () => {
   describe('getAspectCombinationKey', () => {

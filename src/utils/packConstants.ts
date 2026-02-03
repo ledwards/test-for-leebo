@@ -24,7 +24,7 @@ export const PACK_STRUCTURE = {
   uncommons: 3,      // UC slot 1, 2, and 3 (slot 3 can upgrade)
   rareOrLegendary: 1,
   foils: 1,
-}
+} as const
 
 // ============================================================================
 // ASPECT COVERAGE (applies to all sets)
@@ -39,13 +39,55 @@ export const ASPECT_COVERAGE = {
 
   // Belt B aspects (draw positions 1, 3, 5, 7)
   beltBAspects: ['Aggression', 'Cunning', 'Villainy'],
+} as const
+
+// ============================================================================
+// Type definitions for constants
+// ============================================================================
+
+export interface RarityWeights {
+  Common: number
+  Uncommon: number
+  Rare: number
+  Legendary: number
+  Special: number
+}
+
+export interface UCSlot3UpgradedWeights {
+  Uncommon: number
+  Rare: number
+  Legendary: number
+  Special: number
+}
+
+export interface PackConstants {
+  foilSlotWeights: RarityWeights | null
+  hyperfoilRate: number
+  rareSlotLegendaryRatio: number
+  ucSlot3UpgradeRate: number
+  ucSlot3UpgradedWeights: UCSlot3UpgradedWeights
+  leaderHyperspaceRate: number
+  baseHyperspaceRate: number
+  commonHyperspaceRate: number
+  uncommonHyperspaceRate: number
+  rareSlotHyperspaceRate: number
+  hyperspaceNonFoilWeights: RarityWeights
+  hyperfoilWeights: RarityWeights
+  showcaseLeaderRate: number
+  specialInFoilSlot: boolean
+  specialInHyperspaceSlot?: boolean
+  hyperspaceFoilSlotWeights?: RarityWeights
+  prestigeInRareSlotRate?: number
+  guaranteedHyperspaceCommon?: boolean
+  hyperspaceCommonSlot?: number
+  rareBasesInRareSlot?: boolean
 }
 
 // ============================================================================
 // SETS 1-3 CONSTANTS (SOR, SHD, TWI)
 // ============================================================================
 
-export const SETS_1_3_CONSTANTS = {
+export const SETS_1_3_CONSTANTS: PackConstants = {
   // ---------------------------------------------------------------------------
   // Foil Slot Rarity Weights (Question 1)
   // 70% C / 20% U / 8% R / 2% L
@@ -159,7 +201,7 @@ export const SETS_1_3_CONSTANTS = {
 // SETS 4-6 CONSTANTS (JTL, LOF, SEC)
 // ============================================================================
 
-export const SETS_4_6_CONSTANTS = {
+export const SETS_4_6_CONSTANTS: PackConstants = {
   // ---------------------------------------------------------------------------
   // Foil Slot Rarity Weights (Questions 1, 11)
   // 65% C / 20% U / 8% R / 4% S / 3% L
@@ -281,7 +323,7 @@ export const SETS_4_6_CONSTANTS = {
 // Source: https://starwarsunlimited.com/articles/a-shift-from-what-was
 // ============================================================================
 
-export const SET_7_PLUS_CONSTANTS = {
+export const SET_7_PLUS_CONSTANTS: PackConstants = {
   // ---------------------------------------------------------------------------
   // Foil Slot - ELIMINATED
   // Regular foils are gone. The foil slot is now ALWAYS a Hyperspace Foil.
@@ -381,6 +423,17 @@ export const SET_7_PLUS_CONSTANTS = {
   },
 
   // ---------------------------------------------------------------------------
+  // Hyperfoil Rarity Weights - same as hyperspaceFoilSlotWeights
+  // ---------------------------------------------------------------------------
+  hyperfoilWeights: {
+    Common: 65,
+    Uncommon: 20,
+    Rare: 8,
+    Special: 4,
+    Legendary: 3,
+  },
+
+  // ---------------------------------------------------------------------------
   // Showcase Leader Rate
   // "Significantly reduced" per FFG - roughly doubling the rarity
   // ---------------------------------------------------------------------------
@@ -406,10 +459,10 @@ export const SET_7_PLUS_CONSTANTS = {
 
 /**
  * Get pack constants for a specific set number
- * @param {number} setNumber - The set number (1-7+)
- * @returns {Object} The constants for that set group
+ * @param setNumber - The set number (1-7+)
+ * @returns The constants for that set group
  */
-export function getPackConstants(setNumber) {
+export function getPackConstants(setNumber: number): PackConstants {
   if (setNumber >= 1 && setNumber <= 3) {
     return SETS_1_3_CONSTANTS
   } else if (setNumber >= 4 && setNumber <= 6) {
@@ -421,12 +474,17 @@ export function getPackConstants(setNumber) {
   return SETS_4_6_CONSTANTS
 }
 
+interface RarityWeight {
+  rarity: string
+  weight: number
+}
+
 /**
  * Convert rarity weights object to an array suitable for belt filling
- * @param {Object} weights - Object with rarity keys and weight values
- * @returns {Array} Array of {rarity, weight} objects, sorted by weight descending
+ * @param weights - Object with rarity keys and weight values
+ * @returns Array of {rarity, weight} objects, sorted by weight descending
  */
-export function weightsToArray(weights) {
+export function weightsToArray(weights: Record<string, number>): RarityWeight[] {
   return Object.entries(weights)
     .filter(([_, weight]) => weight > 0)
     .map(([rarity, weight]) => ({ rarity, weight }))
@@ -435,9 +493,9 @@ export function weightsToArray(weights) {
 
 /**
  * Calculate the total weight from a weights object
- * @param {Object} weights - Object with rarity keys and weight values
- * @returns {number} Total weight
+ * @param weights - Object with rarity keys and weight values
+ * @returns Total weight
  */
-export function totalWeight(weights) {
+export function totalWeight(weights: Record<string, number>): number {
   return Object.values(weights).reduce((sum, w) => sum + w, 0)
 }
