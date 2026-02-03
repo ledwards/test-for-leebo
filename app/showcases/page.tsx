@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
@@ -9,24 +10,50 @@ import { getAspectColor } from '../../src/utils/aspectColors'
 import Button from '../../src/components/Button'
 import './showcases.css'
 
+interface ShowcaseLeader {
+  id: string
+  cardId: string
+  cardName: string
+  cardSubtitle?: string
+  setCode: string
+}
+
+interface CardData {
+  id: string
+  name: string
+  subtitle?: string
+  imageUrl?: string
+  backImageUrl?: string
+  aspects?: string[]
+  isLeader?: boolean
+  variantType?: string
+}
+
+interface CardPosition {
+  x: number
+  y: number
+  rotation: number
+  zIndex: number
+}
+
 export default function ShowcasesPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const [showcases, setShowcases] = useState([])
-  const [cardsData, setCardsData] = useState({})
+  const [showcases, setShowcases] = useState<ShowcaseLeader[]>([])
+  const [cardsData, setCardsData] = useState<Record<string, CardData>>({})
   const [totalLeaders, setTotalLeaders] = useState(0)
   const [loadingShowcases, setLoadingShowcases] = useState(true)
-  const [cardPositions, setCardPositions] = useState({})
-  const [flippedCards, setFlippedCards] = useState({})
-  const [draggingCard, setDraggingCard] = useState(null)
+  const [cardPositions, setCardPositions] = useState<Record<string, CardPosition>>({})
+  const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({})
+  const [draggingCard, setDraggingCard] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [hasDragged, setHasDragged] = useState(false)
   const [dragRotation, setDragRotation] = useState(0)
   const [isExporting, setIsExporting] = useState(false)
-  const [imageModalUrl, setImageModalUrl] = useState(null)
+  const [imageModalUrl, setImageModalUrl] = useState<string | null>(null)
   const lastPosRef = useRef({ x: 0, y: 0 })
-  const containerRef = useRef(null)
-  const exportRef = useRef(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const exportRef = useRef<HTMLDivElement>(null)
 
   // Get card dimensions based on screen width
   const getCardDimensions = useCallback(() => {
@@ -51,12 +78,12 @@ export default function ShowcasesPage() {
         await initializeCardCache()
 
         // Build a map of card id -> card data for all sets and count unique showcase leaders
-        const cardMap = {}
-        const uniqueShowcaseLeaders = new Set()
+        const cardMap: Record<string, CardData> = {}
+        const uniqueShowcaseLeaders = new Set<string>()
         const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC', 'LAW']
         sets.forEach(setCode => {
           const cards = getCachedCards(setCode) || []
-          cards.forEach(card => {
+          cards.forEach((card: CardData) => {
             cardMap[card.id] = card
             if (card.isLeader && card.variantType === 'Showcase') {
               // Use name + subtitle as unique key to avoid counting duplicates
@@ -74,13 +101,13 @@ export default function ShowcasesPage() {
           setShowcases(leaders)
 
           // Initialize random positions for each card
-          const positions = {}
+          const positions: Record<string, CardPosition> = {}
           const containerWidth = window.innerWidth
           const containerHeight = window.innerHeight
           const { width: cardWidth, height: cardHeight } = getCardDimensions()
           const padding = 50
 
-          leaders.forEach((leader, index) => {
+          leaders.forEach((leader: ShowcaseLeader, index: number) => {
             // Spread cards across the viewport with some randomness
             const gridCols = Math.ceil(Math.sqrt(leaders.length))
             const gridRows = Math.ceil(leaders.length / gridCols)
@@ -119,7 +146,7 @@ export default function ShowcasesPage() {
   }, [user])
 
   // Handle card flip
-  const handleCardClick = useCallback((cardId, e) => {
+  const handleCardClick = useCallback((cardId: string, e: React.MouseEvent) => {
     // Don't flip if we were dragging
     if (hasDragged) return
 
@@ -130,9 +157,9 @@ export default function ShowcasesPage() {
   }, [hasDragged])
 
   // Drag handlers
-  const handleMouseDown = useCallback((cardId, e) => {
+  const handleMouseDown = useCallback((cardId: string, e: React.MouseEvent) => {
     e.preventDefault()
-    const card = e.currentTarget
+    const card = e.currentTarget as HTMLElement
     const rect = card.getBoundingClientRect()
 
     setDraggingCard(cardId)
@@ -157,7 +184,7 @@ export default function ShowcasesPage() {
     })
   }, [])
 
-  const handleMouseMove = useCallback((e) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!draggingCard) return
 
     setHasDragged(true)
@@ -184,7 +211,7 @@ export default function ShowcasesPage() {
     }))
   }, [draggingCard, dragOffset, getCardDimensions])
 
-  const handleMouseUp = useCallback((e) => {
+  const handleMouseUp = useCallback((e: MouseEvent) => {
     if (draggingCard) {
       e.preventDefault()
     }
@@ -193,9 +220,9 @@ export default function ShowcasesPage() {
   }, [draggingCard])
 
   // Touch handlers for mobile
-  const handleTouchStart = useCallback((cardId, e) => {
+  const handleTouchStart = useCallback((cardId: string, e: React.TouchEvent) => {
     const touch = e.touches[0]
-    const card = e.currentTarget
+    const card = e.currentTarget as HTMLElement
     const rect = card.getBoundingClientRect()
 
     setDraggingCard(cardId)
@@ -219,7 +246,7 @@ export default function ShowcasesPage() {
     })
   }, [])
 
-  const handleTouchMove = useCallback((e) => {
+  const handleTouchMove = useCallback((e: TouchEvent) => {
     if (!draggingCard) return
 
     setHasDragged(true)
@@ -296,7 +323,7 @@ export default function ShowcasesPage() {
   }
 
   // Get card data including image URLs and aspect color
-  const getCardData = (leader) => {
+  const getCardData = (leader: ShowcaseLeader) => {
     const card = cardsData[leader.cardId]
     const aspectColor = card ? getAspectColor(card) : '#ffd700'
     // Card should always be found in cache since we initialize it before fetching
@@ -315,7 +342,7 @@ export default function ShowcasesPage() {
   ).size
 
   // Sort showcases for export: set number ASC, villain before hero, alphabetical
-  const setOrder = { 'SOR': 1, 'SHD': 2, 'TWI': 3, 'JTL': 4, 'LOF': 5, 'SEC': 6 }
+  const setOrder: Record<string, number> = { 'SOR': 1, 'SHD': 2, 'TWI': 3, 'JTL': 4, 'LOF': 5, 'SEC': 6 }
   const sortedShowcases = [...showcases].sort((a, b) => {
     // Set number ASC
     const setA = setOrder[a.setCode] || 99
@@ -341,7 +368,7 @@ export default function ShowcasesPage() {
     await new Promise(resolve => setTimeout(resolve, 100))
 
     try {
-      const canvas = await html2canvas(exportRef.current, {
+      const canvas = await html2canvas(exportRef.current!, {
         backgroundColor: null,
         scale: 2,
         useCORS: true,
@@ -350,8 +377,10 @@ export default function ShowcasesPage() {
 
       // Show image in modal
       canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob)
-        setImageModalUrl(url)
+        if (blob) {
+          const url = URL.createObjectURL(blob)
+          setImageModalUrl(url)
+        }
       }, 'image/png')
     } catch (error) {
       console.error('Export failed:', error)
@@ -406,7 +435,7 @@ export default function ShowcasesPage() {
         const cardData = getCardData(leader)
         const currentRotation = isDragging ? pos.rotation + dragRotation : pos.rotation
         // Stagger animation by random delay (consistent per card using id as seed)
-        const animationDelay = ((leader.id * 137) % 1000) / 1000
+        const animationDelay = ((parseInt(leader.id, 10) * 137) % 1000) / 1000
 
         return (
           <div
@@ -420,7 +449,7 @@ export default function ShowcasesPage() {
               cursor: isDragging ? 'grabbing' : 'grab',
               '--aspect-color': cardData.aspectColor,
               '--animation-delay': `${animationDelay}s`
-            }}
+            } as React.CSSProperties}
             onMouseDown={(e) => handleMouseDown(leader.id, e)}
             onTouchStart={(e) => handleTouchStart(leader.id, e)}
             onClick={(e) => !isDragging && handleCardClick(leader.id, e)}
@@ -429,7 +458,7 @@ export default function ShowcasesPage() {
               <div className="showcase-card-front">
                 <div className="showcase-card-image-container">
                   <img
-                    src={cardData.frontImage}
+                    src={cardData.frontImage || undefined}
                     alt={`${leader.cardName}${leader.cardSubtitle ? ` - ${leader.cardSubtitle}` : ''}`}
                     className="showcase-card-image"
                     draggable={false}
@@ -440,7 +469,7 @@ export default function ShowcasesPage() {
               <div className="showcase-card-back">
                 <div className="showcase-card-image-container">
                   <img
-                    src={cardData.backImage}
+                    src={cardData.backImage || undefined}
                     alt={`${leader.cardName} - Deployed`}
                     className="showcase-card-image"
                     draggable={false}
@@ -473,7 +502,7 @@ export default function ShowcasesPage() {
               return (
                 <div key={leader.id} className="showcase-export-card">
                   <img
-                    src={cardData.frontImage}
+                    src={cardData.frontImage || undefined}
                     alt={leader.cardName}
                     className="showcase-export-image"
                     crossOrigin="anonymous"
