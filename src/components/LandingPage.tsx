@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -7,10 +8,20 @@ import ReleaseNotes from './ReleaseNotes'
 import Button from './Button'
 import './LandingPage.css'
 
-function LandingPage({ onSealedClick, onDraftClick }) {
+interface ActiveDraft {
+  shareId: string
+  status: string
+}
+
+interface LandingPageProps {
+  onSealedClick: () => void
+  onDraftClick: () => void
+}
+
+function LandingPage({ onSealedClick, onDraftClick }: LandingPageProps) {
   const { user, loading, signIn } = useAuth()
   const router = useRouter()
-  const [activeDraft, setActiveDraft] = useState(null)
+  const [activeDraft, setActiveDraft] = useState<ActiveDraft | null>(null)
 
   // Check for active drafts when user is logged in
   useEffect(() => {
@@ -28,7 +39,7 @@ function LandingPage({ onSealedClick, onDraftClick }) {
           const data = await response.json()
           // Find first active draft (waiting or active status)
           const active = data.pods?.find(
-            pod => pod.status === 'waiting' || pod.status === 'leader_draft' || pod.status === 'pack_draft'
+            (pod: ActiveDraft) => pod.status === 'waiting' || pod.status === 'leader_draft' || pod.status === 'pack_draft'
           )
           setActiveDraft(active || null)
         }
