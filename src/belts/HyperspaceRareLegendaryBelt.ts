@@ -5,16 +5,20 @@
  * Includes non-leader Rares and all Legendaries from Hyperspace variant.
  */
 
-import { getCachedCards } from '../utils/cardCache.js'
+import { getCachedCards } from '../utils/cardCache'
+import type { RawCard } from '../utils/cardData'
+import type { SetCode } from '../types'
 import { getSetConfig } from '../utils/setConfigs/index.js'
 
 /**
  * Shuffle an array in place (Fisher-Yates)
  */
-function shuffle(arr) {
+function shuffle<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    const temp = arr[i]
+    arr[i] = arr[j]!
+    arr[j] = temp!
   }
   return arr
 }
@@ -22,14 +26,21 @@ function shuffle(arr) {
 /**
  * Check if two cards are the same (by id or name)
  */
-function isSameCard(a, b) {
+function isSameCard(a: RawCard | undefined, b: RawCard | undefined): boolean {
   if (!a || !b) return false
   return a.id === b.id || a.name === b.name
 }
 
 export class HyperspaceRareLegendaryBelt {
-  constructor(setCode) {
-    this.setCode = setCode
+  setCode: SetCode
+  hopper: RawCard[]
+  fillingPool: RawCard[]
+  rares: RawCard[]
+  legendaries: RawCard[]
+  ratio: number
+
+  constructor(setCode: SetCode | string) {
+    this.setCode = setCode as SetCode
     this.hopper = []
     this.fillingPool = []
     this.rares = []
@@ -39,9 +50,10 @@ export class HyperspaceRareLegendaryBelt {
     this._initialize()
   }
 
-  _initialize() {
+  _initialize(): void {
     const cards = getCachedCards(this.setCode)
-    const config = getSetConfig(this.setCode)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const config = getSetConfig(this.setCode) as any
 
     // Determine ratio based on set number
     const setNumber = config?.setNumber || 1
@@ -67,7 +79,7 @@ export class HyperspaceRareLegendaryBelt {
     this._fillIfNeeded()
   }
 
-  _fillIfNeeded() {
+  _fillIfNeeded(): void {
     // Safety check: if no cards in filling pool, can't fill
     if (this.fillingPool.length === 0) {
       return
@@ -77,7 +89,7 @@ export class HyperspaceRareLegendaryBelt {
     }
   }
 
-  _fill() {
+  _fill(): void {
     const wasEmpty = this.hopper.length === 0
 
     const shuffledLegendaries = shuffle([...this.legendaries])
@@ -101,7 +113,7 @@ export class HyperspaceRareLegendaryBelt {
     }
   }
 
-  _seamDedup(segmentStart, segmentLength, depth = 0) {
+  _seamDedup(segmentStart: number, segmentLength: number, depth = 0): void {
     if (depth > 10) return
 
     const seamSize = Math.min(5, segmentLength)
@@ -129,8 +141,9 @@ export class HyperspaceRareLegendaryBelt {
         const backHalfLength = backHalfEnd - backHalfStart
         if (backHalfLength > 0) {
           const swapIndex = backHalfStart + Math.floor(Math.random() * backHalfLength)
-          ;[this.hopper[cardIndex], this.hopper[swapIndex]] =
-            [this.hopper[swapIndex], this.hopper[cardIndex]]
+          const temp = this.hopper[cardIndex]
+          this.hopper[cardIndex] = this.hopper[swapIndex]!
+          this.hopper[swapIndex] = temp!
           this._seamDedup(segmentStart, segmentLength, depth + 1)
           return
         }
@@ -138,19 +151,19 @@ export class HyperspaceRareLegendaryBelt {
     }
   }
 
-  next() {
+  next(): RawCard | null {
     this._fillIfNeeded()
     const card = this.hopper.shift()
     if (!card) return null
     return { ...card, isHyperspace: true }
   }
 
-  peek(count = 1) {
+  peek(count = 1): RawCard[] {
     this._fillIfNeeded()
     return this.hopper.slice(0, count).map(c => ({ ...c, isHyperspace: true }))
   }
 
-  get size() {
+  get size(): number {
     return this.hopper.length
   }
 }

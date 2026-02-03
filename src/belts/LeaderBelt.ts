@@ -9,27 +9,38 @@
  * Target ratio: 1/6 packs get a Rare leader (~16.67%)
  */
 
-import { getCachedCards } from '../utils/cardCache.js'
+import { getCachedCards } from '../utils/cardCache'
+import type { RawCard } from '../utils/cardData'
+import type { SetCode } from '../types'
 
 /**
  * Shuffle an array in place (Fisher-Yates)
  */
-function shuffle(arr) {
+function shuffle<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    const temp = arr[i]
+    arr[i] = arr[j]!
+    arr[j] = temp!
   }
   return arr
 }
 
 export class LeaderBelt {
-  constructor(setCode) {
-    this.setCode = setCode
+  setCode: SetCode
+  commonLeaders: RawCard[]
+  rareLeaders: RawCard[]
+  commonCycle: RawCard[]  // Shuffled cycle of common leaders
+  commonIndex: number     // Current position in common cycle
+  lastLeaderName: string | null  // Track last served leader to avoid adjacent duplicates
+
+  constructor(setCode: SetCode | string) {
+    this.setCode = setCode as SetCode
     this.commonLeaders = []
     this.rareLeaders = []
-    this.commonCycle = []  // Shuffled cycle of common leaders
-    this.commonIndex = 0   // Current position in common cycle
-    this.lastLeaderName = null  // Track last served leader to avoid adjacent duplicates
+    this.commonCycle = []
+    this.commonIndex = 0
+    this.lastLeaderName = null
 
     this._initialize()
   }
@@ -37,7 +48,7 @@ export class LeaderBelt {
   /**
    * Initialize the belt by loading cards
    */
-  _initialize() {
+  _initialize(): void {
     const cards = getCachedCards(this.setCode)
 
     // Filter to only normal variant leaders with Common or Rare rarity
@@ -58,7 +69,7 @@ export class LeaderBelt {
    * Reshuffle the common leader cycle
    * Called when we've gone through all commons once
    */
-  _reshuffleCommonCycle() {
+  _reshuffleCommonCycle(): void {
     this.commonCycle = shuffle([...this.commonLeaders])
     this.commonIndex = 0
   }
@@ -67,7 +78,7 @@ export class LeaderBelt {
    * Get the next common leader from the cycle
    * Reshuffles when cycle is exhausted
    */
-  _nextCommon() {
+  _nextCommon(): RawCard | undefined {
     if (this.commonIndex >= this.commonCycle.length) {
       this._reshuffleCommonCycle()
     }
@@ -77,10 +88,10 @@ export class LeaderBelt {
   /**
    * Get a random rare leader
    */
-  _randomRare() {
+  _randomRare(): RawCard | null {
     if (this.rareLeaders.length === 0) return null
     const index = Math.floor(Math.random() * this.rareLeaders.length)
-    return this.rareLeaders[index]
+    return this.rareLeaders[index] ?? null
   }
 
   /**
@@ -92,10 +103,10 @@ export class LeaderBelt {
    * - If rare would duplicate the last leader, fall back to common
    * - If common would duplicate the last leader, try next in cycle
    */
-  next() {
+  next(): RawCard | null {
     const RARE_PROBABILITY = 1 / 6
 
-    let leader = null
+    let leader: RawCard | null = null
 
     // Decide: rare or common?
     if (this.rareLeaders.length > 0 && Math.random() < RARE_PROBABILITY) {
@@ -115,7 +126,7 @@ export class LeaderBelt {
 
       while (attempts < maxAttempts) {
         const common = this._nextCommon()
-        if (common.name !== this.lastLeaderName) {
+        if (common && common.name !== this.lastLeaderName) {
           leader = common
           break
         }
@@ -124,7 +135,10 @@ export class LeaderBelt {
 
       // Fallback: if somehow all commons match last leader (shouldn't happen with 8+ commons)
       if (!leader && this.commonLeaders.length > 0) {
-        leader = this._nextCommon()
+        const fallback = this._nextCommon()
+        if (fallback) {
+          leader = fallback
+        }
       }
     }
 
@@ -139,13 +153,16 @@ export class LeaderBelt {
   /**
    * Peek at upcoming cards (approximate - doesn't account for rare probability)
    */
-  peek(count = 1) {
-    const result = []
+  peek(count = 1): RawCard[] {
+    const result: RawCard[] = []
     const tempIndex = this.commonIndex
 
     for (let i = 0; i < count && i < this.commonCycle.length; i++) {
       const idx = (tempIndex + i) % this.commonCycle.length
-      result.push({ ...this.commonCycle[idx] })
+      const card = this.commonCycle[idx]
+      if (card) {
+        result.push({ ...card })
+      }
     }
 
     return result
@@ -154,7 +171,7 @@ export class LeaderBelt {
   /**
    * Get approximate hopper size (commons remaining in current cycle)
    */
-  get size() {
+  get size(): number {
     return this.commonCycle.length - this.commonIndex
   }
 }

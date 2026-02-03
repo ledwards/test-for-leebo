@@ -42,7 +42,28 @@
  * Run the test suite after editing to verify no duplicates and correct sizes.
  */
 
-export const COMMON_BELT_ASSIGNMENTS = {
+import type { SetCode } from '../../types'
+import type { RawCard } from '../../utils/cardData'
+
+type BlockType = 0 | 'A' | 'B'
+
+interface BeltConfig {
+  beltASlots: number
+  beltBSlots: number
+  alternatingSlot: number | null
+  hyperspaceSlot: number
+  targetBeltASize: number
+  targetBeltBSize: number
+  guaranteedHyperspace?: boolean
+}
+
+interface SetBeltAssignment {
+  beltA: string[]
+  beltB: string[]
+  autoAssign?: boolean
+}
+
+export const COMMON_BELT_ASSIGNMENTS: Record<string, SetBeltAssignment> = {
   "SOR": {
     "beltA": [
       "Vanguard Infantry",
@@ -655,7 +676,7 @@ export const COMMON_BELT_ASSIGNMENTS = {
     "beltB": [],
     "autoAssign": true  // Flag to use aspect-based auto-assignment
   }
-};
+}
 
 /**
  * Get the block number for a set code
@@ -663,21 +684,21 @@ export const COMMON_BELT_ASSIGNMENTS = {
  * Block A: Sets 4-6 (JTL, LOF, SEC)
  * Block B: Sets 7+ (LAW, etc.)
  */
-export function getBlockForSet(setCode) {
-  const block0Sets = ['SOR', 'SHD', 'TWI'];
-  const blockASets = ['JTL', 'LOF', 'SEC'];
-  const blockBSets = ['LAW'];
+export function getBlockForSet(setCode: SetCode | string): BlockType {
+  const block0Sets = ['SOR', 'SHD', 'TWI']
+  const blockASets = ['JTL', 'LOF', 'SEC']
+  const blockBSets = ['LAW']
 
-  if (block0Sets.includes(setCode)) return 0;
-  if (blockASets.includes(setCode)) return 'A';
-  if (blockBSets.includes(setCode)) return 'B';
-  return 'B'; // Default to Block B for future sets
+  if (block0Sets.includes(setCode)) return 0
+  if (blockASets.includes(setCode)) return 'A'
+  if (blockBSets.includes(setCode)) return 'B'
+  return 'B' // Default to Block B for future sets
 }
 
 /**
  * Get belt configuration for a block
  */
-export function getBeltConfig(block) {
+export function getBeltConfig(block: BlockType): BeltConfig {
   if (block === 0) {
     return {
       beltASlots: 6,  // Slots 1-6
@@ -686,7 +707,7 @@ export function getBeltConfig(block) {
       hyperspaceSlot: 6,  // 1-indexed
       targetBeltASize: 60,
       targetBeltBSize: 30,
-    };
+    }
   } else if (block === 'A') {
     return {
       beltASlots: 4,  // Slots 1-4
@@ -695,7 +716,7 @@ export function getBeltConfig(block) {
       hyperspaceSlot: 4,  // 1-indexed
       targetBeltASize: 50,
       targetBeltBSize: 50,
-    };
+    }
   } else {
     // Block B (LAW+) - Similar to Block A but with guaranteed HS common in slot 5
     return {
@@ -706,7 +727,7 @@ export function getBeltConfig(block) {
       targetBeltASize: 50,
       targetBeltBSize: 50,
       guaranteedHyperspace: true,  // Every pack has HS common in this slot
-    };
+    }
   }
 }
 
@@ -714,39 +735,39 @@ export function getBeltConfig(block) {
  * Determine which belt a card should be assigned to based on its aspects
  * Used for auto-assignment of cards (especially triple-aspect cards)
  *
- * @param {Object} card - Card object with aspects array
- * @param {string} block - Block identifier ('0', 'A', or 'B')
- * @returns {string} 'A' or 'B'
+ * @param card - Card object with aspects array
+ * @param block - Block identifier ('0', 'A', or 'B')
+ * @returns 'A' or 'B'
  */
-export function assignCardToBelt(card, block) {
-  const aspects = card.aspects || [];
+export function assignCardToBelt(card: RawCard, block: BlockType): 'A' | 'B' {
+  const aspects = card.aspects || []
 
   // Belt A aspects vary by block
-  let beltAAspects;
+  let beltAAspects: string[]
   if (block === 0) {
-    beltAAspects = ['Vigilance', 'Command', 'Aggression'];
+    beltAAspects = ['Vigilance', 'Command', 'Aggression']
   } else {
     // Block A and B
-    beltAAspects = ['Vigilance', 'Command', 'Villainy'];
+    beltAAspects = ['Vigilance', 'Command', 'Villainy']
   }
 
   // If card has ANY Belt A aspect, assign to Belt A
   // This handles triple-aspect cards (e.g., Vigilance + Command + Heroism -> Belt A)
   for (const aspect of aspects) {
     if (beltAAspects.includes(aspect)) {
-      return 'A';
+      return 'A'
     }
   }
 
   // No Belt A aspects found, assign to Belt B
-  return 'B';
+  return 'B'
 }
 
 /**
  * Check if a card is a triple-aspect card (has 3+ aspects)
- * @param {Object} card - Card object with aspects array
- * @returns {boolean}
+ * @param card - Card object with aspects array
+ * @returns boolean
  */
-export function isTripleAspectCard(card) {
-  return (card.aspects || []).length >= 3;
+export function isTripleAspectCard(card: RawCard): boolean {
+  return (card.aspects || []).length >= 3
 }
