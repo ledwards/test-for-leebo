@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import './DeckBuilder.css'
-import './AspectIcons.css'
 import DeckBuilderContext from '../contexts/DeckBuilderContext'
 import { getCachedCards, isCacheInitialized, initializeCardCache } from '../utils/cardCache'
 import { buildBaseCardMap as buildBaseCardMapUtil, getBaseCardId as getBaseCardIdUtil } from '../utils/variantDowngrade'
