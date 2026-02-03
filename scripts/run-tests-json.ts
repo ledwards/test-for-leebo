@@ -1,9 +1,10 @@
-#!/usr/bin/env node
+#!/usr/bin/env npx tsx
+// @ts-nocheck
 /**
  * Test Runner with JSON Output
  *
  * Runs all unit tests and saves results to src/tests/results.json
- * Usage: node scripts/run-tests-json.js
+ * Usage: npx tsx scripts/run-tests-json.ts
  */
 
 import { spawn } from 'child_process'
@@ -15,8 +16,46 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const projectRoot = join(__dirname, '..')
 
+interface TestConfig {
+  name: string
+  suite: string
+  cmd: string
+  args: string[]
+}
+
+interface TestResult {
+  suite: string
+  name: string
+  status: 'passed' | 'failed'
+}
+
+interface SuiteResult {
+  name: string
+  suite: string
+  status: 'passed' | 'failed'
+  exitCode: number
+  executionTime: number
+  tests: TestResult[]
+  errorMessage: string | null
+}
+
+interface TestOutput {
+  runAt: string
+  executionTime: number
+  summary: {
+    totalSuites: number
+    passedSuites: number
+    failedSuites: number
+    totalTests: number
+    passed: number
+    failed: number
+  }
+  suites: SuiteResult[]
+  tests: TestResult[]
+}
+
 // Test commands to run
-const testCommands = [
+const testCommands: TestConfig[] = [
   { name: 'Utils', suite: 'utils', cmd: 'node', args: ['src/utils/boosterPack.test.js'] },
   { name: 'Base Belt', suite: 'belts', cmd: 'node', args: ['src/belts/BaseBelt.test.js'] },
   { name: 'Common Belt', suite: 'belts', cmd: 'node', args: ['src/belts/CommonBelt.test.js'] },
@@ -34,7 +73,7 @@ const testCommands = [
   { name: 'Card Counts', suite: 'data', cmd: 'node', args: ['src/data/cardCounts.test.js'] },
 ]
 
-async function runTest(testConfig) {
+async function runTest(testConfig: TestConfig): Promise<SuiteResult> {
   return new Promise((resolve) => {
     const startTime = Date.now()
     let stdout = ''
@@ -45,17 +84,17 @@ async function runTest(testConfig) {
       stdio: ['inherit', 'pipe', 'pipe']
     })
 
-    proc.stdout.on('data', (data) => {
+    proc.stdout.on('data', (data: Buffer) => {
       stdout += data.toString()
       process.stdout.write(data)
     })
 
-    proc.stderr.on('data', (data) => {
+    proc.stderr.on('data', (data: Buffer) => {
       stderr += data.toString()
       process.stderr.write(data)
     })
 
-    proc.on('close', (code) => {
+    proc.on('close', (code: number | null) => {
       const executionTime = Date.now() - startTime
       const passed = code === 0
 
@@ -66,14 +105,14 @@ async function runTest(testConfig) {
         name: testConfig.name,
         suite: testConfig.suite,
         status: passed ? 'passed' : 'failed',
-        exitCode: code,
+        exitCode: code || 0,
         executionTime,
         tests: testResults,
         errorMessage: passed ? null : extractErrorMessage(stderr || stdout)
       })
     })
 
-    proc.on('error', (err) => {
+    proc.on('error', (err: Error) => {
       resolve({
         name: testConfig.name,
         suite: testConfig.suite,
@@ -87,8 +126,8 @@ async function runTest(testConfig) {
   })
 }
 
-function parseTestOutput(output, suite, suiteName) {
-  const results = []
+function parseTestOutput(output: string, suite: string, suiteName: string): TestResult[] {
+  const results: TestResult[] = []
   const lines = output.split('\n')
 
   for (const line of lines) {
@@ -124,7 +163,7 @@ function parseTestOutput(output, suite, suiteName) {
   return results
 }
 
-function extractErrorMessage(output) {
+function extractErrorMessage(output: string): string {
   const lines = output.split('\n')
   for (const line of lines) {
     if (line.includes('Error:') || line.includes('AssertionError')) {
@@ -134,14 +173,14 @@ function extractErrorMessage(output) {
   return lines.find(l => l.trim().length > 0) || 'Unknown error'
 }
 
-async function main() {
+async function main(): Promise<void> {
   console.log('\x1b[1m\x1b[36m🧪 Running Unit Tests\x1b[0m')
   console.log('\x1b[36m============================\x1b[0m')
   console.log('')
 
   const startTime = Date.now()
-  const suiteResults = []
-  const allTests = []
+  const suiteResults: SuiteResult[] = []
+  const allTests: TestResult[] = []
 
   for (const testConfig of testCommands) {
     console.log(`\x1b[36m📦 Running ${testConfig.name}...\x1b[0m`)
@@ -164,7 +203,7 @@ async function main() {
   }
 
   // Write results
-  const output = {
+  const output: TestOutput = {
     runAt: new Date().toISOString(),
     executionTime: totalTime,
     summary: {

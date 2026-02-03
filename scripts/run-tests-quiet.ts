@@ -1,11 +1,12 @@
-#!/usr/bin/env node
+#!/usr/bin/env npx tsx
+// @ts-nocheck
 /**
  * Quiet Test Runner
  *
  * Runs all tests but only shows output for failures.
  * Shows a clean summary at the end.
  *
- * Usage: node scripts/run-tests-quiet.js
+ * Usage: npx tsx scripts/run-tests-quiet.ts
  */
 
 import { execSync } from 'child_process'
@@ -18,7 +19,7 @@ const __dirname = dirname(__filename)
 const projectRoot = join(__dirname, '..')
 
 // ANSI color codes
-const colors = {
+const colors: Record<string, string> = {
   reset: '\x1b[0m',
   bold: '\x1b[1m',
   dim: '\x1b[2m',
@@ -28,11 +29,18 @@ const colors = {
   cyan: '\x1b[36m'
 }
 
-function log(message, color = 'reset') {
+function log(message: string, color: string = 'reset'): void {
   console.log(`${colors[color]}${message}${colors.reset}`)
 }
 
-function runCommand(name, command) {
+interface CommandResult {
+  success: boolean
+  elapsed: string
+  output?: string
+  stderr?: string
+}
+
+function runCommand(name: string, command: string): CommandResult {
   const startTime = Date.now()
   try {
     execSync(command, {
@@ -42,7 +50,7 @@ function runCommand(name, command) {
     })
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
     return { success: true, elapsed }
-  } catch (error) {
+  } catch (error: any) {
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
     return {
       success: false,
@@ -53,11 +61,11 @@ function runCommand(name, command) {
   }
 }
 
-function extractFailures(output) {
+function extractFailures(output: string): string[] {
   const lines = output.split('\n')
-  const failures = []
+  const failures: string[] = []
   let inFailure = false
-  let currentFailure = []
+  let currentFailure: string[] = []
 
   for (const line of lines) {
     if (line.includes('❌') || line.includes('FAILED') || line.includes('Error:')) {
@@ -78,12 +86,16 @@ function extractFailures(output) {
   return failures
 }
 
-async function main() {
+interface TestResult extends CommandResult {
+  name: string
+}
+
+async function main(): Promise<void> {
   console.log('')
   log('🧪 Running tests...', 'cyan')
   console.log('')
 
-  const results = []
+  const results: TestResult[] = []
 
   // Unit tests
   process.stdout.write(`  Unit tests... `)
@@ -130,7 +142,7 @@ async function main() {
       console.log('')
 
       // Show relevant failure output
-      const output = failure.output + '\n' + failure.stderr
+      const output = (failure.output || '') + '\n' + (failure.stderr || '')
       const failureLines = extractFailures(output)
 
       if (failureLines.length > 0) {
@@ -180,7 +192,7 @@ async function main() {
     log('  Re-run failing tests:', 'yellow')
     console.log('')
 
-    const rerunCommands = {
+    const rerunCommands: Record<string, string> = {
       'Unit': 'npm run test',
       'QA': 'npm run qa',
       'E2E': 'npm run test:e2e'
@@ -202,6 +214,6 @@ async function main() {
 }
 
 main().catch(error => {
-  log(`Error: ${error.message}`, 'red')
+  log(`Error: ${(error as Error).message}`, 'red')
   process.exit(1)
 })

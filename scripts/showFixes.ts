@@ -1,4 +1,5 @@
-#!/usr/bin/env node
+#!/usr/bin/env npx tsx
+// @ts-nocheck
 /**
  * Show Fixes Utility
  *
@@ -6,15 +7,15 @@
  * Useful for debugging and verifying your fix definitions.
  *
  * Usage:
- *   node scripts/showFixes.js              # Show all configured fixes
- *   node scripts/showFixes.js --applied    # Show fixes from last post-processing
- *   node scripts/showFixes.js --card SOR-324  # Show fixes for specific card
+ *   npx tsx scripts/showFixes.ts              # Show all configured fixes
+ *   npx tsx scripts/showFixes.ts --applied    # Show fixes from last post-processing
+ *   npx tsx scripts/showFixes.ts --card SOR-324  # Show fixes for specific card
  */
 
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { cardFixes, batchFixes, customTransforms } from './cardFixes.js'
+import { cardFixes, batchFixes, customTransforms } from './cardFixes.ts'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -31,7 +32,7 @@ console.log('═'.repeat(70))
 /**
  * Show configured fixes
  */
-function showConfiguredFixes() {
+function showConfiguredFixes(): void {
   console.log('\n📋 INDIVIDUAL FIXES')
   console.log('─'.repeat(70))
 
@@ -80,10 +81,31 @@ function showConfiguredFixes() {
   console.log(`  Total:              ${cardFixes.length + batchFixes.length + customTransforms.length}`)
 }
 
+interface FixReport {
+  timestamp: string
+  totalFixes: number
+  byType: {
+    individual: number
+    batch: number
+    custom: number
+  }
+  byField: Record<string, number>
+  fixes: Array<{
+    type: string
+    cardId?: string
+    cardName?: string
+    field?: string
+    oldValue?: any
+    newValue?: any
+    reason?: string
+    transform?: string
+  }>
+}
+
 /**
  * Show applied fixes from report
  */
-function showAppliedFixes() {
+function showAppliedFixes(): void {
   const reportPath = path.join(__dirname, '../src/data/card-fixes-report.json')
 
   if (!fs.existsSync(reportPath)) {
@@ -92,7 +114,7 @@ function showAppliedFixes() {
     return
   }
 
-  const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'))
+  const report: FixReport = JSON.parse(fs.readFileSync(reportPath, 'utf8'))
 
   console.log(`\n📅 Last Processed: ${report.timestamp}`)
   console.log(`   Total Fixes Applied: ${report.totalFixes}`)
@@ -134,10 +156,19 @@ function showAppliedFixes() {
   }
 }
 
+interface Card {
+  id: string
+  name: string
+  type: string
+  set: string
+  variantType: string
+  [key: string]: any
+}
+
 /**
  * Show fixes for specific card
  */
-function showFixesForCard(cardId) {
+function showFixesForCard(cardId: string): void {
   console.log(`\n🎯 Fixes for card: ${cardId}`)
   console.log('─'.repeat(70))
 
@@ -158,7 +189,7 @@ function showFixesForCard(cardId) {
   }
 
   const cardData = JSON.parse(fs.readFileSync(cardsPath, 'utf8'))
-  const card = cardData.cards.find(c => c.id === cardId)
+  const card: Card | undefined = cardData.cards.find((c: Card) => c.id === cardId)
 
   if (!card) {
     console.log(`\n  ⚠️  Card ${cardId} not found in data`)
@@ -202,7 +233,7 @@ function showFixesForCard(cardId) {
 /**
  * Main
  */
-function main() {
+function main(): void {
   if (specificCardId) {
     showFixesForCard(specificCardId)
   } else if (showApplied) {
@@ -213,8 +244,8 @@ function main() {
 
   console.log('\n' + '═'.repeat(70))
   console.log('\n💡 TIPS:')
-  console.log('   • Run "node scripts/showFixes.js --applied" to see last applied fixes')
-  console.log('   • Run "node scripts/showFixes.js --card SOR-324" to check specific card')
+  console.log('   • Run "npx tsx scripts/showFixes.ts --applied" to see last applied fixes')
+  console.log('   • Run "npx tsx scripts/showFixes.ts --card SOR-324" to check specific card')
   console.log('   • Run "npm run fetch-cards" to fetch data and apply all fixes')
   console.log('   • Run "npm run test:fixes" to test the fix system')
   console.log('═'.repeat(70) + '\n')

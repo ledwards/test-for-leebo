@@ -1,8 +1,9 @@
-#!/usr/bin/env node
+#!/usr/bin/env npx tsx
+// @ts-nocheck
 // Make a user an admin by email or Discord ID
 // Usage:
-//   node scripts/makeAdmin.js user@email.com
-//   node scripts/makeAdmin.js --discord 123456789
+//   npx tsx scripts/makeAdmin.ts user@email.com
+//   npx tsx scripts/makeAdmin.ts --discord 123456789
 
 import 'dotenv/config'
 import pg from 'pg'
@@ -21,7 +22,7 @@ const pool = new Pool({
   ssl: connectionString?.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
 })
 
-async function makeAdmin(identifier, isDiscordId = false) {
+async function makeAdmin(identifier: string, isDiscordId: boolean = false): Promise<void> {
   try {
     const query = isDiscordId
       ? 'UPDATE users SET is_admin = TRUE WHERE discord_id = $1 RETURNING id, email, username, discord_id, is_admin'
@@ -42,7 +43,7 @@ async function makeAdmin(identifier, isDiscordId = false) {
     console.log(`  Discord ID: ${user.discord_id || '(none)'}`)
     console.log(`  is_admin: ${user.is_admin}`)
   } catch (error) {
-    console.error('Database error:', error.message)
+    console.error('Database error:', (error as Error).message)
     process.exit(1)
   } finally {
     await pool.end()
@@ -54,8 +55,8 @@ const args = process.argv.slice(2)
 
 if (args.length === 0) {
   console.log('Usage:')
-  console.log('  node scripts/makeAdmin.js user@email.com')
-  console.log('  node scripts/makeAdmin.js --discord 123456789')
+  console.log('  npx tsx scripts/makeAdmin.ts user@email.com')
+  console.log('  npx tsx scripts/makeAdmin.ts --discord 123456789')
   process.exit(1)
 }
 

@@ -1,9 +1,10 @@
-#!/usr/bin/env node
+#!/usr/bin/env npx tsx
+// @ts-nocheck
 /**
  * Test Summary Aggregator
  *
  * Shows summary of all test runs (unit, QA, e2e)
- * Usage: node scripts/test-summary.js
+ * Usage: npx tsx scripts/test-summary.ts
  */
 
 import { readFileSync, existsSync } from 'fs'
@@ -15,7 +16,7 @@ const __dirname = dirname(__filename)
 const projectRoot = join(__dirname, '..')
 
 // ANSI color codes
-const colors = {
+const colors: Record<string, string> = {
   reset: '\x1b[0m',
   bold: '\x1b[1m',
   dim: '\x1b[2m',
@@ -25,12 +26,12 @@ const colors = {
   cyan: '\x1b[36m'
 }
 
-function log(message, color = 'reset') {
+function log(message: string, color: string = 'reset'): void {
   console.log(`${colors[color]}${message}${colors.reset}`)
 }
 
 // Known unit test counts (update these if you add/remove tests)
-const UNIT_TEST_COUNTS = {
+const UNIT_TEST_COUNTS: Record<string, number> = {
   utils: 39,      // boosterPack.test.js
   belts: 25,      // CommonBelt.test.js
   fixes: 6,       // cardFixes.test.js
@@ -39,12 +40,44 @@ const UNIT_TEST_COUNTS = {
 
 const TOTAL_UNIT_TESTS = Object.values(UNIT_TEST_COUNTS).reduce((a, b) => a + b, 0)
 
-function parseQAResults() {
+interface QATest {
+  name: string
+  status: string
+  error?: string
+}
+
+interface QAResults {
+  summary: {
+    total: number
+    passed: number
+    failed: number
+  }
+  tests: QATest[]
+}
+
+interface ParsedQAResults {
+  total: number
+  passed: number
+  failed: number
+  failedTests: Array<{ name: string; error?: string }>
+}
+
+interface PlaywrightResults {
+  total: number
+  passed: number
+  failed: number
+  skipped?: number
+  flaky?: number
+  hasReport?: boolean
+  failedTests?: Array<{ name: string; error?: string }>
+}
+
+function parseQAResults(): ParsedQAResults | null {
   const qaResultsPath = join(projectRoot, 'src', 'qa', 'results.json')
   if (!existsSync(qaResultsPath)) return null
 
   try {
-    const data = JSON.parse(readFileSync(qaResultsPath, 'utf8'))
+    const data: QAResults = JSON.parse(readFileSync(qaResultsPath, 'utf8'))
     const failedTests = data.tests.filter(t => t.status === 'failed')
     return {
       total: data.summary.total,
@@ -60,18 +93,18 @@ function parseQAResults() {
   }
 }
 
-function parsePlaywrightResults() {
+function parsePlaywrightResults(): PlaywrightResults | null {
   // Try JSON reporter output first (most accurate)
   const jsonResultsPath = join(projectRoot, 'test-results', 'results.json')
   if (existsSync(jsonResultsPath)) {
     try {
       const data = JSON.parse(readFileSync(jsonResultsPath, 'utf8'))
       const stats = data.stats || {}
-      const failedTests = []
+      const failedTests: Array<{ name: string; error?: string }> = []
 
       // Extract failed test names from suites
       if (data.suites && stats.unexpected > 0) {
-        const extractFailed = (suite) => {
+        const extractFailed = (suite: any): void => {
           if (suite.specs) {
             for (const spec of suite.specs) {
               if (spec.tests) {
@@ -136,7 +169,7 @@ function parsePlaywrightResults() {
   return null
 }
 
-function displaySummary() {
+function displaySummary(): void {
   console.log('')
   log('═'.repeat(70), 'cyan')
   log('  🎯 TEST SUMMARY', 'bold')
@@ -211,11 +244,11 @@ function displaySummary() {
       }
     }
 
-    if (e2eResults.skipped > 0) {
+    if (e2eResults.skipped && e2eResults.skipped > 0) {
       log(`   Skipped: ${e2eResults.skipped} ⊘`, 'dim')
     }
 
-    if (e2eResults.flaky > 0) {
+    if (e2eResults.flaky && e2eResults.flaky > 0) {
       log(`   Flaky: ${e2eResults.flaky} ⚠️`, 'yellow')
     }
 
@@ -244,7 +277,7 @@ function displaySummary() {
 
   if (totalTests > 0) {
     const passRate = ((totalPassed / totalTests) * 100).toFixed(1)
-    const passRateColor = passRate >= 95 ? 'green' : passRate >= 80 ? 'yellow' : 'red'
+    const passRateColor = parseFloat(passRate) >= 95 ? 'green' : parseFloat(passRate) >= 80 ? 'yellow' : 'red'
     log(`Pass Rate: ${passRate}%`, passRateColor)
   }
 
@@ -278,7 +311,7 @@ function displaySummary() {
       if (e2eResults.failedTests && e2eResults.failedTests.length > 0) {
         console.log('')
         log('  Or run specific failing tests:', 'dim')
-        const seenFiles = new Set()
+        const seenFiles = new Set<string>()
         e2eResults.failedTests.forEach(test => {
           // Extract test file from test name (format: "file > test name")
           const match = test.name.match(/^([^>]+)/)

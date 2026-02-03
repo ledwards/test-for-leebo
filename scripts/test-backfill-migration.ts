@@ -1,4 +1,5 @@
-#!/usr/bin/env node
+#!/usr/bin/env npx tsx
+// @ts-nocheck
 /**
  * Test script for migration 022 (backfill sealed tracking)
  *
@@ -11,7 +12,7 @@
  * 6. Cleans up
  *
  * Usage:
- *   node scripts/test-backfill-migration.js
+ *   npx tsx scripts/test-backfill-migration.ts
  *
  * Requirements:
  *   - Docker must be installed and running
@@ -36,7 +37,7 @@ const TEST_PASSWORD = 'testpass'
 const TEST_URL = `postgresql://${TEST_USER}:${TEST_PASSWORD}@localhost:${TEST_PORT}/${TEST_DB}`
 
 // ANSI colors
-const colors = {
+const colors: Record<string, string> = {
   reset: '\x1b[0m',
   green: '\x1b[32m',
   red: '\x1b[31m',
@@ -45,23 +46,28 @@ const colors = {
   dim: '\x1b[2m',
 }
 
-function log(msg, color = '') {
+function log(msg: string, color: string = ''): void {
   console.log(`${color}${msg}${colors.reset}`)
 }
 
-function logStep(step, msg) {
+function logStep(step: number | string, msg: string): void {
   log(`\n[${step}] ${msg}`, colors.cyan)
 }
 
-function logSuccess(msg) {
+function logSuccess(msg: string): void {
   log(`  ✓ ${msg}`, colors.green)
 }
 
-function logError(msg) {
+function logError(msg: string): void {
   log(`  ✗ ${msg}`, colors.red)
 }
 
-async function startPostgres() {
+interface TestData {
+  userId: string
+  poolShareId: string
+}
+
+async function startPostgres(): Promise<void> {
   logStep(1, 'Starting test PostgreSQL container...')
 
   // Stop any existing container
@@ -94,7 +100,7 @@ async function startPostgres() {
   logSuccess('PostgreSQL started')
 }
 
-async function runMigrations(pool) {
+async function runMigrations(pool: pg.Pool): Promise<void> {
   logStep(2, 'Running migrations...')
 
   const migrationsDir = join(projectRoot, 'migrations')
@@ -118,7 +124,7 @@ async function runMigrations(pool) {
     try {
       await pool.query(sql)
       await pool.query('INSERT INTO migrations (name) VALUES ($1) ON CONFLICT DO NOTHING', [file])
-    } catch (e) {
+    } catch (e: any) {
       // Some migrations may fail on fresh DB, that's okay for this test
       if (!e.message.includes('already exists') && !e.message.includes('does not exist')) {
         console.log(`    Warning: ${file}: ${e.message.slice(0, 50)}`)
@@ -142,7 +148,7 @@ async function runMigrations(pool) {
           client.release()
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.log(`    Warning: ${file}: ${e.message.slice(0, 50)}`)
     }
   }
@@ -150,7 +156,7 @@ async function runMigrations(pool) {
   logSuccess('Migrations completed')
 }
 
-async function insertTestData(pool) {
+async function insertTestData(pool: pg.Pool): Promise<TestData> {
   logStep(3, 'Inserting test data...')
 
   // Create a test user
@@ -254,7 +260,7 @@ async function insertTestData(pool) {
   return { userId, poolShareId: poolResult.rows[0].share_id }
 }
 
-async function runBackfillMigration(pool) {
+async function runBackfillMigration(pool: pg.Pool): Promise<void> {
   logStep(4, 'Running backfill migration 022...')
 
   const migration = await import(join(projectRoot, 'migrations', '022_backfill_sealed_tracking.js'))
@@ -268,7 +274,7 @@ async function runBackfillMigration(pool) {
   logSuccess('Migration completed')
 }
 
-async function runPackFormatMigration(pool) {
+async function runPackFormatMigration(pool: pg.Pool): Promise<void> {
   logStep('4b', 'Running pack format migration 023...')
 
   const migration = await import(join(projectRoot, 'migrations', '023_normalize_pack_format.js'))
@@ -282,7 +288,7 @@ async function runPackFormatMigration(pool) {
   logSuccess('Migration completed')
 }
 
-async function verifyResults(pool, testData) {
+async function verifyResults(pool: pg.Pool, testData: TestData): Promise<boolean> {
   logStep(5, 'Verifying results...')
 
   let allPassed = true
@@ -362,7 +368,7 @@ async function verifyResults(pool, testData) {
   return allPassed
 }
 
-async function verifyPackFormat(pool) {
+async function verifyPackFormat(pool: pg.Pool): Promise<boolean> {
   logStep('5b', 'Verifying pack format migration...')
 
   let allPassed = true
@@ -416,24 +422,24 @@ async function verifyPackFormat(pool) {
   return allPassed
 }
 
-async function cleanup() {
+async function cleanup(): Promise<void> {
   logStep(6, 'Cleaning up...')
 
   try {
     execSync(`docker stop ${CONTAINER_NAME}`, { stdio: 'pipe' })
     execSync(`docker rm ${CONTAINER_NAME}`, { stdio: 'pipe' })
     logSuccess('Container removed')
-  } catch (e) {
+  } catch (e: any) {
     logError(`Cleanup failed: ${e.message}`)
   }
 }
 
-async function main() {
+async function main(): Promise<void> {
   log('\n' + '='.repeat(60), colors.cyan)
   log('Testing Migration 022: Backfill Sealed Tracking', colors.cyan)
   log('='.repeat(60), colors.cyan)
 
-  let pool = null
+  let pool: pg.Pool | null = null
   let success = false
 
   try {
@@ -456,7 +462,7 @@ async function main() {
     const packFormatSuccess = await verifyPackFormat(pool)
     success = success && packFormatSuccess
 
-  } catch (error) {
+  } catch (error: any) {
     logError(`Test failed: ${error.message}`)
     console.error(error)
   } finally {

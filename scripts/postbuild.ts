@@ -1,4 +1,5 @@
-#!/usr/bin/env node
+#!/usr/bin/env npx tsx
+// @ts-nocheck
 /**
  * Post-build script for deployment
  *
@@ -7,7 +8,7 @@
  * 2. Generate QA status badge and documentation
  * 3. Verify all required artifacts are present
  *
- * Usage: node scripts/postbuild.js
+ * Usage: npx tsx scripts/postbuild.ts
  */
 
 import { copyFileSync, existsSync, mkdirSync } from 'fs'
@@ -20,7 +21,7 @@ const __dirname = dirname(__filename)
 const projectRoot = join(__dirname, '..')
 
 // ANSI color codes
-const colors = {
+const colors: Record<string, string> = {
   reset: '\x1b[0m',
   bold: '\x1b[1m',
   red: '\x1b[31m',
@@ -29,11 +30,11 @@ const colors = {
   cyan: '\x1b[36m'
 }
 
-function log(message, color = 'reset') {
+function log(message: string, color: string = 'reset'): void {
   console.log(`${colors[color]}${message}${colors.reset}`)
 }
 
-function logSection(title) {
+function logSection(title: string): void {
   console.log('')
   log(`${'='.repeat(60)}`, 'cyan')
   log(`  ${title}`, 'bold')
@@ -41,7 +42,7 @@ function logSection(title) {
   console.log('')
 }
 
-async function main() {
+async function main(): Promise<void> {
   logSection('📦 Post-Build Artifact Management')
 
   log('Preparing deployment artifacts...', 'bold')
@@ -63,7 +64,7 @@ async function main() {
       copyFileSync(releaseNotesSource, releaseNotesDest)
       log('✅ Copied release notes to public directory', 'green')
     } catch (error) {
-      log(`⚠️  Failed to copy release notes: ${error.message}`, 'yellow')
+      log(`⚠️  Failed to copy release notes: ${(error as Error).message}`, 'yellow')
     }
   } else {
     log('⚠️  Release notes file not found - skipping copy', 'yellow')
@@ -78,7 +79,7 @@ async function main() {
     })
     log('✅ QA tests completed', 'green')
   } catch (error) {
-    log(`⚠️  QA tests failed: ${error.message}`, 'yellow')
+    log(`⚠️  QA tests failed: ${(error as Error).message}`, 'yellow')
   }
 
   // Copy QA results to public directory
@@ -92,7 +93,7 @@ async function main() {
       log(`   Source: ${qaResultsSource}`, 'cyan')
       log(`   Destination: ${qaResultsDest}`, 'cyan')
     } catch (error) {
-      log(`⚠️  Failed to copy QA results: ${error.message}`, 'yellow')
+      log(`⚠️  Failed to copy QA results: ${(error as Error).message}`, 'yellow')
     }
   } else {
     log('⚠️  QA results file not found - skipping copy', 'yellow')
@@ -103,13 +104,13 @@ async function main() {
   if (existsSync(qaResultsSource)) {
     try {
       log('Generating QA status badge...', 'cyan')
-      execSync('node scripts/generate-qa-badge.js', {
+      execSync('npx tsx scripts/generate-qa-badge.ts', {
         cwd: projectRoot,
         stdio: 'inherit'
       })
       log('✅ Generated QA status badge', 'green')
     } catch (error) {
-      log(`⚠️  Failed to generate QA badge: ${error.message}`, 'yellow')
+      log(`⚠️  Failed to generate QA badge: ${(error as Error).message}`, 'yellow')
     }
   }
 
@@ -147,9 +148,9 @@ async function main() {
 }
 
 main().catch(error => {
-  log(`❌ Post-build script error: ${error.message}`, 'red')
-  if (error.stack) {
-    console.error(error.stack)
+  log(`❌ Post-build script error: ${(error as Error).message}`, 'red')
+  if ((error as Error).stack) {
+    console.error((error as Error).stack)
   }
   // Don't fail the build on script errors
   process.exit(0)

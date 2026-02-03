@@ -1,13 +1,14 @@
-#!/usr/bin/env node
+#!/usr/bin/env npx tsx
+// @ts-nocheck
 /**
  * Generate QA Badge for README
  *
  * Reads QA results and generates a badge/status for display
  *
- * Usage: node scripts/generate-qa-badge.js
+ * Usage: npx tsx scripts/generate-qa-badge.ts
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -16,7 +17,7 @@ const __dirname = dirname(__filename)
 const projectRoot = join(__dirname, '..')
 
 // ANSI color codes
-const colors = {
+const colors: Record<string, string> = {
   reset: '\x1b[0m',
   bold: '\x1b[1m',
   green: '\x1b[32m',
@@ -25,14 +26,14 @@ const colors = {
   cyan: '\x1b[36m'
 }
 
-function log(message, color = 'reset') {
+function log(message: string, color: string = 'reset'): void {
   console.log(`${colors[color]}${message}${colors.reset}`)
 }
 
 /**
  * Generate badge URL using shields.io
  */
-function generateBadgeUrl(passed, total, failed) {
+function generateBadgeUrl(passed: number, total: number, failed: number): string {
   const passRate = total > 0 ? Math.round((passed / total) * 100) : 0
 
   let color = 'brightgreen'
@@ -57,23 +58,36 @@ function generateBadgeUrl(passed, total, failed) {
 /**
  * Generate markdown badge
  */
-function generateBadgeMarkdown(passed, total, failed) {
+function generateBadgeMarkdown(passed: number, total: number, failed: number): string {
   const url = generateBadgeUrl(passed, total, failed)
   return `![QA Tests](${url})`
+}
+
+interface QAResults {
+  runAt: string
+  summary: {
+    passed: number
+    total: number
+    failed: number
+  }
+  tests: Array<{
+    name: string
+    status: string
+  }>
 }
 
 /**
  * Generate detailed status text
  */
-function generateStatusText(results) {
+function generateStatusText(results: QAResults): string {
   const { passed, total, failed } = results.summary
-  const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0
+  const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : '0'
 
   let emoji = '✅'
   let status = 'PASSING'
 
   if (failed > 0) {
-    if (passRate >= 95) {
+    if (parseFloat(passRate) >= 95) {
       emoji = '⚠️'
       status = 'MOSTLY PASSING'
     } else {
@@ -106,9 +120,9 @@ ${generateSetSummary(results)}
 /**
  * Generate summary by set
  */
-function generateSetSummary(results) {
+function generateSetSummary(results: QAResults): string {
   const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
-  const summary = []
+  const summary: string[] = []
 
   for (const setCode of sets) {
     // Tests have format "SOR: test name", extract set code from name
@@ -124,15 +138,27 @@ function generateSetSummary(results) {
   return summary.join('\n')
 }
 
+interface StatusJSON {
+  status: 'passing' | 'warning' | 'failing'
+  summary: {
+    passed: number
+    total: number
+    failed: number
+  }
+  passRate: number
+  lastRun: string
+  badgeUrl: string
+}
+
 /**
  * Generate JSON status for API
  */
-function generateStatusJSON(results) {
+function generateStatusJSON(results: QAResults): StatusJSON {
   const { passed, total, failed } = results.summary
-  const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0
+  const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : '0'
 
   return {
-    status: failed === 0 ? 'passing' : (passRate >= 95 ? 'warning' : 'failing'),
+    status: failed === 0 ? 'passing' : (parseFloat(passRate) >= 95 ? 'warning' : 'failing'),
     summary: results.summary,
     passRate: parseFloat(passRate),
     lastRun: results.runAt,
@@ -143,7 +169,7 @@ function generateStatusJSON(results) {
 /**
  * Main function
  */
-async function main() {
+async function main(): Promise<void> {
   log('\n📊 QA Badge Generator\n', 'bold')
 
   // Read QA results
@@ -155,7 +181,7 @@ async function main() {
     process.exit(1)
   }
 
-  const qaResults = JSON.parse(readFileSync(qaResultsPath, 'utf8'))
+  const qaResults: QAResults = JSON.parse(readFileSync(qaResultsPath, 'utf8'))
   const { passed, total, failed } = qaResults.summary
 
   log('QA Results:', 'cyan')
@@ -222,9 +248,9 @@ async function main() {
 }
 
 main().catch(error => {
-  log(`❌ Error: ${error.message}`, 'red')
-  if (error.stack) {
-    console.error(error.stack)
+  log(`❌ Error: ${(error as Error).message}`, 'red')
+  if ((error as Error).stack) {
+    console.error((error as Error).stack)
   }
   process.exit(1)
 })

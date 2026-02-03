@@ -1,13 +1,47 @@
+// @ts-nocheck
 /**
  * Card Data Fixes
  *
  * This file contains corrections to apply to card data after fetching from the API.
  * Each fix is declarative and documented with a reason.
  *
- * Fixes are applied by scripts/postProcessCards.js
+ * Fixes are applied by scripts/postProcessCards.ts
  */
 
-export const cardFixes = [
+interface Card {
+  id: string
+  name: string
+  type: string
+  variantType?: string
+  isFoil?: boolean
+  isHyperspace?: boolean
+  isShowcase?: boolean
+  isLeader?: boolean
+  isBase?: boolean
+  [key: string]: any
+}
+
+interface IndividualFix {
+  id: string
+  field: string
+  value: any
+  reason: string
+}
+
+interface BatchFix {
+  condition: (card: Card) => boolean
+  field: string
+  value: any
+  reason: string
+}
+
+interface CustomTransform {
+  name: string
+  transform: (cards: Card[] | Card) => Card[] | Card
+  isArrayTransform?: boolean
+}
+
+export const cardFixes: IndividualFix[] = [
   // Example fixes (add your actual fixes here):
 
   // Missing isHyperspace flag on Hyperspace variant cards
@@ -39,10 +73,10 @@ export const cardFixes = [
  * Batch fixes for common patterns
  * Apply the same fix to multiple cards matching a condition
  */
-export const batchFixes = [
+export const batchFixes: BatchFix[] = [
   // Example: Set isHyperspace=true for all Hyperspace variants
   {
-    condition: (card) => card.variantType === 'Hyperspace' && !card.isHyperspace,
+    condition: (card: Card) => card.variantType === 'Hyperspace' && !card.isHyperspace,
     field: 'isHyperspace',
     value: true,
     reason: 'Auto-fix: Hyperspace variant missing isHyperspace flag'
@@ -50,7 +84,7 @@ export const batchFixes = [
 
   // Example: Set isHyperspace=true for all Hyperspace Foil variants
   {
-    condition: (card) => card.variantType === 'Hyperspace Foil' && !card.isHyperspace,
+    condition: (card: Card) => card.variantType === 'Hyperspace Foil' && !card.isHyperspace,
     field: 'isHyperspace',
     value: true,
     reason: 'Auto-fix: Hyperspace Foil variant missing isHyperspace flag'
@@ -58,7 +92,7 @@ export const batchFixes = [
 
   // Example: Set isFoil=true for all Foil variants
   {
-    condition: (card) => card.variantType === 'Foil' && !card.isFoil,
+    condition: (card: Card) => card.variantType === 'Foil' && !card.isFoil,
     field: 'isFoil',
     value: true,
     reason: 'Auto-fix: Foil variant missing isFoil flag'
@@ -66,7 +100,7 @@ export const batchFixes = [
 
   // Example: Set isFoil=true for all Hyperspace Foil variants
   {
-    condition: (card) => card.variantType === 'Hyperspace Foil' && !card.isFoil,
+    condition: (card: Card) => card.variantType === 'Hyperspace Foil' && !card.isFoil,
     field: 'isFoil',
     value: true,
     reason: 'Auto-fix: Hyperspace Foil variant missing isFoil flag'
@@ -74,7 +108,7 @@ export const batchFixes = [
 
   // Example: Set isShowcase=true for all Showcase variants
   {
-    condition: (card) => card.variantType === 'Showcase' && !card.isShowcase,
+    condition: (card: Card) => card.variantType === 'Showcase' && !card.isShowcase,
     field: 'isShowcase',
     value: true,
     reason: 'Auto-fix: Showcase variant missing isShowcase flag'
@@ -85,13 +119,13 @@ export const batchFixes = [
  * Custom transformation functions for complex fixes
  * These run after individual and batch fixes
  */
-export const customTransforms = [
+export const customTransforms: CustomTransform[] = [
   // Filter to only keep variants we need for sealed/draft
   // Exclude promo variants (PQ, SS, Prerelease, Weekly Play) which share IDs with Normal cards
   // but have different content, causing lookup bugs
   {
     name: 'Keep only draft-relevant variants',
-    transform: (cards) => {
+    transform: (cards: Card[]): Card[] => {
       const allowedVariants = new Set([
         'Normal',
         'Hyperspace',
@@ -110,7 +144,7 @@ export const customTransforms = [
   // Filter out Token types - we don't need these in the deck builder
   {
     name: 'Remove Token cards',
-    transform: (cards) => {
+    transform: (cards: Card[]): Card[] => {
       return cards.filter(card => {
         const type = card.type || ''
         // Filter out Token Unit, Token Upgrade, and Force Token
@@ -124,7 +158,7 @@ export const customTransforms = [
   // Ensure all boolean fields are explicitly true or false, never undefined
   {
     name: 'Ensure boolean flags are explicit',
-    transform: (card) => {
+    transform: (card: Card): Card => {
       // Ensure isFoil is explicitly true or false
       if (card.isFoil === undefined || card.isFoil === null) {
         card.isFoil = false
