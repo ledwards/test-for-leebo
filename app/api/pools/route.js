@@ -178,7 +178,8 @@ export async function POST(request) {
                 sourceType: 'sealed',
                 sourceId: pool.id,
                 sourceShareId: shareId,
-                packIndex
+                packIndex,
+                userId
               }
             })
           })
@@ -196,7 +197,8 @@ export async function POST(request) {
           sourceType: 'sealed',
           sourceId: pool.id,
           sourceShareId: shareId,
-          packIndex: null
+          packIndex: null,
+          userId
         }
       }))
       trackBulkGenerations(trackingRecords).catch(err => {
