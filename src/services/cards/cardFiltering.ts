@@ -5,6 +5,8 @@
  * Extracted from DeckBuilder.jsx for testability and reuse.
  */
 
+import type { RawCard } from '../../utils/cardData.js'
+
 /**
  * Default label for cards with no aspects (neutral cards)
  */
@@ -20,15 +22,19 @@ export const ALL_ASPECTS = [
   'Cunning',
   'Villainy',
   'Heroism',
-]
+] as const
+
+export type Aspect = typeof ALL_ASPECTS[number]
+
+export type AspectFilters = Record<string, boolean>
 
 /**
  * Check if a card matches the enabled aspect filters.
  *
- * @param {Object} card - The card to check
- * @param {Object} enabledAspects - Map of aspect name to boolean (true = enabled)
- * @param {string} neutralLabel - Label used for cards with no aspects
- * @returns {boolean} True if card matches at least one enabled aspect
+ * @param card - The card to check
+ * @param enabledAspects - Map of aspect name to boolean (true = enabled)
+ * @param neutralLabel - Label used for cards with no aspects
+ * @returns True if card matches at least one enabled aspect
  *
  * @example
  * matchesAspectFilters(
@@ -37,7 +43,11 @@ export const ALL_ASPECTS = [
  *   'No Aspect'
  * ) // => true
  */
-export function matchesAspectFilters(card, enabledAspects, neutralLabel = NO_ASPECT_LABEL) {
+export function matchesAspectFilters(
+  card: RawCard,
+  enabledAspects: AspectFilters,
+  neutralLabel: string = NO_ASPECT_LABEL
+): boolean {
   const cardAspects = card.aspects || []
 
   // If card has no aspects, check the neutral filter
@@ -52,17 +62,21 @@ export function matchesAspectFilters(card, enabledAspects, neutralLabel = NO_ASP
 /**
  * Check if a card passes the in-aspect/out-of-aspect filter.
  *
- * @param {number} penalty - The aspect penalty for the card (0 = in-aspect)
- * @param {boolean} inAspectEnabled - Whether to show in-aspect cards
- * @param {boolean} outAspectEnabled - Whether to show out-of-aspect cards
- * @returns {boolean} True if card passes the filter
+ * @param penalty - The aspect penalty for the card (0 = in-aspect)
+ * @param inAspectEnabled - Whether to show in-aspect cards
+ * @param outAspectEnabled - Whether to show out-of-aspect cards
+ * @returns True if card passes the filter
  *
  * @example
  * matchesPenaltyFilter(0, true, false) // => true (in-aspect card, showing in-aspect)
  * matchesPenaltyFilter(2, true, false) // => false (out-of-aspect card, only showing in-aspect)
  * matchesPenaltyFilter(2, true, true) // => true (out-of-aspect card, showing both)
  */
-export function matchesPenaltyFilter(penalty, inAspectEnabled, outAspectEnabled) {
+export function matchesPenaltyFilter(
+  penalty: number,
+  inAspectEnabled: boolean,
+  outAspectEnabled: boolean
+): boolean {
   const isInAspect = penalty === 0
   const isOutOfAspect = penalty > 0
 
@@ -87,70 +101,74 @@ export function matchesPenaltyFilter(penalty, inAspectEnabled, outAspectEnabled)
 /**
  * Filter an array of cards by aspect filters.
  *
- * @param {Object[]} cards - Array of cards to filter
- * @param {Object} enabledAspects - Map of aspect name to boolean
- * @param {string} neutralLabel - Label for cards with no aspects
- * @returns {Object[]} Filtered array of cards
+ * @param cards - Array of cards to filter
+ * @param enabledAspects - Map of aspect name to boolean
+ * @param neutralLabel - Label for cards with no aspects
+ * @returns Filtered array of cards
  */
-export function filterByAspects(cards, enabledAspects, neutralLabel = NO_ASPECT_LABEL) {
+export function filterByAspects(
+  cards: RawCard[],
+  enabledAspects: AspectFilters,
+  neutralLabel: string = NO_ASPECT_LABEL
+): RawCard[] {
   return cards.filter(card => matchesAspectFilters(card, enabledAspects, neutralLabel))
 }
 
 /**
  * Filter cards by type.
  *
- * @param {Object[]} cards - Array of cards to filter
- * @param {string|string[]} types - Type or array of types to include
- * @returns {Object[]} Filtered array of cards
+ * @param cards - Array of cards to filter
+ * @param types - Type or array of types to include
+ * @returns Filtered array of cards
  *
  * @example
  * filterByType(cards, 'Unit') // => cards where type is 'Unit'
  * filterByType(cards, ['Unit', 'Ground Unit']) // => cards where type is 'Unit' or 'Ground Unit'
  */
-export function filterByType(cards, types) {
+export function filterByType(cards: RawCard[], types: string | string[]): RawCard[] {
   const typeArray = Array.isArray(types) ? types : [types]
-  return cards.filter(card => typeArray.includes(card.type))
+  return cards.filter(card => typeArray.includes(card.type || ''))
 }
 
 /**
  * Filter cards by rarity.
  *
- * @param {Object[]} cards - Array of cards to filter
- * @param {string|string[]} rarities - Rarity or array of rarities to include
- * @returns {Object[]} Filtered array of cards
+ * @param cards - Array of cards to filter
+ * @param rarities - Rarity or array of rarities to include
+ * @returns Filtered array of cards
  */
-export function filterByRarity(cards, rarities) {
+export function filterByRarity(cards: RawCard[], rarities: string | string[]): RawCard[] {
   const rarityArray = Array.isArray(rarities) ? rarities : [rarities]
-  return cards.filter(card => rarityArray.includes(card.rarity))
+  return cards.filter(card => rarityArray.includes(card.rarity || ''))
 }
 
 /**
  * Filter cards to only include leaders.
  *
- * @param {Object[]} cards - Array of cards to filter
- * @returns {Object[]} Only leader cards
+ * @param cards - Array of cards to filter
+ * @returns Only leader cards
  */
-export function filterLeaders(cards) {
+export function filterLeaders(cards: RawCard[]): RawCard[] {
   return cards.filter(card => card.isLeader || card.type === 'Leader')
 }
 
 /**
  * Filter cards to only include bases.
  *
- * @param {Object[]} cards - Array of cards to filter
- * @returns {Object[]} Only base cards
+ * @param cards - Array of cards to filter
+ * @returns Only base cards
  */
-export function filterBases(cards) {
+export function filterBases(cards: RawCard[]): RawCard[] {
   return cards.filter(card => card.isBase || card.type === 'Base')
 }
 
 /**
  * Filter cards to exclude leaders and bases (main deck cards only).
  *
- * @param {Object[]} cards - Array of cards to filter
- * @returns {Object[]} Cards that are not leaders or bases
+ * @param cards - Array of cards to filter
+ * @returns Cards that are not leaders or bases
  */
-export function filterMainDeckCards(cards) {
+export function filterMainDeckCards(cards: RawCard[]): RawCard[] {
   return cards.filter(card =>
     !card.isBase &&
     !card.isLeader &&
@@ -162,12 +180,12 @@ export function filterMainDeckCards(cards) {
 /**
  * Filter cards by cost range.
  *
- * @param {Object[]} cards - Array of cards to filter
- * @param {number} minCost - Minimum cost (inclusive)
- * @param {number} maxCost - Maximum cost (inclusive)
- * @returns {Object[]} Filtered array of cards
+ * @param cards - Array of cards to filter
+ * @param minCost - Minimum cost (inclusive)
+ * @param maxCost - Maximum cost (inclusive)
+ * @returns Filtered array of cards
  */
-export function filterByCostRange(cards, minCost, maxCost) {
+export function filterByCostRange(cards: RawCard[], minCost: number, maxCost: number): RawCard[] {
   return cards.filter(card => {
     const cost = card.cost
     if (cost === null || cost === undefined) return false
@@ -178,11 +196,11 @@ export function filterByCostRange(cards, minCost, maxCost) {
 /**
  * Filter cards by name (case-insensitive substring match).
  *
- * @param {Object[]} cards - Array of cards to filter
- * @param {string} searchText - Text to search for in card names
- * @returns {Object[]} Filtered array of cards
+ * @param cards - Array of cards to filter
+ * @param searchText - Text to search for in card names
+ * @returns Filtered array of cards
  */
-export function filterByName(cards, searchText) {
+export function filterByName(cards: RawCard[], searchText: string): RawCard[] {
   if (!searchText || searchText.trim() === '') {
     return cards
   }
@@ -195,11 +213,11 @@ export function filterByName(cards, searchText) {
 /**
  * Create default aspect filter state with all aspects enabled.
  *
- * @param {boolean} defaultEnabled - Whether aspects should be enabled by default
- * @returns {Object} Map of aspect name to boolean
+ * @param defaultEnabled - Whether aspects should be enabled by default
+ * @returns Map of aspect name to boolean
  */
-export function createDefaultAspectFilters(defaultEnabled = true) {
-  const filters = {}
+export function createDefaultAspectFilters(defaultEnabled: boolean = true): AspectFilters {
+  const filters: AspectFilters = {}
   for (const aspect of ALL_ASPECTS) {
     filters[aspect] = defaultEnabled
   }

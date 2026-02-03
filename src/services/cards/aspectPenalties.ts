@@ -11,15 +11,23 @@
  * - Some leaders have special abilities that ignore penalties for certain cards
  */
 
+import type { RawCard } from '../../utils/cardData.js'
+
+interface LeaderAbility {
+  set: string
+  check: (card: RawCard) => boolean
+  description: string
+}
+
 /**
  * Leader abilities that ignore aspect penalties for specific cards.
  * Key is leader name, value is { check: function, description: string }
  */
-const LEADER_PENALTY_ABILITIES = {
+const LEADER_PENALTY_ABILITIES: Record<string, LeaderAbility> = {
   // SOR Hera Syndulla - ignores penalty on SPECTRE cards
   'Hera Syndulla': {
     set: 'SOR',
-    check: (card) => {
+    check: (card: RawCard): boolean => {
       const traits = card.traits || []
       return traits.some(t => t.toUpperCase() === 'SPECTRE')
     },
@@ -28,7 +36,7 @@ const LEADER_PENALTY_ABILITIES = {
   // SEC Mon Mothma - ignores penalty on non-Villainy Official units
   'Mon Mothma': {
     set: 'SEC',
-    check: (card) => {
+    check: (card: RawCard): boolean => {
       // Must be a unit
       if (card.type !== 'Unit') return false
       // Check if card has OFFICIAL trait
@@ -46,15 +54,15 @@ const LEADER_PENALTY_ABILITIES = {
 /**
  * Check if a leader has a penalty-ignoring ability for a specific card.
  *
- * @param {Object} card - The card to check
- * @param {Object} leaderCard - The leader card
- * @returns {boolean} True if leader ignores penalty for this card
+ * @param card - The card to check
+ * @param leaderCard - The leader card
+ * @returns True if leader ignores penalty for this card
  *
  * @example
  * leaderIgnoresPenalty(spectreCard, sorHera) // => true
  * leaderIgnoresPenalty(regularCard, sorHera) // => false
  */
-export function leaderIgnoresPenalty(card, leaderCard) {
+export function leaderIgnoresPenalty(card: RawCard, leaderCard: RawCard | null | undefined): boolean {
   if (!leaderCard || !leaderCard.name) return false
 
   const ability = LEADER_PENALTY_ABILITIES[leaderCard.name]
@@ -69,14 +77,14 @@ export function leaderIgnoresPenalty(card, leaderCard) {
 /**
  * Get the description of a leader's aspect penalty ability.
  *
- * @param {Object} leaderCard - The leader card
- * @returns {string|null} Description of ability, or null if none
+ * @param leaderCard - The leader card
+ * @returns Description of ability, or null if none
  *
  * @example
  * getLeaderAbilityDescription(sorHera) // => 'Ignores aspect penalty on Spectre cards'
  * getLeaderAbilityDescription(genericLeader) // => null
  */
-export function getLeaderAbilityDescription(leaderCard) {
+export function getLeaderAbilityDescription(leaderCard: RawCard | null | undefined): string | null {
   if (!leaderCard || !leaderCard.name) return null
 
   const ability = LEADER_PENALTY_ABILITIES[leaderCard.name]
@@ -96,10 +104,10 @@ export function getLeaderAbilityDescription(leaderCard) {
  * - Each card aspect not covered costs +2
  * - Aspects are matched one-for-one (duplicates matter)
  *
- * @param {Object} card - The card to play
- * @param {Object} leaderCard - The leader card
- * @param {Object} baseCard - The base card
- * @returns {number} The penalty (0, 2, 4, etc.)
+ * @param card - The card to play
+ * @param leaderCard - The leader card
+ * @param baseCard - The base card
+ * @returns The penalty (0, 2, 4, etc.)
  *
  * @example
  * // Leader has [Vigilance, Villainy], Base has [Vigilance]
@@ -107,7 +115,11 @@ export function getLeaderAbilityDescription(leaderCard) {
  * // Vigilance covered by leader, Command NOT covered = +2 penalty
  * calculateAspectPenalty(card, leader, base) // => 2
  */
-export function calculateAspectPenalty(card, leaderCard, baseCard) {
+export function calculateAspectPenalty(
+  card: RawCard,
+  leaderCard: RawCard | null | undefined,
+  baseCard: RawCard | null | undefined
+): number {
   // Safety checks
   if (!leaderCard || !baseCard) return 0
   if (!card.aspects || card.aspects.length === 0) return 0
@@ -142,24 +154,32 @@ export function calculateAspectPenalty(card, leaderCard, baseCard) {
 /**
  * Check if a card is "in aspect" (no penalty) for a leader/base combination.
  *
- * @param {Object} card - The card to check
- * @param {Object} leaderCard - The leader card
- * @param {Object} baseCard - The base card
- * @returns {boolean} True if card has no aspect penalty
+ * @param card - The card to check
+ * @param leaderCard - The leader card
+ * @param baseCard - The base card
+ * @returns True if card has no aspect penalty
  */
-export function isInAspect(card, leaderCard, baseCard) {
+export function isInAspect(
+  card: RawCard,
+  leaderCard: RawCard | null | undefined,
+  baseCard: RawCard | null | undefined
+): boolean {
   return calculateAspectPenalty(card, leaderCard, baseCard) === 0
 }
 
 /**
  * Get the effective cost of a card including aspect penalty.
  *
- * @param {Object} card - The card (must have cost property)
- * @param {Object} leaderCard - The leader card
- * @param {Object} baseCard - The base card
- * @returns {number} The effective cost (base cost + penalty)
+ * @param card - The card (must have cost property)
+ * @param leaderCard - The leader card
+ * @param baseCard - The base card
+ * @returns The effective cost (base cost + penalty)
  */
-export function getEffectiveCost(card, leaderCard, baseCard) {
+export function getEffectiveCost(
+  card: RawCard,
+  leaderCard: RawCard | null | undefined,
+  baseCard: RawCard | null | undefined
+): number {
   const baseCost = card.cost !== null && card.cost !== undefined ? card.cost : 0
   const penalty = calculateAspectPenalty(card, leaderCard, baseCard)
   return baseCost + penalty
@@ -168,11 +188,14 @@ export function getEffectiveCost(card, leaderCard, baseCard) {
 /**
  * Get relevant aspects from a leader and base.
  *
- * @param {Object} leaderCard - The leader card
- * @param {Object} baseCard - The base card
- * @returns {string[]} Combined array of aspects
+ * @param leaderCard - The leader card
+ * @param baseCard - The base card
+ * @returns Combined array of aspects
  */
-export function getRelevantAspects(leaderCard, baseCard) {
+export function getRelevantAspects(
+  leaderCard: RawCard | null | undefined,
+  baseCard: RawCard | null | undefined
+): string[] {
   return [
     ...(leaderCard?.aspects || []),
     ...(baseCard?.aspects || [])
