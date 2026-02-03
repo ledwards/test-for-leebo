@@ -6,15 +6,19 @@
  * to prevent adjacent bases with the same aspect.
  */
 
-import { getCachedCards } from '../utils/cardCache.js'
+import { getCachedCards } from '../utils/cardCache';
+import type { RawCard } from '../utils/cardData';
+import type { SetCode } from '../types';
 
 /**
  * Shuffle an array in place (Fisher-Yates)
  */
-function shuffle(arr) {
+function shuffle<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    const temp = arr[i]
+    arr[i] = arr[j]!
+    arr[j] = temp!
   }
   return arr
 }
@@ -22,7 +26,7 @@ function shuffle(arr) {
 /**
  * Check if two bases have the same aspect
  */
-function hasSameAspect(a, b) {
+function hasSameAspect(a: RawCard | undefined, b: RawCard | undefined): boolean {
   if (!a || !b) return false
   if (!a.aspects || !b.aspects) return false
   // Check if any aspect overlaps
@@ -30,8 +34,12 @@ function hasSameAspect(a, b) {
 }
 
 export class BaseBelt {
-  constructor(setCode) {
-    this.setCode = setCode
+  setCode: SetCode
+  hopper: RawCard[]
+  fillingPool: RawCard[]
+
+  constructor(setCode: SetCode | string) {
+    this.setCode = setCode as SetCode
     this.hopper = []
     this.fillingPool = []
 
@@ -41,7 +49,7 @@ export class BaseBelt {
   /**
    * Initialize the belt by loading cards and setting up the filling pool
    */
-  _initialize() {
+  _initialize(): void {
     const cards = getCachedCards(this.setCode)
 
     // Filter to only normal variant common bases
@@ -58,7 +66,7 @@ export class BaseBelt {
   /**
    * Fill the hopper if it needs more cards
    */
-  _fillIfNeeded() {
+  _fillIfNeeded(): void {
     // Safety check: if no cards in filling pool, can't fill
     if (this.fillingPool.length === 0) {
       return
@@ -71,14 +79,13 @@ export class BaseBelt {
   /**
    * Fill the hopper with a new batch of bases
    */
-  _fill() {
+  _fill(): void {
     // Shuffle the bases for this boot
     const boot = shuffle([...this.fillingPool])
-    const bootStart = this.hopper.length
 
     // Add each card, checking for aspect conflicts at the seam
     for (let i = 0; i < boot.length; i++) {
-      const card = boot[i]
+      const card = boot[i]!
       const prevCard = this.hopper[this.hopper.length - 1]
 
       if (prevCard && hasSameAspect(card, prevCard)) {
@@ -91,28 +98,30 @@ export class BaseBelt {
         if (backHalfStart < remainingEnd) {
           // Swap with a card from the back half of remaining cards
           const swapIdx = backHalfStart + Math.floor(Math.random() * (remainingEnd - backHalfStart))
-          ;[boot[i], boot[swapIdx]] = [boot[swapIdx], boot[i]]
+          const temp = boot[i]
+          boot[i] = boot[swapIdx]!
+          boot[swapIdx] = temp!
         }
       }
 
-      this.hopper.push(boot[i])
+      this.hopper.push(boot[i]!)
     }
   }
 
   /**
    * Get the next base from the hopper
    */
-  next() {
+  next(): RawCard | null {
     this._fillIfNeeded()
 
     const card = this.hopper.shift()
-    return { ...card } // Return a copy
+    return card ? { ...card } : null // Return a copy
   }
 
   /**
    * Peek at upcoming cards without removing them
    */
-  peek(count = 1) {
+  peek(count = 1): RawCard[] {
     this._fillIfNeeded()
     return this.hopper.slice(0, count).map(c => ({ ...c }))
   }
@@ -120,7 +129,7 @@ export class BaseBelt {
   /**
    * Get current hopper size
    */
-  get size() {
+  get size(): number {
     return this.hopper.length
   }
 }

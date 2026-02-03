@@ -35,8 +35,20 @@
  * - Seam deduplication ensures no duplicates at boot boundaries
  */
 
-import { getCachedCards } from '../utils/cardCache.js'
+import { getCachedCards } from '../utils/cardCache'
+import type { RawCard } from '../utils/cardData'
+import type { SetCode } from '../types'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { COMMON_BELT_ASSIGNMENTS, getBlockForSet, assignCardToBelt } from './data/commonBeltAssignments.js'
+
+// Type for belt ID
+type BeltId = 'A' | 'B'
+
+// Type for segment configuration
+interface SegmentConfig {
+  drawSize: number
+  requiredAspects: string[]
+}
 
 // Aspect name constants
 const BLUE = 'Vigilance'
@@ -55,7 +67,7 @@ const YELLOW = 'Cunning'
  * When the hopper has exactly drawSize cards left, we refill. The new boot's first segment
  * is constructed to complement the remaining cards, ensuring the seam satisfies constraints.
  */
-function getSegmentConfig(setCode, beltId) {
+function getSegmentConfig(setCode: SetCode | string, beltId: BeltId): SegmentConfig {
   const block = getBlockForSet(setCode)
 
   if (block === 0) {
@@ -89,19 +101,14 @@ function getSegmentConfig(setCode, beltId) {
 /**
  * Shuffle an array in place (Fisher-Yates)
  */
-function shuffle(arr) {
+function shuffle<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    const temp = arr[i]
+    arr[i] = arr[j]!
+    arr[j] = temp!
   }
   return arr
-}
-
-/**
- * Check if a card has a specific aspect
- */
-function cardHasAspect(card, aspect) {
-  return card.aspects && card.aspects.includes(aspect)
 }
 
 /**
@@ -115,14 +122,14 @@ function cardHasAspect(card, aspect) {
  * - The seam window is [seam0, seam1, seam2, boot0, boot1, boot2]
  * - Seam has B,G but no R
  * - So boot[0:3] must include at least R
- *
- * @param {Array} cards - All cards in the belt
- * @param {number} drawSize - Number of cards drawn per pack from this belt
- * @param {Array} requiredAspects - Aspects that must appear in each window
- * @param {Set} excludedIds - Card IDs to exclude (for deduplication)
- * @param {Array} seamCards - Cards remaining from previous boot (will be drawn first)
  */
-function buildConstrainedBoot(cards, drawSize, requiredAspects, excludedIds = new Set(), seamCards = []) {
+function buildConstrainedBoot(
+  cards: RawCard[],
+  drawSize: number,
+  requiredAspects: string[],
+  excludedIds: Set<string> = new Set(),
+  seamCards: RawCard[] = []
+): RawCard[] {
   if (cards.length === 0) return []
 
   // Filter out excluded cards first
@@ -135,9 +142,9 @@ function buildConstrainedBoot(cards, drawSize, requiredAspects, excludedIds = ne
   const beltSize = availableCards.length
 
   // Categorize cards by their aspect coverage
-  const aspectCards = new Map() // aspect -> cards with this aspect
+  const aspectCards = new Map<string, RawCard[]>() // aspect -> cards with this aspect
   requiredAspects.forEach(a => aspectCards.set(a, []))
-  const otherCards = [] // cards with no required aspects
+  const otherCards: RawCard[] = [] // cards with no required aspects
 
   for (const card of availableCards) {
     const cardAspects = card.aspects || []
@@ -148,7 +155,7 @@ function buildConstrainedBoot(cards, drawSize, requiredAspects, excludedIds = ne
     } else {
       // Add to each matching aspect's pool
       for (const aspect of matchingRequired) {
-        aspectCards.get(aspect).push(card)
+        aspectCards.get(aspect)?.push(card)
       }
     }
   }
@@ -158,15 +165,15 @@ function buildConstrainedBoot(cards, drawSize, requiredAspects, excludedIds = ne
   aspectCards.forEach(pool => shuffle(pool))
 
   // Build the belt
-  const belt = new Array(beltSize).fill(null)
-  const usedCards = new Set() // Track cards already placed (by id)
+  const belt: (RawCard | null)[] = new Array(beltSize).fill(null)
+  const usedCards = new Set<string>() // Track cards already placed (by id)
 
   // SEAM-AWARE: First, handle the seam window
   // If we have seam cards, figure out what aspects are missing and
   // ensure the first (drawSize - seamCards.length) positions have them
   if (seamCards.length > 0 && seamCards.length < drawSize) {
     // Find which aspects the seam cards already have
-    const seamAspects = new Set()
+    const seamAspects = new Set<string>()
     for (const card of seamCards) {
       const cardAspects = card.aspects || []
       for (const aspect of cardAspects) {
@@ -187,7 +194,7 @@ function buildConstrainedBoot(cards, drawSize, requiredAspects, excludedIds = ne
 
       const pool = aspectCards.get(aspect)
       // Find a card with this aspect that hasn't been used
-      const card = pool.find(c => !usedCards.has(c.id))
+      const card = pool?.find(c => !usedCards.has(c.id))
       if (card) {
         belt[pos] = card
         usedCards.add(card.id)
@@ -201,6 +208,7 @@ function buildConstrainedBoot(cards, drawSize, requiredAspects, excludedIds = ne
   let aspectIndex = 0
   for (const aspect of requiredAspects) {
     const pool = aspectCards.get(aspect)
+    if (!pool) continue
     const unusedPool = pool.filter(c => !usedCards.has(c.id))
     if (unusedPool.length === 0) continue
 
@@ -225,8 +233,8 @@ function buildConstrainedBoot(cards, drawSize, requiredAspects, excludedIds = ne
       }
 
       if (belt[targetPos] === null && poolIdx < unusedPool.length) {
-        belt[targetPos] = unusedPool[poolIdx]
-        usedCards.add(unusedPool[poolIdx].id)
+        belt[targetPos] = unusedPool[poolIdx]!
+        usedCards.add(unusedPool[poolIdx]!.id)
         poolIdx++
       }
     }
@@ -244,25 +252,22 @@ function buildConstrainedBoot(cards, drawSize, requiredAspects, excludedIds = ne
   let fillIdx = 0
   for (let i = 0; i < beltSize; i++) {
     if (belt[i] === null && fillIdx < remainingCards.length) {
-      belt[i] = remainingCards[fillIdx]
+      belt[i] = remainingCards[fillIdx]!
       fillIdx++
     }
   }
 
   // Remove any remaining nulls (shouldn't happen if we have enough cards)
-  return belt.filter(c => c !== null)
+  return belt.filter((c): c is RawCard => c !== null)
 }
 
 /**
  * Get common cards for a specific belt from static assignments or auto-assignment
- *
- * @param {string} setCode - Set code (SOR, SHD, etc.)
- * @param {string} beltId - 'A' or 'B'
- * @returns {Array} Cards assigned to this belt
  */
-export function getBeltCards(setCode, beltId) {
+export function getBeltCards(setCode: SetCode | string, beltId: BeltId): RawCard[] {
   const cards = getCachedCards(setCode)
-  const assignments = COMMON_BELT_ASSIGNMENTS[setCode]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const assignments = (COMMON_BELT_ASSIGNMENTS as Record<string, any>)[setCode]
 
   if (!assignments) {
     console.warn(`No belt assignments found for set ${setCode}`)
@@ -280,14 +285,15 @@ export function getBeltCards(setCode, beltId) {
   // If autoAssign is enabled, use aspect-based assignment
   if (assignments.autoAssign) {
     const block = getBlockForSet(setCode)
-    return allCommons.filter(c => assignCardToBelt(c, block) === beltId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return allCommons.filter(c => (assignCardToBelt as any)(c, block) === beltId)
   }
 
   // Otherwise use static belt assignments
-  const cardNames = beltId === 'A' ? assignments.beltA : assignments.beltB
+  const cardNames: string[] = beltId === 'A' ? assignments.beltA : assignments.beltB
 
   // Create lookup by name
-  const cardByName = new Map()
+  const cardByName = new Map<string, RawCard>()
   allCommons.forEach(c => {
     if (!cardByName.has(c.name)) {
       cardByName.set(c.name, c)
@@ -295,7 +301,7 @@ export function getBeltCards(setCode, beltId) {
   })
 
   // Get cards in order specified by assignments
-  const beltCards = []
+  const beltCards: RawCard[] = []
   for (const name of cardNames) {
     const card = cardByName.get(name)
     if (card) {
@@ -309,12 +315,17 @@ export function getBeltCards(setCode, beltId) {
 }
 
 export class CommonBelt {
-  /**
-   * @param {string} setCode - Set code (SOR, SHD, etc.)
-   * @param {string} beltId - 'A' or 'B'
-   */
-  constructor(setCode, beltId) {
-    this.setCode = setCode
+  setCode: SetCode
+  beltId: BeltId
+  hopper: RawCard[]
+  beltCards: RawCard[]
+  segmentConfig: SegmentConfig
+  recentIds: string[]
+  DEDUP_WINDOW: number
+  totalDraws: number
+
+  constructor(setCode: SetCode | string, beltId: BeltId) {
+    this.setCode = setCode as SetCode
     this.beltId = beltId
     this.hopper = []
 
@@ -338,7 +349,7 @@ export class CommonBelt {
   /**
    * Initialize the belt
    */
-  _initialize() {
+  _initialize(): void {
     // Initial fill
     this._fillIfNeeded()
   }
@@ -352,7 +363,7 @@ export class CommonBelt {
    * then the new boot starts fresh. The new boot's first segment is
    * constructed to complement the seam cards.
    */
-  _fillIfNeeded() {
+  _fillIfNeeded(): void {
     // Safety check: if no cards in belt, can't fill
     if (this.beltCards.length === 0) {
       return
@@ -374,9 +385,7 @@ export class CommonBelt {
    * We pass them to the boot builder so it can construct the first segment
    * to complement them - ensuring the seam satisfies aspect constraints.
    */
-  _fill() {
-    const { drawSize } = this.segmentConfig
-
+  _fill(): void {
     // The seam cards are what's left in the hopper
     // These will be drawn before the new boot's cards
     const seamCards = [...this.hopper]
@@ -396,7 +405,7 @@ export class CommonBelt {
    * The first segment is constructed to complement the seam cards,
    * ensuring draws that span the seam still have required aspects.
    */
-  _buildConstrainedBoot(seamCards = []) {
+  _buildConstrainedBoot(seamCards: RawCard[] = []): RawCard[] {
     const { drawSize, requiredAspects } = this.segmentConfig
 
     // Create exclusion set from recent IDs for deduplication
@@ -425,7 +434,7 @@ export class CommonBelt {
   /**
    * Get the next common from the hopper
    */
-  next() {
+  next(): RawCard | null {
     this._fillIfNeeded()
 
     if (this.hopper.length === 0) {
@@ -435,13 +444,13 @@ export class CommonBelt {
 
     const card = this.hopper.shift()
     this.totalDraws++
-    return { ...card } // Return a copy
+    return card ? { ...card } : null // Return a copy
   }
 
   /**
    * Peek at upcoming cards without removing them
    */
-  peek(count = 1) {
+  peek(count = 1): RawCard[] {
     this._fillIfNeeded()
     return this.hopper.slice(0, count).map(c => ({ ...c }))
   }
@@ -449,9 +458,22 @@ export class CommonBelt {
   /**
    * Get current hopper size
    */
-  get size() {
+  get size(): number {
     return this.hopper.length
   }
+}
+
+// Type for legacy pool structure
+interface LegacyPool {
+  primary1: RawCard[]
+  primary2: RawCard[]
+  assigned: RawCard[]
+  neutral: RawCard[]
+}
+
+interface LegacyPools {
+  poolA: LegacyPool
+  poolB: LegacyPool
 }
 
 /**
@@ -459,7 +481,7 @@ export class CommonBelt {
  * Returns pool objects structured like the old getCommonPools
  * @deprecated Use getBeltCards directly
  */
-export function getCommonPools(setCode) {
+export function getCommonPools(setCode: SetCode | string): LegacyPools {
   const beltACards = getBeltCards(setCode, 'A')
   const beltBCards = getBeltCards(setCode, 'B')
 

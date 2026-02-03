@@ -6,22 +6,26 @@
  * In Sets 4-6, Special rarity uses same rate as Rare (6x).
  */
 
-import { getCachedCards } from '../utils/cardCache.js'
+import { getCachedCards } from '../utils/cardCache'
+import type { RawCard } from '../utils/cardData'
+import type { SetCode } from '../types'
 import { getSetConfig } from '../utils/setConfigs/index.js'
 
 /**
  * Shuffle an array in place (Fisher-Yates)
  */
-function shuffle(arr) {
+function shuffle<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    const temp = arr[i]
+    arr[i] = arr[j]!
+    arr[j] = temp!
   }
   return arr
 }
 
 // Base quantity multipliers by rarity
-const RARITY_QUANTITIES = {
+const RARITY_QUANTITIES: Record<string, number> = {
   Legendary: 1,
   Special: 1, // Default, overridden to 6 for sets 4-6
   Rare: 6,
@@ -30,8 +34,13 @@ const RARITY_QUANTITIES = {
 }
 
 export class HyperfoilBelt {
-  constructor(setCode) {
-    this.setCode = setCode
+  setCode: SetCode
+  hopper: RawCard[]
+  fillingPool: RawCard[]
+  rarityQuantities: Record<string, number>
+
+  constructor(setCode: SetCode | string) {
+    this.setCode = setCode as SetCode
     this.hopper = []
     this.fillingPool = []
     this.rarityQuantities = { ...RARITY_QUANTITIES }
@@ -42,15 +51,16 @@ export class HyperfoilBelt {
   /**
    * Initialize the belt by loading cards and setting up the filling pool
    */
-  _initialize() {
+  _initialize(): void {
     const cards = getCachedCards(this.setCode)
-    const config = getSetConfig(this.setCode)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const config = getSetConfig(this.setCode) as any
     const setNumber = config?.setNumber || 1
 
     // In sets 4-6, Special uses same rate as Rare (6x)
     const includeSpecial = setNumber >= 4
     if (includeSpecial) {
-      this.rarityQuantities.Special = 6
+      this.rarityQuantities['Special'] = 6
     }
 
     // Filter to Hyperspace Foil variant non-leader, non-base cards
@@ -68,7 +78,7 @@ export class HyperfoilBelt {
   /**
    * Fill the hopper if it needs more cards
    */
-  _fillIfNeeded() {
+  _fillIfNeeded(): void {
     // Safety check: if no cards in filling pool, can't fill
     if (this.fillingPool.length === 0) {
       return
@@ -82,7 +92,7 @@ export class HyperfoilBelt {
   /**
    * Calculate the size of one boot based on rarity quantities
    */
-  _calculateBootSize() {
+  _calculateBootSize(): number {
     let size = 0
     for (const card of this.fillingPool) {
       const quantity = this.rarityQuantities[card.rarity] || 1
@@ -94,8 +104,8 @@ export class HyperfoilBelt {
   /**
    * Fill the hopper with a new batch
    */
-  _fill() {
-    const boot = []
+  _fill(): void {
+    const boot: RawCard[] = []
 
     for (const card of this.fillingPool) {
       const quantity = this.rarityQuantities[card.rarity] || 1
@@ -108,19 +118,19 @@ export class HyperfoilBelt {
     this.hopper.push(...boot)
   }
 
-  next() {
+  next(): RawCard | null {
     this._fillIfNeeded()
     const card = this.hopper.shift()
     if (!card) return null
     return { ...card, isFoil: true, isHyperspace: true }
   }
 
-  peek(count = 1) {
+  peek(count = 1): RawCard[] {
     this._fillIfNeeded()
     return this.hopper.slice(0, count).map(c => ({ ...c, isFoil: true, isHyperspace: true }))
   }
 
-  get size() {
+  get size(): number {
     return this.hopper.length
   }
 }

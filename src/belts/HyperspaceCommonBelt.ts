@@ -5,15 +5,19 @@
  * Seam deduplication ensures no duplicates within 5 slots.
  */
 
-import { getCachedCards } from '../utils/cardCache.js'
+import { getCachedCards } from '../utils/cardCache'
+import type { RawCard } from '../utils/cardData'
+import type { SetCode } from '../types'
 
 /**
  * Shuffle an array in place (Fisher-Yates)
  */
-function shuffle(arr) {
+function shuffle<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    const temp = arr[i]
+    arr[i] = arr[j]!
+    arr[j] = temp!
   }
   return arr
 }
@@ -21,21 +25,25 @@ function shuffle(arr) {
 /**
  * Check if two cards are the same (by id or name)
  */
-function isSameCard(a, b) {
+function isSameCard(a: RawCard | undefined, b: RawCard | undefined): boolean {
   if (!a || !b) return false
   return a.id === b.id || a.name === b.name
 }
 
 export class HyperspaceCommonBelt {
-  constructor(setCode) {
-    this.setCode = setCode
+  setCode: SetCode
+  hopper: RawCard[]
+  fillingPool: RawCard[]
+
+  constructor(setCode: SetCode | string) {
+    this.setCode = setCode as SetCode
     this.hopper = []
     this.fillingPool = []
 
     this._initialize()
   }
 
-  _initialize() {
+  _initialize(): void {
     const cards = getCachedCards(this.setCode)
 
     // Filter to Hyperspace variant commons (non-leader, non-base)
@@ -49,7 +57,7 @@ export class HyperspaceCommonBelt {
     this._fillIfNeeded()
   }
 
-  _fillIfNeeded() {
+  _fillIfNeeded(): void {
     // Safety check: if no cards in filling pool, can't fill
     if (this.fillingPool.length === 0) {
       return
@@ -59,7 +67,7 @@ export class HyperspaceCommonBelt {
     }
   }
 
-  _fill() {
+  _fill(): void {
     const wasEmpty = this.hopper.length === 0
     const bootStart = this.hopper.length
 
@@ -71,7 +79,7 @@ export class HyperspaceCommonBelt {
     }
   }
 
-  _seamDedup(segmentStart, segmentLength, depth = 0) {
+  _seamDedup(segmentStart: number, segmentLength: number, depth = 0): void {
     if (depth > 10) return
 
     const seamSize = Math.min(5, segmentLength)
@@ -99,8 +107,9 @@ export class HyperspaceCommonBelt {
         const backHalfLength = backHalfEnd - backHalfStart
         if (backHalfLength > 0) {
           const swapIndex = backHalfStart + Math.floor(Math.random() * backHalfLength)
-          ;[this.hopper[cardIndex], this.hopper[swapIndex]] =
-            [this.hopper[swapIndex], this.hopper[cardIndex]]
+          const temp = this.hopper[cardIndex]
+          this.hopper[cardIndex] = this.hopper[swapIndex]!
+          this.hopper[swapIndex] = temp!
           this._seamDedup(segmentStart, segmentLength, depth + 1)
           return
         }
@@ -108,19 +117,19 @@ export class HyperspaceCommonBelt {
     }
   }
 
-  next() {
+  next(): RawCard | null {
     this._fillIfNeeded()
     const card = this.hopper.shift()
     if (!card) return null
     return { ...card, isHyperspace: true }
   }
 
-  peek(count = 1) {
+  peek(count = 1): RawCard[] {
     this._fillIfNeeded()
     return this.hopper.slice(0, count).map(c => ({ ...c, isHyperspace: true }))
   }
 
-  get size() {
+  get size(): number {
     return this.hopper.length
   }
 }
