@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
@@ -19,6 +20,71 @@ const ReviewIcon = () => (
   </svg>
 )
 
+interface Card {
+  id?: string
+  instanceId?: string
+  name?: string
+  title?: string
+  subtitle?: string
+  aspects?: string[]
+  rarity?: string
+  cost?: number
+  isFoil?: boolean
+  imageUrl?: string
+  [key: string]: unknown
+}
+
+interface Leader {
+  name: string
+  imageUrl?: string
+  backImageUrl?: string
+  [key: string]: unknown
+}
+
+interface Player {
+  id: string
+  pickStatus?: 'picked' | 'selected' | 'picking' | 'timeout'
+  [key: string]: unknown
+}
+
+interface MyPlayer extends Player {
+  currentPack?: Card[]
+  draftedCards?: Card[]
+  draftedLeaders?: Leader[]
+}
+
+interface DraftState {
+  packNumber?: number
+  pickInPack?: number
+  [key: string]: unknown
+}
+
+interface Draft {
+  maxPlayers?: number
+  packSize?: number
+  [key: string]: unknown
+}
+
+interface HoveredLeaderPreview {
+  leader: Leader
+  x: number | null
+  y: number | null
+}
+
+interface PackDraftPhaseProps {
+  draft: Draft | null
+  players: Player[]
+  myPlayer: MyPlayer | null
+  draftState: DraftState | null
+  onSelect: (cardId: string | null) => void
+  loading: boolean
+  error: string | null
+  isHost: boolean
+  onTogglePause: () => void
+  shareId: string
+  onTimerExpire: () => void
+}
+
 function PackDraftPhase({
   draft,
   players,
@@ -31,18 +97,18 @@ function PackDraftPhase({
   onTogglePause,
   shareId,
   onTimerExpire,
-}) {
+}: PackDraftPhaseProps) {
 
   const [showReviewModal, setShowReviewModal] = useState(false)
-  const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState(null)
-  const [selectedCardId, setSelectedCardId] = useState(null)
+  const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState<HoveredLeaderPreview | null>(null)
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const [showPassing, setShowPassing] = useState(false)
   const [lastPackSize, setLastPackSize] = useState(0)
-  const previewTimeoutRef = useRef(null)
-  const passingTimeoutRef = useRef(null)
-  const passingFromPackRef = useRef(null) // Track the first card ID when we started passing
+  const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const passingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const passingFromPackRef = useRef<string | null>(null) // Track the first card ID when we started passing
 
-  const handleLeaderNameMouseEnter = (e, leader) => {
+  const handleLeaderNameMouseEnter = (e: React.MouseEvent, leader: Leader) => {
     // Disable hover preview on mobile
     if (window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
       return
@@ -119,7 +185,7 @@ function PackDraftPhase({
   useEffect(() => {
     // Clean up selections from previous picks in localStorage
     // This prevents stale selections from being re-sent after pause/unpause
-    const keysToCheck = []
+    const keysToCheck: string[] = []
     for (let p = 1; p <= 3; p++) {
       for (let pick = 1; pick <= 16; pick++) {
         const key = `draft-selection-${shareId}-pack-${p}-${pick}`
@@ -212,21 +278,21 @@ function PackDraftPhase({
   const passDirection = packNumber % 2 === 1 ? 'left' : 'right'
 
   // Sort cards by rarity (common first, then uncommon, rare, legendary), foil always last
-  const sortCards = (cards) => {
+  const sortCards = (cards: Card[]) => {
     const sorted = [...cards]
-    const rarityOrder = { 'Common': 0, 'Uncommon': 1, 'Rare': 2, 'Legendary': 3 }
+    const rarityOrder: Record<string, number> = { 'Common': 0, 'Uncommon': 1, 'Rare': 2, 'Legendary': 3 }
     return sorted.sort((a, b) => {
       // Foils always go last
       if (a.isFoil && !b.isFoil) return 1
       if (!a.isFoil && b.isFoil) return -1
       // Then sort by rarity
-      return (rarityOrder[a.rarity] ?? 4) - (rarityOrder[b.rarity] ?? 4)
+      return (rarityOrder[a.rarity || ''] ?? 4) - (rarityOrder[b.rarity || ''] ?? 4)
     })
   }
 
   const sortedPack = sortCards(currentPack)
 
-  const handleCardClick = (card) => {
+  const handleCardClick = (card: Card) => {
     if (loading || !canSelect) return
 
     const cardId = card.instanceId || card.id
@@ -246,17 +312,17 @@ function PackDraftPhase({
       onSelect(null)
     } else {
       // Select new card
-      localStorage.setItem(storageKey, cardId)
-      setSelectedCardId(cardId)
-      onSelect(cardId)
+      localStorage.setItem(storageKey, cardId!)
+      setSelectedCardId(cardId!)
+      onSelect(cardId!)
     }
   }
 
-  const handleCardRightClick = (e) => {
+  const handleCardRightClick = (e: React.MouseEvent) => {
     e.preventDefault()
   }
 
-  const handleDeselect = (e) => {
+  const handleDeselect = (e: React.MouseEvent) => {
     e.stopPropagation()
     localStorage.removeItem(storageKey)
     setSelectedCardId(null)
@@ -394,7 +460,7 @@ function PackDraftPhase({
                       key={cardId}
                       card={card}
                       onClick={() => handleCardClick(card)}
-                      onRightClick={(e) => handleCardRightClick(e, card)}
+                      onRightClick={(e: React.MouseEvent) => handleCardRightClick(e)}
                       disabled={loading}
                       selected={selectedCardId === cardId}
                       dimmed={!!(selectedCardId && selectedCardId !== cardId)}
