@@ -1,5 +1,5 @@
 // Pack art URL mappings for Star Wars Unlimited sets
-// 
+//
 // To find pack art URLs:
 // 1. Visit official Star Wars Unlimited website: https://starwarsunlimited.com
 // 2. Check product pages on Fantasy Flight Games website
@@ -10,12 +10,14 @@
 // Once you find a working URL, update the corresponding entry below.
 // URLs should point directly to image files (.jpg, .png, etc.)
 
+import type { SetCode } from '../types'
+
 /**
  * Pack art URL mappings for each set
  * Images sourced from https://starwarsunlimited.com/products
  * Using key art images from the official Star Wars Unlimited website
  */
-const PACK_ART_URLS = {
+const PACK_ART_URLS: Record<string, string> = {
   // Spark of Rebellion - Set 1
   SOR: '/pack-art/sor.jpg',
   // Shadows of the Galaxy - Set 2
@@ -34,7 +36,7 @@ const PACK_ART_URLS = {
  * Booster pack image URLs (the actual pack, not background art)
  * Used for pack opening animation
  */
-const PACK_IMAGE_URLS = {
+const PACK_IMAGE_URLS: Record<string, string> = {
   // Spark of Rebellion - Set 1
   SOR: '/pack-images/sor-pack.png',
   // Shadows of the Galaxy - Set 2
@@ -53,7 +55,7 @@ const PACK_IMAGE_URLS = {
  * Get pack art URL for a set code (background key art)
  * Returns the URL if available, or null if not set
  */
-export function getPackArtUrl(setCode) {
+export function getPackArtUrl(setCode: SetCode | string): string | null {
   return PACK_ART_URLS[setCode] || null
 }
 
@@ -62,7 +64,7 @@ export function getPackArtUrl(setCode) {
  * Used for pack opening animation
  * Returns the URL if available, or a default pack image
  */
-export function getPackImageUrl(setCode) {
+export function getPackImageUrl(setCode: SetCode | string): string {
   return PACK_IMAGE_URLS[setCode] || '/pack-images/default-pack.png'
 }
 
@@ -70,6 +72,6 @@ export function getPackImageUrl(setCode) {
  * Set pack art URL for a set code
  * Useful for updating URLs programmatically
  */
-export function setPackArtUrl(setCode, url) {
+export function setPackArtUrl(setCode: SetCode | string, url: string): void {
   PACK_ART_URLS[setCode] = url
 }

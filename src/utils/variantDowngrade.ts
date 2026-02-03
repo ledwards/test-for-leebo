@@ -14,15 +14,17 @@
  */
 
 import { getCachedCards } from './cardCache.js'
+import type { RawCard } from './cardData'
+import type { SetCode } from '../types'
 
 /**
  * Format a cardId for SWUDB export.
  * Converts "SEC-12" to "SEC_012" (underscore + 3-digit zero-padded number).
  *
- * @param {string} cardId - The card ID (e.g., "SEC-12" or "SOR-200")
- * @returns {string} SWUDB-formatted ID (e.g., "SEC_012" or "SOR_200")
+ * @param cardId - The card ID (e.g., "SEC-12" or "SOR-200")
+ * @returns SWUDB-formatted ID (e.g., "SEC_012" or "SOR_200")
  */
-function formatCardIdForExport(cardId) {
+function formatCardIdForExport(cardId: string): string | null {
   if (!cardId) return null
 
   // Split on hyphen to get set code and number
@@ -33,7 +35,7 @@ function formatCardIdForExport(cardId) {
   }
 
   const [setCode, numberStr] = parts
-  const number = parseInt(numberStr, 10)
+  const number = parseInt(numberStr!, 10)
 
   // Zero-pad to 3 digits for SWUDB compatibility
   const paddedNumber = number.toString().padStart(3, '0')
@@ -44,14 +46,14 @@ function formatCardIdForExport(cardId) {
 /**
  * Build a map of card name+type -> Normal variant card
  *
- * @param {string} setCode - The set code (e.g., 'SOR')
- * @returns {Map<string, Object>} Map of "name|type" -> Normal variant card
+ * @param setCode - The set code (e.g., 'SOR')
+ * @returns Map of "name|type" -> Normal variant card
  */
-export function buildBaseCardMap(setCode) {
-  const cards = getCachedCards(setCode)
+export function buildBaseCardMap(setCode: SetCode | string): Map<string, RawCard> {
+  const cards = getCachedCards(setCode as SetCode)
   if (!cards || cards.length === 0) return new Map()
 
-  const nameTypeToBaseCard = new Map()
+  const nameTypeToBaseCard = new Map<string, RawCard>()
 
   cards.forEach(card => {
     // Only consider Normal variants as base cards
@@ -79,11 +81,11 @@ export function buildBaseCardMap(setCode) {
  * - Hyperspace "Leia Organa" Leader -> "SOR_008" (the Normal Leader's cardId)
  * - Foil "TIE Fighter" Unit -> "SOR_045" (the Normal Unit's cardId)
  *
- * @param {Object} card - The card to get the base ID for
- * @param {Map<string, Object>} baseCardMap - Map from buildBaseCardMap()
- * @returns {string|null} The base card ID in SWUDB format (SET_XXX), or null if not found
+ * @param card - The card to get the base ID for
+ * @param baseCardMap - Map from buildBaseCardMap()
+ * @returns The base card ID in SWUDB format (SET_XXX), or null if not found
  */
-export function getBaseCardId(card, baseCardMap) {
+export function getBaseCardId(card: RawCard | null | undefined, baseCardMap?: Map<string, RawCard>): string | null {
   if (!card) return null
 
   // Look up the Normal variant by name + type
