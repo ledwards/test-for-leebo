@@ -1,12 +1,20 @@
 // Frontend authentication utilities
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api'
+const API_BASE = process.env['NEXT_PUBLIC_API_URL'] || '/api'
+
+interface User {
+  id: string
+  username: string
+  avatar_url?: string
+  is_admin?: boolean
+  is_beta_tester?: boolean
+}
 
 /**
  * Get current session
- * @returns {Promise<Object|null>} Session object or null
+ * @returns Session object or null
  */
-export async function getSession() {
+export async function getSession(): Promise<User | null> {
   try {
     const response = await fetch(`${API_BASE}/auth/session`, {
       credentials: 'include',
@@ -27,7 +35,7 @@ export async function getSession() {
 /**
  * Sign in with Discord
  */
-export function signInWithDiscord() {
+export function signInWithDiscord(): void {
   // Store current URL to return after login
   const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
   window.location.href = `${API_BASE}/auth/signin/discord?return_to=${returnTo}`
@@ -35,9 +43,9 @@ export function signInWithDiscord() {
 
 /**
  * Sign out current user
- * @returns {Promise<boolean>} Success status
+ * @returns Success status
  */
-export async function signOut() {
+export async function signOut(): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE}/auth/signout`, {
       method: 'POST',
@@ -59,9 +67,9 @@ export async function signOut() {
 
 /**
  * Check if user is authenticated
- * @returns {Promise<boolean>} True if authenticated
+ * @returns True if authenticated
  */
-export async function isAuthenticated() {
+export async function isAuthenticated(): Promise<boolean> {
   const session = await getSession()
   return session !== null
 }
@@ -69,9 +77,9 @@ export async function isAuthenticated() {
 /**
  * Refresh session with latest user data from database
  * Updates the session cookie with fresh data (role flags, etc.)
- * @returns {Promise<Object|null>} Updated user object or null on failure
+ * @returns Updated user object or null on failure
  */
-export async function refreshSession() {
+export async function refreshSession(): Promise<User | null> {
   try {
     const response = await fetch(`${API_BASE}/auth/refresh`, {
       method: 'POST',
@@ -93,9 +101,9 @@ export async function refreshSession() {
 /**
  * Enroll current user as beta tester
  * Returns the updated user object (session cookie is also updated)
- * @returns {Promise<Object|null>} Updated user object or null on failure
+ * @returns Updated user object or null on failure
  */
-export async function enrollBeta() {
+export async function enrollBeta(): Promise<User | null> {
   try {
     const response = await fetch(`${API_BASE}/beta/enroll`, {
       method: 'POST',

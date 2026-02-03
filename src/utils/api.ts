@@ -2,14 +2,27 @@
 
 import { getCardsBySet } from './cardData.js'
 import { getPackArtUrl } from './packArt.js'
+import type { RawCard } from './cardData.js'
+
+interface SetInfo {
+  code: string
+  name: string
+  releaseDate: string
+  beta?: boolean
+  imageUrl: string | null
+}
+
+interface FetchSetsOptions {
+  includeBeta?: boolean
+}
 
 /**
  * Fetch all sets
  * Returns array of set objects with code, name, and imageUrl
- * @param {Object} options - Options
- * @param {boolean} options.includeBeta - Include beta sets (default: false)
+ * @param options - Options
+ * @param options.includeBeta - Include beta sets (default: false)
  */
-export async function fetchSets({ includeBeta = false } = {}) {
+export async function fetchSets({ includeBeta = false }: FetchSetsOptions = {}): Promise<SetInfo[]> {
   // Use hardcoded set data for the expansion sets
   // External API calls fail due to CORS, so we use local data
   const knownSets = [
@@ -37,7 +50,7 @@ export async function fetchSets({ includeBeta = false } = {}) {
  * Fetch all cards for a specific set
  * Returns array of card objects with imageUrl, rarity, type, etc.
  */
-export async function fetchSetCards(setCode) {
+export async function fetchSetCards(setCode: string): Promise<RawCard[]> {
   // Load from local card data file
   // External API calls fail due to CORS, so we use local data
   try {
