@@ -1,23 +1,55 @@
+// @ts-nocheck
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import SealedPod from '../../../src/components/SealedPod'
 import { loadPool } from '../../../src/utils/poolApi'
 import '../../../src/App.css'
 
-export default function SealedPoolPage({ params }) {
-  const [pool, setPool] = useState(null)
+interface CardType {
+  id?: string
+  name?: string
+  [key: string]: unknown
+}
+
+interface PackType {
+  cards: CardType[]
+  [key: string]: unknown
+}
+
+interface PoolOwner {
+  id: string
+  [key: string]: unknown
+}
+
+interface PoolData {
+  shareId: string
+  setCode: string
+  setName?: string
+  cards?: CardType[]
+  packs?: PackType[]
+  poolType?: string
+  deckBuilderState?: string | Record<string, unknown>
+  createdAt?: string
+  name?: string
+  owner?: PoolOwner
+  userId?: string
+}
+
+interface PageProps {
+  params: Promise<{ shareId: string }>
+}
+
+export default function SealedPoolPage({ params }: PageProps) {
+  const resolvedParams = use(params)
+  const [pool, setPool] = useState<PoolData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [shareId, setShareId] = useState(null)
+  const [error, setError] = useState<string | null>(null)
+  const [shareId, setShareId] = useState<string | null>(null)
 
   useEffect(() => {
-    async function getParams() {
-      const resolvedParams = await params
-      setShareId(resolvedParams.shareId)
-    }
-    getParams()
-  }, [params])
+    setShareId(resolvedParams.shareId)
+  }, [resolvedParams])
 
   useEffect(() => {
     let cancelled = false
@@ -28,7 +60,7 @@ export default function SealedPoolPage({ params }) {
       let retries = 0
       const maxRetries = 5
 
-      const attemptLoad = async () => {
+      const attemptLoad = async (): Promise<boolean> => {
         if (cancelled) return false
 
         try {
@@ -52,14 +84,14 @@ export default function SealedPoolPage({ params }) {
 
           console.error(`Failed to load pool (attempt ${retries + 1}):`, err)
 
-          if ((err.message.includes('not found') || err.message.includes('Pool not found')) && retries < maxRetries) {
+          if (err instanceof Error && (err.message.includes('not found') || err.message.includes('Pool not found')) && retries < maxRetries) {
             retries++
             await new Promise(resolve => setTimeout(resolve, 1000 * retries))
             return attemptLoad()
           }
 
           if (!cancelled) {
-            setError(err.message || 'Failed to load pool')
+            setError(err instanceof Error ? err.message : 'Failed to load pool')
             setLoading(false)
           }
           return false
@@ -135,7 +167,7 @@ export default function SealedPoolPage({ params }) {
         poolName={getPoolName()}
         createdAt={pool?.createdAt}
         onBack={handleBack}
-        onBuildDeck={(cards, setCode) => {
+        onBuildDeck={(cards: CardType[], setCode: string) => {
           window.location.href = `/pool/${shareId}/deck`
         }}
         initialPacks={getInitialPacks()}

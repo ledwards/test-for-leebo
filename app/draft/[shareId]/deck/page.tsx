@@ -1,26 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../../src/contexts/AuthContext'
 import '../../../../src/App.css'
 import '../../draft.css'
 
-export default function DraftDeckPage({ params }) {
+interface PageProps {
+  params: Promise<{ shareId: string }>
+}
+
+export default function DraftDeckPage({ params }: PageProps) {
+  const resolvedParams = use(params)
   const router = useRouter()
   const { user, isAuthenticated, loading: authLoading } = useAuth()
-  const [shareId, setShareId] = useState(null)
+  const [shareId, setShareId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   // Get shareId from params
   useEffect(() => {
-    async function getParams() {
-      const resolvedParams = await params
-      setShareId(resolvedParams.shareId)
-    }
-    getParams()
-  }, [params])
+    setShareId(resolvedParams.shareId)
+  }, [resolvedParams])
 
   // Get or create pool and redirect
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function DraftDeckPage({ params }) {
         // Redirect to the pool's deck builder
         router.replace(`/pool/${data.poolShareId}/deck`)
       } catch (err) {
-        setError(err.message || 'Failed to load draft pool')
+        setError(err instanceof Error ? err.message : 'Failed to load draft pool')
         setLoading(false)
       }
     }

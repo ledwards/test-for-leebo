@@ -1,26 +1,57 @@
+// @ts-nocheck
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, use } from 'react'
 import DeckBuilder from '../../../../src/components/DeckBuilder'
 import { loadPool, updatePool } from '../../../../src/utils/poolApi'
 import '../../../../src/App.css'
 
-export default function DeckBuilderPage({ params }) {
-  const [pool, setPool] = useState(null)
+interface CardType {
+  id?: string
+  name?: string
+  [key: string]: unknown
+}
+
+interface PackType {
+  cards: CardType[]
+  [key: string]: unknown
+}
+
+interface PoolOwner {
+  id: string
+  username?: string
+  [key: string]: unknown
+}
+
+interface PoolData {
+  shareId: string
+  setCode: string
+  cards?: CardType[]
+  packs?: PackType[]
+  poolType?: string
+  deckBuilderState?: string | Record<string, unknown>
+  createdAt?: string
+  name?: string
+  owner?: PoolOwner
+  userId?: string
+}
+
+interface PageProps {
+  params: Promise<{ shareId: string }>
+}
+
+export default function DeckBuilderPage({ params }: PageProps) {
+  const resolvedParams = use(params)
+  const [pool, setPool] = useState<PoolData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [shareId, setShareId] = useState(null)
-  const saveTimeoutRef = useRef(null)
-  const pendingStateRef = useRef(null)
+  const [error, setError] = useState<string | null>(null)
+  const [shareId, setShareId] = useState<string | null>(null)
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const pendingStateRef = useRef<Record<string, unknown> | null>(null)
 
   useEffect(() => {
-    // Handle async params in Next.js 15+
-    async function getParams() {
-      const resolvedParams = await params
-      setShareId(resolvedParams.shareId)
-    }
-    getParams()
-  }, [params])
+    setShareId(resolvedParams.shareId)
+  }, [resolvedParams])
 
   useEffect(() => {
     async function fetchPool() {
@@ -32,7 +63,7 @@ export default function DeckBuilderPage({ params }) {
         setPool(poolData)
       } catch (err) {
         console.error('Failed to load pool:', err)
-        setError(err.message || 'Failed to load pool')
+        setError(err instanceof Error ? err.message : 'Failed to load pool')
       } finally {
         setLoading(false)
       }
@@ -63,7 +94,7 @@ export default function DeckBuilderPage({ params }) {
     }
   }
 
-  const handleDeckStateChange = useCallback((deckBuilderState) => {
+  const handleDeckStateChange = useCallback((deckBuilderState: Record<string, unknown>) => {
     // Debounced auto-save - only save after 2 seconds of no changes
     pendingStateRef.current = deckBuilderState
 

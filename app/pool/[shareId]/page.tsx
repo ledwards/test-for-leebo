@@ -1,19 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { loadPool } from '../../../src/utils/poolApi'
 import '../../../src/App.css'
 
-export default function PoolRedirectPage({ params }) {
-  const [shareId, setShareId] = useState(null)
+interface PageProps {
+  params: Promise<{ shareId: string }>
+}
+
+export default function PoolRedirectPage({ params }: PageProps) {
+  const resolvedParams = use(params)
+  const [shareId, setShareId] = useState<string | null>(null)
 
   useEffect(() => {
-    async function getParams() {
-      const resolvedParams = await params
-      setShareId(resolvedParams.shareId)
-    }
-    getParams()
-  }, [params])
+    setShareId(resolvedParams.shareId)
+  }, [resolvedParams])
 
   useEffect(() => {
     if (!shareId) return
@@ -34,7 +35,7 @@ export default function PoolRedirectPage({ params }) {
       } catch (err) {
         console.error(`Failed to load pool (attempt ${retries + 1}):`, err)
 
-        if ((err.message.includes('not found') || err.message.includes('Pool not found')) && retries < maxRetries) {
+        if (err instanceof Error && (err.message.includes('not found') || err.message.includes('Pool not found')) && retries < maxRetries) {
           retries++
           await new Promise(resolve => setTimeout(resolve, 1000 * retries))
           return attemptLoad()
