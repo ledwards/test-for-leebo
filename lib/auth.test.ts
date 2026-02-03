@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Tests for authentication utilities
 import { describe, it, beforeEach, mock } from 'node:test'
 import assert from 'node:assert'
@@ -38,7 +39,7 @@ describe('Auth Utilities', () => {
     })
 
     it('should default role flags to false when not provided', () => {
-      const user = {
+      const user: { id: string; email: string; username: string; avatar_url: null; is_admin?: boolean; is_beta_tester?: boolean } = {
         id: '123',
         email: 'test@example.com',
         username: 'testuser',
@@ -85,7 +86,7 @@ describe('Auth Utilities', () => {
     })
 
     it('should fail for users with undefined role flags', () => {
-      const session = { id: '123' }
+      const session: { id: string; is_beta_tester?: boolean; is_admin?: boolean } = { id: '123' }
       const hasBetaAccess = session.is_beta_tester || session.is_admin
       assert.strictEqual(hasBetaAccess, undefined) // falsy
       assert.ok(!hasBetaAccess)

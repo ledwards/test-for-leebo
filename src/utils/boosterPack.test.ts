@@ -1,7 +1,8 @@
+// @ts-nocheck
 /**
  * Booster Pack Generation Tests
  *
- * Run with: node src/utils/boosterPack.test.js
+ * Run with: npx tsx src/utils/boosterPack.test.ts
  */
 
 import { generateBoosterPack, generateSealedPod, clearBeltCache } from './boosterPack.js'
@@ -10,29 +11,46 @@ import { initializeCardCache, getCachedCards } from './cardCache.js'
 let passed = 0
 let failed = 0
 
-function test(name, fn) {
+function test(name: string, fn: () => void): void {
   try {
     fn()
     console.log(`\x1b[32m✅ ${name}\x1b[0m`)
     passed++
   } catch (e) {
     console.log(`\x1b[31m❌ ${name}\x1b[0m`)
-    console.log(`\x1b[33m   ${e.message}\x1b[0m`)
+    console.log(`\x1b[33m   ${(e as Error).message}\x1b[0m`)
     failed++
   }
 }
 
-function assert(condition, message) {
+function assert(condition: boolean, message?: string): asserts condition {
   if (!condition) throw new Error(message || 'Assertion failed')
 }
 
-function assertEqual(actual, expected, message) {
+function assertEqual<T>(actual: T, expected: T, message?: string): void {
   if (actual !== expected) {
     throw new Error(message || `Expected ${expected}, got ${actual}`)
   }
 }
 
-async function runTests() {
+interface Card {
+  id: string
+  name: string
+  variantType?: string
+  isFoil?: boolean
+  isLeader?: boolean
+  isBase?: boolean
+  isHyperspace?: boolean
+  rarity?: string
+  set?: string
+  aspects?: string[]
+}
+
+interface Pack {
+  cards: Card[]
+}
+
+async function runTests(): Promise<void> {
   console.log('\x1b[36m🔄 Initializing card cache...\x1b[0m')
   await initializeCardCache()
   const cards = getCachedCards('SOR')
@@ -57,21 +75,21 @@ async function runTests() {
   test('pack contains exactly 1 leader', () => {
     clearBeltCache()
     const pack = generateBoosterPack(cards, 'SOR')
-    const leaders = pack.cards.filter(c => c.isLeader)
+    const leaders = pack.cards.filter((c: Card) => c.isLeader)
     assertEqual(leaders.length, 1, 'Pack should contain exactly 1 leader')
   })
 
   test('pack contains exactly 1 base', () => {
     clearBeltCache()
     const pack = generateBoosterPack(cards, 'SOR')
-    const bases = pack.cards.filter(c => c.isBase)
+    const bases = pack.cards.filter((c: Card) => c.isBase)
     assertEqual(bases.length, 1, 'Pack should contain exactly 1 base')
   })
 
   test('pack contains 9 commons (non-leader, non-base)', () => {
     clearBeltCache()
     const pack = generateBoosterPack(cards, 'SOR')
-    const commons = pack.cards.filter(c =>
+    const commons = pack.cards.filter((c: Card) =>
       c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil
     )
     assertEqual(commons.length, 9, 'Pack should contain 9 common cards')
@@ -80,7 +98,7 @@ async function runTests() {
   test('pack contains 2-3 uncommons (3rd UC may upgrade to R/L)', () => {
     clearBeltCache()
     const pack = generateBoosterPack(cards, 'SOR')
-    const uncommons = pack.cards.filter(c => c.rarity === 'Uncommon' && !c.isFoil)
+    const uncommons = pack.cards.filter((c: Card) => c.rarity === 'Uncommon' && !c.isFoil)
     assert(
       uncommons.length >= 2 && uncommons.length <= 3,
       `Pack should contain 2-3 uncommon cards, got ${uncommons.length}`
@@ -90,7 +108,7 @@ async function runTests() {
   test('pack contains 1-2 rare or legendary (3rd UC may upgrade to R/L)', () => {
     clearBeltCache()
     const pack = generateBoosterPack(cards, 'SOR')
-    const rareOrLegendary = pack.cards.filter(c =>
+    const rareOrLegendary = pack.cards.filter((c: Card) =>
       (c.rarity === 'Rare' || c.rarity === 'Legendary') &&
       !c.isFoil && !c.isLeader && !c.isBase
     )
@@ -103,7 +121,7 @@ async function runTests() {
   test('pack contains exactly 1 foil', () => {
     clearBeltCache()
     const pack = generateBoosterPack(cards, 'SOR')
-    const foils = pack.cards.filter(c => c.isFoil)
+    const foils = pack.cards.filter((c: Card) => c.isFoil)
     assertEqual(foils.length, 1, 'Pack should contain exactly 1 foil')
   })
 
@@ -112,7 +130,7 @@ async function runTests() {
     // Test multiple packs to increase confidence
     for (let i = 0; i < 10; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
-      const foil = pack.cards.find(c => c.isFoil)
+      const foil = pack.cards.find((c: Card) => c.isFoil)
       assert(!foil.isLeader, 'Foil should not be a leader')
       assert(!foil.isBase, 'Foil should not be a base')
     }
@@ -121,7 +139,7 @@ async function runTests() {
   test('all cards are from the correct set', () => {
     clearBeltCache()
     const pack = generateBoosterPack(cards, 'SOR')
-    assert(pack.cards.every(c => c.set === 'SOR'), 'All cards should be from SOR set')
+    assert(pack.cards.every((c: Card) => c.set === 'SOR'), 'All cards should be from SOR set')
   })
 
   test('all cards are Normal or Hyperspace or Showcase variants', () => {
@@ -129,7 +147,7 @@ async function runTests() {
     const pack = generateBoosterPack(cards, 'SOR')
     const validVariants = ['Normal', 'Hyperspace', 'Showcase']
     assert(
-      pack.cards.every(c => validVariants.includes(c.variantType)),
+      pack.cards.every((c: Card) => validVariants.includes(c.variantType || 'Normal')),
       'All cards should be Normal, Hyperspace, or Showcase variants'
     )
   })
@@ -139,12 +157,12 @@ async function runTests() {
     // Test many packs to ensure leaders never appear in wrong slot
     for (let i = 0; i < 50; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
-      const rareOrLegendary = pack.cards.filter(c =>
+      const rareOrLegendary = pack.cards.filter((c: Card) =>
         (c.rarity === 'Rare' || c.rarity === 'Legendary') &&
         !c.isFoil && !c.isLeader
       )
       assert(
-        rareOrLegendary.every(c => !c.isLeader),
+        rareOrLegendary.every((c: Card) => !c.isLeader),
         'Leaders should not appear in rare/legendary slot'
       )
     }
@@ -163,20 +181,20 @@ async function runTests() {
     const basicAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning']
     const packCount = 100
     let packsWithAllBasicAspects = 0
-    const missingAspectCounts = {}
+    const missingAspectCounts: Record<string, number> = {}
     basicAspects.forEach(a => missingAspectCounts[a] = 0)
-    const failedPacks = []
+    const failedPacks: { pack: number; missing: string[] }[] = []
 
     for (let i = 0; i < packCount; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
       // Get the 9 commons (non-leader, non-base, non-foil)
-      const commons = pack.cards.filter(c =>
+      const commons = pack.cards.filter((c: Card) =>
         c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil
       )
 
       // Collect all aspects present in commons
-      const aspectsPresent = new Set()
-      commons.forEach(card => {
+      const aspectsPresent = new Set<string>()
+      commons.forEach((card: Card) => {
         if (card.aspects) {
           card.aspects.forEach(aspect => aspectsPresent.add(aspect))
         }
@@ -216,19 +234,19 @@ async function runTests() {
     const allAspects = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Heroism', 'Villainy']
     const podCount = 50
     let podsWithAllAspects = 0
-    const missingAspectCounts = {}
+    const missingAspectCounts: Record<string, number> = {}
     allAspects.forEach(a => missingAspectCounts[a] = 0)
 
     for (let i = 0; i < podCount; i++) {
       const packs = generateSealedPod(cards, 'SOR', 6)
 
       // Collect all aspects from all commons in the pod
-      const aspectsPresent = new Set()
-      packs.forEach(pack => {
-        const commons = pack.cards.filter(c =>
+      const aspectsPresent = new Set<string>()
+      packs.forEach((pack: Pack) => {
+        const commons = pack.cards.filter((c: Card) =>
           c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil
         )
-        commons.forEach(card => {
+        commons.forEach((card: Card) => {
           if (card.aspects) {
             card.aspects.forEach(aspect => aspectsPresent.add(aspect))
           }
@@ -273,10 +291,10 @@ async function runTests() {
   test('each pack in sealed pod has correct structure', () => {
     clearBeltCache()
     const packs = generateSealedPod(cards, 'SOR')
-    packs.forEach((pack, i) => {
+    packs.forEach((pack: Pack, i: number) => {
       assertEqual(pack.cards.length, 16, `Pack ${i + 1} should have 16 cards`)
       assertEqual(
-        pack.cards.filter(c => c.isLeader).length,
+        pack.cards.filter((c: Card) => c.isLeader).length,
         1,
         `Pack ${i + 1} should have 1 leader`
       )
@@ -286,7 +304,7 @@ async function runTests() {
   test('leaders in sealed pod come from belt (sequential, not random)', () => {
     clearBeltCache()
     const packs = generateSealedPod(cards, 'SOR')
-    const leaders = packs.map(p => p.cards.find(c => c.isLeader))
+    const leaders = packs.map((p: Pack) => p.cards.find((c: Card) => c.isLeader))
 
     // Check that we don't have the same leader in adjacent packs too often
     // (belt should provide variety through its fill algorithm)
@@ -303,16 +321,16 @@ async function runTests() {
   test('clearBeltCache causes new belt initialization', () => {
     clearBeltCache()
     const packs1 = generateSealedPod(cards, 'SOR')
-    const leader1 = packs1[0].cards.find(c => c.isLeader)
+    const leader1 = packs1[0].cards.find((c: Card) => c.isLeader)
 
     // Generate many pods and check that we get different starting leaders
-    const startingLeaders = new Set()
+    const startingLeaders = new Set<string>()
     startingLeaders.add(leader1.id)
 
     for (let i = 0; i < 10; i++) {
       clearBeltCache()
       const packs = generateSealedPod(cards, 'SOR')
-      const leader = packs[0].cards.find(c => c.isLeader)
+      const leader = packs[0].cards.find((c: Card) => c.isLeader)
       startingLeaders.add(leader.id)
     }
 
@@ -325,9 +343,9 @@ async function runTests() {
 
     // Get commons from first pack (should be A,B,A,B,A,B,A,B,A pattern)
     // Exclude base, foil, and leader (leaders can be Common rarity)
-    const pack1Commons = packs[0].cards.filter(c => c.rarity === 'Common' && !c.isBase && !c.isFoil && !c.isLeader)
+    const pack1Commons = packs[0].cards.filter((c: Card) => c.rarity === 'Common' && !c.isBase && !c.isFoil && !c.isLeader)
     // Get commons from second pack (should be B,A,B,A,B,A,B,A,B pattern)
-    const pack2Commons = packs[1].cards.filter(c => c.rarity === 'Common' && !c.isBase && !c.isFoil && !c.isLeader)
+    const pack2Commons = packs[1].cards.filter((c: Card) => c.rarity === 'Common' && !c.isBase && !c.isFoil && !c.isLeader)
 
     assertEqual(pack1Commons.length, 9, 'Pack 1 should have 9 commons')
     assertEqual(pack2Commons.length, 9, 'Pack 2 should have 9 commons')
@@ -338,16 +356,16 @@ async function runTests() {
     const beltAAspects = ['Vigilance', 'Command']
     const beltBAspects = ['Aggression', 'Cunning']
 
-    const hasAspect = (card, aspects) => {
+    const hasAspect = (card: Card, aspects: string[]): boolean => {
       if (!card.aspects) return false
-      return aspects.some(a => card.aspects.includes(a))
+      return aspects.some(a => card.aspects!.includes(a))
     }
 
     // Check that packs have a mix from both belts
-    const pack1HasBeltA = pack1Commons.some(c => hasAspect(c, beltAAspects))
-    const pack1HasBeltB = pack1Commons.some(c => hasAspect(c, beltBAspects))
-    const pack2HasBeltA = pack2Commons.some(c => hasAspect(c, beltAAspects))
-    const pack2HasBeltB = pack2Commons.some(c => hasAspect(c, beltBAspects))
+    const pack1HasBeltA = pack1Commons.some((c: Card) => hasAspect(c, beltAAspects))
+    const pack1HasBeltB = pack1Commons.some((c: Card) => hasAspect(c, beltBAspects))
+    const pack2HasBeltA = pack2Commons.some((c: Card) => hasAspect(c, beltAAspects))
+    const pack2HasBeltB = pack2Commons.some((c: Card) => hasAspect(c, beltBAspects))
 
     assert(pack1HasBeltA && pack1HasBeltB, 'Pack 1 should have commons from both belts')
     assert(pack2HasBeltA && pack2HasBeltB, 'Pack 2 should have commons from both belts')
@@ -362,11 +380,11 @@ async function runTests() {
     const pack = generateBoosterPack(cards, 'SOR')
 
     // Check for duplicates by comparing both ID and foil status
-    const seen = new Map() // Map of card.id to array of {index, isFoil}
-    const duplicates = []
+    const seen = new Map<string, { index: number; isFoil: boolean }[]>() // Map of card.id to array of {index, isFoil}
+    const duplicates: string[] = []
 
     for (let i = 0; i < pack.cards.length; i++) {
-      const card = pack.cards[i]
+      const card = pack.cards[i] as Card
       const key = card.id
 
       if (!seen.has(key)) {
@@ -374,7 +392,7 @@ async function runTests() {
       }
 
       // Check if we've seen this card with the same foil status
-      const matchingCards = seen.get(key).filter(c => c.isFoil === card.isFoil)
+      const matchingCards = seen.get(key)!.filter(c => c.isFoil === card.isFoil)
 
       if (matchingCards.length > 0) {
         // True duplicate found (same ID and same foil status)
@@ -382,7 +400,7 @@ async function runTests() {
         duplicates.push(`${card.name} (${card.id}) isFoil:${card.isFoil} at positions ${firstMatch.index} and ${i}`)
       }
 
-      seen.get(key).push({ index: i, isFoil: card.isFoil })
+      seen.get(key)!.push({ index: i, isFoil: card.isFoil || false })
     }
 
     assertEqual(duplicates.length, 0,
@@ -393,17 +411,17 @@ async function runTests() {
     clearBeltCache()
 
     let packsWithDuplicates = 0
-    const duplicateExamples = []
+    const duplicateExamples: string[] = []
 
     for (let packNum = 0; packNum < 100; packNum++) {
       const pack = generateBoosterPack(cards, 'SOR')
 
       // Check for duplicates by comparing both ID and foil status
-      const seen = new Map() // Map of card.id to array of {index, isFoil}
+      const seen = new Map<string, { index: number; isFoil: boolean }[]>() // Map of card.id to array of {index, isFoil}
       let hasDuplicate = false
 
       for (let j = 0; j < pack.cards.length; j++) {
-        const card = pack.cards[j]
+        const card = pack.cards[j] as Card
         const key = card.id
 
         if (!seen.has(key)) {
@@ -411,7 +429,7 @@ async function runTests() {
         }
 
         // Check if we've seen this card with the same foil status
-        const matchingCards = seen.get(key).filter(c => c.isFoil === card.isFoil)
+        const matchingCards = seen.get(key)!.filter(c => c.isFoil === card.isFoil)
 
         if (matchingCards.length > 0) {
           // True duplicate found (same ID and same foil status)
@@ -420,7 +438,7 @@ async function runTests() {
           if (duplicateExamples.length >= 5) break
         }
 
-        seen.get(key).push({ index: j, isFoil: card.isFoil })
+        seen.get(key)!.push({ index: j, isFoil: card.isFoil || false })
       }
 
       if (hasDuplicate) {
@@ -458,20 +476,20 @@ async function runTests() {
     clearBeltCache()
     const packCount = 500
     let foilMatchesCommon = 0
-    const matchExamples = []
+    const matchExamples: string[] = []
 
     for (let i = 0; i < packCount; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
-      const foil = pack.cards.find(c => c.isFoil)
+      const foil = pack.cards.find((c: Card) => c.isFoil)
       if (!foil) continue
 
       // Get the 9 non-foil commons in this pack
-      const packCommons = pack.cards.filter(c =>
+      const packCommons = pack.cards.filter((c: Card) =>
         c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil
       )
 
       // Check if foil matches ANY common in the pack (by ID)
-      const matchingCommon = packCommons.find(c => c.id === foil.id)
+      const matchingCommon = packCommons.find((c: Card) => c.id === foil.id)
       if (matchingCommon) {
         foilMatchesCommon++
         if (matchExamples.length < 5) {
@@ -485,11 +503,11 @@ async function runTests() {
     // Calculate expected rate:
     // Get actual card counts from the set for accurate calculation
     const allCards = getCachedCards('SOR')
-    const nonLeaderBase = allCards.filter(c => c.variantType === 'Normal' && !c.isLeader && !c.isBase)
-    const uniqueCommons = nonLeaderBase.filter(c => c.rarity === 'Common').length
-    const uniqueUncommons = nonLeaderBase.filter(c => c.rarity === 'Uncommon').length
-    const uniqueRares = nonLeaderBase.filter(c => c.rarity === 'Rare').length
-    const uniqueLegendaries = nonLeaderBase.filter(c => c.rarity === 'Legendary').length
+    const nonLeaderBase = allCards.filter((c: Card) => c.variantType === 'Normal' && !c.isLeader && !c.isBase)
+    const uniqueCommons = nonLeaderBase.filter((c: Card) => c.rarity === 'Common').length
+    const uniqueUncommons = nonLeaderBase.filter((c: Card) => c.rarity === 'Uncommon').length
+    const uniqueRares = nonLeaderBase.filter((c: Card) => c.rarity === 'Rare').length
+    const uniqueLegendaries = nonLeaderBase.filter((c: Card) => c.rarity === 'Legendary').length
 
     // Foil belt weights
     const totalWeight = 54 * uniqueCommons + 18 * uniqueUncommons + 6 * uniqueRares + 1 * uniqueLegendaries
@@ -531,14 +549,14 @@ async function runTests() {
     clearBeltCache()
     const packCount = 500
     let pairsFound = 0
-    const pairExamples = []
+    const pairExamples: string[] = []
 
     for (let i = 0; i < packCount; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
-      const foil = pack.cards.find(c => c.isFoil)
+      const foil = pack.cards.find((c: Card) => c.isFoil)
       if (!foil) continue
 
-      const nonFoilMatch = pack.cards.find(c => c.id === foil.id && !c.isFoil)
+      const nonFoilMatch = pack.cards.find((c: Card) => c.id === foil.id && !c.isFoil)
       if (nonFoilMatch) {
         pairsFound++
         if (pairExamples.length < 5) {
@@ -586,18 +604,18 @@ async function runTests() {
     const podCount = 100
     let podsWithPairs = 0
     let totalPairs = 0
-    const pairDetails = []
+    const pairDetails: string[] = []
 
     for (let p = 0; p < podCount; p++) {
       const packs = generateSealedPod(cards, 'SOR', 6)
-      const allCards = packs.flatMap(pack => pack.cards)
-      const foils = allCards.filter(c => c.isFoil)
-      const nonFoils = allCards.filter(c => !c.isFoil)
+      const allCards = packs.flatMap((pack: Pack) => pack.cards)
+      const foils = allCards.filter((c: Card) => c.isFoil)
+      const nonFoils = allCards.filter((c: Card) => !c.isFoil)
 
       let pairsInPod = 0
-      const pairNames = []
-      foils.forEach(foil => {
-        const match = nonFoils.find(c => c.id === foil.id)
+      const pairNames: string[] = []
+      foils.forEach((foil: Card) => {
+        const match = nonFoils.find((c: Card) => c.id === foil.id)
         if (match) {
           pairsInPod++
           pairNames.push(foil.name)
@@ -663,7 +681,7 @@ async function runTests() {
 
     for (let i = 0; i < packCount; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
-      const leader = pack.cards.find(c => c.isLeader)
+      const leader = pack.cards.find((c: Card) => c.isLeader)
       if (leader.isHyperspace) {
         hyperspaceLeaderCount++
       }
@@ -684,7 +702,7 @@ async function runTests() {
 
     for (let i = 0; i < packCount; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
-      const base = pack.cards.find(c => c.isBase)
+      const base = pack.cards.find((c: Card) => c.isBase)
       if (base.isHyperspace) {
         hyperspaceBaseCount++
       }
@@ -704,7 +722,7 @@ async function runTests() {
 
     for (let i = 0; i < packCount; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
-      const foil = pack.cards.find(c => c.isFoil)
+      const foil = pack.cards.find((c: Card) => c.isFoil)
       if (foil.isHyperspace) {
         hyperfoilCount++
       }
@@ -724,7 +742,7 @@ async function runTests() {
 
     for (let i = 0; i < packCount; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
-      const hsCommon = pack.cards.find(c =>
+      const hsCommon = pack.cards.find((c: Card) =>
         c.rarity === 'Common' && !c.isLeader && !c.isBase && c.isHyperspace
       )
       if (hsCommon) {
@@ -744,7 +762,7 @@ async function runTests() {
     // Generate many packs to ensure we hit some upgrades
     for (let i = 0; i < 50; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
-      pack.cards.forEach(card => {
+      pack.cards.forEach((card: Card) => {
         assert(
           card.set === 'SOR',
           `All cards should be from SOR, found ${card.set}`
@@ -761,7 +779,7 @@ async function runTests() {
 
     for (let i = 0; i < 500 && !showcaseFound; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
-      const leader = pack.cards.find(c => c.isLeader)
+      const leader = pack.cards.find((c: Card) => c.isLeader)
       if (leader.variantType === 'Showcase') {
         showcaseFound = true
         assert(leader.isLeader, 'Showcase card should be a leader')
@@ -789,20 +807,20 @@ async function runTests() {
 
     const podCount = 100
     let podsWithViolation = 0
-    const violationExamples = []
+    const violationExamples: string[] = []
 
     for (let i = 0; i < podCount; i++) {
       const pod = generateSealedPod(cards, 'SOR', 6)
 
       // Collect all leaders in the pod
-      const leaders = []
-      pod.forEach(pack => {
-        const leader = pack.cards.find(c => c.isLeader)
+      const leaders: Card[] = []
+      pod.forEach((pack: Pack) => {
+        const leader = pack.cards.find((c: Card) => c.isLeader)
         if (leader) leaders.push(leader)
       })
 
       // Check for same leader appearing as both HS and Normal
-      const leadersByName = {}
+      const leadersByName: Record<string, Card[]> = {}
       for (const leader of leaders) {
         if (!leadersByName[leader.name]) {
           leadersByName[leader.name] = []
@@ -875,18 +893,18 @@ async function runTests() {
     clearBeltCache()
     const packCount = 500
     let matchesFound = 0
-    const matchExamples = []
+    const matchExamples: string[] = []
 
     for (let i = 0; i < packCount; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
 
       // Find hyperspace commons (non-leader, non-base, non-foil)
-      const hsCommons = pack.cards.filter(c =>
+      const hsCommons = pack.cards.filter((c: Card) =>
         c.isHyperspace && c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil
       )
 
       // Find normal commons
-      const normalCommons = pack.cards.filter(c =>
+      const normalCommons = pack.cards.filter((c: Card) =>
         !c.isHyperspace && c.rarity === 'Common' && !c.isLeader && !c.isBase && !c.isFoil
       )
 
@@ -896,7 +914,7 @@ async function runTests() {
         const baseId = hsCard.id.replace(/-HS$/, '')
         const normalId = hsCard.id.includes('-HS') ? baseId : hsCard.id
 
-        const matchingNormal = normalCommons.find(c => {
+        const matchingNormal = normalCommons.find((c: Card) => {
           const cBaseId = c.id.replace(/-HS$/, '')
           return cBaseId === baseId || c.id === normalId || c.name === hsCard.name
         })
@@ -950,17 +968,17 @@ async function runTests() {
     clearBeltCache()
     const packCount = 500
     let matchesFound = 0
-    const matchExamples = []
+    const matchExamples: string[] = []
 
     for (let i = 0; i < packCount; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
 
       // Find hyperspace foil
-      const hsFoil = pack.cards.find(c => c.isFoil && c.isHyperspace)
+      const hsFoil = pack.cards.find((c: Card) => c.isFoil && c.isHyperspace)
       if (!hsFoil) continue
 
       // Check if non-foil version exists in pack
-      const nonFoilMatch = pack.cards.find(c =>
+      const nonFoilMatch = pack.cards.find((c: Card) =>
         !c.isFoil && (c.id === hsFoil.id || c.name === hsFoil.name)
       )
 
@@ -1017,17 +1035,17 @@ async function runTests() {
     clearBeltCache()
     const packCount = 500
     let pairsFound = 0
-    const pairExamples = []
+    const pairExamples: string[] = []
 
     for (let i = 0; i < packCount; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
 
       // Find all hyperspace cards (non-foil, as foils use different upgrade path)
-      const hsCards = pack.cards.filter(c => c.isHyperspace && !c.isFoil)
+      const hsCards = pack.cards.filter((c: Card) => c.isHyperspace && !c.isFoil)
 
       for (const hsCard of hsCards) {
         // Look for normal variant with same name
-        const normalVariant = pack.cards.find(c =>
+        const normalVariant = pack.cards.find((c: Card) =>
           c.variantType === 'Normal' &&
           c.name === hsCard.name &&
           !c.isFoil
@@ -1082,12 +1100,12 @@ async function runTests() {
 
     const packCount = 1000
     let hyperspaceFoilFound = 0
-    const examples = []
+    const examples: string[] = []
 
     for (let i = 0; i < packCount; i++) {
       const pack = generateBoosterPack(cards, 'SOR')
 
-      for (const card of pack.cards) {
+      for (const card of pack.cards as Card[]) {
         if (card.variantType === 'Hyperspace Foil') {
           hyperspaceFoilFound++
           if (examples.length < 5) {

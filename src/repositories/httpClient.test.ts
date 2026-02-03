@@ -1,22 +1,23 @@
+// @ts-nocheck
 import { describe, it, beforeEach, afterEach, mock } from 'node:test'
 import assert from 'node:assert'
 
 // Mock fetch for testing
-let originalFetch
-let mockFetchResponse
+let originalFetch: typeof globalThis.fetch | undefined
+let mockFetchResponse: any
 
-function mockFetch(response) {
+function mockFetch(response: any): void {
   mockFetchResponse = response
-  global.fetch = mock.fn(async () => mockFetchResponse)
+  ;(global as any).fetch = mock.fn(async () => mockFetchResponse)
 }
 
 describe('httpClient', () => {
   beforeEach(() => {
-    originalFetch = global.fetch
+    originalFetch = (global as any).fetch
   })
 
   afterEach(() => {
-    global.fetch = originalFetch
+    (global as any).fetch = originalFetch
   })
 
   describe('request basics', () => {
@@ -31,9 +32,9 @@ describe('httpClient', () => {
       const result = await httpClient.get('/test')
 
       assert.deepStrictEqual(result, { id: 1 })
-      assert.strictEqual(global.fetch.mock.calls.length, 1)
+      assert.strictEqual((global as any).fetch.mock.calls.length, 1)
 
-      const [url, options] = global.fetch.mock.calls[0].arguments
+      const [url, options] = (global as any).fetch.mock.calls[0].arguments
       assert.strictEqual(url, '/api/test')
       assert.strictEqual(options.method, 'GET')
       assert.strictEqual(options.credentials, 'include')
@@ -50,7 +51,7 @@ describe('httpClient', () => {
 
       assert.deepStrictEqual(result, { success: true })
 
-      const [, options] = global.fetch.mock.calls[0].arguments
+      const [, options] = (global as any).fetch.mock.calls[0].arguments
       assert.strictEqual(options.method, 'POST')
       assert.strictEqual(options.headers['Content-Type'], 'application/json')
       assert.strictEqual(options.body, '{"foo":"bar"}')
@@ -65,7 +66,7 @@ describe('httpClient', () => {
       const { httpClient } = await import('./httpClient.js')
       await httpClient.put('/test/1', { name: 'updated' })
 
-      const [, options] = global.fetch.mock.calls[0].arguments
+      const [, options] = (global as any).fetch.mock.calls[0].arguments
       assert.strictEqual(options.method, 'PUT')
     })
 
@@ -78,7 +79,7 @@ describe('httpClient', () => {
       const { httpClient } = await import('./httpClient.js')
       await httpClient.patch('/test/1', { field: 'value' })
 
-      const [, options] = global.fetch.mock.calls[0].arguments
+      const [, options] = (global as any).fetch.mock.calls[0].arguments
       assert.strictEqual(options.method, 'PATCH')
     })
 
@@ -91,7 +92,7 @@ describe('httpClient', () => {
       const { httpClient } = await import('./httpClient.js')
       await httpClient.delete('/test/1')
 
-      const [, options] = global.fetch.mock.calls[0].arguments
+      const [, options] = (global as any).fetch.mock.calls[0].arguments
       assert.strictEqual(options.method, 'DELETE')
     })
   })
@@ -146,7 +147,7 @@ describe('httpClient', () => {
 
       await assert.rejects(
         () => httpClient.get('/test'),
-        (err) => {
+        (err: any) => {
           assert(err instanceof HttpError)
           assert.strictEqual(err.message, 'Not found')
           assert.strictEqual(err.status, 404)
@@ -167,7 +168,7 @@ describe('httpClient', () => {
 
       await assert.rejects(
         () => httpClient.get('/test'),
-        (err) => {
+        (err: any) => {
           assert(err instanceof HttpError)
           assert.strictEqual(err.message, 'Internal Server Error')
           assert.strictEqual(err.status, 500)
@@ -187,7 +188,7 @@ describe('httpClient', () => {
 
       await assert.rejects(
         () => httpClient.post('/test', {}),
-        (err) => {
+        (err: any) => {
           assert(err instanceof HttpError)
           assert.deepStrictEqual(err.data, { message: 'Validation failed', errors: ['field required'] })
           return true
@@ -206,7 +207,7 @@ describe('httpClient', () => {
       const { httpClient } = await import('./httpClient.js')
       await httpClient.get('/draft/abc123')
 
-      const [url] = global.fetch.mock.calls[0].arguments
+      const [url] = (global as any).fetch.mock.calls[0].arguments
       assert.strictEqual(url, '/api/draft/abc123')
     })
 
@@ -219,7 +220,7 @@ describe('httpClient', () => {
       const { httpClient } = await import('./httpClient.js')
       await httpClient.get('https://external.api/endpoint')
 
-      const [url] = global.fetch.mock.calls[0].arguments
+      const [url] = (global as any).fetch.mock.calls[0].arguments
       assert.strictEqual(url, 'https://external.api/endpoint')
     })
   })

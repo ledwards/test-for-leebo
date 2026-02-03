@@ -1,34 +1,35 @@
+// @ts-nocheck
 import { describe, it, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert'
 
 describe('useLocalStorage', () => {
-  let originalWindow
+  let originalWindow: typeof globalThis.window | undefined
 
   beforeEach(() => {
-    originalWindow = global.window
+    originalWindow = (global as any).window
   })
 
   afterEach(() => {
-    global.window = originalWindow
+    (global as any).window = originalWindow
   })
 
   describe('SSR safety', () => {
     it('storage.get returns fallback when window undefined', async () => {
-      global.window = undefined
+      (global as any).window = undefined
       const { storage } = await import('./useLocalStorage.js')
       const result = storage.get('any-key', 'fallback')
       assert.strictEqual(result, 'fallback')
     })
 
     it('storage.set returns false when window undefined', async () => {
-      global.window = undefined
+      (global as any).window = undefined
       const { storage } = await import('./useLocalStorage.js')
       const result = storage.set('any-key', 'value')
       assert.strictEqual(result, false)
     })
 
     it('storage.remove does not throw when window undefined', async () => {
-      global.window = undefined
+      (global as any).window = undefined
       const { storage } = await import('./useLocalStorage.js')
       // Should not throw
       storage.remove('any-key')

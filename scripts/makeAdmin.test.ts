@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Tests for makeAdmin.js CLI script
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
@@ -21,7 +22,7 @@ describe('makeAdmin CLI script', () => {
     })
 
     it('should show usage when no arguments provided', () => {
-      const args = []
+      const args: string[] = []
       const showUsage = args.length === 0
 
       assert.strictEqual(showUsage, true)

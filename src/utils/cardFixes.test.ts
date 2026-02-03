@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Tests for runtime card fixes
  * Verifies that fixes are applied correctly when card data is loaded
@@ -9,13 +10,22 @@ console.log('='.repeat(60))
 console.log('Testing Runtime Card Fixes')
 console.log('='.repeat(60))
 
+interface CardData {
+  cards: any[]
+  metadata: {
+    version?: string
+    processedAt?: string
+    fixesAppliedAtRuntime?: number
+  }
+}
+
 /**
  * Test 1: Basic fix application
  */
-function testBasicFixApplication() {
+function testBasicFixApplication(): boolean {
   console.log('\n[Test 1] Basic fix application')
 
-  const testData = {
+  const testData: CardData = {
     cards: [
       {
         id: 'TEST-001',
@@ -53,7 +63,7 @@ function testBasicFixApplication() {
   }
 
   // Verify original data wasn't mutated
-  if (testData.cards[0].mutated) {
+  if ((testData.cards[0] as any).mutated) {
     console.error('  ❌ Original data was mutated')
     return false
   }
@@ -73,10 +83,10 @@ function testBasicFixApplication() {
 /**
  * Test 2: Handle empty data
  */
-function testEmptyData() {
+function testEmptyData(): boolean {
   console.log('\n[Test 2] Handle empty data')
 
-  const emptyData = { cards: [], metadata: {} }
+  const emptyData: CardData = { cards: [], metadata: {} }
   const result = applyCardFixes(emptyData)
 
   if (result.cards.length !== 0) {
@@ -91,7 +101,7 @@ function testEmptyData() {
 /**
  * Test 3: Handle array format (backward compatibility)
  */
-function testArrayFormat() {
+function testArrayFormat(): boolean {
   console.log('\n[Test 3] Handle array format')
 
   // Include variantType so cards aren't filtered by custom transforms
@@ -100,7 +110,7 @@ function testArrayFormat() {
     { id: 'TEST-002', name: 'Test 2', set: 'TEST', type: 'Unit', variantType: 'Normal' },
   ]
 
-  const result = applyCardFixes(arrayData)
+  const result = applyCardFixes(arrayData as any)
 
   if (!result.cards || result.cards.length !== 2) {
     console.error('  ❌ Should convert array to object format')
@@ -114,10 +124,10 @@ function testArrayFormat() {
 /**
  * Test 4: Batch fix simulation
  */
-function testBatchFixes() {
+function testBatchFixes(): boolean {
   console.log('\n[Test 4] Batch fixes (checking if batch fixes run)')
 
-  const testData = {
+  const testData: CardData = {
     cards: [
       {
         id: 'TEST-001',
@@ -140,7 +150,7 @@ function testBatchFixes() {
   const result = applyCardFixes(testData)
 
   // Check if Hyperspace card got fixed (if batch fix is active)
-  const hyperspaceCard = result.cards.find(c => c.id === 'TEST-001')
+  const hyperspaceCard = result.cards.find((c: any) => c.id === 'TEST-001')
 
   if (hyperspaceCard.variantType === 'Hyperspace') {
     console.log(`  ℹ Hyperspace card isHyperspace: ${hyperspaceCard.isHyperspace}`)
@@ -153,7 +163,7 @@ function testBatchFixes() {
 /**
  * Test 5: Get fix stats
  */
-function testFixStats() {
+function testFixStats(): boolean {
   console.log('\n[Test 5] Get fix statistics')
 
   const stats = getFixStats()
@@ -173,11 +183,11 @@ function testFixStats() {
 /**
  * Test 6: No data mutation
  */
-function testNoMutation() {
+function testNoMutation(): boolean {
   console.log('\n[Test 6] Original data is not mutated')
 
   // Include variantType so card isn't filtered by custom transforms
-  const originalData = {
+  const originalData: CardData = {
     cards: [
       { id: 'TEST-001', name: 'Test Card', set: 'TEST', type: 'Unit', variantType: 'Normal', value: 100 }
     ],
@@ -194,7 +204,7 @@ function testNoMutation() {
   result.cards[0].value = 999
 
   // Check original is unchanged
-  if (originalData.cards[0].value !== 100) {
+  if ((originalData.cards[0] as any).value !== 100) {
     console.error('  ❌ Original data was mutated')
     return false
   }
@@ -212,7 +222,7 @@ function testNoMutation() {
 /**
  * Run all tests
  */
-function runTests() {
+function runTests(): void {
   const tests = [
     { name: 'Basic fix application', fn: testBasicFixApplication },
     { name: 'Empty data handling', fn: testEmptyData },
@@ -231,7 +241,7 @@ function runTests() {
       // Count console.log statements with checkmarks as assertions
       const originalLog = console.log
       let assertionCount = 0
-      console.log = function(...args) {
+      console.log = function(...args: any[]): void {
         const msg = args.join(' ')
         if (msg.includes('✓')) {
           assertionCount++
@@ -249,7 +259,7 @@ function runTests() {
         failed++
       }
     } catch (error) {
-      console.error(`  ❌ Test threw error: ${error.message}`)
+      console.error(`  ❌ Test threw error: ${(error as Error).message}`)
       failed++
     }
   })

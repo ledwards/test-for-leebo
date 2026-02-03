@@ -1,18 +1,57 @@
+// @ts-nocheck
 /**
  * Card Data Count Validation Tests
  *
  * Validates exact counts of cards by treatment type, card type, rarity, and aspect.
  * These tests use hardcoded expected values to catch data import issues.
  *
- * Run with: node src/data/cardCounts.test.js
+ * Run with: npx tsx src/data/cardCounts.test.ts
  *
  * ============================================================================
  * EXPECTED VALUES - EDIT THESE TO VALIDATE AGAINST EXTERNAL SOURCES
  * ============================================================================
  */
 
+interface ExpectedCounts {
+  totalNormal: number
+  totalHyperspace: number
+  totalFoil: number
+  totalHyperspaceFoil: number
+  totalShowcase: number
+  commons: number
+  uncommons: number
+  rares: number
+  legendaries: number
+  commonLeaders: number
+  rareLeaders: number
+  totalLeaders: number
+  commonBases: number
+  rareBases: number
+  totalBases: number
+  units: number
+  groundUnits: number
+  spaceUnits: number
+  upgrades: number
+  events: number
+  vigilanceSingle: number
+  commandSingle: number
+  aggressionSingle: number
+  cunningSingle: number
+  heroismSingle: number
+  villainySingle: number
+  neutral: number
+  vigilanceVillainy: number
+  vigilanceHeroism: number
+  commandVillainy: number
+  commandHeroism: number
+  aggressionVillainy: number
+  aggressionHeroism: number
+  cunningVillainy: number
+  cunningHeroism: number
+}
+
 // Expected card counts per set - EDIT THESE VALUES TO VALIDATE
-const EXPECTED = {
+const EXPECTED: Record<string, ExpectedCounts> = {
   SOR: {
     // Treatment totals
     totalNormal: 252,
@@ -294,47 +333,47 @@ import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
 let passed = 0
 let failed = 0
 
-function test(name, fn) {
+function test(name: string, fn: () => void): void {
   try {
     fn()
     console.log(`\x1b[32m✅ ${name}\x1b[0m`)
     passed++
   } catch (e) {
     console.log(`\x1b[31m❌ ${name}\x1b[0m`)
-    console.log(`\x1b[33m   ${e.message}\x1b[0m`)
+    console.log(`\x1b[33m   ${(e as Error).message}\x1b[0m`)
     failed++
   }
 }
 
-function assertEqual(actual, expected, message) {
+function assertEqual(actual: number, expected: number, message?: string): void {
   if (actual !== expected) {
     throw new Error(message || `Expected ${expected}, got ${actual}`)
   }
 }
 
-function hasAspect(card, aspect) {
+function hasAspect(card: any, aspect: string): boolean {
   return (card.aspects || []).includes(aspect)
 }
 
-function hasDualAspect(card, aspect1, aspect2) {
+function hasDualAspect(card: any, aspect1: string, aspect2: string): boolean {
   const aspects = card.aspects || []
   return aspects.includes(aspect1) && aspects.includes(aspect2)
 }
 
-function hasSingleAspect(card, aspect) {
+function hasSingleAspect(card: any, aspect: string): boolean {
   const aspects = card.aspects || []
   return aspects.length === 1 && aspects[0] === aspect
 }
 
-function isNeutral(card) {
+function isNeutral(card: any): boolean {
   return !card.aspects || card.aspects.length === 0
 }
 
-function isDraftable(card) {
+function isDraftable(card: any): boolean {
   return card.type !== 'Leader' && card.type !== 'Base'
 }
 
-async function runTests() {
+async function runTests(): Promise<void> {
   console.log('\x1b[36m🔄 Initializing card cache...\x1b[0m')
   await initializeCardCache()
 
@@ -347,7 +386,7 @@ async function runTests() {
     console.log(`\x1b[36m=== ${setCode} ===\x1b[0m`)
 
     const cards = getCachedCards(setCode)
-    const normal = cards.filter(c => c.variantType === 'Normal')
+    const normal = cards.filter((c: any) => c.variantType === 'Normal')
     const draftable = normal.filter(isDraftable)
 
     // Treatment totals
@@ -355,89 +394,89 @@ async function runTests() {
       assertEqual(normal.length, expected.totalNormal)
     })
     test(`${setCode}: Total Hyperspace = ${expected.totalHyperspace}`, () => {
-      assertEqual(cards.filter(c => c.variantType === 'Hyperspace').length, expected.totalHyperspace)
+      assertEqual(cards.filter((c: any) => c.variantType === 'Hyperspace').length, expected.totalHyperspace)
     })
     test(`${setCode}: Total Foil = ${expected.totalFoil}`, () => {
-      assertEqual(cards.filter(c => c.variantType === 'Foil').length, expected.totalFoil)
+      assertEqual(cards.filter((c: any) => c.variantType === 'Foil').length, expected.totalFoil)
     })
     test(`${setCode}: Total Showcase = ${expected.totalShowcase}`, () => {
-      assertEqual(cards.filter(c => c.variantType === 'Showcase').length, expected.totalShowcase)
+      assertEqual(cards.filter((c: any) => c.variantType === 'Showcase').length, expected.totalShowcase)
     })
 
     // Rarity counts (excluding Leaders and Bases)
     test(`${setCode}: Commons (excl L/B) = ${expected.commons}`, () => {
-      assertEqual(draftable.filter(c => c.rarity === 'Common').length, expected.commons)
+      assertEqual(draftable.filter((c: any) => c.rarity === 'Common').length, expected.commons)
     })
     test(`${setCode}: Uncommons (excl L/B) = ${expected.uncommons}`, () => {
-      assertEqual(draftable.filter(c => c.rarity === 'Uncommon').length, expected.uncommons)
+      assertEqual(draftable.filter((c: any) => c.rarity === 'Uncommon').length, expected.uncommons)
     })
     test(`${setCode}: Rares (excl L/B) = ${expected.rares}`, () => {
-      assertEqual(draftable.filter(c => c.rarity === 'Rare').length, expected.rares)
+      assertEqual(draftable.filter((c: any) => c.rarity === 'Rare').length, expected.rares)
     })
     test(`${setCode}: Legendaries (excl L/B) = ${expected.legendaries}`, () => {
-      assertEqual(draftable.filter(c => c.rarity === 'Legendary').length, expected.legendaries)
+      assertEqual(draftable.filter((c: any) => c.rarity === 'Legendary').length, expected.legendaries)
     })
 
     // Leader counts
-    const leaders = normal.filter(c => c.type === 'Leader')
+    const leaders = normal.filter((c: any) => c.type === 'Leader')
     test(`${setCode}: Total Leaders = ${expected.totalLeaders}`, () => {
       assertEqual(leaders.length, expected.totalLeaders)
     })
     test(`${setCode}: Common Leaders = ${expected.commonLeaders}`, () => {
-      assertEqual(leaders.filter(c => c.rarity === 'Common').length, expected.commonLeaders)
+      assertEqual(leaders.filter((c: any) => c.rarity === 'Common').length, expected.commonLeaders)
     })
     test(`${setCode}: Rare Leaders = ${expected.rareLeaders}`, () => {
-      assertEqual(leaders.filter(c => c.rarity === 'Rare').length, expected.rareLeaders)
+      assertEqual(leaders.filter((c: any) => c.rarity === 'Rare').length, expected.rareLeaders)
     })
 
     // Base counts
-    const bases = normal.filter(c => c.type === 'Base')
+    const bases = normal.filter((c: any) => c.type === 'Base')
     test(`${setCode}: Total Bases = ${expected.totalBases}`, () => {
       assertEqual(bases.length, expected.totalBases)
     })
     test(`${setCode}: Common Bases = ${expected.commonBases}`, () => {
-      assertEqual(bases.filter(c => c.rarity === 'Common').length, expected.commonBases)
+      assertEqual(bases.filter((c: any) => c.rarity === 'Common').length, expected.commonBases)
     })
     test(`${setCode}: Rare Bases = ${expected.rareBases}`, () => {
-      assertEqual(bases.filter(c => c.rarity === 'Rare').length, expected.rareBases)
+      assertEqual(bases.filter((c: any) => c.rarity === 'Rare').length, expected.rareBases)
     })
 
     // Card type counts (Normal treatment)
-    const units = normal.filter(c => c.type === 'Unit')
+    const units = normal.filter((c: any) => c.type === 'Unit')
     test(`${setCode}: Units = ${expected.units}`, () => {
       assertEqual(units.length, expected.units)
     })
     test(`${setCode}: Ground Units = ${expected.groundUnits}`, () => {
-      assertEqual(units.filter(c => c.arenas && c.arenas.includes('Ground')).length, expected.groundUnits)
+      assertEqual(units.filter((c: any) => c.arenas && c.arenas.includes('Ground')).length, expected.groundUnits)
     })
     test(`${setCode}: Space Units = ${expected.spaceUnits}`, () => {
-      assertEqual(units.filter(c => c.arenas && c.arenas.includes('Space')).length, expected.spaceUnits)
+      assertEqual(units.filter((c: any) => c.arenas && c.arenas.includes('Space')).length, expected.spaceUnits)
     })
     test(`${setCode}: Upgrades = ${expected.upgrades}`, () => {
-      assertEqual(normal.filter(c => c.type === 'Upgrade').length, expected.upgrades)
+      assertEqual(normal.filter((c: any) => c.type === 'Upgrade').length, expected.upgrades)
     })
     test(`${setCode}: Events = ${expected.events}`, () => {
-      assertEqual(normal.filter(c => c.type === 'Event').length, expected.events)
+      assertEqual(normal.filter((c: any) => c.type === 'Event').length, expected.events)
     })
 
     // Single aspect counts (Normal, draftable cards only)
     test(`${setCode}: Vigilance (single) = ${expected.vigilanceSingle}`, () => {
-      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Vigilance')).length, expected.vigilanceSingle)
+      assertEqual(draftable.filter((c: any) => hasSingleAspect(c, 'Vigilance')).length, expected.vigilanceSingle)
     })
     test(`${setCode}: Command (single) = ${expected.commandSingle}`, () => {
-      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Command')).length, expected.commandSingle)
+      assertEqual(draftable.filter((c: any) => hasSingleAspect(c, 'Command')).length, expected.commandSingle)
     })
     test(`${setCode}: Aggression (single) = ${expected.aggressionSingle}`, () => {
-      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Aggression')).length, expected.aggressionSingle)
+      assertEqual(draftable.filter((c: any) => hasSingleAspect(c, 'Aggression')).length, expected.aggressionSingle)
     })
     test(`${setCode}: Cunning (single) = ${expected.cunningSingle}`, () => {
-      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Cunning')).length, expected.cunningSingle)
+      assertEqual(draftable.filter((c: any) => hasSingleAspect(c, 'Cunning')).length, expected.cunningSingle)
     })
     test(`${setCode}: Heroism (single) = ${expected.heroismSingle}`, () => {
-      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Heroism')).length, expected.heroismSingle)
+      assertEqual(draftable.filter((c: any) => hasSingleAspect(c, 'Heroism')).length, expected.heroismSingle)
     })
     test(`${setCode}: Villainy (single) = ${expected.villainySingle}`, () => {
-      assertEqual(draftable.filter(c => hasSingleAspect(c, 'Villainy')).length, expected.villainySingle)
+      assertEqual(draftable.filter((c: any) => hasSingleAspect(c, 'Villainy')).length, expected.villainySingle)
     })
     test(`${setCode}: Neutral = ${expected.neutral}`, () => {
       assertEqual(draftable.filter(isNeutral).length, expected.neutral)
@@ -445,28 +484,28 @@ async function runTests() {
 
     // Dual aspect counts (Normal, draftable cards only)
     test(`${setCode}: Vigilance/Villainy = ${expected.vigilanceVillainy}`, () => {
-      assertEqual(draftable.filter(c => hasDualAspect(c, 'Vigilance', 'Villainy')).length, expected.vigilanceVillainy)
+      assertEqual(draftable.filter((c: any) => hasDualAspect(c, 'Vigilance', 'Villainy')).length, expected.vigilanceVillainy)
     })
     test(`${setCode}: Vigilance/Heroism = ${expected.vigilanceHeroism}`, () => {
-      assertEqual(draftable.filter(c => hasDualAspect(c, 'Vigilance', 'Heroism')).length, expected.vigilanceHeroism)
+      assertEqual(draftable.filter((c: any) => hasDualAspect(c, 'Vigilance', 'Heroism')).length, expected.vigilanceHeroism)
     })
     test(`${setCode}: Command/Villainy = ${expected.commandVillainy}`, () => {
-      assertEqual(draftable.filter(c => hasDualAspect(c, 'Command', 'Villainy')).length, expected.commandVillainy)
+      assertEqual(draftable.filter((c: any) => hasDualAspect(c, 'Command', 'Villainy')).length, expected.commandVillainy)
     })
     test(`${setCode}: Command/Heroism = ${expected.commandHeroism}`, () => {
-      assertEqual(draftable.filter(c => hasDualAspect(c, 'Command', 'Heroism')).length, expected.commandHeroism)
+      assertEqual(draftable.filter((c: any) => hasDualAspect(c, 'Command', 'Heroism')).length, expected.commandHeroism)
     })
     test(`${setCode}: Aggression/Villainy = ${expected.aggressionVillainy}`, () => {
-      assertEqual(draftable.filter(c => hasDualAspect(c, 'Aggression', 'Villainy')).length, expected.aggressionVillainy)
+      assertEqual(draftable.filter((c: any) => hasDualAspect(c, 'Aggression', 'Villainy')).length, expected.aggressionVillainy)
     })
     test(`${setCode}: Aggression/Heroism = ${expected.aggressionHeroism}`, () => {
-      assertEqual(draftable.filter(c => hasDualAspect(c, 'Aggression', 'Heroism')).length, expected.aggressionHeroism)
+      assertEqual(draftable.filter((c: any) => hasDualAspect(c, 'Aggression', 'Heroism')).length, expected.aggressionHeroism)
     })
     test(`${setCode}: Cunning/Villainy = ${expected.cunningVillainy}`, () => {
-      assertEqual(draftable.filter(c => hasDualAspect(c, 'Cunning', 'Villainy')).length, expected.cunningVillainy)
+      assertEqual(draftable.filter((c: any) => hasDualAspect(c, 'Cunning', 'Villainy')).length, expected.cunningVillainy)
     })
     test(`${setCode}: Cunning/Heroism = ${expected.cunningHeroism}`, () => {
-      assertEqual(draftable.filter(c => hasDualAspect(c, 'Cunning', 'Heroism')).length, expected.cunningHeroism)
+      assertEqual(draftable.filter((c: any) => hasDualAspect(c, 'Cunning', 'Heroism')).length, expected.cunningHeroism)
     })
   }
 

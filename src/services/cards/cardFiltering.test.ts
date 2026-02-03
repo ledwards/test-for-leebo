@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import {
@@ -286,7 +287,7 @@ describe('cardFiltering', () => {
     it('returns all cards for empty search', () => {
       assert.strictEqual(filterByName(cards, '').length, 3)
       assert.strictEqual(filterByName(cards, '   ').length, 3)
-      assert.strictEqual(filterByName(cards, null).length, 3)
+      assert.strictEqual(filterByName(cards, null as any).length, 3)
     })
 
     it('handles cards without names', () => {
