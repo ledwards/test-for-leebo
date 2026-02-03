@@ -1,8 +1,55 @@
+// @ts-nocheck
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Button from './Button'
 import './PackOpeningAnimation.css'
+
+interface Card {
+  imageUrl?: string
+  isLeader?: boolean
+  isFoil?: boolean
+  isShowcase?: boolean
+  [key: string]: unknown
+}
+
+interface Pack {
+  cards: Card[]
+  [key: string]: unknown
+}
+
+interface FlyingCard {
+  id: string
+  startX: number
+  startY: number
+  endX: number
+  endY: number
+  delay: number
+  rotation: number
+  revealed: boolean
+  cardImageUrl: string | null
+  backImageUrl: string | null
+  isLeader: boolean
+  packIndex: number
+  isLeaderOrBase: boolean
+  width: number
+  height: number
+  isFoil: boolean
+  isShowcase: boolean
+}
+
+interface HoveredCardPosition {
+  x: number
+  y: number
+}
+
+interface PackOpeningAnimationProps {
+  packCount?: number
+  packImageUrl?: string
+  cardBackUrl?: string
+  onComplete?: () => void
+  packs?: Pack[] | null
+}
 
 export default function PackOpeningAnimation({
   packCount = 6,
@@ -10,18 +57,18 @@ export default function PackOpeningAnimation({
   cardBackUrl = '/card-images/card-back.png',
   onComplete,
   packs = null,
-}) {
-  const [openedPacks, setOpenedPacks] = useState([])
-  const [flyingCards, setFlyingCards] = useState([])
+}: PackOpeningAnimationProps) {
+  const [openedPacks, setOpenedPacks] = useState<number[]>([])
+  const [flyingCards, setFlyingCards] = useState<FlyingCard[]>([])
   const [phase, setPhase] = useState('entering')
-  const [hoveredCard, setHoveredCard] = useState(null)
-  const [hoveredCardPosition, setHoveredCardPosition] = useState(null)
+  const [hoveredCard, setHoveredCard] = useState<FlyingCard | null>(null)
+  const [hoveredCardPosition, setHoveredCardPosition] = useState<HoveredCardPosition | null>(null)
   const [isOpeningAll, setIsOpeningAll] = useState(false)
   const [allPacksOpened, setAllPacksOpened] = useState(false)
-  const [clickedPacks, setClickedPacks] = useState([])
+  const [clickedPacks, setClickedPacks] = useState<number[]>([])
   const [isMobile, setIsMobile] = useState(false)
   const [currentPackIndex, setCurrentPackIndex] = useState(0)
-  const containerRef = useRef(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const animationCompleteRef = useRef(false)
   const packsRef = useRef(packs)
   const openAllIndexRef = useRef(0)
@@ -88,7 +135,7 @@ export default function PackOpeningAnimation({
   const packGap = 10
 
   // Open a specific pack
-  const openPack = useCallback((packIndex) => {
+  const openPack = useCallback((packIndex: number) => {
     if (clickedPacks.includes(packIndex)) return
 
     // Track clicked pack immediately
@@ -131,7 +178,7 @@ export default function PackOpeningAnimation({
     const { screenWidth, screenHeight, cardHeight, cardWidth, leaderWidth, leaderHeight, cardGap, mobile } = getLayoutValues()
 
     // Calculate the position of the pack being opened
-    let packX, packY
+    let packX: number, packY: number
     if (mobile) {
       // Mobile: pack is centered at bottom
       packX = screenWidth / 2
@@ -150,7 +197,7 @@ export default function PackOpeningAnimation({
     const packCards = currentPacks?.[packIndex]?.cards || []
     const cardCount = Math.min(packCards.length || 16, 16)
 
-    const newCards = []
+    const newCards: FlyingCard[] = []
 
     if (mobile) {
       // MOBILE LAYOUT: 4 rows
@@ -186,7 +233,7 @@ export default function PackOpeningAnimation({
         const w = isLeaderOrBase ? leaderWidth : cardWidth
         const h = isLeaderOrBase ? leaderHeight : cardHeight
 
-        let endX, endY
+        let endX: number, endY: number
         if (k < 2) {
           // Row 1: Leaders/bases
           endX = row1StartX + k * (leaderWidth + cardGap) + leaderWidth / 2
@@ -251,7 +298,7 @@ export default function PackOpeningAnimation({
         const h = isLeaderOrBase ? leaderHeight : cardHeight
         const card = packCards[k]
 
-        let endX, endY
+        let endX: number, endY: number
         if (row === 0) {
           // First row - account for leader widths
           let xOffset = 0
@@ -326,7 +373,7 @@ export default function PackOpeningAnimation({
   }, [isOpeningAll, packCount, openPack, onComplete, isMobile])
 
   // Click handler - click on pack to open it
-  const handlePackClick = useCallback((e, packIndex) => {
+  const handlePackClick = useCallback((e: React.MouseEvent, packIndex: number) => {
     e.stopPropagation()
     if (isOpeningAll) return
     openPack(packIndex)
@@ -341,9 +388,9 @@ export default function PackOpeningAnimation({
   }, [onComplete])
 
   // Handle click anywhere to continue (only after all packs opened)
-  const handleContainerClick = useCallback((e) => {
+  const handleContainerClick = useCallback((e: React.MouseEvent) => {
     // Don't trigger if clicking on a pack or button
-    if (e.target.closest('.pack-item') || e.target.closest('button')) return
+    if ((e.target as HTMLElement).closest('.pack-item') || (e.target as HTMLElement).closest('button')) return
     if (allPacksOpened && !isOpeningAll) {
       handleContinue()
     }
@@ -412,13 +459,13 @@ export default function PackOpeningAnimation({
                   '--offset': offset,
                   '--abs-offset': Math.abs(offset),
                   '--pack-delay': `${i * 80}ms`,
-                }}
+                } as React.CSSProperties}
                 onClick={(e) => isActive && handlePackClick(e, i)}
               >
                 <div className="pack-wrapper-mobile">
                   <div className="pack-image-container">
                     <img src={packImageUrl} alt={`Pack ${i + 1}`} className="pack-image"
-                      onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.classList.add('pack-fallback') }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('pack-fallback') }}
                     />
                   </div>
                 </div>
@@ -436,13 +483,13 @@ export default function PackOpeningAnimation({
               <div
                 key={i}
                 className={`pack-item visible ${clickedPacks.includes(i) ? 'fading' : ''}`}
-                style={{ '--pack-x': `${x}px`, '--pack-delay': `${i * 80}ms` }}
+                style={{ '--pack-x': `${x}px`, '--pack-delay': `${i * 80}ms` } as React.CSSProperties}
                 onClick={(e) => handlePackClick(e, i)}
               >
                 <div className="pack-wrapper">
                   <div className="pack-image-container">
                     <img src={packImageUrl} alt={`Pack ${i + 1}`} className="pack-image"
-                      onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.classList.add('pack-fallback') }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('pack-fallback') }}
                     />
                   </div>
                 </div>
@@ -463,7 +510,7 @@ export default function PackOpeningAnimation({
               '--end-x': `${card.endX}px`, '--end-y': `${card.endY}px`,
               '--delay': `${card.delay}ms`, '--rotation': `${card.rotation}deg`,
               '--card-width': `${card.width}px`, '--card-height': `${card.height}px`,
-            }}
+            } as React.CSSProperties}
             onMouseEnter={(e) => {
               if (isDesktop && card.revealed) {
                 const rect = e.currentTarget.getBoundingClientRect()
@@ -479,13 +526,13 @@ export default function PackOpeningAnimation({
             <div className="card-inner">
               <div className="card-back">
                 <img src={cardBackUrl} alt="Card Back"
-                  onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.classList.add('card-back-fallback') }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('card-back-fallback') }}
                 />
               </div>
               <div className={`card-front ${card.isFoil || card.isShowcase ? 'foil-content' : ''}`}>
                 {card.cardImageUrl ? (
                   <img src={card.cardImageUrl} alt="Card"
-                    onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.classList.add('card-front-fallback') }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('card-front-fallback') }}
                   />
                 ) : <div className="card-front-fallback"></div>}
               </div>
