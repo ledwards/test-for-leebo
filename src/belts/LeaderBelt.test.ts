@@ -1,7 +1,8 @@
+// @ts-nocheck
 /**
  * LeaderBelt Tests
  *
- * Run with: node src/belts/LeaderBelt.test.js
+ * Run with: node src/belts/LeaderBelt.test.ts
  */
 
 import { LeaderBelt } from './LeaderBelt.js'
@@ -10,29 +11,29 @@ import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
 let passed = 0
 let failed = 0
 
-function test(name, fn) {
+function test(name: string, fn: () => void): void {
   try {
     fn()
     console.log(`\x1b[32m✅ ${name}\x1b[0m`)
     passed++
   } catch (e) {
     console.log(`\x1b[31m❌ ${name}\x1b[0m`)
-    console.log(`\x1b[33m   ${e.message}\x1b[0m`)
+    console.log(`\x1b[33m   ${(e as Error).message}\x1b[0m`)
     failed++
   }
 }
 
-function assert(condition, message) {
+function assert(condition: boolean, message?: string): asserts condition {
   if (!condition) throw new Error(message || 'Assertion failed')
 }
 
-function assertEqual(actual, expected, message) {
+function assertEqual<T>(actual: T, expected: T, message?: string): void {
   if (actual !== expected) {
     throw new Error(message || `Expected ${expected}, got ${actual}`)
   }
 }
 
-async function runTests() {
+async function runTests(): Promise<void> {
   console.log('\x1b[36m🔄 Initializing card cache...\x1b[0m')
   await initializeCardCache()
   console.log('')
@@ -121,7 +122,7 @@ async function runTests() {
     const belt = new LeaderBelt('SOR')
 
     // Sample 600 cards (should give ~100 rares)
-    const counts = { Common: 0, Rare: 0 }
+    const counts: Record<string, number> = { Common: 0, Rare: 0 }
     for (let i = 0; i < 600; i++) {
       const card = belt.next()
       counts[card.rarity] = (counts[card.rarity] || 0) + 1
@@ -145,7 +146,7 @@ async function runTests() {
     const belt = new LeaderBelt('SOR')
 
     // Check first 100 cards for immediately adjacent duplicates
-    const sample = []
+    const sample: Array<{ name: string }> = []
     for (let i = 0; i < 100; i++) {
       sample.push(belt.next())
     }
@@ -163,7 +164,7 @@ async function runTests() {
 
   test('different belt instances start at different positions', () => {
     // Create multiple belts and check their first card varies
-    const firstCards = new Set()
+    const firstCards = new Set<string>()
     for (let i = 0; i < 10; i++) {
       const belt = new LeaderBelt('SOR')
       firstCards.add(belt.next().name)
@@ -179,8 +180,8 @@ async function runTests() {
 
     // Draw one full cycle worth of commons (accounting for rares)
     // We need to track common leaders specifically
-    const commonsSeen = new Set()
-    const commonsOrder = []
+    const commonsSeen = new Set<string>()
+    const commonsOrder: string[] = []
     let drawCount = 0
     const maxDraws = numCommons * 3  // Safety limit
 
@@ -211,15 +212,15 @@ async function runTests() {
     const numCommons = belt.commonLeaders.length
 
     // Track when each common leader is seen (in common-only count, not total draws)
-    const lastSeenCommonIndex = new Map()  // name -> common index
-    const gaps = []  // distances between same-name commons (in common-only count)
+    const lastSeenCommonIndex = new Map<string, number>()  // name -> common index
+    const gaps: number[] = []  // distances between same-name commons (in common-only count)
     let commonIndex = 0
 
     for (let i = 0; i < 200; i++) {
       const card = belt.next()
       if (card.rarity === 'Common') {
         if (lastSeenCommonIndex.has(card.name)) {
-          const gap = commonIndex - lastSeenCommonIndex.get(card.name)
+          const gap = commonIndex - lastSeenCommonIndex.get(card.name)!
           gaps.push(gap)
         }
         lastSeenCommonIndex.set(card.name, commonIndex)

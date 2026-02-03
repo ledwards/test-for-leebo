@@ -1,7 +1,8 @@
+// @ts-nocheck
 /**
  * CommonBelt Tests
  *
- * Run with: node src/belts/CommonBelt.test.js
+ * Run with: node src/belts/CommonBelt.test.ts
  */
 
 import { CommonBelt, getCommonPools, getBeltCards } from './CommonBelt.js'
@@ -10,30 +11,37 @@ import { initializeCardCache } from '../utils/cardCache.js'
 let passed = 0
 let failed = 0
 
-function test(name, fn) {
+function test(name: string, fn: () => void): void {
   try {
     fn()
     console.log(`\x1b[32m✅ ${name}\x1b[0m`)
     passed++
   } catch (e) {
     console.log(`\x1b[31m❌ ${name}\x1b[0m`)
-    console.log(`\x1b[33m   ${e.message}\x1b[0m`)
+    console.log(`\x1b[33m   ${(e as Error).message}\x1b[0m`)
     failed++
   }
 }
 
-function assert(condition, message) {
+function assert(condition: boolean, message?: string): asserts condition {
   if (!condition) throw new Error(message || 'Assertion failed')
 }
 
-function assertEqual(actual, expected, message) {
+function assertEqual<T>(actual: T, expected: T, message?: string): void {
   if (actual !== expected) {
     throw new Error(message || `Expected ${expected}, got ${actual}`)
   }
 }
 
+interface StructuredPool {
+  primary1: Array<{ id: string }>
+  primary2: Array<{ id: string }>
+  assigned: Array<{ id: string }>
+  neutral?: Array<{ id: string }>
+}
+
 // Helper to flatten a structured pool into a flat array
-function flattenPool(pool) {
+function flattenPool(pool: StructuredPool): Array<{ id: string }> {
   return [
     ...pool.primary1,
     ...pool.primary2,
@@ -42,7 +50,7 @@ function flattenPool(pool) {
   ]
 }
 
-async function runTests() {
+async function runTests(): Promise<void> {
   console.log('\x1b[36m🔄 Initializing card cache...\x1b[0m')
   await initializeCardCache()
   console.log('')
@@ -84,11 +92,11 @@ async function runTests() {
     const idsInA = new Set(beltACards.map(c => c.id))
     const idsInB = new Set(beltBCards.map(c => c.id))
 
-    const overlap = []
+    const overlap: string[] = []
     for (const id of idsInA) {
       if (idsInB.has(id)) {
         const card = beltACards.find(c => c.id === id)
-        overlap.push(`${card.name} (${id})`)
+        overlap.push(`${card!.name} (${id})`)
       }
     }
 
@@ -161,7 +169,7 @@ async function runTests() {
   })
 
   test('different belt instances start at different positions', () => {
-    const firstCards = new Set()
+    const firstCards = new Set<string>()
     for (let i = 0; i < 10; i++) {
       const belt = new CommonBelt('SOR', 'A')
       firstCards.add(belt.peek(1)[0].id)
@@ -188,7 +196,7 @@ async function runTests() {
     const belt = new CommonBelt('SOR', 'A')
 
     // Pull 20 consecutive cards
-    const pulled = []
+    const pulled: Array<{ id: string }> = []
     for (let i = 0; i < 20; i++) {
       pulled.push(belt.next())
     }
@@ -204,13 +212,13 @@ async function runTests() {
     const fillSize = belt.beltCards.length
 
     // Pull entire first fill
-    const firstFill = []
+    const firstFill: string[] = []
     for (let i = 0; i < fillSize; i++) {
       firstFill.push(belt.next().id)
     }
 
     // Pull second fill
-    const secondFill = []
+    const secondFill: string[] = []
     for (let i = 0; i < fillSize; i++) {
       secondFill.push(belt.next().id)
     }
