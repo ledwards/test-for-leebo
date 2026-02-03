@@ -5,7 +5,7 @@ import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
 import { generateDraftPacks } from '@/src/utils/draftLogic.js'
 import { processBotTurns } from '@/src/utils/botLogic.js'
 import { initializeCardCache } from '@/src/utils/cardCache.js'
-import { trackBulkGenerations } from '@/src/utils/trackGeneration.js'
+// trackBulkGenerations removed - cards are now tracked at pick time
 import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
 
 export async function POST(request, { params }) {
@@ -55,52 +55,9 @@ export async function POST(request, { params }) {
     const { packs, leaders } = generateDraftPacks(pod.set_code, players.length)
     // console.log('[START] Packs generated, leaders per player:', leaders[0]?.length)
 
-    // Track all generated cards for statistics (async, non-blocking)
-    // Note: packs are objects { cards: [...] }, extract .cards for iteration
-    const trackingRecords = []
-    let globalPackIndex = 0
-    for (let i = 0; i < packs.length; i++) {
-      for (let packNum = 0; packNum < packs[i].length; packNum++) {
-        const pack = packs[i][packNum]
-        const packCards = pack.cards || pack // Handle both object and array formats
-        packCards.forEach(card => {
-          trackingRecords.push({
-            card,
-            options: {
-              packType: 'booster',
-              sourceType: 'draft',
-              sourceId: pod.id,
-              sourceShareId: shareId,
-              packIndex: globalPackIndex,
-              userId: session.id
-            }
-          })
-        })
-        globalPackIndex++
-      }
-      // Track leaders separately (no pack_index - they're from leader draft)
-      // SKIP showcase leaders here - they are tracked at pick time with the correct user_id
-      // (fixes bug where all showcases were attributed to host)
-      leaders[i].forEach(leader => {
-        if (leader.variantType === 'Showcase') {
-          return // Skip - will be tracked when drafted
-        }
-        trackingRecords.push({
-          card: leader,
-          options: {
-            packType: 'leader',
-            sourceType: 'draft',
-            sourceId: pod.id,
-            sourceShareId: shareId,
-            packIndex: null,
-            userId: session.id
-          }
-        })
-      })
-    }
-    trackBulkGenerations(trackingRecords).catch(err => {
-      console.error('Failed to track draft generations:', err)
-    })
+    // NOTE: We don't track cards at draft start anymore.
+    // All cards are tracked at pick time with the picking player's user_id.
+    // This ensures correct attribution for all drafted cards.
 
     // Assign leaders and first pack to each player
     // Note: packs are objects { cards: [...] }, extract .cards for current_pack
