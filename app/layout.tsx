@@ -6,7 +6,11 @@ import '../src/index.css'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://protectthepod.com'
 
-export default function RootLayout({ children }) {
+interface RootLayoutProps {
+  children: React.ReactNode
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <head>

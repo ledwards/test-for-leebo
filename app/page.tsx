@@ -10,10 +10,18 @@ import TermsOfService from '../src/components/TermsOfService'
 import PrivacyPolicy from '../src/components/PrivacyPolicy'
 import { initializeCardCache } from '../src/utils/cardCache'
 
+interface CardType {
+  id?: string
+  name?: string
+  [key: string]: unknown
+}
+
+type ViewType = 'landing' | 'set-selection' | 'sealed-pod' | 'deck-builder' | 'terms-of-service' | 'privacy-policy'
+
 export default function Home() {
-  const [view, setView] = useState('landing')
-  const [selectedSet, setSelectedSet] = useState(null)
-  const [deckCards, setDeckCards] = useState([])
+  const [view, setView] = useState<ViewType>('landing')
+  const [selectedSet, setSelectedSet] = useState<string | null>(null)
+  const [deckCards, setDeckCards] = useState<CardType[]>([])
   const [showWarning, setShowWarning] = useState(false)
 
   // Preload all cards on initial page load
@@ -74,7 +82,7 @@ export default function Home() {
     window.location.href = '/draft'
   }
 
-  const handleSetSelect = (setCode) => {
+  const handleSetSelect = (setCode: string) => {
     // Navigate to create a new pool for this set
     window.location.href = `/pools/new?set=${setCode}`
   }
@@ -114,14 +122,14 @@ export default function Home() {
     setShowWarning(false)
   }
 
-  const handleBuildDeck = (cards, setCode) => {
+  const handleBuildDeck = (cards: CardType[], setCode: string) => {
     sessionStorage.removeItem('deckBuilderState')
     setDeckCards(cards)
     setSelectedSet(setCode)
     setView('deck-builder')
   }
 
-  const handleSealedPodGenerated = (packs, setCode) => {
+  const handleSealedPodGenerated = (packs: unknown[], setCode: string) => {
     sessionStorage.setItem('sealedPod', JSON.stringify({
       setCode,
       packs,
@@ -154,17 +162,17 @@ export default function Home() {
         <SetSelection onSetSelect={handleSetSelect} onBack={handleBack} />
       )}
       {view === 'sealed-pod' && selectedSet && (
-        <SealedPod 
-          setCode={selectedSet} 
-          onBack={handleBack} 
+        <SealedPod
+          setCode={selectedSet}
+          onBack={handleBack}
           onBuildDeck={handleBuildDeck}
           onPacksGenerated={handleSealedPodGenerated}
         />
       )}
       {view === 'deck-builder' && deckCards.length > 0 && selectedSet && (
-        <DeckBuilder 
-          cards={deckCards} 
-          setCode={selectedSet} 
+        <DeckBuilder
+          cards={deckCards}
+          setCode={selectedSet}
           onBack={handleBack}
           savedState={sessionStorage.getItem('deckBuilderState')}
         />
