@@ -308,6 +308,14 @@ describe('Feature X', () => {
 
 **Why this matters:** Tests that demonstrate bugs prevent regressions and document what went wrong for future developers.
 
+## Plans & Documentation
+
+**Plans go in `/plans/` directory.** When creating implementation plans, feature specs, or migration plans, save them to `/plans/PLAN_NAME.md`.
+
+Current plans:
+- `plans/TYPESCRIPT_MIGRATION_PLAN.md` - Type system spec and TS migration strategy
+- `plans/HIDE_POOL_FEATURE.md` - Hide/show pools in history
+
 ## Architecture & Refactoring
 
 **See `DECKBUILDER_REFACTOR_PLAN.md` for the completed refactoring summary.**
