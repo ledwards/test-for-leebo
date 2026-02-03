@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * Pack Generation QA Tests
  *
  * Statistical analysis of pack generation to detect anomalies.
  * Generates a large sample of sealed pods and validates distribution.
  *
- * Run with: node src/qa/packGeneration.test.js
+ * Run with: npx tsx src/qa/packGeneration.test.ts
  * Or: npm run qa
  *
  * Results are written to: src/qa/results.json
@@ -23,13 +24,27 @@ const POD_SAMPLE_SIZE = 100 // Number of sealed pods to generate for analysis
 const PACKS_PER_POD = 6
 const TOLERANCE = 0.15 // 15% tolerance for statistical tests
 
-function createTestRunner() {
+interface TestResult {
+  suite: string
+  name: string
+  status: 'passed' | 'failed'
+  error?: string
+  executionTime: number
+}
+
+interface TestRunner {
+  test: (name: string, fn: () => void, suite?: string) => void
+  warn: (name: string, message: string) => void
+  getResults: () => { passed: number; failed: number; warnings: number; results: TestResult[] }
+}
+
+function createTestRunner(): TestRunner {
   let passed = 0
   let failed = 0
   let warnings = 0
-  let results = []
+  let results: TestResult[] = []
 
-  function test(name, fn, suite = 'pack_generation') {
+  function test(name: string, fn: () => void, suite: string = 'pack_generation'): void {
     const startTime = Date.now()
     try {
       fn()
@@ -43,36 +58,36 @@ function createTestRunner() {
       })
     } catch (e) {
       console.log(`\x1b[31m❌ ${name}\x1b[0m`)
-      console.log(`\x1b[33m   ${e.message}\x1b[0m`)
+      console.log(`\x1b[33m   ${(e as Error).message}\x1b[0m`)
       failed++
       results.push({
         suite,
         name,
         status: 'failed',
-        error: e.message,
+        error: (e as Error).message,
         executionTime: Date.now() - startTime
       })
     }
   }
 
-  function warn(name, message) {
+  function warn(name: string, message: string): void {
     console.log(`\x1b[33m⚠️  ${name}\x1b[0m`)
     console.log(`\x1b[33m   ${message}\x1b[0m`)
     warnings++
   }
 
-  function getResults() {
+  function getResults(): { passed: number; failed: number; warnings: number; results: TestResult[] } {
     return { passed, failed, warnings, results }
   }
 
   return { test, warn, getResults }
 }
 
-function assert(condition, message) {
+function assert(condition: boolean, message?: string): asserts condition {
   if (!condition) throw new Error(message || 'Assertion failed')
 }
 
-function assertWithinTolerance(actual, expected, tolerance, message) {
+function assertWithinTolerance(actual: number, expected: number, tolerance: number, message?: string): void {
   const diff = Math.abs(actual - expected)
   const maxDiff = expected * tolerance
   if (diff > maxDiff) {
@@ -82,13 +97,32 @@ function assertWithinTolerance(actual, expected, tolerance, message) {
   }
 }
 
+interface Card {
+  id: string
+  name: string
+  variantType?: string
+  isFoil?: boolean
+  isLeader?: boolean
+  isBase?: boolean
+  isHyperspace?: boolean
+  rarity?: string
+  set?: string
+  aspects?: string[]
+  traits?: string[]
+  type?: string
+}
+
+interface Pack {
+  cards: Card[]
+}
+
 /**
  * Group cards by their base treatment (variantType + foil status)
  * Cards with different treatments don't count as duplicates:
  * - Normal, Foil, Hyperspace, Hyperspace Foil, Showcase are all distinct
  * We only detect duplicates of the SAME treatment
  */
-function getBaseTreatmentKey(card) {
+function getBaseTreatmentKey(card: Card): string {
   const variant = card.variantType || 'Normal'
   const foilSuffix = card.isFoil ? '-Foil' : ''
   return `${card.id}-${variant}${foilSuffix}`
@@ -99,8 +133,8 @@ function getBaseTreatmentKey(card) {
  * Returns { duplicates: count of cards appearing 2+ times, triplicates: count appearing 3+ times }
  * Only counts duplicates of the same base treatment (e.g., two Normal variants)
  */
-function countDuplicates(cards) {
-  const cardCounts = new Map()
+function countDuplicates(cards: Card[]): { duplicates: number; triplicates: number } {
+  const cardCounts = new Map<string, number>()
 
   cards.forEach(card => {
     const key = getBaseTreatmentKey(card)
@@ -119,10 +153,17 @@ function countDuplicates(cards) {
   return { duplicates, triplicates }
 }
 
+interface Stats {
+  mean: number
+  stdDev: number
+  min: number
+  max: number
+}
+
 /**
  * Calculate mean and standard deviation
  */
-function calculateStats(values) {
+function calculateStats(values: number[]): Stats {
   const n = values.length
   const mean = values.reduce((sum, val) => sum + val, 0) / n
   const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n
@@ -134,13 +175,13 @@ function calculateStats(values) {
 /**
  * Check if value is a statistical outlier (z-score method)
  */
-function checkOutlier(value, mean, stdDev, threshold = 2) {
+function checkOutlier(value: number, mean: number, stdDev: number, threshold: number = 2): boolean {
   if (stdDev === 0) return false // No variation, not an outlier
   const zScore = Math.abs((value - mean) / stdDev)
   return zScore > threshold
 }
 
-async function runQA(silentMode = false) {
+async function runQA(silentMode: boolean = false): Promise<TestResult[]> {
   const { test, warn, getResults } = createTestRunner()
 
   if (!silentMode) {
@@ -170,7 +211,7 @@ async function runQA(silentMode = false) {
     // Generate sealed pods
     console.log(`\x1b[36m🎁 Generating ${POD_SAMPLE_SIZE} sealed pods (${POD_SAMPLE_SIZE * PACKS_PER_POD} packs)...\x1b[0m`)
     clearBeltCache()
-    const pods = []
+    const pods: Pack[][] = []
     for (let i = 0; i < POD_SAMPLE_SIZE; i++) {
       pods.push(generateSealedPod(cards, setCode, PACKS_PER_POD))
     }
@@ -223,11 +264,11 @@ async function runQA(silentMode = false) {
 
     // CRITICAL: No duplicates of same base treatment within a single pack
     test(`${setCode}: no duplicate base treatment cards within any pack`, () => {
-      const packsWithDuplicates = []
+      const packsWithDuplicates: { packIndex: number; duplicates: { id: string; name: string; variant: string }[] }[] = []
 
       allPacks.forEach((pack, packIndex) => {
-        const seen = new Map()
-        const duplicates = []
+        const seen = new Map<string, Card>()
+        const duplicates: { id: string; name: string; variant: string }[] = []
 
         pack.cards.forEach(card => {
           const key = getBaseTreatmentKey(card)
@@ -339,8 +380,8 @@ async function runQA(silentMode = false) {
     console.log('\x1b[36m🎁 Testing Sealed Pods (Cross-Pack Duplicates)...\x1b[0m')
 
     // Collect duplicate statistics across all pods
-    const podDuplicateCounts = []
-    const podTriplicateCounts = []
+    const podDuplicateCounts: number[] = []
+    const podTriplicateCounts: number[] = []
 
     pods.forEach(pod => {
       const allCards = pod.flatMap(pack => pack.cards)
@@ -372,7 +413,7 @@ async function runQA(silentMode = false) {
       // With 100 pods per set, we expect ~0.3 outliers (0.3% at 3σ)
       // Allow up to 2 outliers as normal statistical variance
       const MAX_ALLOWED_OUTLIERS = 2
-      const outliers = []
+      const outliers: { index: number; count: number; zScore: string }[] = []
       pods.forEach((pod, i) => {
         const dupCount = podDuplicateCounts[i]
         if (checkOutlier(dupCount, dupStats.mean, dupStats.stdDev, 3)) {
@@ -406,7 +447,7 @@ async function runQA(silentMode = false) {
       // With 100 pods per set, we expect ~0.3 outliers (0.3% at 3σ)
       // Allow up to 2 outliers as normal statistical variance
       const MAX_ALLOWED_OUTLIERS = 2
-      const outliers = []
+      const outliers: { index: number; count: number; zScore: string }[] = []
       pods.forEach((pod, i) => {
         const tripCount = podTriplicateCounts[i]
         if (checkOutlier(tripCount, tripStats.mean, tripStats.stdDev, 3)) {
@@ -466,7 +507,7 @@ async function runQA(silentMode = false) {
     })
 
     // List 2σ outliers for reference (not a test failure)
-    const dupWarningOutliers = []
+    const dupWarningOutliers: { index: number; count: number }[] = []
     pods.forEach((pod, i) => {
       const dupCount = podDuplicateCounts[i]
       if (checkOutlier(dupCount, dupStats.mean, dupStats.stdDev, 2) && !checkOutlier(dupCount, dupStats.mean, dupStats.stdDev, 3)) {
@@ -488,18 +529,18 @@ async function runQA(silentMode = false) {
     // to HS and another stays Normal, we get both variants.
     test(`${setCode}: HS+Normal same-leader rate should be within expected range`, () => {
       let podsWithViolation = 0
-      const violationExamples = []
+      const violationExamples: string[] = []
 
       pods.forEach((pod, podIndex) => {
         // Collect all leaders in the pod
-        const leaders = []
+        const leaders: Card[] = []
         pod.forEach(pack => {
           const leader = pack.cards.find(c => c.isLeader)
           if (leader) leaders.push(leader)
         })
 
         // Check for same leader appearing as both HS and Normal
-        const leadersByName = {}
+        const leadersByName: Record<string, Card[]> = {}
         for (const leader of leaders) {
           if (!leadersByName[leader.name]) {
             leadersByName[leader.name] = []
@@ -574,7 +615,7 @@ async function runQA(silentMode = false) {
     // UX goal: Players shouldn't frequently get same card as both foil and non-foil
     test(`${setCode}: card+foil pairs within single packs should be rare (ideal < 5%)`, () => {
       let pairsFound = 0
-      const pairExamples = []
+      const pairExamples: string[] = []
 
       allPacks.forEach((pack, packIndex) => {
         const foil = pack.cards.find(c => c.isFoil)
@@ -615,7 +656,7 @@ async function runQA(silentMode = false) {
     test(`${setCode}: card+foil pairs within sealed pods should be uncommon (acceptable < 100%)`, () => {
       let podsWithPairs = 0
       let totalPairs = 0
-      const podPairCounts = []
+      const podPairCounts: number[] = []
 
       pods.forEach(pod => {
         const allCardsInPod = pod.flatMap(pack => pack.cards)
@@ -663,7 +704,7 @@ async function runQA(silentMode = false) {
     // Even if most pods have pairs, the average shouldn't be excessive
     test(`${setCode}: average card+foil pairs per pod should be reasonable (< 5)`, () => {
       let totalPairs = 0
-      const podPairCounts = []
+      const podPairCounts: number[] = []
 
       pods.forEach(pod => {
         const allCardsInPod = pod.flatMap(pack => pack.cards)
@@ -702,7 +743,7 @@ async function runQA(silentMode = false) {
 
     // Card variety tests
     test(`${setCode}: good card variety across all packs`, () => {
-      const cardFrequency = new Map()
+      const cardFrequency = new Map<string, number>()
       allPacks.forEach(pack => {
         pack.cards.forEach(card => {
           const key = getBaseTreatmentKey(card)
@@ -710,7 +751,7 @@ async function runQA(silentMode = false) {
         })
       })
 
-      const tooFrequent = []
+      const tooFrequent: { name: string; variant: string; count: number; frequency: string }[] = []
       const threshold = allPacks.length * 0.5 // Appears in >50% of packs
       cardFrequency.forEach((count, key) => {
         if (count > threshold) {
@@ -721,13 +762,13 @@ async function runQA(silentMode = false) {
       })
 
       if (tooFrequent.length > 0) {
-        const list = tooFrequent.slice(0, 3).map(c => `"${c.name}" [${c.variant}] (${(c.frequency * 100).toFixed(0)}%)`).join(', ')
+        const list = tooFrequent.slice(0, 3).map(c => `"${c.name}" [${c.variant}] (${(parseFloat(c.frequency) * 100).toFixed(0)}%)`).join(', ')
         throw new Error(`${tooFrequent.length} cards appear too frequently: ${list}`)
       }
     })
 
     test(`${setCode}: leaders show good variety`, () => {
-      const leaderFrequency = new Map()
+      const leaderFrequency = new Map<string, number>()
       allPacks.forEach(pack => {
         const leader = pack.cards.find(c => c.isLeader)
         if (leader) {
@@ -775,7 +816,7 @@ async function runQA(silentMode = false) {
 }
 
 // Export for use in API
-export async function runAllTests() {
+export async function runAllTests(): Promise<TestResult[]> {
   return await runQA(true)
 }
 

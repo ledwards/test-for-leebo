@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * QA Tests for Seam-Aware Belt Refill
  *
@@ -26,7 +27,7 @@ const GREEN = 'Command'
 const RED = 'Aggression'
 const YELLOW = 'Cunning'
 
-function cardHasAspect(card, aspect) {
+function cardHasAspect(card: any, aspect: string): boolean {
   return card.aspects && card.aspects.includes(aspect)
 }
 
@@ -104,11 +105,11 @@ describe('Seam-Aware Belt Refill QA', () => {
       const belt = new CommonBelt('SOR', 'A')
 
       let failures = 0
-      const failureDetails = []
+      const failureDetails: Array<{ pack: number; missing: string[] }> = []
 
       // Draw 100 packs worth (600 cards, multiple refills)
       for (let pack = 0; pack < 100; pack++) {
-        const cards = []
+        const cards: any[] = []
         for (let i = 0; i < 6; i++) {
           cards.push(belt.next())
         }
@@ -126,7 +127,7 @@ describe('Seam-Aware Belt Refill QA', () => {
                 !hasB ? 'B' : null,
                 !hasG ? 'G' : null,
                 !hasR ? 'R' : null
-              ].filter(Boolean)
+              ].filter(Boolean) as string[]
             })
           }
         }
@@ -142,7 +143,7 @@ describe('Seam-Aware Belt Refill QA', () => {
       let failures = 0
 
       for (let pack = 0; pack < 100; pack++) {
-        const cards = []
+        const cards: any[] = []
         for (let i = 0; i < 3; i++) {
           cards.push(belt.next())
         }
@@ -161,7 +162,7 @@ describe('Seam-Aware Belt Refill QA', () => {
       let failures = 0
 
       for (let pack = 0; pack < 100; pack++) {
-        const cards = []
+        const cards: any[] = []
         for (let i = 0; i < 4; i++) {
           cards.push(belt.next())
         }
@@ -181,7 +182,7 @@ describe('Seam-Aware Belt Refill QA', () => {
       let failures = 0
 
       for (let pack = 0; pack < 100; pack++) {
-        const cards = []
+        const cards: any[] = []
         for (let i = 0; i < 4; i++) {
           cards.push(belt.next())
         }
@@ -215,7 +216,7 @@ describe('Seam-Aware Belt Refill QA', () => {
 
         // This draw crosses the seam
         seamCrossings++
-        const seamCards = []
+        const seamCards: any[] = []
         for (let i = 0; i < drawSize; i++) {
           seamCards.push(belt.next())
         }
@@ -244,7 +245,7 @@ describe('Seam-Aware Belt Refill QA', () => {
         const commons = pack.cards.slice(2, 11) // 9 commons
 
         for (const aspect of basicAspects) {
-          if (!commons.some(c => cardHasAspect(c, aspect))) {
+          if (!commons.some((c: any) => cardHasAspect(c, aspect))) {
             failures++
             break
           }
@@ -265,7 +266,7 @@ describe('Seam-Aware Belt Refill QA', () => {
 
       // Draw 50 packs worth, checking each for duplicates
       for (let pack = 0; pack < 50; pack++) {
-        const cards = []
+        const cards: any[] = []
         for (let i = 0; i < drawSize; i++) {
           cards.push(belt.next())
         }
@@ -306,7 +307,7 @@ describe('Seam-Aware Belt Refill QA', () => {
           const commons = pack.cards.slice(2, 11)
 
           for (const aspect of basicAspects) {
-            if (!commons.some(c => cardHasAspect(c, aspect))) {
+            if (!commons.some((c: any) => cardHasAspect(c, aspect))) {
               failures++
               break
             }

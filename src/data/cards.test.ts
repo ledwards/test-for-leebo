@@ -1,7 +1,8 @@
+// @ts-nocheck
 /**
  * Card Data Validation Tests
  *
- * Run with: node src/data/cards.test.js
+ * Run with: npx tsx src/data/cards.test.ts
  */
 
 import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
@@ -9,29 +10,29 @@ import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
 let passed = 0
 let failed = 0
 
-function test(name, fn) {
+function test(name: string, fn: () => void): void {
   try {
     fn()
     console.log(`\x1b[32m✅ ${name}\x1b[0m`)
     passed++
   } catch (e) {
     console.log(`\x1b[31m❌ ${name}\x1b[0m`)
-    console.log(`\x1b[33m   ${e.message}\x1b[0m`)
+    console.log(`\x1b[33m   ${(e as Error).message}\x1b[0m`)
     failed++
   }
 }
 
-function assert(condition, message) {
+function assert(condition: boolean, message?: string): asserts condition {
   if (!condition) throw new Error(message || 'Assertion failed')
 }
 
-function assertEqual(actual, expected, message) {
+function assertEqual<T>(actual: T, expected: T, message?: string): void {
   if (actual !== expected) {
     throw new Error(message || `Expected ${expected}, got ${actual}`)
   }
 }
 
-async function runTests() {
+async function runTests(): Promise<void> {
   console.log('\x1b[36m🔄 Initializing card cache...\x1b[0m')
   await initializeCardCache()
 
@@ -50,7 +51,7 @@ async function runTests() {
 
     test(`${setCode}: all cards have required fields`, () => {
       const requiredFields = ['id', 'name', 'set', 'rarity', 'type']
-      cards.forEach((card, index) => {
+      cards.forEach((card: any, index: number) => {
         requiredFields.forEach(field => {
           assert(
             card[field] !== null && card[field] !== undefined,
@@ -62,7 +63,7 @@ async function runTests() {
 
     test(`${setCode}: all cards have valid variant types`, () => {
       const validVariants = ['Normal', 'Hyperspace', 'Foil', 'Hyperspace Foil', 'Showcase']
-      cards.forEach(card => {
+      cards.forEach((card: any) => {
         assert(
           validVariants.includes(card.variantType),
           `Card "${card.name}" (${card.id}) has invalid variantType: ${card.variantType}`
@@ -72,7 +73,7 @@ async function runTests() {
 
     test(`${setCode}: all cards have valid rarities`, () => {
       const validRarities = ['Common', 'Uncommon', 'Rare', 'Legendary', 'Special']
-      cards.forEach(card => {
+      cards.forEach((card: any) => {
         assert(
           validRarities.includes(card.rarity),
           `Card "${card.name}" (${card.id}) has invalid rarity: ${card.rarity}`
@@ -81,17 +82,17 @@ async function runTests() {
     })
 
     test(`${setCode}: no duplicate Normal variant cards`, () => {
-      const normalCards = cards.filter(c => c.variantType === 'Normal')
-      const seen = new Map()
-      const duplicates = []
+      const normalCards = cards.filter((c: any) => c.variantType === 'Normal')
+      const seen = new Map<string, number>()
+      const duplicates: Array<{ id: string; name: string; firstIndex: number; duplicateIndex: number }> = []
 
-      normalCards.forEach(card => {
+      normalCards.forEach((card: any) => {
         const key = card.id
         if (seen.has(key)) {
           duplicates.push({
             id: card.id,
             name: card.name,
-            firstIndex: seen.get(key),
+            firstIndex: seen.get(key)!,
             duplicateIndex: cards.indexOf(card)
           })
         } else {
@@ -106,8 +107,8 @@ async function runTests() {
     })
 
     test(`${setCode}: leaders have isLeader flag`, () => {
-      const leaders = cards.filter(c => c.type === 'Leader')
-      leaders.forEach(card => {
+      const leaders = cards.filter((c: any) => c.type === 'Leader')
+      leaders.forEach((card: any) => {
         assert(
           card.isLeader === true,
           `Leader "${card.name}" (${card.id}) missing isLeader flag`
@@ -116,8 +117,8 @@ async function runTests() {
     })
 
     test(`${setCode}: bases have isBase flag`, () => {
-      const bases = cards.filter(c => c.type === 'Base')
-      bases.forEach(card => {
+      const bases = cards.filter((c: any) => c.type === 'Base')
+      bases.forEach((card: any) => {
         assert(
           card.isBase === true,
           `Base "${card.name}" (${card.id}) missing isBase flag`
@@ -126,10 +127,10 @@ async function runTests() {
     })
 
     test(`${setCode}: foil cards have isFoil flag`, () => {
-      const foilCards = cards.filter(c =>
+      const foilCards = cards.filter((c: any) =>
         c.variantType === 'Foil' || c.variantType === 'Hyperspace Foil'
       )
-      foilCards.forEach(card => {
+      foilCards.forEach((card: any) => {
         assert(
           card.isFoil === true,
           `Foil card "${card.name}" (${card.id}) missing isFoil flag`
@@ -138,10 +139,10 @@ async function runTests() {
     })
 
     test(`${setCode}: Hyperspace cards have isHyperspace flag`, () => {
-      const hyperspaceCards = cards.filter(c =>
+      const hyperspaceCards = cards.filter((c: any) =>
         c.variantType === 'Hyperspace' || c.variantType === 'Hyperspace Foil'
       )
-      hyperspaceCards.forEach(card => {
+      hyperspaceCards.forEach((card: any) => {
         assert(
           card.isHyperspace === true,
           `Hyperspace card "${card.name}" (${card.id}) missing isHyperspace flag`
@@ -150,8 +151,8 @@ async function runTests() {
     })
 
     test(`${setCode}: Showcase cards have isShowcase flag`, () => {
-      const showcaseCards = cards.filter(c => c.variantType === 'Showcase')
-      showcaseCards.forEach(card => {
+      const showcaseCards = cards.filter((c: any) => c.variantType === 'Showcase')
+      showcaseCards.forEach((card: any) => {
         assert(
           card.isShowcase === true,
           `Showcase card "${card.name}" (${card.id}) missing isShowcase flag`
@@ -160,31 +161,31 @@ async function runTests() {
     })
 
     test(`${setCode}: all Normal variant cards have image URLs`, () => {
-      const normalCards = cards.filter(c => c.variantType === 'Normal')
-      const missingImages = normalCards.filter(c => !c.imageUrl)
+      const normalCards = cards.filter((c: any) => c.variantType === 'Normal')
+      const missingImages = normalCards.filter((c: any) => !c.imageUrl)
 
       if (missingImages.length > 0) {
-        const missing = missingImages.slice(0, 5).map(c => `"${c.name}" (${c.id})`).join(', ')
+        const missing = missingImages.slice(0, 5).map((c: any) => `"${c.name}" (${c.id})`).join(', ')
         const more = missingImages.length > 5 ? ` and ${missingImages.length - 5} more` : ''
         throw new Error(`${missingImages.length} Normal cards missing imageUrl: ${missing}${more}`)
       }
     })
 
     test(`${setCode}: leaders with backText have backImageUrl`, () => {
-      const leadersWithBackText = cards.filter(c =>
+      const leadersWithBackText = cards.filter((c: any) =>
         c.isLeader && c.backText && c.variantType === 'Normal'
       )
-      const missingBackImages = leadersWithBackText.filter(c => !c.backImageUrl)
+      const missingBackImages = leadersWithBackText.filter((c: any) => !c.backImageUrl)
 
       if (missingBackImages.length > 0) {
-        const missing = missingBackImages.map(c => `"${c.name}" (${c.id})`).join(', ')
+        const missing = missingBackImages.map((c: any) => `"${c.name}" (${c.id})`).join(', ')
         throw new Error(`${missingBackImages.length} leaders with backText missing backImageUrl: ${missing}`)
       }
     })
 
     test(`${setCode}: units have power and hp`, () => {
-      const units = cards.filter(c => c.type === 'Unit' && c.variantType === 'Normal')
-      units.forEach(card => {
+      const units = cards.filter((c: any) => c.type === 'Unit' && c.variantType === 'Normal')
+      units.forEach((card: any) => {
         assert(
           card.power !== null && card.power !== undefined,
           `Unit "${card.name}" (${card.id}) missing power`
@@ -197,10 +198,10 @@ async function runTests() {
     })
 
     test(`${setCode}: non-units/leaders/bases have null power and hp`, () => {
-      const nonCombatCards = cards.filter(c =>
+      const nonCombatCards = cards.filter((c: any) =>
         c.type !== 'Unit' && c.type !== 'Leader' && c.type !== 'Base' && c.type !== 'Upgrade' && c.variantType === 'Normal'
       )
-      nonCombatCards.forEach(card => {
+      nonCombatCards.forEach((card: any) => {
         assert(
           card.power === null,
           `Non-combat card "${card.name}" (${card.id}) should have null power (Upgrades are allowed to have power/hp as +X/+Y)`

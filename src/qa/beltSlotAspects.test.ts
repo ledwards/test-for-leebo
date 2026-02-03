@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * QA Tests for Belt Slot Aspect Distribution
  *
@@ -29,14 +30,14 @@ const YELLOW = 'Cunning'
 /**
  * Check if a card has a specific aspect
  */
-function cardHasAspect(card, aspect) {
+function cardHasAspect(card: any, aspect: string): boolean {
   return card.aspects && card.aspects.includes(aspect)
 }
 
 /**
  * Get aspect description for a card
  */
-function getAspectDesc(card) {
+function getAspectDesc(card: any): string {
   const aspects = card.aspects || []
   return aspects.length === 0 ? 'Neutral' : aspects.join('/')
 }
@@ -66,9 +67,9 @@ describe('Belt Slot Aspect Distribution QA', () => {
           // Slots 1-6 are indices 2-7
           const beltACommons = pack.cards.slice(2, 8)
 
-          const hasB = beltACommons.some(c => cardHasAspect(c, BLUE))
-          const hasG = beltACommons.some(c => cardHasAspect(c, GREEN))
-          const hasR = beltACommons.some(c => cardHasAspect(c, RED))
+          const hasB = beltACommons.some((c: any) => cardHasAspect(c, BLUE))
+          const hasG = beltACommons.some((c: any) => cardHasAspect(c, GREEN))
+          const hasR = beltACommons.some((c: any) => cardHasAspect(c, RED))
 
           if (!hasB) missingB++
           if (!hasG) missingG++
@@ -94,7 +95,7 @@ describe('Belt Slot Aspect Distribution QA', () => {
           // Slots 7-9 are indices 8-10
           const beltBCommons = pack.cards.slice(8, 11)
 
-          const hasY = beltBCommons.some(c => cardHasAspect(c, YELLOW))
+          const hasY = beltBCommons.some((c: any) => cardHasAspect(c, YELLOW))
 
           if (!hasY) missingY++
         }
@@ -121,8 +122,8 @@ describe('Belt Slot Aspect Distribution QA', () => {
           // Slots 1-4 are indices 2-5
           const beltACommons = pack.cards.slice(2, 6)
 
-          const hasB = beltACommons.some(c => cardHasAspect(c, BLUE))
-          const hasG = beltACommons.some(c => cardHasAspect(c, GREEN))
+          const hasB = beltACommons.some((c: any) => cardHasAspect(c, BLUE))
+          const hasG = beltACommons.some((c: any) => cardHasAspect(c, GREEN))
 
           if (!hasB) missingB++
           if (!hasG) missingG++
@@ -146,8 +147,8 @@ describe('Belt Slot Aspect Distribution QA', () => {
           // Slots 6-9 are indices 7-10
           const beltBCommons = pack.cards.slice(7, 11)
 
-          const hasR = beltBCommons.some(c => cardHasAspect(c, RED))
-          const hasY = beltBCommons.some(c => cardHasAspect(c, YELLOW))
+          const hasR = beltBCommons.some((c: any) => cardHasAspect(c, RED))
+          const hasY = beltBCommons.some((c: any) => cardHasAspect(c, YELLOW))
 
           if (!hasR) missingR++
           if (!hasY) missingY++
@@ -176,15 +177,15 @@ describe('Belt Slot Aspect Distribution QA', () => {
         const pack = generateBoosterPack(cards, 'SOR')
         const commons = pack.cards.slice(2, 11)
 
-        commons.forEach((card, idx) => {
+        commons.forEach((card: any, idx: number) => {
           if (!card) return
           const aspects = card.aspects || []
           if (aspects.length === 0) {
             slotAspects[idx].Neutral++
           } else {
-            aspects.forEach(aspect => {
-              if (slotAspects[idx][aspect] !== undefined) {
-                slotAspects[idx][aspect]++
+            aspects.forEach((aspect: string) => {
+              if ((slotAspects[idx] as any)[aspect] !== undefined) {
+                (slotAspects[idx] as any)[aspect]++
               }
             })
           }
@@ -216,9 +217,9 @@ describe('Belt Slot Aspect Distribution QA', () => {
         const pack = generateBoosterPack(cards, 'SOR')
         const beltACommons = pack.cards.slice(2, 8)
 
-        const hasB = beltACommons.some(c => cardHasAspect(c, BLUE))
-        const hasG = beltACommons.some(c => cardHasAspect(c, GREEN))
-        const hasR = beltACommons.some(c => cardHasAspect(c, RED))
+        const hasB = beltACommons.some((c: any) => cardHasAspect(c, BLUE))
+        const hasG = beltACommons.some((c: any) => cardHasAspect(c, GREEN))
+        const hasR = beltACommons.some((c: any) => cardHasAspect(c, RED))
 
         if (!hasB || !hasG || !hasR) packsMissingBGR++
       }
@@ -239,15 +240,15 @@ describe('Belt Slot Aspect Distribution QA', () => {
         const pack = generateBoosterPack(cards, 'JTL')
         const commons = pack.cards.slice(2, 11)
 
-        commons.forEach((card, idx) => {
+        commons.forEach((card: any, idx: number) => {
           if (!card) return
           const aspects = card.aspects || []
           if (aspects.length === 0) {
             slotAspects[idx].Neutral++
           } else {
-            aspects.forEach(aspect => {
-              if (slotAspects[idx][aspect] !== undefined) {
-                slotAspects[idx][aspect]++
+            aspects.forEach((aspect: string) => {
+              if ((slotAspects[idx] as any)[aspect] !== undefined) {
+                (slotAspects[idx] as any)[aspect]++
               }
             })
           }
@@ -279,8 +280,8 @@ describe('Belt Slot Aspect Distribution QA', () => {
         const pack = generateBoosterPack(cards, 'JTL')
         const beltACommons = pack.cards.slice(2, 6)
 
-        const hasB = beltACommons.some(c => cardHasAspect(c, BLUE))
-        const hasG = beltACommons.some(c => cardHasAspect(c, GREEN))
+        const hasB = beltACommons.some((c: any) => cardHasAspect(c, BLUE))
+        const hasG = beltACommons.some((c: any) => cardHasAspect(c, GREEN))
 
         if (!hasB || !hasG) packsMissingBG++
       }
@@ -295,8 +296,8 @@ describe('Belt Slot Aspect Distribution QA', () => {
         const pack = generateBoosterPack(cards, 'JTL')
         const beltBCommons = pack.cards.slice(7, 11)
 
-        const hasR = beltBCommons.some(c => cardHasAspect(c, RED))
-        const hasY = beltBCommons.some(c => cardHasAspect(c, YELLOW))
+        const hasR = beltBCommons.some((c: any) => cardHasAspect(c, RED))
+        const hasY = beltBCommons.some((c: any) => cardHasAspect(c, YELLOW))
 
         if (!hasR || !hasY) packsMissingRY++
       }

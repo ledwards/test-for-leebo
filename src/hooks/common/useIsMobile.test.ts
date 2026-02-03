@@ -1,23 +1,24 @@
+// @ts-nocheck
 import { describe, it, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert'
 
 describe('useIsMobile', () => {
-  let originalWindow
-  let originalNavigator
+  let originalWindow: typeof globalThis.window | undefined
+  let originalNavigator: typeof globalThis.navigator | undefined
 
   beforeEach(() => {
-    originalWindow = global.window
-    originalNavigator = global.navigator
+    originalWindow = (global as any).window
+    originalNavigator = (global as any).navigator
   })
 
   afterEach(() => {
-    global.window = originalWindow
-    global.navigator = originalNavigator
+    (global as any).window = originalWindow
+    (global as any).navigator = originalNavigator
   })
 
   describe('isMobileDevice (non-hook)', () => {
     it('returns false when window is undefined (SSR)', async () => {
-      global.window = undefined
+      (global as any).window = undefined
       const { isMobileDevice } = await import('./useIsMobile.js')
       assert.strictEqual(isMobileDevice(), false)
     })

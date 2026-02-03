@@ -1,8 +1,9 @@
+// @ts-nocheck
 /**
  * Bot Behavior Tests
  *
  * Tests for the bot behavior system.
- * Run with: node src/bots/behaviors/behaviors.test.js
+ * Run with: npx tsx src/bots/behaviors/behaviors.test.ts
  */
 
 import { getBehavior, behaviors, DEFAULT_BEHAVIOR } from './index.js'
@@ -13,31 +14,49 @@ import { PopularLeaderBehavior } from './PopularLeaderBehavior.js'
 let passed = 0
 let failed = 0
 
-function test(name, fn) {
+function test(name: string, fn: () => void): void {
   try {
     fn()
     console.log(`\x1b[32m✅ ${name}\x1b[0m`)
     passed++
   } catch (e) {
     console.log(`\x1b[31m❌ ${name}\x1b[0m`)
-    console.log(`   ${e.message}`)
+    console.log(`   ${(e as Error).message}`)
     failed++
   }
 }
 
-function assert(condition, message) {
+function assert(condition: boolean, message?: string): asserts condition {
   if (!condition) throw new Error(message || 'Assertion failed')
 }
 
 // Mock data
-const mockLeadersSOR = [
+interface MockLeader {
+  id: string
+  name: string
+  set: string
+  aspects: string[]
+}
+
+interface MockCard {
+  id: string
+  name: string
+  type: string
+  rarity: string
+  aspects: string[]
+  cost: number
+  power?: number
+  hp?: number
+}
+
+const mockLeadersSOR: MockLeader[] = [
   { id: 'SOR-014', name: 'Sabine Wren', set: 'SOR', aspects: ['Aggression', 'Heroism'] },
   { id: 'SOR-015', name: 'Boba Fett', set: 'SOR', aspects: ['Cunning', 'Villainy'] },
   { id: 'SOR-017', name: 'Han Solo', set: 'SOR', aspects: ['Cunning', 'Heroism'] },
   { id: 'SOR-007', name: 'Grand Moff Tarkin', set: 'SOR', aspects: ['Command', 'Villainy'] },
 ]
 
-const mockPack = [
+const mockPack: MockCard[] = [
   { id: 'SOR-100', name: 'Stormtrooper', type: 'Unit', rarity: 'Common', aspects: ['Villainy'], cost: 2, power: 2, hp: 2 },
   { id: 'SOR-101', name: 'Vanquish', type: 'Event', rarity: 'Rare', aspects: ['Aggression'], cost: 5 },
   { id: 'SOR-102', name: 'Wing Leader', type: 'Unit', rarity: 'Uncommon', aspects: ['Aggression', 'Heroism'], cost: 3, power: 3, hp: 3 },
@@ -193,7 +212,7 @@ test('SOR: Picks in ranking order (Sabine > Boba > Vader > Han > Tarkin)', () =>
   const behavior = new PopularLeaderBehavior()
 
   // Simulate drafting - each pick removes the selected leader
-  let available = [
+  let available: MockLeader[] = [
     { id: 'SOR-018', name: 'Jyn Erso', set: 'SOR', aspects: ['Cunning', 'Heroism'] },
     { id: 'SOR-014', name: 'Sabine Wren', set: 'SOR', aspects: ['Aggression', 'Heroism'] },
     { id: 'SOR-015', name: 'Boba Fett', set: 'SOR', aspects: ['Cunning', 'Villainy'] },
@@ -203,7 +222,7 @@ test('SOR: Picks in ranking order (Sabine > Boba > Vader > Han > Tarkin)', () =>
   ]
 
   const expectedOrder = ['Sabine Wren', 'Boba Fett', 'Darth Vader', 'Han Solo', 'Grand Moff Tarkin']
-  const actualOrder = []
+  const actualOrder: string[] = []
 
   for (let i = 0; i < 5; i++) {
     const pick = behavior.selectLeader(available, { setCode: 'SOR' })
@@ -341,7 +360,7 @@ test('Bot consistently picks cards matching leader aspects over 10 picks', () =>
     ]
 
     const card = behavior.selectCard(pack, context)
-    if (card.aspects && card.aspects.some(a => ['Aggression', 'Villainy'].includes(a))) {
+    if (card.aspects && card.aspects.some((a: string) => ['Aggression', 'Villainy'].includes(a))) {
       inColorPicks++
     }
   }

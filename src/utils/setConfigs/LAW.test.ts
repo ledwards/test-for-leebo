@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Tests for LAW set configuration
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
