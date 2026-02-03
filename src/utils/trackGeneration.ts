@@ -1,10 +1,29 @@
 // Utility for tracking card generations for statistical analysis
 import { query } from '@/lib/db.js'
+import type { RawCard } from './cardData.js'
+
+type Treatment = 'base' | 'hyperspace' | 'foil' | 'hyperspace_foil' | 'showcase'
+type SlotType = 'leader' | 'base' | 'foil' | 'common' | 'uncommon' | 'rare_legendary' | 'unknown'
+
+interface TrackingOptions {
+  packType: 'booster' | 'leader'
+  sourceType: 'draft' | 'sealed'
+  sourceId: string | number
+  sourceShareId: string
+  slotType?: SlotType | null
+  packIndex?: number | null
+  userId?: string | null
+}
+
+interface TrackingRecord {
+  card: RawCard
+  options: TrackingOptions
+}
 
 /**
  * Determine treatment type from card properties
  */
-function determineTreatment(card) {
+function determineTreatment(card: RawCard): Treatment {
   const isHyperspace = card.variantType === 'Hyperspace'
   const isShowcase = card.variantType === 'Showcase'
   const isFoil = card.isFoil === true
@@ -19,7 +38,7 @@ function determineTreatment(card) {
 /**
  * Determine slot type from card properties and context
  */
-function determineSlotType(card, context = {}) {
+function determineSlotType(card: RawCard, _context: TrackingOptions = {} as TrackingOptions): SlotType {
   if (card.isLeader) return 'leader'
   if (card.isBase) return 'base'
   if (card.isFoil) return 'foil'
@@ -35,17 +54,17 @@ function determineSlotType(card, context = {}) {
 /**
  * Track a single card generation
  *
- * @param {Object} card - The card object
- * @param {Object} options - Tracking options
- * @param {string} options.packType - 'booster' or 'leader'
- * @param {string} options.sourceType - 'draft' or 'sealed'
- * @param {number} options.sourceId - ID of the draft_pod or pool
- * @param {string} options.sourceShareId - Share ID
- * @param {string} options.slotType - Optional: override slot type determination
- * @param {number} options.packIndex - Optional: index of the pack within the pool (0-based)
- * @param {string} options.userId - Optional: UUID of the user who generated the card
+ * @param card - The card object
+ * @param options - Tracking options
+ * @param options.packType - 'booster' or 'leader'
+ * @param options.sourceType - 'draft' or 'sealed'
+ * @param options.sourceId - ID of the draft_pod or pool
+ * @param options.sourceShareId - Share ID
+ * @param options.slotType - Optional: override slot type determination
+ * @param options.packIndex - Optional: index of the pack within the pool (0-based)
+ * @param options.userId - Optional: UUID of the user who generated the card
  */
-export async function trackCardGeneration(card, options) {
+export async function trackCardGeneration(card: RawCard, options: TrackingOptions): Promise<void> {
   const {
     packType,
     sourceType,
@@ -110,10 +129,10 @@ export async function trackCardGeneration(card, options) {
 /**
  * Track multiple cards from a pack
  *
- * @param {Array} cards - Array of card objects
- * @param {Object} options - Tracking options (same as trackCardGeneration)
+ * @param cards - Array of card objects
+ * @param options - Tracking options (same as trackCardGeneration)
  */
-export async function trackPackGeneration(cards, options) {
+export async function trackPackGeneration(cards: RawCard[], options: TrackingOptions): Promise<void> {
   // Track cards in parallel but don't wait for completion
   // This ensures pack generation isn't slowed down by tracking
   Promise.all(
@@ -127,15 +146,14 @@ export async function trackPackGeneration(cards, options) {
  * Bulk insert card generations for better performance
  * Use this when generating many packs at once (e.g., sealed pools, draft start)
  *
- * @param {Array} records - Array of {card, options} objects
- * @param {string} options.userId - Optional: UUID of the user who generated the cards
+ * @param records - Array of {card, options} objects
  */
-export async function trackBulkGenerations(records) {
+export async function trackBulkGenerations(records: TrackingRecord[]): Promise<void> {
   if (!records || records.length === 0) return
 
   try {
-    const values = []
-    const placeholders = []
+    const values: unknown[] = []
+    const placeholders: string[] = []
 
     records.forEach((record, index) => {
       const { card, options } = record

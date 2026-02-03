@@ -1,18 +1,86 @@
 // Statistical analysis utilities for card generation statistics
 
 import { getSetConfig } from './setConfigs/index.js'
+import type { RawCard } from './cardData'
+import type { SetCode } from '../types'
+
+type Treatment = 'base' | 'hyperspace' | 'foil' | 'hyperspace_foil' | 'showcase'
+
+interface SignificanceResult {
+  status: 'expected' | 'outlier' | 'extreme'
+  color: string
+  description: string
+}
+
+interface TreatmentStats {
+  observed: number
+  expected: number
+  probability: number
+  zScore?: number
+  percentDiff?: number
+  significance?: SignificanceResult
+  isApplicable: boolean
+}
+
+interface CardStats {
+  base?: number
+  hyperspace?: number
+  foil?: number
+  hyperspace_foil?: number
+  showcase?: number
+  [key: string]: number | undefined
+}
+
+interface PackConstruction {
+  totalCards: number
+  leaders: number
+  bases: number
+  commons: number
+  uncommons: string
+  raresLegendaries: string
+  foils: number
+}
+
+interface CardCounts {
+  leaders: number
+  bases: number
+  commons: number
+  uncommons: number
+  rares: number
+  legendaries: number
+  specials: number
+}
+
+interface DropRates {
+  legendaryInRareLegendarySlot: string
+  rareLegendaryUpgrade: string
+  foilCommon: string
+  foilUncommon: string
+  foilRare: string
+  foilLegendary: string
+  foilSpecial: string
+}
+
+interface SetReferenceData {
+  setCode: SetCode | string
+  setName: string
+  setColor: string
+  packConstruction: PackConstruction
+  cardCounts: CardCounts
+  dropRates: DropRates
+}
 
 /**
  * Calculate expected number of generations for a card given probability and total opportunities
  */
-export function calculateExpectedCount(probability, totalOpportunities) {
+export function calculateExpectedCount(probability: number, totalOpportunities: number): number {
   return probability * totalOpportunities
 }
 
 /**
  * Calculate Z-score for a proportion test
  */
-export function calculateZScore(observed, expected, n, p) {
+export function calculateZScore(observed: number, expected: number, n: number, p: number): number {
   if (n === 0 || p === 0 || p === 1) return 0
   const standardError = Math.sqrt(n * p * (1 - p))
   if (standardError === 0) return 0
@@ -22,7 +90,7 @@ export function calculateZScore(observed, expected, n, p) {
 /**
  * Categorize statistical significance based on Z-score
  */
-export function categorizeSignificance(zScore) {
+export function categorizeSignificance(zScore: number): SignificanceResult {
   const absZ = Math.abs(zScore)
 
   if (absZ < 1.96) {
@@ -49,7 +117,7 @@ export function categorizeSignificance(zScore) {
 /**
  * Calculate percentage difference
  */
-export function calculatePercentDifference(observed, expected) {
+export function calculatePercentDifference(observed: number, expected: number): number {
   if (expected === 0) return 0
   return ((observed - expected) / expected) * 100
 }
@@ -58,13 +126,14 @@ export function calculatePercentDifference(observed, expected) {
  * Get probability for a specific card treatment
  * Treatment = variant type (base=Normal, hyperspace=Hyperspace, etc.)
  *
- * @param {Object} card - Card object (Normal variant for reference)
- * @param {string} treatment - Treatment type
- * @param {string} setCode - Set code
- * @returns {number} Probability per pack (0-1)
+ * @param card - Card object (Normal variant for reference)
+ * @param treatment - Treatment type
+ * @param setCode - Set code
+ * @returns Probability per pack (0-1)
  */
-export function getCardTreatmentProbability(card, treatment, setCode) {
-  const setConfig = getSetConfig(setCode)
+export function getCardTreatmentProbability(card: RawCard, treatment: Treatment, setCode: SetCode | string): number {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setConfig = getSetConfig(setCode as SetCode) as any
   if (!setConfig) return 0
 
   const cardCounts = setConfig.cardCounts || {}
@@ -154,8 +223,9 @@ export function getCardTreatmentProbability(card, treatment, setCode) {
 /**
  * Get base slot probability for a regular card (before upgrades)
  */
-function getSlotProbability(card, setCode) {
-  const setConfig = getSetConfig(setCode)
+function getSlotProbability(card: RawCard, setCode: SetCode | string): number {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setConfig = getSetConfig(setCode as SetCode) as any
   if (!setConfig || !setConfig.cardCounts) return 0
 
   const cardCounts = setConfig.cardCounts
@@ -205,8 +275,9 @@ function getSlotProbability(card, setCode) {
 /**
  * Get hyperspace upgrade rate for a card based on its rarity/type
  */
-function getHyperspaceUpgradeRate(card, setCode) {
-  const setConfig = getSetConfig(setCode)
+function getHyperspaceUpgradeRate(card: RawCard, setCode: SetCode | string): number {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setConfig = getSetConfig(setCode as SetCode) as any
   if (!setConfig) return 0
 
   const upgrades = setConfig.upgradeProbabilities || {}
@@ -238,8 +309,9 @@ function getHyperspaceUpgradeRate(card, setCode) {
 /**
  * Get probability for a card in the foil slot
  */
-function getFoilSlotProbability(card, setCode) {
-  const setConfig = getSetConfig(setCode)
+function getFoilSlotProbability(card: RawCard, setCode: SetCode | string): number {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setConfig = getSetConfig(setCode as SetCode) as any
   if (!setConfig || !setConfig.cardCounts) return 0
 
   const cardCounts = setConfig.cardCounts
@@ -251,7 +323,7 @@ function getFoilSlotProbability(card, setCode) {
     Legendary: 2
   }
 
-  const totalWeight = Object.values(foilWeights).reduce((a, b) => a + b, 0)
+  const totalWeight = Object.values(foilWeights).reduce((a: number, b: unknown) => a + (b as number), 0)
   const rarityWeight = foilWeights[rarity] || 0
   const rarityRate = rarityWeight / totalWeight
 
@@ -276,8 +348,9 @@ function getFoilSlotProbability(card, setCode) {
  * Get probability for Special rarity cards
  * Special cards only appear in foil/hyperfoil slots in sets 4-6
  */
-function getSpecialCardProbability(card, treatment, setCode) {
-  const setConfig = getSetConfig(setCode)
+function getSpecialCardProbability(_card: RawCard, treatment: Treatment, setCode: SetCode | string): number {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setConfig = getSetConfig(setCode as SetCode) as any
   if (!setConfig) return 0
 
   // Check if this set allows specials in foil slot
@@ -290,7 +363,7 @@ function getSpecialCardProbability(card, treatment, setCode) {
 
   const foilWeights = setConfig.rarityWeights?.foilSlot || {}
   const specialWeight = foilWeights.Special || 0
-  const totalWeight = Object.values(foilWeights).reduce((a, b) => a + b, 0)
+  const totalWeight = Object.values(foilWeights).reduce((a: number, b: unknown) => a + (b as number), 0)
   if (totalWeight === 0) return 0
 
   const specialRate = specialWeight / totalWeight
@@ -320,9 +393,9 @@ function getSpecialCardProbability(card, treatment, setCode) {
 /**
  * Analyze a single card's generation statistics
  */
-export function analyzeCardStats(card, stats, totalPacks, setCode) {
-  const treatments = ['base', 'hyperspace', 'foil', 'hyperspace_foil', 'showcase']
-  const results = {}
+export function analyzeCardStats(card: RawCard, stats: CardStats, totalPacks: number, setCode: SetCode | string): Record<Treatment, TreatmentStats> {
+  const treatments: Treatment[] = ['base', 'hyperspace', 'foil', 'hyperspace_foil', 'showcase']
+  const results: Partial<Record<Treatment, TreatmentStats>> = {}
 
   treatments.forEach(treatment => {
     const observed = stats[treatment] || 0
@@ -357,14 +430,15 @@ export function analyzeCardStats(card, stats, totalPacks, setCode) {
     }
   })
 
-  return results
+  return results as Record<Treatment, TreatmentStats>
 }
 
 /**
  * Get reference data for a set
  */
-export function getSetReferenceData(setCode) {
-  const setConfig = getSetConfig(setCode)
+export function getSetReferenceData(setCode: SetCode | string): SetReferenceData | null {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setConfig = getSetConfig(setCode as SetCode) as any
   if (!setConfig) return null
 
   const cardCounts = setConfig.cardCounts || {}
