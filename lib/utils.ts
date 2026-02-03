@@ -7,23 +7,29 @@ const alphanumericNanoid = customAlphabet(
   10
 )
 
+export interface ApiResponse<T = unknown> {
+  success: boolean
+  data: T | null
+  message: string | null
+}
+
 /**
  * Generate a short, URL-safe alphanumeric ID for sharing
- * @param {number} length - Length of ID (default: 10 for better collision resistance)
- * @returns {string} Shareable ID
+ * @param length - Length of ID (default: 10 for better collision resistance)
+ * @returns Shareable ID
  */
-export function generateShareId(length = 10) {
+export function generateShareId(length: number = 10): string {
   return alphanumericNanoid(length)
 }
 
 /**
  * Create a standardized API response
- * @param {*} data - Response data
- * @param {number} status - HTTP status code
- * @param {string} message - Optional message
- * @returns {Response} HTTP response
+ * @param data - Response data
+ * @param status - HTTP status code
+ * @param message - Optional message
+ * @returns HTTP response
  */
-export function jsonResponse(data, status = 200, message = null) {
+export function jsonResponse<T>(data: T, status: number = 200, message: string | null = null): Response {
   return new Response(
     JSON.stringify({
       success: status >= 200 && status < 300,
@@ -41,20 +47,20 @@ export function jsonResponse(data, status = 200, message = null) {
 
 /**
  * Create an error response
- * @param {string} message - Error message
- * @param {number} status - HTTP status code (default: 400)
- * @returns {Response} HTTP error response
+ * @param message - Error message
+ * @param status - HTTP status code (default: 400)
+ * @returns HTTP error response
  */
-export function errorResponse(message, status = 400) {
+export function errorResponse(message: string, status: number = 400): Response {
   return jsonResponse(null, status, message)
 }
 
 /**
  * Handle API route errors
- * @param {Error} error - Error object
- * @returns {Response} Error response
+ * @param error - Error object
+ * @returns Error response
  */
-export function handleApiError(error) {
+export function handleApiError(error: Error): Response {
   console.error('API Error:', error)
 
   if (error.message === 'Unauthorized') {
@@ -82,25 +88,25 @@ export function handleApiError(error) {
 
 /**
  * Parse request body as JSON
- * @param {Request} request - HTTP request
- * @returns {Promise<Object>} Parsed JSON body
+ * @param request - HTTP request
+ * @returns Parsed JSON body
  */
-export async function parseBody(request) {
+export async function parseBody<T = Record<string, unknown>>(request: Request): Promise<T> {
   try {
     // Next.js Request already has .json() method
-    return await request.json()
-  } catch (error) {
+    return await request.json() as T
+  } catch {
     throw new Error('Invalid JSON body')
   }
 }
 
 /**
  * Validate required fields in an object
- * @param {Object} obj - Object to validate
- * @param {Array<string>} requiredFields - Array of required field names
- * @throws {Error} If any required field is missing
+ * @param obj - Object to validate
+ * @param requiredFields - Array of required field names
+ * @throws Error if any required field is missing
  */
-export function validateRequired(obj, requiredFields) {
+export function validateRequired(obj: Record<string, unknown>, requiredFields: string[]): void {
   const missing = requiredFields.filter((field) => !(field in obj))
   if (missing.length > 0) {
     throw new Error(`Missing required fields: ${missing.join(', ')}`)

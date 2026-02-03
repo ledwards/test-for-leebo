@@ -3,9 +3,16 @@ import pg from 'pg'
 
 const { Pool } = pg
 
+export interface QueryResult<T = Record<string, unknown>> {
+  rows: T[]
+  rowCount: number | null
+  command: string
+  fields: pg.FieldDef[]
+}
+
 // Create a connection pool
 // Railway provides DATABASE_URL, Vercel provides POSTGRES_URL
-const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL
+const connectionString = process.env['DATABASE_URL'] || process.env['POSTGRES_URL']
 
 if (!connectionString) {
   console.warn('No database connection string found (DATABASE_URL or POSTGRES_URL)')
@@ -21,17 +28,17 @@ const pool = connectionString ? new Pool({
 
 /**
  * Execute a SQL query
- * @param {string} queryText - SQL query string
- * @param {Array} params - Query parameters
- * @returns {Promise} Query result
+ * @param queryText - SQL query string
+ * @param params - Query parameters
+ * @returns Query result
  */
-export async function query(queryText, params = []) {
+export async function query(queryText: string, params: unknown[] = []): Promise<QueryResult> {
   if (!pool) {
     throw new Error('Database not configured')
   }
   try {
     const result = await pool.query(queryText, params)
-    return result
+    return result as QueryResult
   } catch (error) {
     console.error('Database query error:', error)
     throw error
@@ -40,31 +47,31 @@ export async function query(queryText, params = []) {
 
 /**
  * Execute a SQL query and return rows
- * @param {string} queryText - SQL query string
- * @param {Array} params - Query parameters
- * @returns {Promise<Array>} Query rows
+ * @param queryText - SQL query string
+ * @param params - Query parameters
+ * @returns Query rows
  */
-export async function queryRows(queryText, params = []) {
+export async function queryRows(queryText: string, params: unknown[] = []): Promise<Record<string, unknown>[]> {
   const result = await query(queryText, params)
   return result.rows || []
 }
 
 /**
  * Execute a SQL query and return first row
- * @param {string} queryText - SQL query string
- * @param {Array} params - Query parameters
- * @returns {Promise<Object|null>} First row or null
+ * @param queryText - SQL query string
+ * @param params - Query parameters
+ * @returns First row or null
  */
-export async function queryRow(queryText, params = []) {
+export async function queryRow(queryText: string, params: unknown[] = []): Promise<Record<string, unknown> | null> {
   const rows = await queryRows(queryText, params)
   return rows[0] || null
 }
 
 /**
  * Test database connection
- * @returns {Promise<boolean>} True if connected
+ * @returns True if connected
  */
-export async function testConnection() {
+export async function testConnection(): Promise<boolean> {
   try {
     await query('SELECT 1')
     return true
