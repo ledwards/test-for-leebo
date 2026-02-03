@@ -8,8 +8,14 @@
 import { RandomBehavior } from './RandomBehavior.js'
 import { PopularLeaderBehavior } from './PopularLeaderBehavior.js'
 
+// Behavior class type
+type BehaviorClass = typeof RandomBehavior | typeof PopularLeaderBehavior
+
+// Behavior instance type
+type BehaviorInstance = RandomBehavior | PopularLeaderBehavior
+
 // Registry of available behaviors
-export const behaviors = {
+export const behaviors: Record<string, BehaviorClass> = {
   random: RandomBehavior,
   popularLeader: PopularLeaderBehavior,
 }
@@ -19,10 +25,10 @@ export const DEFAULT_BEHAVIOR = 'popularLeader'
 
 /**
  * Get a behavior instance by name
- * @param {string} name - Behavior name
- * @returns {Object} Behavior instance
+ * @param name - Behavior name
+ * @returns Behavior instance
  */
-export function getBehavior(name = DEFAULT_BEHAVIOR) {
+export function getBehavior(name: string = DEFAULT_BEHAVIOR): BehaviorInstance {
   const BehaviorClass = behaviors[name]
   if (!BehaviorClass) {
     console.warn(`[BOT] Unknown behavior "${name}", falling back to random`)

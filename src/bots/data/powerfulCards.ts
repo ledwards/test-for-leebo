@@ -7,7 +7,9 @@
  * These get a bonus in the scoring algorithm when the bot sees them.
  */
 
-export const POWERFUL_CARDS = {
+import type { SetCode } from '../../types/card.js'
+
+export const POWERFUL_CARDS: Partial<Record<SetCode | string, string[]>> = {
   // Spark of Rebellion
   SOR: [
     'Vanquish',
