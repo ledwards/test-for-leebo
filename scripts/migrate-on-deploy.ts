@@ -1,5 +1,5 @@
 // @ts-nocheck
-// Migration script for Vercel deployments
+// Migration script for Railway deployments
 // This runs automatically during build/deploy
 // Usage: npx tsx scripts/migrate-on-deploy.ts
 
@@ -19,12 +19,12 @@ interface MigrationFile {
   type: 'sql' | 'js'
 }
 
-// Get database URL from environment (Vercel provides this)
+// Get database URL from environment (Railway provides this)
 function getDatabaseUrl(): string {
   const dbUrl = process.env.POSTGRES_URL
   if (!dbUrl) {
     console.error('❌ Error: POSTGRES_URL is not set')
-    console.error('   This script should run during Vercel deployment where POSTGRES_URL is automatically set')
+    console.error('   This script should run during Railway deployment where POSTGRES_URL is automatically set')
     process.exit(1)
   }
   return dbUrl
@@ -100,42 +100,33 @@ async function markMigrationApplied(client: pg.Client, migrationName: string): P
 }
 
 // Run a single migration (SQL or JS)
-// JS migrations run EVERY time (they must be idempotent) for data fixes
-// SQL migrations run ONCE (schema changes are not idempotent)
 async function runMigration(client: pg.Client, migrationFile: MigrationFile): Promise<boolean> {
   const migrationName = migrationFile.name
   const migrationPath = migrationFile.path
   const migrationType = migrationFile.type
 
-  // SQL migrations only run once - they're schema changes
-  // JS migrations run every time - they're idempotent data fixes
-  if (migrationType === 'sql') {
-    const isApplied = await isMigrationApplied(client, migrationName)
-    if (isApplied) {
-      console.log(`⏭️  Skipping ${migrationName} (already applied)`)
-      return false
-    }
+  const isApplied = await isMigrationApplied(client, migrationName)
+  if (isApplied) {
+    console.log(`⏭️  Skipping ${migrationName} (already applied)`)
+    return false
   }
 
   console.log(`📦 Running ${migrationName}...`)
 
   if (migrationType === 'js') {
-    // Import and run JS migration (runs every deploy for data fixes)
+    // Import and run JS migration
     const migration = await import(migrationPath)
     if (typeof migration.run !== 'function') {
       throw new Error(`JS migration ${migrationName} must export a 'run' function`)
     }
     await migration.run(client)
   } else {
-    // Read and execute SQL migration (only runs once)
+    // Read and execute SQL migration
     const migrationSQL = readFileSync(migrationPath, 'utf-8')
     await client.query(migrationSQL)
   }
 
-  // Only track SQL migrations - JS migrations always re-run
-  if (migrationType === 'sql') {
-    await markMigrationApplied(client, migrationName)
-  }
+  await markMigrationApplied(client, migrationName)
 
   console.log(`✅ Applied ${migrationName}`)
   return true
@@ -161,7 +152,7 @@ async function runMigrations(): Promise<void> {
 
   try {
     const dbUrl = getDatabaseUrl()
-    const isProduction = process.env.VERCEL_ENV === 'production'
+    const isProduction = process.env.RAILWAY_ENVIRONMENT === 'production'
 
     console.log(`\n🔧 Running migrations for ${isProduction ? 'PRODUCTION' : 'PREVIEW'} environment...`)
 
