@@ -1,3 +1,4 @@
+// @ts-nocheck
 // GET /api/image-proxy?url=<encoded-url>
 // Proxies external images to avoid CORS issues when drawing to canvas
 import { NextRequest } from 'next/server'

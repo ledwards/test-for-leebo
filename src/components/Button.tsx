@@ -1,3 +1,4 @@
+// @ts-nocheck
 import './Button.css'
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react'
 

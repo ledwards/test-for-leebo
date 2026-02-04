@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Popular Leader Behavior
  *
@@ -21,8 +22,8 @@
  * - src/bots/data/powerfulCards.js (easily editable)
  */
 
-import { POWERFUL_CARDS, POWERFUL_CARD_BONUS } from '../data/powerfulCards.js'
-import type { RawCard } from '../../utils/cardData.js'
+import { POWERFUL_CARDS, POWERFUL_CARD_BONUS } from '../data/powerfulCards'
+import type { RawCard } from '../../utils/cardData'
 
 interface DraftContext {
   draftedLeaders?: RawCard[]

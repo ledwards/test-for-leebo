@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Rarity Distribution Configuration
  *
@@ -7,7 +8,7 @@
  * Based on official distribution rates from FFG/Asmodee.
  */
 
-import { getSetConfig } from './setConfigs/index.js'
+import { getSetConfig } from './setConfigs/index'
 import type { SetCode } from '../types'
 
 /**

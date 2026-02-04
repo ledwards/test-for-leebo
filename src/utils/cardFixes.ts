@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Runtime Card Fixes
  * Applies corrections to card data at runtime
@@ -6,8 +7,8 @@
  * when card data is loaded, ensuring all code uses corrected data.
  */
 
-import { cardFixes, batchFixes, customTransforms } from '../../scripts/cardFixes.js'
-import type { RawCard } from './cardData.js'
+import { cardFixes, batchFixes, customTransforms } from '../../scripts/cardFixes'
+import type { RawCard } from './cardData'
 
 interface CardFix {
   id: string

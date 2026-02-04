@@ -1,8 +1,8 @@
 // @ts-nocheck
 // GET /api/pools/user/:userId - Get all pools for a user
-import { queryRows, queryRow } from '@/lib/db.js'
-import { getSession } from '@/lib/auth.js'
-import { jsonResponse, handleApiError } from '@/lib/utils.js'
+import { queryRows, queryRow } from '@/lib/db'
+import { getSession } from '@/lib/auth'
+import { jsonResponse, handleApiError } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {

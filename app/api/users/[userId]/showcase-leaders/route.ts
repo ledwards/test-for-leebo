@@ -1,7 +1,7 @@
 // @ts-nocheck
 // GET /api/users/:userId/showcase-leaders - Get all showcase leaders pulled by a user
-import { queryRows } from '@/lib/db.js'
-import { jsonResponse, handleApiError } from '@/lib/utils.js'
+import { queryRows } from '@/lib/db'
+import { jsonResponse, handleApiError } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {

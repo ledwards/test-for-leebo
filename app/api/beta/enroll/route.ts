@@ -1,9 +1,9 @@
 // @ts-nocheck
 // POST /api/beta/enroll - Enroll current user as beta tester
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth, setSession } from '@/lib/auth.js'
-import { queryRow } from '@/lib/db.js'
-import { handleApiError } from '@/lib/utils.js'
+import { requireAuth, setSession } from '@/lib/auth'
+import { queryRow } from '@/lib/db'
+import { handleApiError } from '@/lib/utils'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {

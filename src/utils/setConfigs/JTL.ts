@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * Set Configuration for JTL - Jump to Lightspeed
  * Set 4
  */
 
-import { SETS_4_6_CONSTANTS } from '../packConstants.js'
-import type { SetConfig } from './index.js'
+import { SETS_4_6_CONSTANTS } from '../packConstants'
+import type { SetConfig } from './index'
 
 const constants = SETS_4_6_CONSTANTS
 

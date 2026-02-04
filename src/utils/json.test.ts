@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { jsonParse, jsonStringify } from './json.js'
+import { jsonParse, jsonStringify } from './json'
 
 describe('jsonParse', () => {
   describe('string input', () => {

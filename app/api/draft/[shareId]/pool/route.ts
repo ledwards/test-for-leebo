@@ -1,8 +1,8 @@
 // @ts-nocheck
 // GET/POST /api/draft/:shareId/pool - Get or create a pool from drafted cards
-import { query, queryRow } from '@/lib/db.js'
-import { requireAuth } from '@/lib/auth.js'
-import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
+import { query, queryRow } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { nanoid } from 'nanoid'
 import { NextRequest, NextResponse } from 'next/server'
 

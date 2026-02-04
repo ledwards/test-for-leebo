@@ -2,13 +2,13 @@
 // POST /api/draft/:shareId/select - Stage a selection (not a final pick)
 // Selection is stored temporarily until all players have selected
 // When all have selected, picks are processed automatically
-import { query, queryRow, queryRows } from '@/lib/db.js'
-import { requireAuth } from '@/lib/auth.js'
-import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/utils.js'
-import { processAllStagedPicks } from '@/src/utils/draftAdvance.js'
-import { processBotTurns } from '@/src/utils/botLogic.js'
-import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout.js'
-import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
+import { query, queryRow, queryRows } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/utils'
+import { processAllStagedPicks } from '@/src/utils/draftAdvance'
+import { processBotTurns } from '@/src/utils/botLogic'
+import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout'
+import { broadcastDraftState } from '@/src/lib/socketBroadcast'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {

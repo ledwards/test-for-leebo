@@ -328,7 +328,7 @@ const EXPECTED: Record<string, ExpectedCounts> = {
  * TEST IMPLEMENTATION - Usually no need to edit below this line
  * ============================================================================ */
 
-import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
+import { initializeCardCache, getCachedCards } from '../utils/cardCache'
 
 let passed = 0
 let failed = 0

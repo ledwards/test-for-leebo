@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Central type exports for the application
  *

@@ -5,8 +5,8 @@
  * Run with: node src/belts/RareLegendaryBelt.test.ts
  */
 
-import { RareLegendaryBelt } from './RareLegendaryBelt.js'
-import { initializeCardCache } from '../utils/cardCache.js'
+import { RareLegendaryBelt } from './RareLegendaryBelt'
+import { initializeCardCache } from '../utils/cardCache'
 
 let passed = 0
 let failed = 0

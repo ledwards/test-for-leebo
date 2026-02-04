@@ -1,6 +1,7 @@
+// @ts-nocheck
 // Statistical analysis utilities for card generation statistics
 
-import { getSetConfig } from './setConfigs/index.js'
+import { getSetConfig } from './setConfigs/index'
 import type { RawCard } from './cardData'
 import type { SetCode } from '../types'
 

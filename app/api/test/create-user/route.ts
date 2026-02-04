@@ -1,9 +1,9 @@
 // @ts-nocheck
 // POST /api/test/create-user - Create a test user (development/test only)
 // This endpoint creates real users in the database for E2E testing
-import { query, queryRow } from '@/lib/db.js'
-import { createToken } from '@/lib/auth.js'
-import { jsonResponse, errorResponse } from '@/lib/utils.js'
+import { query, queryRow } from '@/lib/db'
+import { createToken } from '@/lib/auth'
+import { jsonResponse, errorResponse } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

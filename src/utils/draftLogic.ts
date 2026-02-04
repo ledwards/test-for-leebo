@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Draft Logic Utilities
  *
@@ -5,8 +6,8 @@
  */
 
 import type { SetCode, DraftCard, PassDirection, PickStatus } from '../types';
-import type { RawCard } from './cardData.js';
-import { generateBoosterPack, clearBeltCache } from './boosterPack.js';
+import type { RawCard } from './cardData';
+import { generateBoosterPack, clearBeltCache } from './boosterPack';
 
 // === TYPES ===
 

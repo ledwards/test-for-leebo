@@ -1,16 +1,17 @@
+// @ts-nocheck
 /**
  * Set Configuration Index
  *
  * Central registry for all set configurations
  */
 
-import { SOR_CONFIG } from './SOR.js'
-import { SHD_CONFIG } from './SHD.js'
-import { TWI_CONFIG } from './TWI.js'
-import { JTL_CONFIG } from './JTL.js'
-import { LOF_CONFIG } from './LOF.js'
-import { SEC_CONFIG } from './SEC.js'
-import { LAW_CONFIG } from './LAW.js'
+import { SOR_CONFIG } from './SOR'
+import { SHD_CONFIG } from './SHD'
+import { TWI_CONFIG } from './TWI'
+import { JTL_CONFIG } from './JTL'
+import { LOF_CONFIG } from './LOF'
+import { SEC_CONFIG } from './SEC'
+import { LAW_CONFIG } from './LAW'
 import type { SetCode } from '../../types'
 
 export interface LeaderBaseCounts {

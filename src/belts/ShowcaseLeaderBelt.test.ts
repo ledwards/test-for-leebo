@@ -5,8 +5,8 @@
  * Run with: node src/belts/ShowcaseLeaderBelt.test.ts
  */
 
-import { ShowcaseLeaderBelt } from './ShowcaseLeaderBelt.js'
-import { initializeCardCache } from '../utils/cardCache.js'
+import { ShowcaseLeaderBelt } from './ShowcaseLeaderBelt'
+import { initializeCardCache } from '../utils/cardCache'
 
 let passed = 0
 let failed = 0

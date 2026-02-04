@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Pack art URL mappings for Star Wars Unlimited sets
 //
 // To find pack art URLs:

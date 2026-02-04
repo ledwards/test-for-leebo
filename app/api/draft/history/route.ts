@@ -1,8 +1,8 @@
 // @ts-nocheck
 // GET /api/draft/history - Get draft pods the user is in
-import { queryRows } from '@/lib/db.js'
-import { requireAuth } from '@/lib/auth.js'
-import { jsonResponse, handleApiError } from '@/lib/utils.js'
+import { queryRows } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+import { jsonResponse, handleApiError } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {

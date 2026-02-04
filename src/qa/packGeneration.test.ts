@@ -11,8 +11,8 @@
  * Results are written to: src/qa/results.json
  */
 
-import { generateBoosterPack, generateSealedPod, clearBeltCache } from '../utils/boosterPack.js'
-import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
+import { generateBoosterPack, generateSealedPod, clearBeltCache } from '../utils/boosterPack'
+import { initializeCardCache, getCachedCards } from '../utils/cardCache'
 import { writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'

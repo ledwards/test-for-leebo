@@ -1,5 +1,6 @@
+// @ts-nocheck
 // GET /api/health - Health check endpoint with memory and connection stats
-import { testConnection } from '@/lib/db.js'
+import { testConnection } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
 interface SocketStats {

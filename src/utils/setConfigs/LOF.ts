@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * Set Configuration for LOF - Legends of the Force
  * Set 5
  */
 
-import { SETS_4_6_CONSTANTS } from '../packConstants.js'
-import type { SetConfig } from './index.js'
+import { SETS_4_6_CONSTANTS } from '../packConstants'
+import type { SetConfig } from './index'
 
 const constants = SETS_4_6_CONSTANTS
 

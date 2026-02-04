@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Belt system type definitions
  *

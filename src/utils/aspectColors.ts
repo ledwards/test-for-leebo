@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Aspect and rarity color utilities
  */

@@ -1,8 +1,8 @@
 // @ts-nocheck
 // GET /api/stats/packs - Get generated packs with card images
-import { queryRows } from '@/lib/db.js'
-import { jsonResponse, handleApiError } from '@/lib/utils.js'
-import { getAllCards } from '@/src/utils/cardData.js'
+import { queryRows } from '@/lib/db'
+import { jsonResponse, handleApiError } from '@/lib/utils'
+import { getAllCards } from '@/src/utils/cardData'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {

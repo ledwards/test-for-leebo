@@ -1,7 +1,7 @@
 // @ts-nocheck
 // POST /api/pools/save-state - Save deck builder state (used by sendBeacon on page unload)
-import { queryRow, query } from '@/lib/db.js'
-import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
+import { queryRow, query } from '@/lib/db'
+import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

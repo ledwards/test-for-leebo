@@ -13,8 +13,8 @@
 
 import { describe, it, before } from 'node:test'
 import assert from 'node:assert'
-import { generateDraftPacks } from './draftLogic.js'
-import { initializeCardCache } from './cardCache.js'
+import { generateDraftPacks } from './draftLogic'
+import { initializeCardCache } from './cardCache'
 
 describe('Draft pack format', () => {
   before(async () => {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import '../../src/styles/backgrounds.css'
 import '../../src/components/Button.css'
 

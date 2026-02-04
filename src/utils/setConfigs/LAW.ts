@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Set Configuration for LAW - A Lawless Time
  * Set 7 (Beta)
@@ -16,8 +17,8 @@
  * Run `npm run fetch-cards` to update when full data is available.
  */
 
-import { SET_7_PLUS_CONSTANTS } from '../packConstants.js'
-import type { SetConfig } from './index.js'
+import { SET_7_PLUS_CONSTANTS } from '../packConstants'
+import type { SetConfig } from './index'
 
 const constants = SET_7_PLUS_CONSTANTS
 

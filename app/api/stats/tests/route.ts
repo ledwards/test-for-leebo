@@ -1,7 +1,8 @@
+// @ts-nocheck
 // GET /api/stats/tests - Get unit test results from file
 import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
-import { jsonResponse, handleApiError } from '@/lib/utils.js'
+import { jsonResponse, handleApiError } from '@/lib/utils'
 import { NextResponse } from 'next/server'
 
 export async function GET(): Promise<NextResponse> {

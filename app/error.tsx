@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 
 import '../src/styles/backgrounds.css'

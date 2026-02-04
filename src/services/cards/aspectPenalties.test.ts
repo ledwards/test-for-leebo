@@ -10,7 +10,7 @@ import {
   getRelevantAspects,
   PENALTY_PER_ASPECT,
   LEADER_PENALTY_ABILITIES,
-} from './aspectPenalties.js'
+} from './aspectPenalties'
 
 describe('aspectPenalties', () => {
   // Test fixtures

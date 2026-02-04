@@ -1,10 +1,10 @@
 // @ts-nocheck
 // POST /api/draft - Create a new draft pod
-import { query, queryRow } from '@/lib/db.js'
-import { requireAuth } from '@/lib/auth.js'
-import { generateShareId } from '@/lib/utils.js'
-import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils.js'
-import { getSetConfig } from '@/src/utils/setConfigs/index.js'
+import { query, queryRow } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+import { generateShareId } from '@/lib/utils'
+import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
+import { getSetConfig } from '@/src/utils/setConfigs/index'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

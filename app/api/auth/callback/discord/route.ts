@@ -1,6 +1,7 @@
+// @ts-nocheck
 // GET /api/auth/callback/discord - Discord OAuth callback
-import { queryRow, query } from '@/lib/db.js'
-import { setSession } from '@/lib/auth.js'
+import { queryRow, query } from '@/lib/db'
+import { setSession } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID

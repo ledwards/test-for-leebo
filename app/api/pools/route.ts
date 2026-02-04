@@ -1,11 +1,11 @@
 // @ts-nocheck
 // POST /api/pools - Create a new card pool
-import { query } from '@/lib/db.js'
-import { requireAuth } from '@/lib/auth.js'
-import { generateShareId } from '@/lib/utils.js'
-import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils.js'
-import { getSetConfig } from '@/src/utils/setConfigs/index.js'
-import { trackBulkGenerations } from '@/src/utils/trackGeneration.js'
+import { query } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+import { generateShareId } from '@/lib/utils'
+import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
+import { getSetConfig } from '@/src/utils/setConfigs/index'
+import { trackBulkGenerations } from '@/src/utils/trackGeneration'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

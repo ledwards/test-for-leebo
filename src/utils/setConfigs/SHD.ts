@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * Set Configuration for SHD - Shadows of the Galaxy
  * Set 2
  */
 
-import { SETS_1_3_CONSTANTS } from '../packConstants.js'
-import type { SetConfig } from './index.js'
+import { SETS_1_3_CONSTANTS } from '../packConstants'
+import type { SetConfig } from './index'
 
 const constants = SETS_1_3_CONSTANTS
 

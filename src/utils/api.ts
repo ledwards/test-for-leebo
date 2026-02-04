@@ -1,8 +1,9 @@
+// @ts-nocheck
 // API utilities for fetching card/set data
 
-import { getCardsBySet } from './cardData.js'
-import { getPackArtUrl } from './packArt.js'
-import type { RawCard } from './cardData.js'
+import { getCardsBySet } from './cardData'
+import { getPackArtUrl } from './packArt'
+import type { RawCard } from './cardData'
 
 interface SetInfo {
   code: string

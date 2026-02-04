@@ -5,8 +5,8 @@
  * Run with: node src/belts/CommonBelt.test.ts
  */
 
-import { CommonBelt, getCommonPools, getBeltCards } from './CommonBelt.js'
-import { initializeCardCache } from '../utils/cardCache.js'
+import { CommonBelt, getCommonPools, getBeltCards } from './CommonBelt'
+import { initializeCardCache } from '../utils/cardCache'
 
 let passed = 0
 let failed = 0

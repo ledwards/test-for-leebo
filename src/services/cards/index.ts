@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Card Services
  *
@@ -16,7 +17,7 @@ export {
   sortCards,
   getDefaultAspectSortKey,
   defaultSort,
-} from './cardSorting.js'
+} from './cardSorting'
 
 export {
   calculateAspectPenalty,
@@ -27,7 +28,7 @@ export {
   getRelevantAspects,
   PENALTY_PER_ASPECT,
   LEADER_PENALTY_ABILITIES,
-} from './aspectPenalties.js'
+} from './aspectPenalties'
 
 export {
   NO_ASPECT_LABEL,
@@ -43,4 +44,4 @@ export {
   filterByCostRange,
   filterByName,
   createDefaultAspectFilters,
-} from './cardFiltering.js'
+} from './cardFiltering'

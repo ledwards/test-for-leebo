@@ -1,13 +1,13 @@
 // @ts-nocheck
 // POST /api/draft/:shareId/start - Start the draft (host only)
-import { query, queryRow, queryRows } from '@/lib/db.js'
-import { requireAuth } from '@/lib/auth.js'
-import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
-import { generateDraftPacks } from '@/src/utils/draftLogic.js'
-import { processBotTurns } from '@/src/utils/botLogic.js'
-import { initializeCardCache } from '@/src/utils/cardCache.js'
+import { query, queryRow, queryRows } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
+import { generateDraftPacks } from '@/src/utils/draftLogic'
+import { processBotTurns } from '@/src/utils/botLogic'
+import { initializeCardCache } from '@/src/utils/cardCache'
 // trackBulkGenerations removed - cards are now tracked at pick time
-import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
+import { broadcastDraftState } from '@/src/lib/socketBroadcast'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {

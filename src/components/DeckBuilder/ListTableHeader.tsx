@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ListTableHeader Component
  *

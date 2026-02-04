@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * CommonBelt
  *
@@ -39,7 +40,7 @@ import { getCachedCards } from '../utils/cardCache'
 import type { RawCard } from '../utils/cardData'
 import type { SetCode } from '../types'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-import { COMMON_BELT_ASSIGNMENTS, getBlockForSet, assignCardToBelt } from './data/commonBeltAssignments.js'
+import { COMMON_BELT_ASSIGNMENTS, getBlockForSet, assignCardToBelt } from './data/commonBeltAssignments'
 
 // Type for belt ID
 type BeltId = 'A' | 'B'

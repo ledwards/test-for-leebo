@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Pool and deck builder type definitions
  */

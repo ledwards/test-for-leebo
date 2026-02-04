@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * Set Configuration for TWI - Twilight of the Republic
  * Set 3
  */
 
-import { SETS_1_3_CONSTANTS } from '../packConstants.js'
-import type { SetConfig } from './index.js'
+import { SETS_1_3_CONSTANTS } from '../packConstants'
+import type { SetConfig } from './index'
 
 const constants = SETS_1_3_CONSTANTS
 

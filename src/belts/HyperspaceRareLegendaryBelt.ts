@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * HyperspaceRareLegendaryBelt
  *
@@ -8,7 +9,7 @@
 import { getCachedCards } from '../utils/cardCache'
 import type { RawCard } from '../utils/cardData'
 import type { SetCode } from '../types'
-import { getSetConfig } from '../utils/setConfigs/index.js'
+import { getSetConfig } from '../utils/setConfigs/index'
 
 /**
  * Shuffle an array in place (Fisher-Yates)

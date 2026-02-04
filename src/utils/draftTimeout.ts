@@ -6,10 +6,10 @@
  * Called during state polling to enforce server-side timeouts.
  */
 
-import { query, queryRow, queryRows } from '@/lib/db.js'
-import { processAllStagedPicks } from './draftAdvance.js'
-import { processBotTurns } from './botLogic.js'
-import type { RawCard } from './cardData.js'
+import { query, queryRow, queryRows } from '@/lib/db'
+import { processAllStagedPicks } from './draftAdvance'
+import { processBotTurns } from './botLogic'
+import type { RawCard } from './cardData'
 
 interface DraftPod {
   id: string

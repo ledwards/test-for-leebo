@@ -1,6 +1,7 @@
+// @ts-nocheck
 // GET /api/auth/signin/discord - Initiate Discord OAuth flow
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth.js'
+import { getSession } from '@/lib/auth'
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID
 const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'

@@ -4,7 +4,7 @@
  * Verifies that fixes are applied correctly when card data is loaded
  */
 
-import { applyCardFixes, getFixStats } from './cardFixes.js'
+import { applyCardFixes, getFixStats } from './cardFixes'
 
 console.log('='.repeat(60))
 console.log('Testing Runtime Card Fixes')
