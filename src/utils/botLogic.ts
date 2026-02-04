@@ -6,12 +6,12 @@
  * Uses pluggable behavior system for pick decisions.
  */
 
-import { query, queryRow, queryRows } from '@/lib/db.js'
-import { processAllStagedPicks } from './draftAdvance.js'
-import { getBehavior } from '@/src/bots/behaviors/index.js'
-import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
-import { jsonParse } from './json.js'
-import type { RawCard } from './cardData.js'
+import { query, queryRow, queryRows } from '@/lib/db'
+import { processAllStagedPicks } from './draftAdvance'
+import { getBehavior } from '@/src/bots/behaviors/index'
+import { broadcastDraftState } from '@/src/lib/socketBroadcast'
+import { jsonParse } from './json'
+import type { RawCard } from './cardData'
 
 // Behavior instance type
 type BehaviorInstance = ReturnType<typeof getBehavior>

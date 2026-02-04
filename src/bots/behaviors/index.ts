@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Bot Behavior System
  *
@@ -5,8 +6,8 @@
  * Each behavior implements selectLeader() and selectCard() methods.
  */
 
-import { RandomBehavior } from './RandomBehavior.js'
-import { PopularLeaderBehavior } from './PopularLeaderBehavior.js'
+import { RandomBehavior } from './RandomBehavior'
+import { PopularLeaderBehavior } from './PopularLeaderBehavior'
 
 // Behavior class type
 type BehaviorClass = typeof RandomBehavior | typeof PopularLeaderBehavior

@@ -12,8 +12,8 @@
  */
 
 import assert from 'assert'
-import { initializeCardCache, getCachedCards } from './cardCache.js'
-import { buildBaseCardMap, getBaseCardId } from './variantDowngrade.js'
+import { initializeCardCache, getCachedCards } from './cardCache'
+import { buildBaseCardMap, getBaseCardId } from './variantDowngrade'
 
 // Simple test framework
 const results = { passed: 0, failed: 0 }

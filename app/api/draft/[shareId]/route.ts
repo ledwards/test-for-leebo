@@ -1,12 +1,12 @@
 // @ts-nocheck
 // GET /api/draft/:shareId - Get draft pod details
 // DELETE /api/draft/:shareId - Delete draft pod (host only)
-import { query, queryRow, queryRows } from '@/lib/db.js'
-import { getSession, requireAuth } from '@/lib/auth.js'
-import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
-import { getPackArtUrl } from '@/src/utils/packArt.js'
-import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout.js'
-import { jsonParse } from '@/src/utils/json.js'
+import { query, queryRow, queryRows } from '@/lib/db'
+import { getSession, requireAuth } from '@/lib/auth'
+import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
+import { getPackArtUrl } from '@/src/utils/packArt'
+import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout'
+import { jsonParse } from '@/src/utils/json'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {

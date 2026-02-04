@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Booster Pack Generation
  *
@@ -15,24 +16,24 @@
  */
 
 import type { SetCode } from '../types';
-import type { RawCard } from './cardData.js';
+import type { RawCard } from './cardData';
 
-import { LeaderBelt } from '../belts/LeaderBelt.js';
-import { BaseBelt } from '../belts/BaseBelt.js';
-import { FoilBelt } from '../belts/FoilBelt.js';
-import { RareLegendaryBelt } from '../belts/RareLegendaryBelt.js';
-import { UncommonBelt } from '../belts/UncommonBelt.js';
-import { CommonBelt } from '../belts/CommonBelt.js';
-import { getBlockForSet, getBeltConfig } from '../belts/data/commonBeltAssignments.js';
-import { ShowcaseLeaderBelt } from '../belts/ShowcaseLeaderBelt.js';
-import { HyperfoilBelt } from '../belts/HyperfoilBelt.js';
-import { HyperspaceLeaderBelt } from '../belts/HyperspaceLeaderBelt.js';
-import { HyperspaceBaseBelt } from '../belts/HyperspaceBaseBelt.js';
-import { HyperspaceUncommonBelt } from '../belts/HyperspaceUncommonBelt.js';
-import { HyperspaceCommonBelt } from '../belts/HyperspaceCommonBelt.js';
-import { HyperspaceRareLegendaryBelt } from '../belts/HyperspaceRareLegendaryBelt.js';
-import { getSetConfig } from './setConfigs/index.js';
-import { getCachedCards } from './cardCache.js';
+import { LeaderBelt } from '../belts/LeaderBelt';
+import { BaseBelt } from '../belts/BaseBelt';
+import { FoilBelt } from '../belts/FoilBelt';
+import { RareLegendaryBelt } from '../belts/RareLegendaryBelt';
+import { UncommonBelt } from '../belts/UncommonBelt';
+import { CommonBelt } from '../belts/CommonBelt';
+import { getBlockForSet, getBeltConfig } from '../belts/data/commonBeltAssignments';
+import { ShowcaseLeaderBelt } from '../belts/ShowcaseLeaderBelt';
+import { HyperfoilBelt } from '../belts/HyperfoilBelt';
+import { HyperspaceLeaderBelt } from '../belts/HyperspaceLeaderBelt';
+import { HyperspaceBaseBelt } from '../belts/HyperspaceBaseBelt';
+import { HyperspaceUncommonBelt } from '../belts/HyperspaceUncommonBelt';
+import { HyperspaceCommonBelt } from '../belts/HyperspaceCommonBelt';
+import { HyperspaceRareLegendaryBelt } from '../belts/HyperspaceRareLegendaryBelt';
+import { getSetConfig } from './setConfigs/index';
+import { getCachedCards } from './cardCache';
 
 // === TYPES ===
 

@@ -1,9 +1,9 @@
 // @ts-nocheck
 // POST /api/draft/:shareId/trigger-bots - Force bots to make their picks
-import { queryRow } from '@/lib/db.js'
-import { requireAuth } from '@/lib/auth.js'
-import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
-import { processBotTurns } from '@/src/utils/botLogic.js'
+import { queryRow } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
+import { processBotTurns } from '@/src/utils/botLogic'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {

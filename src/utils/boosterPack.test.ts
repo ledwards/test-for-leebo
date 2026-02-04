@@ -5,8 +5,8 @@
  * Run with: npx tsx src/utils/boosterPack.test.ts
  */
 
-import { generateBoosterPack, generateSealedPod, clearBeltCache } from './boosterPack.js'
-import { initializeCardCache, getCachedCards } from './cardCache.js'
+import { generateBoosterPack, generateSealedPod, clearBeltCache } from './boosterPack'
+import { initializeCardCache, getCachedCards } from './cardCache'
 
 let passed = 0
 let failed = 0

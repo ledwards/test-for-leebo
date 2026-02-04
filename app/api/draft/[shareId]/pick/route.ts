@@ -1,12 +1,12 @@
 // @ts-nocheck
 // POST /api/draft/:shareId/pick - Make a draft pick
-import { query, queryRow } from '@/lib/db.js'
-import { requireAuth } from '@/lib/auth.js'
-import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/utils.js'
-import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft } from '@/src/utils/draftAdvance.js'
-import { processBotTurns } from '@/src/utils/botLogic.js'
-import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
-import { trackCardGeneration } from '@/src/utils/trackGeneration.js'
+import { query, queryRow } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/utils'
+import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft } from '@/src/utils/draftAdvance'
+import { processBotTurns } from '@/src/utils/botLogic'
+import { broadcastDraftState } from '@/src/lib/socketBroadcast'
+import { trackCardGeneration } from '@/src/utils/trackGeneration'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {

@@ -15,7 +15,7 @@ import {
   filterByCostRange,
   filterByName,
   createDefaultAspectFilters,
-} from './cardFiltering.js'
+} from './cardFiltering'
 
 describe('cardFiltering', () => {
   describe('constants', () => {

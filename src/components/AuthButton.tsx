@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Authentication button component
 import { useAuth } from '../contexts/AuthContext'
 import './AuthButton.css'

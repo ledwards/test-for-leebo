@@ -2,8 +2,8 @@
 // Tests for LAW set configuration
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { LAW_CONFIG } from './LAW.js'
-import { SET_CONFIGS, getSetConfig } from './index.js'
+import { LAW_CONFIG } from './LAW'
+import { SET_CONFIGS, getSetConfig } from './index'
 
 describe('LAW_CONFIG', () => {
   describe('basic properties', () => {

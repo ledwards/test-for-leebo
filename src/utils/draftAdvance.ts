@@ -6,10 +6,10 @@
  * Extracted to avoid circular imports between pick route and bot logic.
  */
 
-import { query, queryRow, queryRows } from '@/lib/db.js'
-import { getPassDirection, getLeaderPassDirection, getNextSeat } from './draftLogic.js'
-import { trackCardGeneration } from './trackGeneration.js'
-import type { RawCard } from './cardData.js'
+import { query, queryRow, queryRows } from '@/lib/db'
+import { getPassDirection, getLeaderPassDirection, getNextSeat } from './draftLogic'
+import { trackCardGeneration } from './trackGeneration'
+import type { RawCard } from './cardData'
 
 interface DraftState {
   phase?: string

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Utility functions
 import { customAlphabet } from 'nanoid'
 

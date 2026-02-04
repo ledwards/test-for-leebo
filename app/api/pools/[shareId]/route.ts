@@ -2,10 +2,10 @@
 // GET /api/pools/:shareId - Get a card pool by share ID
 // PUT /api/pools/:shareId - Update a card pool
 // DELETE /api/pools/:shareId - Delete a card pool
-import { queryRow, query } from '@/lib/db.js'
-import { requireAuth } from '@/lib/auth.js'
-import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/utils.js'
-import { jsonParse } from '@/src/utils/json.js'
+import { queryRow, query } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/utils'
+import { jsonParse } from '@/src/utils/json'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {

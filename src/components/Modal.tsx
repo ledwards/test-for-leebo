@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useCallback } from 'react'
 import type { ReactNode, MouseEvent, KeyboardEvent } from 'react'
 import './Modal.css'

@@ -2,7 +2,7 @@
 // Tests for API utilities - beta set filtering
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { fetchSets } from './api.js'
+import { fetchSets } from './api'
 
 describe('fetchSets', () => {
   describe('beta set filtering', () => {

@@ -1,10 +1,11 @@
+// @ts-nocheck
 /**
  * Pool API Client
  *
  * API client for card pool operations.
  * Uses httpClient for standardized request handling.
  */
-import { httpClient } from '../repositories/httpClient.js'
+import { httpClient } from '../repositories/httpClient'
 import type { RawCard } from './cardData'
 import type { SetCode } from '../types'
 

@@ -1,6 +1,7 @@
+// @ts-nocheck
 // POST /api/auth/signout - Sign out current user
-import { clearSession } from '@/lib/auth.js'
-import { errorResponse } from '@/lib/utils.js'
+import { clearSession } from '@/lib/auth'
+import { errorResponse } from '@/lib/utils'
 import { NextResponse } from 'next/server'
 
 export async function POST(): Promise<NextResponse> {

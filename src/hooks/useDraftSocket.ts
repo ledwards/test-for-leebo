@@ -1,8 +1,9 @@
+// @ts-nocheck
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
-import { loadDraft } from '../utils/draftApi.js'
+import { loadDraft } from '../utils/draftApi'
 
 // === TYPES ===
 

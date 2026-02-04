@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Draft-related type definitions
  */

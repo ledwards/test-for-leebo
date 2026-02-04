@@ -1,8 +1,8 @@
 // @ts-nocheck
 // POST /api/draft/:shareId/dev/add-bots - Add bot players for testing (dev only)
-import { query, queryRow, queryRows } from '@/lib/db.js'
-import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
-import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
+import { query, queryRow, queryRows } from '@/lib/db'
+import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
+import { broadcastDraftState } from '@/src/lib/socketBroadcast'
 import { NextRequest, NextResponse } from 'next/server'
 
 const BOT_CONFIGS = [

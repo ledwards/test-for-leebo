@@ -17,9 +17,9 @@
 
 import { test, describe, beforeEach } from 'node:test'
 import assert from 'node:assert'
-import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
-import { generateBoosterPack, clearBeltCache } from '../utils/boosterPack.js'
-import { CommonBelt } from '../belts/CommonBelt.js'
+import { initializeCardCache, getCachedCards } from '../utils/cardCache'
+import { generateBoosterPack, clearBeltCache } from '../utils/boosterPack'
+import { CommonBelt } from '../belts/CommonBelt'
 
 // Aspect constants
 const BLUE = 'Vigilance'

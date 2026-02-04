@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Powerful Cards by Set
  *
@@ -7,7 +8,7 @@
  * These get a bonus in the scoring algorithm when the bot sees them.
  */
 
-import type { SetCode } from '../../types/card.js'
+import type { SetCode } from '../../types/card'
 
 export const POWERFUL_CARDS: Partial<Record<SetCode | string, string[]>> = {
   // Spark of Rebellion

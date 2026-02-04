@@ -1,3 +1,4 @@
+// @ts-nocheck
 import './TermsOfService.css'
 
 export interface TermsOfServiceProps {

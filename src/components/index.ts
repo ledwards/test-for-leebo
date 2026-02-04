@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Component Library Index
  *

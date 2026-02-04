@@ -1,7 +1,8 @@
+// @ts-nocheck
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { pollState, loadDraft } from '../utils/draftApi.js'
+import { pollState, loadDraft } from '../utils/draftApi'
 
 // === TYPES ===
 

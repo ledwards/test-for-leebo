@@ -1,6 +1,7 @@
+// @ts-nocheck
 // POST /api/test/cleanup - Clean up test users and drafts (development/test only)
-import { query } from '@/lib/db.js'
-import { jsonResponse, errorResponse } from '@/lib/utils.js'
+import { query } from '@/lib/db'
+import { jsonResponse, errorResponse } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

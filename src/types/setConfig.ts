@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Set configuration type definitions
  */

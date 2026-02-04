@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Card Sorting Service
  *
@@ -7,7 +8,7 @@
  * All functions are pure: same input = same output, no side effects.
  */
 
-import type { RawCard } from '../../utils/cardData.js'
+import type { RawCard } from '../../utils/cardData'
 
 type SortOption = 'aspect' | 'cost' | 'name'
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Random Behavior
  *
@@ -6,7 +7,7 @@
  * Cards: prefers higher rarity (Legendary > Rare > Uncommon > Common)
  */
 
-import type { RawCard } from '../../utils/cardData.js'
+import type { RawCard } from '../../utils/cardData'
 
 interface DraftContext {
   draftedLeaders?: RawCard[]

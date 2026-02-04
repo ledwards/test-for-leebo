@@ -5,8 +5,8 @@
  * Run with: node src/belts/UncommonBelt.test.ts
  */
 
-import { UncommonBelt } from './UncommonBelt.js'
-import { initializeCardCache } from '../utils/cardCache.js'
+import { UncommonBelt } from './UncommonBelt'
+import { initializeCardCache } from '../utils/cardCache'
 
 let passed = 0
 let failed = 0

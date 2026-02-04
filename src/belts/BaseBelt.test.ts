@@ -5,8 +5,8 @@
  * Run with: node src/belts/BaseBelt.test.ts
  */
 
-import { BaseBelt } from './BaseBelt.js'
-import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
+import { BaseBelt } from './BaseBelt'
+import { initializeCardCache, getCachedCards } from '../utils/cardCache'
 
 let passed = 0
 let failed = 0

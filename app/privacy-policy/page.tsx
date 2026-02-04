@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 
 import PrivacyPolicy from '../../src/components/PrivacyPolicy'

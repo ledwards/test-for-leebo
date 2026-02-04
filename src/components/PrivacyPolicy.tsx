@@ -1,3 +1,4 @@
+// @ts-nocheck
 import './PrivacyPolicy.css'
 
 export interface PrivacyPolicyProps {

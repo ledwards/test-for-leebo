@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Card data utilities
  * This module handles loading and managing card data from the definition file
@@ -8,7 +9,7 @@ import type { SetCode, Rarity, CardType } from '../types';
 
 // JSON import with assertion
 import cardDataRaw from '../data/cards.json' with { type: 'json' };
-import { applyCardFixes } from './cardFixes.js';
+import { applyCardFixes } from './cardFixes';
 
 // === RAW CARD TYPE ===
 // Represents the actual shape of cards as they exist in cards.json

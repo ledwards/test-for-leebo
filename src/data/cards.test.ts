@@ -5,7 +5,7 @@
  * Run with: npx tsx src/data/cards.test.ts
  */
 
-import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
+import { initializeCardCache, getCachedCards } from '../utils/cardCache'
 
 let passed = 0
 let failed = 0

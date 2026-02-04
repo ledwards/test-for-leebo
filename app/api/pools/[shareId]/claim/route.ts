@@ -1,8 +1,8 @@
 // @ts-nocheck
 // POST /api/pools/:shareId/claim - Claim an anonymous pool
-import { queryRow, query } from '@/lib/db.js'
-import { requireAuth } from '@/lib/auth.js'
-import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
+import { queryRow, query } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {

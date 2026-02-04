@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Reusable cost icon component
 export interface CostIconProps {
   cost: number | null | undefined

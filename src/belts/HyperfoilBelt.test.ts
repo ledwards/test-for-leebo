@@ -5,8 +5,8 @@
  * Run with: node src/belts/HyperfoilBelt.test.ts
  */
 
-import { HyperfoilBelt } from './HyperfoilBelt.js'
-import { initializeCardCache } from '../utils/cardCache.js'
+import { HyperfoilBelt } from './HyperfoilBelt'
+import { initializeCardCache } from '../utils/cardCache'
 
 let passed = 0
 let failed = 0

@@ -1,9 +1,9 @@
 // @ts-nocheck
 // POST /api/auth/refresh - Refresh the current session
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession, setSession } from '@/lib/auth.js'
-import { queryRow } from '@/lib/db.js'
-import { handleApiError } from '@/lib/utils.js'
+import { getSession, setSession } from '@/lib/auth'
+import { queryRow } from '@/lib/db'
+import { handleApiError } from '@/lib/utils'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {

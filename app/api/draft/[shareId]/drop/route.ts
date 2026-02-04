@@ -2,11 +2,11 @@
 // POST /api/draft/:shareId/drop - Drop from a draft pod (non-host only)
 // - If status === 'waiting': Remove player (same as leave)
 // - If status === 'active': Convert player slot to bot
-import { query, queryRow } from '@/lib/db.js'
-import { requireAuth } from '@/lib/auth.js'
-import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
-import { broadcastDraftState } from '@/src/lib/socketBroadcast.js'
-import { processBotTurns } from '@/src/utils/botLogic.js'
+import { query, queryRow } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
+import { broadcastDraftState } from '@/src/lib/socketBroadcast'
+import { processBotTurns } from '@/src/utils/botLogic'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {

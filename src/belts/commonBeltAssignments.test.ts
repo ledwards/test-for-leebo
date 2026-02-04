@@ -9,10 +9,10 @@ import {
   COMMON_BELT_ASSIGNMENTS,
   getBlockForSet,
   getBeltConfig,
-} from './data/commonBeltAssignments.js'
-import { CommonBelt, getBeltCards } from './CommonBelt.js'
-import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
-import { generateBoosterPack, clearBeltCache } from '../utils/boosterPack.js'
+} from './data/commonBeltAssignments'
+import { CommonBelt, getBeltCards } from './CommonBelt'
+import { initializeCardCache, getCachedCards } from '../utils/cardCache'
+import { generateBoosterPack, clearBeltCache } from '../utils/boosterPack'
 
 describe('Common Belt Assignments', () => {
   beforeEach(async () => {

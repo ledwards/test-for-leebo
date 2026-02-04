@@ -8,7 +8,7 @@ import {
   createGetGroupKey,
   createDefaultSortFn,
   createGroupCardSortFn,
-} from './cardSort.js'
+} from './cardSort'
 
 describe('cardSort', () => {
   describe('getCardTypeOrder', () => {

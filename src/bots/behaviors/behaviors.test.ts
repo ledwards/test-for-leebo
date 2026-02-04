@@ -6,9 +6,9 @@
  * Run with: npx tsx src/bots/behaviors/behaviors.test.ts
  */
 
-import { getBehavior, behaviors, DEFAULT_BEHAVIOR } from './index.js'
-import { RandomBehavior } from './RandomBehavior.js'
-import { PopularLeaderBehavior } from './PopularLeaderBehavior.js'
+import { getBehavior, behaviors, DEFAULT_BEHAVIOR } from './index'
+import { RandomBehavior } from './RandomBehavior'
+import { PopularLeaderBehavior } from './PopularLeaderBehavior'
 
 // Test utilities
 let passed = 0

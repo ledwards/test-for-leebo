@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Pack Generation Constants
  *

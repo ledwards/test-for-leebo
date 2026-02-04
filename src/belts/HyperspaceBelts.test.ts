@@ -7,12 +7,12 @@
  * Run with: node src/belts/HyperspaceBelts.test.ts
  */
 
-import { HyperspaceUncommonBelt } from './HyperspaceUncommonBelt.js'
-import { HyperspaceCommonBelt } from './HyperspaceCommonBelt.js'
-import { HyperspaceBaseBelt } from './HyperspaceBaseBelt.js'
-import { HyperspaceLeaderBelt } from './HyperspaceLeaderBelt.js'
-import { HyperspaceRareLegendaryBelt } from './HyperspaceRareLegendaryBelt.js'
-import { initializeCardCache } from '../utils/cardCache.js'
+import { HyperspaceUncommonBelt } from './HyperspaceUncommonBelt'
+import { HyperspaceCommonBelt } from './HyperspaceCommonBelt'
+import { HyperspaceBaseBelt } from './HyperspaceBaseBelt'
+import { HyperspaceLeaderBelt } from './HyperspaceLeaderBelt'
+import { HyperspaceRareLegendaryBelt } from './HyperspaceRareLegendaryBelt'
+import { initializeCardCache } from '../utils/cardCache'
 
 let passed = 0
 let failed = 0

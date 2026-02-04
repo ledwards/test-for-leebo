@@ -5,8 +5,8 @@
  * Run with: node src/belts/FoilBelt.test.ts
  */
 
-import { FoilBelt } from './FoilBelt.js'
-import { initializeCardCache, getCachedCards } from '../utils/cardCache.js'
+import { FoilBelt } from './FoilBelt'
+import { initializeCardCache, getCachedCards } from '../utils/cardCache'
 
 let passed = 0
 let failed = 0

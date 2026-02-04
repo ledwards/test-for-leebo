@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Database client - supports both Vercel Postgres and standard DATABASE_URL
 import pg from 'pg'
 

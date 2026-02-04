@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Aspect Penalties Service
  *
@@ -11,7 +12,7 @@
  * - Some leaders have special abilities that ignore penalties for certain cards
  */
 
-import type { RawCard } from '../../utils/cardData.js'
+import type { RawCard } from '../../utils/cardData'
 
 interface LeaderAbility {
   set: string

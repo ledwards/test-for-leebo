@@ -1,11 +1,11 @@
 // @ts-nocheck
 // GET /api/draft/:shareId/state - Poll for state updates
-import { queryRow, queryRows } from '@/lib/db.js'
-import { getSession } from '@/lib/auth.js'
-import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils.js'
-import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout.js'
-import { processBotTurns } from '@/src/utils/botLogic.js'
-import { jsonParse } from '@/src/utils/json.js'
+import { queryRow, queryRows } from '@/lib/db'
+import { getSession } from '@/lib/auth'
+import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
+import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout'
+import { processBotTurns } from '@/src/utils/botLogic'
+import { jsonParse } from '@/src/utils/json'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {

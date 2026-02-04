@@ -11,7 +11,7 @@ import {
   sortByCost,
   sortByName,
   sortCards,
-} from './cardSorting.js'
+} from './cardSorting'
 
 describe('cardSorting', () => {
   describe('getAspectSortKey', () => {

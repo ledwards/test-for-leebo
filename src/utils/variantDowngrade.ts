@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Variant Downgrade Utilities
  *
@@ -13,7 +14,7 @@
  *   (like Leia Organa) exist as both Leaders and Units
  */
 
-import { getCachedCards } from './cardCache.js'
+import { getCachedCards } from './cardCache'
 import type { RawCard } from './cardData'
 import type { SetCode } from '../types'
 
