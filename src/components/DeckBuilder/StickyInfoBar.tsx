@@ -306,7 +306,7 @@ export function StickyInfoBar({
           {/* Play button */}
           {shareId && (
             <Button
-              variant="primary"
+              variant="icon"
               className={`export-button-icon ready-to-play-icon ${!isDeckLegal ? 'disabled' : ''}`}
               onClick={handlePlay}
               disabled={!isDeckLegal}

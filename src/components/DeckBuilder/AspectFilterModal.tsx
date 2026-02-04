@@ -83,9 +83,10 @@ export function AspectFilterModal({
   const calculatedPoolCount = Object.values(cardPositions).filter(pos =>
     (pos.section === 'sideboard' || pos.enabled === false) && pos.visible && !pos.card?.isBase && !pos.card?.isLeader
   ).length
-  const cardCount = cardCountProp ?? (isDeckMode ? calculatedDeckCount : calculatedPoolCount)
+  // Both modes now show deck count since checked = in deck for both
+  const cardCount = cardCountProp ?? calculatedDeckCount
 
-  const title = isDeckMode ? `Show in Deck (${cardCount})` : `Show in Pool (${cardCount})`
+  const title = isDeckMode ? `Keep in Deck (${cardCount})` : `Move to Deck (${cardCount})`
 
   // Get leader and base cards
   const leaderCard = activeLeader && cardPositions[activeLeader]?.card
@@ -155,42 +156,23 @@ export function AspectFilterModal({
     const outAspectPoolCards = getPoolCards(pos => calculateAspectPenalty(pos.card, leaderCard, baseCard) > 0)
     const outAspectTotal = outAspectDeckCards.length + outAspectPoolCards.length
 
-    const inAspectAllChecked = isDeckMode
-      ? (inAspectTotal > 0 && inAspectDeckCards.length === inAspectTotal)
-      : (inAspectTotal > 0 && inAspectPoolCards.length === inAspectTotal)
-    const outAspectAllChecked = isDeckMode
-      ? (outAspectTotal > 0 && outAspectDeckCards.length === outAspectTotal)
-      : (outAspectTotal > 0 && outAspectPoolCards.length === outAspectTotal)
+    // Both deck and pool modes now work the same: checked = in deck
+    const inAspectAllChecked = inAspectTotal > 0 && inAspectDeckCards.length === inAspectTotal
+    const outAspectAllChecked = outAspectTotal > 0 && outAspectDeckCards.length === outAspectTotal
 
     const handleInAspectToggle = () => {
-      if (isDeckMode) {
-        if (inAspectAllChecked) {
-          moveToPool(inAspectDeckCards.map(([id]) => id))
-        } else {
-          moveToDeck(inAspectPoolCards.map(([id]) => id))
-        }
+      if (inAspectAllChecked) {
+        moveToPool(inAspectDeckCards.map(([id]) => id))
       } else {
-        if (inAspectAllChecked) {
-          moveToDeck(inAspectPoolCards.map(([id]) => id))
-        } else {
-          moveToPool(inAspectDeckCards.map(([id]) => id))
-        }
+        moveToDeck(inAspectPoolCards.map(([id]) => id))
       }
     }
 
     const handleOutAspectToggle = () => {
-      if (isDeckMode) {
-        if (outAspectAllChecked) {
-          moveToPool(outAspectDeckCards.map(([id]) => id))
-        } else {
-          moveToDeck(outAspectPoolCards.map(([id]) => id))
-        }
+      if (outAspectAllChecked) {
+        moveToPool(outAspectDeckCards.map(([id]) => id))
       } else {
-        if (outAspectAllChecked) {
-          moveToDeck(outAspectPoolCards.map(([id]) => id))
-        } else {
-          moveToPool(outAspectDeckCards.map(([id]) => id))
-        }
+        moveToDeck(outAspectPoolCards.map(([id]) => id))
       }
     }
 
@@ -206,7 +188,7 @@ export function AspectFilterModal({
           <span style={{ textTransform: 'uppercase' }}>In Aspect</span>
           <span style={{ display: 'flex', gap: '2px' }}>{myAspects.map((a, i) => <span key={i}>{getAspectSymbol(a, 'small')}</span>)}</span>
           <span style={{ marginLeft: 'auto', opacity: 0.6, fontSize: '0.75rem' }}>
-            {isDeckMode ? inAspectDeckCards.length : inAspectPoolCards.length}/{inAspectTotal}
+            {inAspectDeckCards.length}/{inAspectTotal}
           </span>
         </label>
         {outAspects.length > 0 && outAspectTotal > 0 && (
@@ -220,7 +202,7 @@ export function AspectFilterModal({
             <span style={{ textTransform: 'uppercase' }}>Out of Aspect</span>
             <span style={{ display: 'flex', gap: '2px' }}>{outAspects.map((a, i) => <span key={i}>{getAspectSymbol(a, 'small')}</span>)}</span>
             <span style={{ marginLeft: 'auto', opacity: 0.6, fontSize: '0.75rem' }}>
-              {isDeckMode ? outAspectDeckCards.length : outAspectPoolCards.length}/{outAspectTotal}
+              {outAspectDeckCards.length}/{outAspectTotal}
             </span>
           </label>
         )}
@@ -250,32 +232,19 @@ export function AspectFilterModal({
 
       if (parentTotalCount === 0) return null
 
-      const displayCount = isDeckMode ? parentDeckCount : parentPoolCount
-      const parentAllChecked = isDeckMode
-        ? parentDeckCount === parentTotalCount
-        : parentPoolCount === parentTotalCount
-      const parentNoneChecked = isDeckMode
-        ? parentDeckCount === 0
-        : parentPoolCount === 0
+      // Both modes now work the same: checked = in deck
+      const displayCount = parentDeckCount
+      const parentAllChecked = parentDeckCount === parentTotalCount
+      const parentNoneChecked = parentDeckCount === 0
       const isExpanded = filterAspectsExpanded[aspect] || false
 
       const handleParentToggle = () => {
-        if (isDeckMode) {
-          if (parentAllChecked) {
-            const cardIds = validSubGroups.flatMap(sg => sg.cards.deck.map(([id]) => id))
-            moveToPool(cardIds)
-          } else {
-            const cardIds = validSubGroups.flatMap(sg => sg.cards.pool.map(([id]) => id))
-            moveToDeck(cardIds)
-          }
+        if (parentAllChecked) {
+          const cardIds = validSubGroups.flatMap(sg => sg.cards.deck.map(([id]) => id))
+          moveToPool(cardIds)
         } else {
-          if (parentAllChecked) {
-            const cardIds = validSubGroups.flatMap(sg => sg.cards.pool.map(([id]) => id))
-            moveToDeck(cardIds)
-          } else {
-            const cardIds = validSubGroups.flatMap(sg => sg.cards.deck.map(([id]) => id))
-            moveToPool(cardIds)
-          }
+          const cardIds = validSubGroups.flatMap(sg => sg.cards.pool.map(([id]) => id))
+          moveToDeck(cardIds)
         }
       }
 
@@ -301,24 +270,15 @@ export function AspectFilterModal({
             <span style={{ marginLeft: 'auto', opacity: 0.6, fontSize: '0.75rem' }}>{displayCount}/{parentTotalCount}</span>
           </div>
           {isExpanded && validSubGroups.map(sg => {
-            const sgDisplayCount = isDeckMode ? sg.deckCount : sg.poolCount
-            const sgAllChecked = isDeckMode
-              ? sg.deckCount === sg.total
-              : sg.poolCount === sg.total
+            // Both modes now work the same: checked = in deck
+            const sgDisplayCount = sg.deckCount
+            const sgAllChecked = sg.deckCount === sg.total
 
             const handleSubGroupToggle = () => {
-              if (isDeckMode) {
-                if (sgAllChecked) {
-                  moveToPool(sg.cards.deck.map(([id]) => id))
-                } else {
-                  moveToDeck(sg.cards.pool.map(([id]) => id))
-                }
+              if (sgAllChecked) {
+                moveToPool(sg.cards.deck.map(([id]) => id))
               } else {
-                if (sgAllChecked) {
-                  moveToDeck(sg.cards.pool.map(([id]) => id))
-                } else {
-                  moveToPool(sg.cards.deck.map(([id]) => id))
-                }
+                moveToDeck(sg.cards.pool.map(([id]) => id))
               }
             }
 
@@ -370,24 +330,15 @@ export function AspectFilterModal({
 
       if (totalCount === 0 && aspect !== 'Neutral') return null
 
-      const displayCount = isDeckMode ? deckCount : poolCount
-      const allChecked = isDeckMode
-        ? (totalCount > 0 && deckCount === totalCount)
-        : (totalCount > 0 && poolCount === totalCount)
+      // Both modes now work the same: checked = in deck
+      const displayCount = deckCount
+      const allChecked = totalCount > 0 && deckCount === totalCount
 
       const handleToggle = () => {
-        if (isDeckMode) {
-          if (allChecked) {
-            moveToPool(cards.deck.map(([id]) => id))
-          } else {
-            moveToDeck(cards.pool.map(([id]) => id))
-          }
+        if (allChecked) {
+          moveToPool(cards.deck.map(([id]) => id))
         } else {
-          if (allChecked) {
-            moveToDeck(cards.pool.map(([id]) => id))
-          } else {
-            moveToPool(cards.deck.map(([id]) => id))
-          }
+          moveToDeck(cards.pool.map(([id]) => id))
         }
       }
 
