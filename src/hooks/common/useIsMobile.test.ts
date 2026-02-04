@@ -12,8 +12,8 @@ describe('useIsMobile', () => {
   })
 
   afterEach(() => {
-    (global as any).window = originalWindow
-    (global as any).navigator = originalNavigator
+    ;(global as any).window = originalWindow
+    ;(global as any).navigator = originalNavigator
   })
 
   describe('isMobileDevice (non-hook)', () => {
