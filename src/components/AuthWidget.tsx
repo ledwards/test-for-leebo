@@ -254,9 +254,16 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }: AuthWidgetP
               )}
 
               {loadingData && (
-                <div className="auth-widget-drawer-menu-item auth-widget-loading-pools">
-                  Loading...
-                </div>
+                <>
+                  <div className="auth-widget-drawer-menu-item auth-widget-skeleton-item">
+                    <div className="skeleton-icon"></div>
+                    <div className="skeleton-text"></div>
+                  </div>
+                  <div className="auth-widget-drawer-menu-item auth-widget-skeleton-item">
+                    <div className="skeleton-icon"></div>
+                    <div className="skeleton-text"></div>
+                  </div>
+                </>
               )}
 
               {!loadingData && mostRecentSealed && (
