@@ -100,33 +100,42 @@ async function markMigrationApplied(client: pg.Client, migrationName: string): P
 }
 
 // Run a single migration (SQL or JS)
+// JS migrations run EVERY time (they must be idempotent) for data fixes
+// SQL migrations run ONCE (schema changes are not idempotent)
 async function runMigration(client: pg.Client, migrationFile: MigrationFile): Promise<boolean> {
   const migrationName = migrationFile.name
   const migrationPath = migrationFile.path
   const migrationType = migrationFile.type
 
-  const isApplied = await isMigrationApplied(client, migrationName)
-  if (isApplied) {
-    console.log(`⏭️  Skipping ${migrationName} (already applied)`)
-    return false
+  // SQL migrations only run once - they're schema changes
+  // JS migrations run every time - they're idempotent data fixes
+  if (migrationType === 'sql') {
+    const isApplied = await isMigrationApplied(client, migrationName)
+    if (isApplied) {
+      console.log(`⏭️  Skipping ${migrationName} (already applied)`)
+      return false
+    }
   }
 
   console.log(`📦 Running ${migrationName}...`)
 
   if (migrationType === 'js') {
-    // Import and run JS migration
+    // Import and run JS migration (runs every deploy for data fixes)
     const migration = await import(migrationPath)
     if (typeof migration.run !== 'function') {
       throw new Error(`JS migration ${migrationName} must export a 'run' function`)
     }
     await migration.run(client)
   } else {
-    // Read and execute SQL migration
+    // Read and execute SQL migration (only runs once)
     const migrationSQL = readFileSync(migrationPath, 'utf-8')
     await client.query(migrationSQL)
   }
 
-  await markMigrationApplied(client, migrationName)
+  // Only track SQL migrations - JS migrations always re-run
+  if (migrationType === 'sql') {
+    await markMigrationApplied(client, migrationName)
+  }
 
   console.log(`✅ Applied ${migrationName}`)
   return true
