@@ -176,9 +176,9 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
     const { shareId } = await params
     const session = requireAuth(request)
 
-    // Get pod and verify host (only need id and host_id)
+    // Get pod and verify host
     const pod = await queryRow(
-      'SELECT id, host_id FROM draft_pods WHERE share_id = $1',
+      'SELECT id, host_id, share_id FROM draft_pods WHERE share_id = $1',
       [shareId]
     )
 
@@ -189,6 +189,51 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
     if (pod.host_id !== session.id) {
       return errorResponse('Only the host can delete the draft', 403)
     }
+
+    // BEFORE DELETING: Fix card_generation attribution for any cards from this draft
+    // This ensures showcases are attributed to the correct user even after the draft is deleted
+    const players = await queryRows(
+      `SELECT user_id, drafted_leaders, drafted_cards
+       FROM draft_pod_players
+       WHERE draft_pod_id = $1 AND user_id IS NOT NULL`,
+      [pod.id]
+    )
+
+    // Build a map of card_id -> user_id for all drafted cards
+    for (const player of players) {
+      const cardIds: string[] = []
+
+      try {
+        const leaders = typeof player.drafted_leaders === 'string'
+          ? JSON.parse(player.drafted_leaders)
+          : player.drafted_leaders || []
+        leaders.forEach((c: { id?: string }) => c.id && cardIds.push(c.id))
+      } catch (e) { /* skip invalid JSON */ }
+
+      try {
+        const cards = typeof player.drafted_cards === 'string'
+          ? JSON.parse(player.drafted_cards)
+          : player.drafted_cards || []
+        cards.forEach((c: { id?: string }) => c.id && cardIds.push(c.id))
+      } catch (e) { /* skip invalid JSON */ }
+
+      // Update card_generations for this player's drafted cards
+      if (cardIds.length > 0) {
+        await query(
+          `UPDATE card_generations
+           SET user_id = $1
+           WHERE source_type = 'draft'
+             AND source_share_id = $2
+             AND card_id = ANY($3)
+             AND user_id IS NULL`,
+          [player.user_id, pod.share_id, cardIds]
+        )
+      }
+    }
+
+    // Delete associated card_pools (dependent destroy)
+    // The generations are kept for history, but pools from this draft are cleaned up
+    await query('DELETE FROM card_pools WHERE draft_pod_id = $1', [pod.id])
 
     // Delete pod (cascade will remove players)
     await query('DELETE FROM draft_pods WHERE id = $1', [pod.id])
