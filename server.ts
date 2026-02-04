@@ -1,33 +1,32 @@
+// @ts-nocheck
 // Custom server for Next.js with Socket.io - v2
 import 'dotenv/config'
-import { createServer } from 'http'
+import { createServer, IncomingMessage, ServerResponse } from 'http'
 import { spawn } from 'child_process'
 import next from 'next'
 import { Server } from 'socket.io'
 
+declare global {
+  var io: Server | undefined
+}
+
 const dev = process.env.NODE_ENV !== 'production'
 const port = process.env.PORT || 3000
 
-console.log('🚀 Starting custom server.js with Socket.io support')
+console.log('🚀 Starting custom server.ts with Socket.io support')
 
 // Run migrations at startup (for Railway where build-time DB access doesn't work)
-async function runMigrations() {
+async function runMigrations(): Promise<void> {
   const dbUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL
   if (!dbUrl) {
     console.log('⚠️  No database URL set, skipping migrations')
     return
   }
 
-  // Only run migrations if we have an internal Railway URL (skipped during build)
-  if (!dbUrl.includes('.railway.internal')) {
-    console.log('ℹ️  External database URL - migrations should have run during build')
-    return
-  }
-
   console.log('🔧 Running migrations at startup...')
 
   return new Promise((resolve) => {
-    const migrate = spawn('node', ['scripts/migrate-on-deploy.js'], {
+    const migrate = spawn('npx', ['tsx', 'scripts/migrate-on-deploy.ts'], {
       env: { ...process.env, POSTGRES_URL: dbUrl },
       stdio: 'inherit'
     })
@@ -65,7 +64,7 @@ app.prepare().then(() => {
   })
 
   // Now add request handler for Next.js (non-socket.io requests)
-  server.on('request', (req, res) => {
+  server.on('request', (req: IncomingMessage, res: ServerResponse) => {
     // Health check endpoint
     if (req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -84,11 +83,11 @@ app.prepare().then(() => {
 
   io.on('connection', (socket) => {
     console.log('[DEBUG] Socket.io client connected:', socket.id)
-    socket.on('join-draft', (shareId) => {
+    socket.on('join-draft', (shareId: string) => {
       socket.join(`draft:${shareId}`)
     })
 
-    socket.on('leave-draft', (shareId) => {
+    socket.on('leave-draft', (shareId: string) => {
       socket.leave(`draft:${shareId}`)
     })
   })

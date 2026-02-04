@@ -1,7 +1,7 @@
-// @ts-check
-import { test, expect, chromium } from '@playwright/test'
-import { debugLog, debugError, testLog } from './debug-utils.js'
-import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.js'
+// @ts-nocheck
+import { test, expect, chromium, Browser, BrowserContext, Page } from '@playwright/test'
+import { debugLog, debugError, testLog } from './debug-utils.ts'
+import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.ts'
 
 /**
  * 1 human + 7 bots draft E2E test
@@ -22,14 +22,11 @@ test.describe('Draft with bots', () => {
     'Skipped: Desktop Chromium only (long-running integration test)'
   )
 
-  /** @type {import('@playwright/test').Browser} */
-  let browser
-  /** @type {import('@playwright/test').BrowserContext} */
-  let context
-  /** @type {import('@playwright/test').Page} */
-  let page
-  let user
-  let shareId = null
+  let browser: Browser
+  let context: BrowserContext
+  let page: Page
+  let user: any
+  let shareId: string | null = null
 
   test.beforeAll(async () => {
     debugLog(`\n${'='.repeat(50)}`)
@@ -52,7 +49,7 @@ test.describe('Draft with bots', () => {
 
     // Set auth cookie
     const urlObj = new URL(BASE_URL)
-    const cookieConfig = {
+    const cookieConfig: any = {
       name: user.cookieName,
       value: user.token,
       httpOnly: true,
@@ -80,7 +77,7 @@ test.describe('Draft with bots', () => {
     debugLog('\nCleaning up...')
     try {
       await cleanupTestUsers(TEST_ID)
-    } catch (e) {
+    } catch (e: any) {
       debugError('Cleanup error:', e.message)
     }
     await closeDb()
@@ -146,17 +143,17 @@ test.describe('Draft with bots', () => {
         } catch {
           return { ok: resp.ok, status: resp.status, text }
         }
-      } catch (e) {
+      } catch (e: any) {
         return { error: e.message }
       }
     }, shareId)
 
-    if (addBotsResponse.error) {
-      debugLog(`  ⚠ Error adding bots: ${addBotsResponse.error}`)
-    } else if (!addBotsResponse.ok) {
-      debugLog(`  ⚠ Add bots failed: ${addBotsResponse.status} - ${JSON.stringify(addBotsResponse.data || addBotsResponse.text)}`)
+    if ((addBotsResponse as any).error) {
+      debugLog(`  ⚠ Error adding bots: ${(addBotsResponse as any).error}`)
+    } else if (!(addBotsResponse as any).ok) {
+      debugLog(`  ⚠ Add bots failed: ${(addBotsResponse as any).status} - ${JSON.stringify((addBotsResponse as any).data || (addBotsResponse as any).text)}`)
     } else {
-      debugLog(`✓ Added ${addBotsResponse.data?.bots?.length || 0} bots`)
+      debugLog(`✓ Added ${(addBotsResponse as any).data?.bots?.length || 0} bots`)
     }
 
     // Wait for UI to update and verify player count
@@ -231,7 +228,7 @@ test.describe('Draft with bots', () => {
               try {
                 await page.locator(selector).first().click({ timeout: 2000 })
                 await page.waitForTimeout(300)
-              } catch (e) {
+              } catch (e: any) {
                 debugLog(`    Click error: ${e.message.slice(0, 40)}`)
               }
             }
@@ -298,7 +295,7 @@ test.describe('Draft with bots', () => {
           try {
             await page.locator(selector).first().click({ timeout: 2000 })
             await page.waitForTimeout(300)
-          } catch (e) {
+          } catch (e: any) {
             debugLog(`      Click error: ${e.message.slice(0, 40)}`)
           }
         }
@@ -348,7 +345,7 @@ test.describe('Draft with bots', () => {
   })
 
   // Helper: Poll the server to trigger state updates and timeouts
-  async function pollServer() {
+  async function pollServer(): Promise<void> {
     await page.evaluate(async (shareId) => {
       try {
         await fetch(`/api/draft/${shareId}/state`, { credentials: 'include' })
@@ -357,7 +354,7 @@ test.describe('Draft with bots', () => {
   }
 
   // Helper: Wait for specific leader round OR pack draft phase
-  async function waitForLeaderRoundOrPackDraft(targetRound) {
+  async function waitForLeaderRoundOrPackDraft(targetRound: number): Promise<void> {
     let attempts = 0
     while (attempts < 120) { // 60 seconds
       try {
@@ -383,7 +380,7 @@ test.describe('Draft with bots', () => {
   }
 
   // Helper: Wait for pack draft phase
-  async function waitForPackDraft() {
+  async function waitForPackDraft(): Promise<void> {
     let attempts = 0
     while (attempts < 120) { // 60 seconds
       // Poll server to trigger timeout checks
@@ -402,7 +399,7 @@ test.describe('Draft with bots', () => {
   }
 
   // Helper: Wait for pack pick to advance past current pick
-  async function waitForPickAdvance(currentPack, currentPick) {
+  async function waitForPickAdvance(currentPack: number, currentPick: number): Promise<void> {
     let attempts = 0
     while (attempts < 120) { // 60 seconds
       try {

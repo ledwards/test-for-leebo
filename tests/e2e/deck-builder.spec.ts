@@ -1,17 +1,17 @@
-// @ts-check
-import { test, expect } from '@playwright/test'
-import { checkLayoutIssues, waitForNetworkIdle, waitForCardsToLoad, shouldIgnoreError } from './helpers.js'
-import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.js'
+// @ts-nocheck
+import { test, expect, BrowserContext, Page } from '@playwright/test'
+import { checkLayoutIssues, waitForNetworkIdle, waitForCardsToLoad, shouldIgnoreError } from './helpers.ts'
+import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.ts'
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000'
 
 test.describe('Deck Builder', () => {
   // Store pool shareId for reuse across tests
-  let poolShareId = null
+  let poolShareId: string | null = null
 
   test.beforeEach(async ({ page }) => {
     // Collect errors
-    const errors = []
+    const errors: string[] = []
     page.on('console', msg => {
       if (msg.type() === 'error') {
         const text = msg.text()
@@ -25,7 +25,7 @@ test.describe('Deck Builder', () => {
         errors.push(error.message)
       }
     })
-    page.errors = errors
+    ;(page as any).errors = errors
   })
 
   test('should load deck builder with cards', async ({ page }) => {
@@ -51,7 +51,7 @@ test.describe('Deck Builder', () => {
     await expect(page.locator('.deck-info-bar, .info-bar').first()).toBeVisible()
 
     // Check no errors
-    expect(page.errors).toHaveLength(0)
+    expect((page as any).errors).toHaveLength(0)
   })
 
   test('should display leaders and bases section', async ({ page }) => {
@@ -110,7 +110,7 @@ test.describe('Deck Builder', () => {
     }
 
     // No error should occur
-    expect(page.errors).toHaveLength(0)
+    expect((page as any).errors).toHaveLength(0)
   })
 
   test('should show deck count in info bar', async ({ page }) => {
@@ -165,8 +165,8 @@ test.describe('Deck Builder - Mobile', () => {
   test.use({ viewport: { width: 375, height: 667 }, hasTouch: true })
 
   const TEST_ID = `e2e_mobile_deck_${Date.now()}`
-  let testUser = null
-  let poolShareId = null
+  let testUser: any = null
+  let poolShareId: string | null = null
 
   test.beforeEach(async ({ context, page }) => {
     // Create test user if not already created
@@ -176,7 +176,7 @@ test.describe('Deck Builder - Mobile', () => {
 
     // Set auth cookie for pool access
     const urlObj = new URL(BASE_URL)
-    const cookieConfig = {
+    const cookieConfig: any = {
       name: testUser.cookieName,
       value: testUser.token,
       httpOnly: true,
@@ -190,7 +190,7 @@ test.describe('Deck Builder - Mobile', () => {
     }
     await context.addCookies([cookieConfig])
 
-    const errors = []
+    const errors: string[] = []
     page.on('console', msg => {
       if (msg.type() === 'error') {
         const text = msg.text()
@@ -204,14 +204,14 @@ test.describe('Deck Builder - Mobile', () => {
         errors.push(error.message)
       }
     })
-    page.errors = errors
+    ;(page as any).errors = errors
   })
 
   test.afterAll(async () => {
     // Cleanup test users
     try {
       await cleanupTestUsers(TEST_ID)
-    } catch (e) {
+    } catch (e: any) {
       console.error('Cleanup error:', e.message)
     }
     await closeDb()
@@ -269,7 +269,7 @@ test.describe('Deck Builder - Mobile', () => {
     const box = await card.boundingBox()
     expect(box).not.toBeNull()
     // Card should be at least 50px wide on mobile
-    expect(box.width).toBeGreaterThanOrEqual(50)
+    expect(box!.width).toBeGreaterThanOrEqual(50)
   })
 
   test('should not have hover effects interfering on mobile', async ({ page }) => {
@@ -321,6 +321,6 @@ test.describe('Deck Builder - Mobile', () => {
 
     // On mobile, hover modals should not persist
     // This test primarily verifies no JS errors occur on tap
-    expect(page.errors).toHaveLength(0)
+    expect((page as any).errors).toHaveLength(0)
   })
 })

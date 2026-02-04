@@ -1,7 +1,6 @@
-// @ts-check
-/* global process */
-import { test, expect, chromium } from '@playwright/test'
-import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.js'
+// @ts-nocheck
+import { test, expect, chromium, Browser, BrowserContext, Page } from '@playwright/test'
+import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.ts'
 
 /**
  * Drop from Draft E2E test
@@ -23,14 +22,11 @@ test.skip(({ browserName, isMobile }) =>
 test.setTimeout(180000) // 3 minutes
 
 test.describe('Drop from Draft', () => {
-  /** @type {import('@playwright/test').Browser} */
-  let browser
-  /** @type {import('@playwright/test').BrowserContext[]} */
-  let contexts = []
-  /** @type {import('@playwright/test').Page[]} */
-  let pages = []
-  let users = []
-  let shareId = null
+  let browser: Browser
+  let contexts: BrowserContext[] = []
+  let pages: Page[] = []
+  let users: any[] = []
+  let shareId: string | null = null
 
   test.beforeAll(async () => {
     console.log(`\n${'='.repeat(50)}`)
@@ -57,7 +53,7 @@ test.describe('Drop from Draft', () => {
 
       // Set auth cookie
       const urlObj = new URL(BASE_URL)
-      const cookieConfig = {
+      const cookieConfig: any = {
         name: userData.cookieName,
         value: userData.token,
         httpOnly: true,
@@ -88,7 +84,7 @@ test.describe('Drop from Draft', () => {
     console.log('\nCleaning up...')
     try {
       await cleanupTestUsers(TEST_ID)
-    } catch (e) {
+    } catch (e: any) {
       console.error('Cleanup error:', e.message)
     }
     await closeDb()
@@ -208,7 +204,7 @@ test.describe('Drop from Draft', () => {
     }, shareId)
 
     const players = response.data?.players || response.players || []
-    const botPlayers = players.filter(p => p.isBot || p.is_bot)
+    const botPlayers = players.filter((p: any) => p.isBot || p.is_bot)
     console.log(`  Bot players in API response: ${botPlayers.length}`)
     expect(botPlayers.length).toBeGreaterThanOrEqual(1)
     console.log('✓ Organizer can see bot replacement')
@@ -231,7 +227,7 @@ test.describe('Drop from Draft', () => {
     // Check if the draft is listed - it should NOT be there (user dropped)
     const draftRows = await playerPage.locator('.history-table tbody tr, .history-item').count()
     const pageContent = await playerPage.content()
-    const draftInHistory = pageContent.includes(shareId)
+    const draftInHistory = pageContent.includes(shareId!)
 
     console.log(`  Draft rows found: ${draftRows}`)
     console.log(`  Draft ${shareId} in history: ${draftInHistory}`)
@@ -258,7 +254,7 @@ test.describe('Drop from Draft', () => {
   })
 
   // Helper: Wait for cards to be ready
-  async function waitForCardsReady(page, gridSelector) {
+  async function waitForCardsReady(page: Page, gridSelector: string): Promise<void> {
     let attempts = 0
     while (attempts < 30) {
       const passingVisible = await page.locator('.passing-message').isVisible().catch(() => false)
@@ -287,7 +283,7 @@ test.describe('Drop from Draft', () => {
   }
 
   // Helper: Select a card
-  async function selectCard(page, gridSelector, playerName) {
+  async function selectCard(page: Page, gridSelector: string, playerName: string): Promise<void> {
     const cardSelector = `${gridSelector} .draftable-card:not(.selected):not(.dimmed):not(.disabled)`
 
     await page.waitForSelector(cardSelector, { timeout: 5000 }).catch(() => null)

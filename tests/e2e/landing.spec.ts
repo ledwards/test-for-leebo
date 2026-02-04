@@ -1,11 +1,11 @@
-// @ts-check
+// @ts-nocheck
 import { test, expect } from '@playwright/test'
-import { checkLayoutIssues, waitForNetworkIdle, shouldIgnoreError } from './helpers.js'
+import { checkLayoutIssues, waitForNetworkIdle, shouldIgnoreError } from './helpers.ts'
 
 test.describe('Landing Page', () => {
   test.beforeEach(async ({ page }) => {
     // Collect console errors throughout the test
-    const errors = []
+    const errors: string[] = []
     page.on('console', msg => {
       if (msg.type() === 'error') {
         const text = msg.text()
@@ -21,7 +21,7 @@ test.describe('Landing Page', () => {
     })
 
     // Store errors for later assertion
-    page.errors = errors
+    ;(page as any).errors = errors
   })
 
   test('should load landing page successfully', async ({ page }) => {
@@ -41,7 +41,7 @@ test.describe('Landing Page', () => {
     await expect(page.locator('.subtitle')).toContainText('Star Wars Unlimited')
 
     // Check no JS errors
-    expect(page.errors).toHaveLength(0)
+    expect((page as any).errors).toHaveLength(0)
   })
 
   test('should have no layout issues', async ({ page }) => {

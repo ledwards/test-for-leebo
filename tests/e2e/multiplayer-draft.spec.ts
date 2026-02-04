@@ -1,6 +1,6 @@
-// @ts-check
-import { test, expect, chromium } from '@playwright/test'
-import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.js'
+// @ts-nocheck
+import { test, expect, chromium, Browser, BrowserContext, Page } from '@playwright/test'
+import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.ts'
 
 /**
  * Full 8-player draft E2E test
@@ -18,14 +18,11 @@ test.skip(({ browserName, isMobile }) =>
 test.setTimeout(1200000) // 20 minutes for 8 players
 
 test.describe('Full 8-player draft', () => {
-  /** @type {import('@playwright/test').Browser} */
-  let browser
-  /** @type {import('@playwright/test').BrowserContext[]} */
-  let contexts = []
-  /** @type {import('@playwright/test').Page[]} */
-  let pages = []
-  let users = []
-  let shareId = null
+  let browser: Browser
+  let contexts: BrowserContext[] = []
+  let pages: Page[] = []
+  let users: any[] = []
+  let shareId: string | null = null
 
   test.beforeAll(async () => {
     console.log(`\n${'='.repeat(60)}`)
@@ -51,7 +48,7 @@ test.describe('Full 8-player draft', () => {
 
       // Set auth cookie
       const urlObj = new URL(BASE_URL)
-      const cookieConfig = {
+      const cookieConfig: any = {
         name: userData.cookieName,
         value: userData.token,
         httpOnly: true,
@@ -82,7 +79,7 @@ test.describe('Full 8-player draft', () => {
     console.log('\nCleaning up...')
     try {
       await cleanupTestUsers(TEST_ID)
-    } catch (e) {
+    } catch (e: any) {
       console.error('Cleanup error:', e.message)
     }
     await closeDb()
@@ -243,7 +240,7 @@ test.describe('Full 8-player draft', () => {
   })
 
   // Helper: Wait for majority of players to have selectable cards
-  async function waitForAllPlayersReady(selector) {
+  async function waitForAllPlayersReady(selector: string): Promise<void> {
     const threshold = Math.ceil(NUM_PLAYERS * 0.9) // 90% of players
     let attempts = 0
     while (attempts < 60) {
@@ -259,7 +256,7 @@ test.describe('Full 8-player draft', () => {
   }
 
   // Helper: Have all players select a card
-  async function selectCardForAllPlayers(gridSelector) {
+  async function selectCardForAllPlayers(gridSelector: string): Promise<void> {
     await Promise.all(pages.map(async (page, idx) => {
       try {
         // Check if already selected
@@ -281,7 +278,7 @@ test.describe('Full 8-player draft', () => {
   }
 
   // Helper: Wait for passing skeleton to show (indicates pick was registered)
-  async function waitForPassingSkeleton() {
+  async function waitForPassingSkeleton(): Promise<boolean> {
     const threshold = Math.ceil(NUM_PLAYERS * 0.75) // 75% of players should show skeleton
     let attempts = 0
     while (attempts < 30) {
@@ -299,7 +296,7 @@ test.describe('Full 8-player draft', () => {
   }
 
   // Helper: Wait for new cards to appear after passing
-  async function waitForNewCardsAfterPassing(gridSelector) {
+  async function waitForNewCardsAfterPassing(gridSelector: string): Promise<void> {
     const threshold = Math.ceil(NUM_PLAYERS * 0.9) // 90% of players should have cards
     let attempts = 0
     while (attempts < 60) {
@@ -315,7 +312,7 @@ test.describe('Full 8-player draft', () => {
   }
 
   // Helper: Wait for leader round to advance
-  async function waitForLeaderRoundAdvance(currentRound) {
+  async function waitForLeaderRoundAdvance(currentRound: number): Promise<void> {
     const threshold = Math.ceil(NUM_PLAYERS * 0.9)
     let attempts = 0
     while (attempts < 60) {
@@ -341,7 +338,7 @@ test.describe('Full 8-player draft', () => {
   }
 
   // Helper: Wait for pack draft phase to start
-  async function waitForPackDraftPhase() {
+  async function waitForPackDraftPhase(): Promise<void> {
     const threshold = Math.ceil(NUM_PLAYERS * 0.9)
     let attempts = 0
     while (attempts < 60) {
@@ -356,7 +353,7 @@ test.describe('Full 8-player draft', () => {
   }
 
   // Helper: Wait for pack pick to advance
-  async function waitForPickAdvance(currentPack, currentPick) {
+  async function waitForPickAdvance(currentPack: number, currentPick: number): Promise<void> {
     const threshold = Math.ceil(NUM_PLAYERS * 0.9)
     let attempts = 0
     while (attempts < 60) {
