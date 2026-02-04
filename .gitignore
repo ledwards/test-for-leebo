@@ -50,3 +50,6 @@ src/tests/results.json
 src/qa/results.json
 backup_*.sql
 migrations/.buildstamp
+
+# Database backups
+.backups/

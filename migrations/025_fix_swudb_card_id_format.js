@@ -21,7 +21,7 @@
  * 3. Mapping to internal ID
  */
 
-import { getCardsBySet } from '../src/utils/cardData.js'
+import { getCardsBySet } from '../src/utils/cardData.ts'
 
 export async function run(client) {
   console.log('Building SWUDB format card ID map...')
@@ -57,19 +57,43 @@ export async function run(client) {
 
   console.log(`   Found ${result.rows.length} records with SWUDB format`)
 
-  let fixed = 0
+  // Collect all updates in memory first
+  const updates = []
+  const warnings = []
+
   for (const row of result.rows) {
     const internalId = swudbToInternal[row.card_id]
     if (internalId) {
-      await client.query(
-        'UPDATE card_generations SET card_id = $1 WHERE id = $2',
-        [internalId, row.id]
-      )
-      fixed++
+      updates.push({ id: row.id, newCardId: internalId })
     } else {
-      console.log(`   Warning: No mapping for ${row.card_id} (${row.card_name})`)
+      warnings.push(`No mapping for ${row.card_id} (${row.card_name})`)
     }
   }
 
-  console.log(`   Fixed ${fixed} records`)
+  // Apply updates in batches
+  if (updates.length > 0) {
+    console.log(`   Applying ${updates.length} updates...`)
+    const batchSize = 500
+
+    for (let i = 0; i < updates.length; i += batchSize) {
+      const batch = updates.slice(i, i + batchSize)
+      for (const update of batch) {
+        await client.query(
+          'UPDATE card_generations SET card_id = $1 WHERE id = $2',
+          [update.newCardId, update.id]
+        )
+      }
+      if (i + batchSize < updates.length) {
+        console.log(`     Progress: ${Math.min(i + batchSize, updates.length)}/${updates.length}`)
+      }
+    }
+  }
+
+  // Log warnings at the end
+  if (warnings.length > 0) {
+    console.log(`   Warnings (${warnings.length}):`)
+    warnings.forEach(w => console.log(`     - ${w}`))
+  }
+
+  console.log(`   Fixed ${updates.length} records`)
 }

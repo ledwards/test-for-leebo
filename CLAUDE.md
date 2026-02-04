@@ -236,6 +236,28 @@ Use `src/utils/aspectColors.js` for aspect-based styling. Aspects: Vigilance (bl
 ### Database
 PostgreSQL via `lib/db.js`. Migrations in `migrations/`. Use `queryRows()` for SELECT, `queryRow()` for single row, `query()` for INSERT/UPDATE.
 
+### Hosting & Production Access
+**Hosted on Railway.** Use Railway CLI for production database access:
+
+```bash
+# Check migration status in production
+railway run -e production npm run migrate:prod status
+
+# Run pending migrations in production
+railway run -e production npm run migrate:prod
+
+# Run any command with prod env vars
+railway run -e production <command>
+```
+
+### Migrations on Deploy
+Migrations run automatically at **server startup** (not build time) via `server.js`:
+1. Server starts → spawns `npx tsx scripts/migrate-on-deploy.ts`
+2. Script runs all pending `.sql` and `.js` migrations
+3. Each migration is tracked in `migrations` table to prevent re-runs
+
+**Important:** Migrations must be idempotent. The deploy script uses `tsx` so migrations can import TypeScript files.
+
 ### Data Formats
 **See `docs/DATA_FORMATS.md` for canonical data structures.** Key rule: Packs are always `{ cards: [...] }` objects, never raw arrays. The exception is `current_pack` which stores just the cards array.
 
@@ -336,6 +358,17 @@ Completed plans (now in docs/):
 1. Business logic → `src/services/` (with tests)
 2. State management → `src/hooks/`
 3. UI → `src/components/` (receives data via props/hooks)
+
+## Script Guidelines
+
+**Database and slow scripts should be communicative:**
+- Print status messages before each slow operation (e.g., "📥 Dumping production database...")
+- Print success confirmations after completion (e.g., "✅ Done!")
+- Show progress indicators for multi-step operations
+- Display file sizes, counts, or other useful feedback
+- If something might hang, tell the user what's happening and how to troubleshoot
+
+See `scripts/clone-prod-to-dev.sh` as an example.
 
 ## Important Notes
 
