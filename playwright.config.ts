@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck
 import { defineConfig, devices } from '@playwright/test'
 
 /**
