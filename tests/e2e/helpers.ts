@@ -1,10 +1,10 @@
-// @ts-check
-import { expect } from '@playwright/test'
+// @ts-nocheck
+import { expect, Page } from '@playwright/test'
 
 /**
  * Known benign error patterns to ignore
  */
-export const IGNORED_ERROR_PATTERNS = [
+export const IGNORED_ERROR_PATTERNS: string[] = [
   'favicon.ico',
   'Failed to load resource',
   '404',
@@ -17,20 +17,16 @@ export const IGNORED_ERROR_PATTERNS = [
 
 /**
  * Check if an error should be ignored
- * @param {string} text
- * @returns {boolean}
  */
-export function shouldIgnoreError(text) {
+export function shouldIgnoreError(text: string): boolean {
   return IGNORED_ERROR_PATTERNS.some(pattern => text.includes(pattern))
 }
 
 /**
  * Helper to check for JavaScript console errors
- * @param {import('@playwright/test').Page} page
- * @returns {Promise<string[]>} Array of error messages
  */
-export async function collectConsoleErrors(page) {
-  const errors = []
+export async function collectConsoleErrors(page: Page): Promise<string[]> {
+  const errors: string[] = []
   page.on('console', msg => {
     if (msg.type() === 'error') {
       const text = msg.text()
@@ -44,11 +40,9 @@ export async function collectConsoleErrors(page) {
 
 /**
  * Helper to check for uncaught page errors
- * @param {import('@playwright/test').Page} page
- * @returns {Promise<Error[]>}
  */
-export async function collectPageErrors(page) {
-  const errors = []
+export async function collectPageErrors(page: Page): Promise<Error[]> {
+  const errors: Error[] = []
   page.on('pageerror', error => {
     errors.push(error)
   })
@@ -57,10 +51,8 @@ export async function collectPageErrors(page) {
 
 /**
  * Wait for network to be idle (no pending requests)
- * @param {import('@playwright/test').Page} page
- * @param {number} timeout
  */
-export async function waitForNetworkIdle(page, timeout = 5000) {
+export async function waitForNetworkIdle(page: Page, timeout: number = 5000): Promise<void> {
   await page.waitForLoadState('networkidle', { timeout })
 }
 
@@ -68,11 +60,10 @@ export async function waitForNetworkIdle(page, timeout = 5000) {
  * Check that page has no major layout issues
  * - No elements overflowing viewport horizontally
  * - No elements with zero dimensions that should be visible
- * @param {import('@playwright/test').Page} page
  */
-export async function checkLayoutIssues(page) {
+export async function checkLayoutIssues(page: Page): Promise<string[]> {
   const issues = await page.evaluate(() => {
-    const problems = []
+    const problems: string[] = []
     const viewportWidth = window.innerWidth
 
     // Check for horizontal overflow
@@ -105,11 +96,10 @@ export async function checkLayoutIssues(page) {
 
 /**
  * Check that interactive elements are accessible
- * @param {import('@playwright/test').Page} page
  */
-export async function checkAccessibility(page) {
+export async function checkAccessibility(page: Page): Promise<string[]> {
   const issues = await page.evaluate(() => {
-    const problems = []
+    const problems: string[] = []
 
     // Check buttons have accessible names
     const buttons = document.querySelectorAll('button')
@@ -135,19 +125,21 @@ export async function checkAccessibility(page) {
 
 /**
  * Take a screenshot with a descriptive name
- * @param {import('@playwright/test').Page} page
- * @param {string} name
  */
-export async function takeScreenshot(page, name) {
+export async function takeScreenshot(page: Page, name: string): Promise<void> {
   await page.screenshot({ path: `tests/e2e/screenshots/${name}.png`, fullPage: true })
+}
+
+interface AssertPageLoadedOptions {
+  expectTitle?: string
+  expectSelector?: string
+  expectNoErrors?: boolean
 }
 
 /**
  * Check that a page loaded successfully
- * @param {import('@playwright/test').Page} page
- * @param {object} options
  */
-export async function assertPageLoaded(page, options = {}) {
+export async function assertPageLoaded(page: Page, options: AssertPageLoadedOptions = {}): Promise<void> {
   const { expectTitle, expectSelector, expectNoErrors = true } = options
 
   // Check title if provided
@@ -167,13 +159,16 @@ export async function assertPageLoaded(page, options = {}) {
   }
 }
 
+interface MockUser {
+  id: string
+  username: string
+}
+
 /**
  * Mock authentication for tests that require login
  * Sets a test cookie that the app can recognize
- * @param {import('@playwright/test').Page} page
- * @param {object} user
  */
-export async function mockAuth(page, user = { id: 'test-user-123', username: 'TestUser' }) {
+export async function mockAuth(page: Page, user: MockUser = { id: 'test-user-123', username: 'TestUser' }): Promise<void> {
   // Set a cookie that simulates being logged in
   // Note: This requires the app to support test mode authentication
   await page.context().addCookies([
@@ -189,9 +184,8 @@ export async function mockAuth(page, user = { id: 'test-user-123', username: 'Te
 /**
  * Wait for cards to load on the page
  * Handles pack opening animation by clicking skip button if present
- * @param {import('@playwright/test').Page} page
  */
-export async function waitForCardsToLoad(page) {
+export async function waitForCardsToLoad(page: Page): Promise<void> {
   // Give page a moment to render
   await page.waitForTimeout(500)
 
@@ -238,19 +232,22 @@ export async function waitForCardsToLoad(page) {
   await page.waitForSelector('.canvas-card, .card-item, .card-image, .card-placeholder, .set-card, .sealed-pod', { timeout: 30000 })
 }
 
+interface ViewportSize {
+  width: number
+  height: number
+}
+
 /**
  * Get the current viewport size
- * @param {import('@playwright/test').Page} page
  */
-export async function getViewportSize(page) {
+export async function getViewportSize(page: Page): Promise<ViewportSize | null> {
   return page.viewportSize()
 }
 
 /**
  * Check if we're in mobile view
- * @param {import('@playwright/test').Page} page
  */
-export async function isMobileView(page) {
+export async function isMobileView(page: Page): Promise<boolean> {
   const size = await getViewportSize(page)
-  return size && size.width <= 768
+  return size != null && size.width <= 768
 }

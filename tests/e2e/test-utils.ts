@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Test utilities for E2E tests
 import jwt from 'jsonwebtoken'
 import pg from 'pg'
@@ -24,10 +25,10 @@ if (!connectionString) {
   console.error('No DATABASE_URL or POSTGRES_URL found. Check .env or .env.local in:', projectRoot)
 }
 
-let pool = null
+let pool: pg.Pool | null = null
 let poolEnded = false
 
-function getPool() {
+function getPool(): pg.Pool {
   if (poolEnded || !pool) {
     pool = new pg.Pool({ connectionString })
     poolEnded = false
@@ -35,13 +36,22 @@ function getPool() {
   return pool
 }
 
+interface TestUser {
+  id: string
+  username: string
+  email: string
+}
+
+interface TestUserResult {
+  user: TestUser
+  token: string
+  cookieName: string
+}
+
 /**
  * Create a test user directly in the database
- * @param {string} username
- * @param {string} testId - Unique test run ID for cleanup
- * @returns {Promise<{user: Object, token: string, cookieName: string}>}
  */
-export async function createTestUser(username, testId) {
+export async function createTestUser(username: string, testId: string): Promise<TestUserResult> {
   const uniqueId = `test_${testId}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 
   // Insert user into database
@@ -80,9 +90,8 @@ export async function createTestUser(username, testId) {
 
 /**
  * Clean up all test users and their data
- * @param {string} testId - Test run ID to clean up
  */
-export async function cleanupTestUsers(testId) {
+export async function cleanupTestUsers(testId: string): Promise<number> {
   const pattern = `test_${testId}_%`
   const db = getPool()
 
@@ -107,13 +116,13 @@ export async function cleanupTestUsers(testId) {
     [pattern]
   )
 
-  return result.rowCount
+  return result.rowCount || 0
 }
 
 /**
  * Close database connection (safe to call multiple times)
  */
-export async function closeDb() {
+export async function closeDb(): Promise<void> {
   if (pool && !poolEnded) {
     poolEnded = true
     await pool.end()

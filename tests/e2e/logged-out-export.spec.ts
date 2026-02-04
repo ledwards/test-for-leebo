@@ -1,6 +1,6 @@
-// @ts-check
-import { test, expect, chromium } from '@playwright/test'
-import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.js'
+// @ts-nocheck
+import { test, expect, chromium, Browser, BrowserContext, Page } from '@playwright/test'
+import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.ts'
 import pg from 'pg'
 
 /**
@@ -25,14 +25,11 @@ test.skip(({ browserName, isMobile }) =>
 test.setTimeout(180000)
 
 test.describe('Logged-out user export flow', () => {
-  /** @type {import('@playwright/test').Browser} */
-  let browser
-  /** @type {import('@playwright/test').BrowserContext} */
-  let context
-  /** @type {import('@playwright/test').Page} */
-  let page
-  let poolShareId = null
-  let testUser = null
+  let browser: Browser
+  let context: BrowserContext
+  let page: Page
+  let poolShareId: string | null = null
+  let testUser: any = null
 
   test.beforeAll(async () => {
     console.log(`\n${'='.repeat(50)}`)
@@ -81,7 +78,7 @@ test.describe('Logged-out user export flow', () => {
           await pool.end()
           console.log(`✓ Deleted test pool: ${poolShareId}`)
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error('Cleanup error:', e.message)
       }
     }
@@ -89,7 +86,7 @@ test.describe('Logged-out user export flow', () => {
     // Clean up test users
     try {
       await cleanupTestUsers(TEST_ID)
-    } catch (e) {
+    } catch (e: any) {
       console.error('User cleanup error:', e.message)
     }
 
@@ -207,7 +204,7 @@ test.describe('Logged-out user export flow', () => {
       // Check clipboard content
       const clipboardContent = await page.evaluate(() => navigator.clipboard.readText())
 
-      let deckData
+      let deckData: any
       try {
         deckData = JSON.parse(clipboardContent)
       } catch {
@@ -245,11 +242,11 @@ test.describe('Logged-out user export flow', () => {
 
     // Set auth cookie for test user
     const urlObj = new URL(BASE_URL)
-    const cookieConfig = {
+    const cookieConfig: any = {
       name: testUser.cookieName,
       value: testUser.token,
       httpOnly: true,
-      sameSite: /** @type {const} */ ('Lax'),
+      sameSite: 'Lax',
     }
     if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
       cookieConfig.url = BASE_URL

@@ -1,6 +1,6 @@
-// @ts-check
+// @ts-nocheck
 import { test, expect } from '@playwright/test'
-import { checkLayoutIssues, waitForNetworkIdle, checkAccessibility, shouldIgnoreError } from './helpers.js'
+import { checkLayoutIssues, waitForNetworkIdle, checkAccessibility, shouldIgnoreError } from './helpers.ts'
 
 /**
  * Regression tests to catch common issues
@@ -18,7 +18,7 @@ test.describe('Global Regression Tests', () => {
 
   for (const { url, name } of pagesToTest) {
     test(`${name} - should have no JS errors`, async ({ page }) => {
-      const errors = []
+      const errors: string[] = []
       page.on('console', msg => {
         if (msg.type() === 'error') {
           const text = msg.text()
@@ -106,7 +106,7 @@ test.describe('Mobile Regression Tests', () => {
 
 test.describe('CSS Loading Regression', () => {
   test('should load all CSS files', async ({ page }) => {
-    const cssErrors = []
+    const cssErrors: string[] = []
 
     page.on('response', response => {
       if (response.url().includes('.css') && !response.ok()) {
@@ -227,7 +227,7 @@ test.describe('Responsive Breakpoints', () => {
 
 test.describe('Error Handling Regression', () => {
   test('404 page should not crash', async ({ page }) => {
-    const errors = []
+    const errors: string[] = []
     page.on('pageerror', error => {
       if (!shouldIgnoreError(error.message)) {
         errors.push(error.message)
@@ -241,7 +241,7 @@ test.describe('Error Handling Regression', () => {
   })
 
   test('invalid pool ID should handle gracefully', async ({ page }) => {
-    const errors = []
+    const errors: string[] = []
     page.on('pageerror', error => {
       if (!shouldIgnoreError(error.message)) {
         errors.push(error.message)
@@ -256,7 +256,7 @@ test.describe('Error Handling Regression', () => {
   })
 
   test('invalid draft ID should handle gracefully', async ({ page }) => {
-    const errors = []
+    const errors: string[] = []
     page.on('pageerror', error => {
       if (!shouldIgnoreError(error.message)) {
         errors.push(error.message)

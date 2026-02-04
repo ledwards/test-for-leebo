@@ -4,12 +4,12 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "npx tsx server.ts",
     "//prebuild": "Creates .buildstamp to bust Docker layer cache, ensuring migrations/ is never stale",
     "prebuild": "date > migrations/.buildstamp",
     "build": "next build",
     "postbuild": "npx tsx scripts/postbuild.ts",
-    "start": "NODE_ENV=production node server.js",
+    "start": "NODE_ENV=production npx tsx server.ts",
     "lint": "eslint .",
     "fetch-cards": "npx tsx scripts/fetchCards.ts",
     "show-fixes": "npx tsx scripts/showFixes.ts",
@@ -42,9 +42,9 @@
     "e2e:list": "npx tsx scripts/e2e.ts --list",
     "test:e2e:chromium": "npx playwright test --project=chromium",
     "test:e2e:mobile": "npx playwright test --project='Mobile Chrome' --project='Mobile Safari'",
-    "test:e2e:regression": "npx playwright test regression.spec.js",
-    "test:e2e:draft": "npx playwright test multiplayer-draft.spec.js --project=chromium --workers=1 --headed",
-    "test:e2e:draft:debug": "npx playwright test multiplayer-draft.spec.js --project=chromium --workers=1 --headed --debug",
+    "test:e2e:regression": "npx playwright test regression.spec.ts",
+    "test:e2e:draft": "npx playwright test multiplayer-draft.spec.ts --project=chromium --workers=1 --headed",
+    "test:e2e:draft:debug": "npx playwright test multiplayer-draft.spec.ts --project=chromium --workers=1 --headed --debug",
     "test:e2e:report": "npx playwright show-report"
   },
   "dependencies": {

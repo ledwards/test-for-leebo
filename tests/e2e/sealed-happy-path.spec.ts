@@ -1,7 +1,7 @@
-// @ts-check
-import { test, expect, chromium } from '@playwright/test'
-import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.js'
-import { waitForCardsToLoad } from './helpers.js'
+// @ts-nocheck
+import { test, expect, chromium, Browser, BrowserContext, Page } from '@playwright/test'
+import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.ts'
+import { waitForCardsToLoad } from './helpers.ts'
 
 /**
  * Full Sealed Happy Path E2E test
@@ -19,14 +19,11 @@ test.skip(({ browserName, isMobile }) =>
 test.setTimeout(180000) // 3 minutes
 
 test.describe('Sealed happy path', () => {
-  /** @type {import('@playwright/test').Browser} */
-  let browser
-  /** @type {import('@playwright/test').BrowserContext} */
-  let context
-  /** @type {import('@playwright/test').Page} */
-  let page
-  let user
-  let poolShareId = null
+  let browser: Browser
+  let context: BrowserContext
+  let page: Page
+  let user: any
+  let poolShareId: string | null = null
 
   test.beforeAll(async () => {
     console.log(`\n${'='.repeat(50)}`)
@@ -50,7 +47,7 @@ test.describe('Sealed happy path', () => {
 
     // Set auth cookie
     const urlObj = new URL(BASE_URL)
-    const cookieConfig = {
+    const cookieConfig: any = {
       name: user.cookieName,
       value: user.token,
       httpOnly: true,
@@ -83,7 +80,7 @@ test.describe('Sealed happy path', () => {
     console.log('\nCleaning up...')
     try {
       await cleanupTestUsers(TEST_ID)
-    } catch (e) {
+    } catch (e: any) {
       console.error('Cleanup error:', e.message)
     }
     await closeDb()

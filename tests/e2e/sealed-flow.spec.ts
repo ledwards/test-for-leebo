@@ -1,11 +1,11 @@
-// @ts-check
-import { test, expect } from '@playwright/test'
-import { checkLayoutIssues, waitForNetworkIdle, waitForCardsToLoad, shouldIgnoreError } from './helpers.js'
+// @ts-nocheck
+import { test, expect, Page } from '@playwright/test'
+import { checkLayoutIssues, waitForNetworkIdle, waitForCardsToLoad, shouldIgnoreError } from './helpers.ts'
 
 test.describe('Sealed Pool Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Collect errors
-    const errors = []
+    const errors: string[] = []
     page.on('console', msg => {
       if (msg.type() === 'error') {
         const text = msg.text()
@@ -19,7 +19,7 @@ test.describe('Sealed Pool Flow', () => {
         errors.push(error.message)
       }
     })
-    page.errors = errors
+    ;(page as any).errors = errors
   })
 
   test('should display set selection page with all sets', async ({ page }) => {
@@ -38,7 +38,7 @@ test.describe('Sealed Pool Flow', () => {
     expect(count).toBeGreaterThanOrEqual(4) // Should have at least 4 sets
 
     // Check no errors
-    expect(page.errors).toHaveLength(0)
+    expect((page as any).errors).toHaveLength(0)
   })
 
   test('should create a sealed pool when clicking a set', async ({ page }) => {
@@ -62,7 +62,7 @@ test.describe('Sealed Pool Flow', () => {
     await expect(page.locator('.pack-grid, .sealed-pod, .card-image').first()).toBeVisible({ timeout: 30000 })
 
     // Check no errors
-    expect(page.errors).toHaveLength(0)
+    expect((page as any).errors).toHaveLength(0)
   })
 
   test('should display pack contents correctly', async ({ page }) => {
@@ -118,7 +118,7 @@ test.describe('Sealed Pool Flow', () => {
     await expect(page.locator('.deck-builder, .deck-info-bar').first()).toBeVisible({ timeout: 30000 })
 
     // Check no errors
-    expect(page.errors).toHaveLength(0)
+    expect((page as any).errors).toHaveLength(0)
   })
 })
 

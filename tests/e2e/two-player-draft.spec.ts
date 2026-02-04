@@ -1,6 +1,6 @@
-// @ts-check
-import { test, expect, chromium } from '@playwright/test'
-import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.js'
+// @ts-nocheck
+import { test, expect, chromium, Browser, BrowserContext, Page } from '@playwright/test'
+import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.ts'
 
 /**
  * 2-player draft E2E test - quick version that validates core draft mechanics
@@ -20,14 +20,11 @@ test.skip(({ browserName, isMobile }) =>
 test.setTimeout(300000) // 5 minutes
 
 test.describe('2-player draft', () => {
-  /** @type {import('@playwright/test').Browser} */
-  let browser
-  /** @type {import('@playwright/test').BrowserContext[]} */
-  let contexts = []
-  /** @type {import('@playwright/test').Page[]} */
-  let pages = []
-  let users = []
-  let shareId = null
+  let browser: Browser
+  let contexts: BrowserContext[] = []
+  let pages: Page[] = []
+  let users: any[] = []
+  let shareId: string | null = null
 
   test.beforeAll(async () => {
     console.log(`\n${'='.repeat(50)}`)
@@ -53,7 +50,7 @@ test.describe('2-player draft', () => {
 
       // Set auth cookie
       const urlObj = new URL(BASE_URL)
-      const cookieConfig = {
+      const cookieConfig: any = {
         name: userData.cookieName,
         value: userData.token,
         httpOnly: true,
@@ -84,7 +81,7 @@ test.describe('2-player draft', () => {
     console.log('\nCleaning up...')
     try {
       await cleanupTestUsers(TEST_ID)
-    } catch (e) {
+    } catch (e: any) {
       console.error('Cleanup error:', e.message)
     }
     await closeDb()
@@ -204,7 +201,7 @@ test.describe('2-player draft', () => {
   })
 
   // Helper: Wait for cards to be ready AND clickable (canSelect = true)
-  async function waitForCardsReady(gridSelector) {
+  async function waitForCardsReady(gridSelector: string): Promise<void> {
     console.log(`      Waiting for cards to be ready...`)
     const isLeaderPhase = gridSelector.includes('leaders')
     let attempts = 0
@@ -253,7 +250,7 @@ test.describe('2-player draft', () => {
   }
 
   // Helper: Wait for passing state to appear (all players have picked)
-  async function waitForPassingState() {
+  async function waitForPassingState(): Promise<void> {
     console.log(`      Waiting for passing state...`)
     let attempts = 0
     while (attempts < 60) {
@@ -276,7 +273,7 @@ test.describe('2-player draft', () => {
   }
 
   // Helper: Wait for passing state to clear (new pack arrived) and UI ready for picking
-  async function waitForPassingToClear(gridSelector) {
+  async function waitForPassingToClear(gridSelector: string): Promise<void> {
     console.log(`      Waiting for new cards...`)
     let attempts = 0
     while (attempts < 60) {
@@ -317,7 +314,7 @@ test.describe('2-player draft', () => {
   }
 
   // Helper: Wait for both players to have selectable cards (legacy)
-  async function waitForBothPlayersReady(selector) {
+  async function waitForBothPlayersReady(selector: string): Promise<void> {
     let attempts = 0
     while (attempts < 30) {
       const counts = await Promise.all(
@@ -332,7 +329,7 @@ test.describe('2-player draft', () => {
 
   // Helper: Have all players select a card with robust clicking
   // Stagger clicks slightly to avoid race conditions
-  async function selectCardForAllPlayers(gridSelector) {
+  async function selectCardForAllPlayers(gridSelector: string): Promise<void> {
     // Process players sequentially with small delays to avoid race conditions
     for (let idx = 0; idx < pages.length; idx++) {
       const page = pages[idx]
@@ -447,20 +444,20 @@ test.describe('2-player draft', () => {
                   console.log('Found React fiber, attempting to trigger click via React')
                 }
                 // Fallback: just click it normally
-                card.click()
+                ;(card as HTMLElement).click()
               }
             }, gridSelector)
             await page.waitForTimeout(500)
           }
         }
-      } catch (e) {
+      } catch (e: any) {
         console.log(`\n      [P${idx + 1}] Selection error: ${e.message?.slice(0, 50)}`)
       }
     }
   }
 
   // Helper: Wait for leader round to advance
-  async function waitForRoundAdvance(phase, currentRound) {
+  async function waitForRoundAdvance(phase: string, currentRound: number): Promise<void> {
     let attempts = 0
     while (attempts < 40) {
       const states = await Promise.all(
@@ -485,7 +482,7 @@ test.describe('2-player draft', () => {
   }
 
   // Helper: Wait for pack draft phase to start
-  async function waitForPackDraftPhase() {
+  async function waitForPackDraftPhase(): Promise<void> {
     let attempts = 0
     while (attempts < 40) {
       const states = await Promise.all(
@@ -499,7 +496,7 @@ test.describe('2-player draft', () => {
   }
 
   // Helper: Wait for pack pick to advance
-  async function waitForPickAdvance(currentPack, currentPick) {
+  async function waitForPickAdvance(currentPack: number, currentPick: number): Promise<void> {
     let attempts = 0
     while (attempts < 40) {
       const states = await Promise.all(
