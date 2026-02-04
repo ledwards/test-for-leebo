@@ -111,7 +111,9 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }: AuthWidgetP
           setLoadingData(false)
         })
     }
-  }, [user, drawerOpen, loadingData])
+    // Note: loadingData intentionally excluded from deps - it's a guard, not a trigger
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, drawerOpen])
 
   const handleSignOut = async () => {
     await signOut()
