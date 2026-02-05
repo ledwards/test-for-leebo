@@ -1,5 +1,11 @@
 # Release Notes
 
+## 02.04.2026
+
+### 🐞 Bug Fixes
+- Fixed user menu dropdown flickering and failing to load recent pools/drafts
+- Fixed showcase collection attribution so your pulled showcases properly appear in your collection
+
 ## 02.01.2026
 
 ### 📦 Pack Generation
