@@ -176,6 +176,28 @@
   line-height: 1.4;
 }
 
+.landing-footer-links {
+  margin-top: 12px;
+  font-size: 0.75rem;
+}
+
+.landing-footer-links a {
+  color: white;
+  opacity: 0.6;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.landing-footer-links a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.footer-separator {
+  margin: 0 8px;
+  opacity: 0.4;
+}
+
 .landing-logo {
   width: 400px;
   height: auto;
