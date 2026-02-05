@@ -132,7 +132,7 @@ function LandingPage({ onSealedClick, onDraftClick }: LandingPageProps) {
       <div className="landing-disclaimer">
         <p>Protect the Pod is in no way affiliated with Disney or Fantasy Flight Games. Star Wars characters, cards, logos, and art are property of Disney and/or Fantasy Flight Games.</p>
         <div className="landing-footer-links">
-          <a href="/quality" onClick={(e) => { e.preventDefault(); router.push('/quality') }}>Pack Quality</a>
+          <a href="/stats#Quality" onClick={(e) => { e.preventDefault(); router.push('/stats#Quality') }}>Pack Quality</a>
           <span className="footer-separator">·</span>
           <a href="/terms-of-service" onClick={(e) => { e.preventDefault(); router.push('/terms-of-service') }}>Terms</a>
           <span className="footer-separator">·</span>

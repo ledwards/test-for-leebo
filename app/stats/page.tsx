@@ -164,7 +164,7 @@ export default function StatsPage() {
   }
 
   useEffect(() => {
-    if (activeTab === 'Reference' || activeTab === 'QA' || activeTab === 'Test') {
+    if (activeTab === 'Reference' || activeTab === 'Quality' || activeTab === 'QA' || activeTab === 'Test') {
       setLoading(false)
       return
     }
@@ -184,7 +184,7 @@ export default function StatsPage() {
       })
   }, [activeTab])
 
-  const tabs = ['Reference', 'QA', 'Test', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
+  const tabs = ['Reference', 'Quality', 'QA', 'Test', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
 
   // Set colors for tabs
   const setColors: Record<string, string> = {
@@ -225,6 +225,8 @@ export default function StatsPage() {
       <div className="stats-content">
         {activeTab === 'Reference' ? (
           <ReferenceTab stats={stats} />
+        ) : activeTab === 'Quality' ? (
+          <QualityTab />
         ) : activeTab === 'QA' ? (
           <QATab />
         ) : activeTab === 'Test' ? (
@@ -1395,6 +1397,309 @@ function QATab() {
             ))}
           </div>
         </div>
+      )}
+    </div>
+  )
+}
+
+// === Types for Quality Tab ===
+
+interface QualityMetricResult {
+  observed: number
+  expected: number
+  observedRate: number
+  expectedRate: number
+  zScore: number
+  status: 'expected' | 'slight_variance' | 'outlier' | 'insufficient_data'
+  sampleSize: number
+  confidenceInterval: { low: number; high: number }
+  displayRate: string
+}
+
+interface QualityStructuralMetric {
+  metric: string
+  passed: number
+  failed: number
+  rate: number
+  status: 'pass' | 'fail' | 'warning'
+}
+
+interface QualityChiSquaredResult {
+  chiSquared: number
+  degreesOfFreedom: number
+  pValue: number
+  status: 'expected' | 'slight_variance' | 'outlier' | 'insufficient_data'
+  interpretation: string
+}
+
+interface QualityData {
+  setCode: string
+  setName: string
+  generatedAt: string
+  sampleSize: {
+    totalPacks: number
+    totalCards: number
+    packsWithTracking: number
+    dateRange: { start: string; end: string } | null
+  }
+  overallHealth: {
+    score: number
+    status: 'excellent' | 'good' | 'acceptable' | 'needs_attention'
+    metricsWithinExpected: number
+    totalMetrics: number
+  }
+  structuralMetrics: QualityStructuralMetric[]
+  rarityMetrics: {
+    legendaryRate: QualityMetricResult
+    foilRarityDistribution: Record<string, QualityMetricResult>
+    foilDistributionTest: QualityChiSquaredResult
+  }
+  treatmentMetrics: {
+    hyperspaceLeader: QualityMetricResult
+    hyperspaceBase: QualityMetricResult
+    hyperspaceCommon: QualityMetricResult
+    hyperfoil: QualityMetricResult
+    showcaseLeader: QualityMetricResult
+  }
+  reference: {
+    packStructure: string
+    dataSource: string
+  }
+}
+
+function QualityTab() {
+  const [selectedSet, setSelectedSet] = useState<string>('SOR')
+  const [data, setData] = useState<QualityData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
+
+  useEffect(() => {
+    setLoading(true)
+    setError(null)
+    fetch(`/api/public/pack-quality?setCode=${selectedSet}`)
+      .then(r => r.json())
+      .then(result => {
+        if (result.data) {
+          setData(result.data)
+        } else if (result.error) {
+          setError(result.error)
+        }
+      })
+      .catch(err => {
+        setError('Failed to load pack quality data')
+        console.error(err)
+      })
+      .finally(() => setLoading(false))
+  }, [selectedSet])
+
+  const getStatusBadge = (status: QualityMetricResult['status']) => {
+    const styles: Record<string, { bg: string; color: string; label: string }> = {
+      expected: { bg: 'rgba(39, 174, 96, 0.2)', color: '#27AE60', label: 'Within Expected' },
+      slight_variance: { bg: 'rgba(243, 156, 18, 0.2)', color: '#F39C12', label: 'Slight Variance' },
+      outlier: { bg: 'rgba(231, 76, 60, 0.2)', color: '#E74C3C', label: 'Outlier' },
+      insufficient_data: { bg: 'rgba(255, 255, 255, 0.1)', color: '#888', label: 'Needs Data' },
+    }
+    const s = styles[status] || styles.insufficient_data
+    return (
+      <span style={{ background: s.bg, color: s.color, padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 600 }}>
+        {s.label}
+      </span>
+    )
+  }
+
+  const formatPercent = (value: number) => `${(value * 100).toFixed(1)}%`
+
+  const getHealthColor = (status: string) => {
+    const colors: Record<string, string> = {
+      excellent: '#27AE60',
+      good: '#2ECC71',
+      acceptable: '#F39C12',
+      needs_attention: '#E74C3C',
+    }
+    return colors[status] || '#888'
+  }
+
+  const renderMetricRow = (label: string, metric: QualityMetricResult) => (
+    <tr key={label}>
+      <td>{label}</td>
+      <td>{metric.displayRate}</td>
+      <td>{formatPercent(metric.observedRate)}</td>
+      <td>{metric.sampleSize.toLocaleString()}</td>
+      <td style={{ textAlign: 'center' }}>{getStatusBadge(metric.status)}</td>
+    </tr>
+  )
+
+  if (loading) {
+    return <div className="stats-loading">Loading pack quality data...</div>
+  }
+
+  if (error) {
+    return <div className="stats-error">Error: {error}</div>
+  }
+
+  return (
+    <div className="quality-tab">
+      <div className="qa-header">
+        <h2>Pack Quality Metrics</h2>
+        <p style={{ color: '#888', marginTop: '4px' }}>
+          Statistical validation that our pack generation matches real-world collation
+        </p>
+      </div>
+
+      {/* Set selector */}
+      <div className="quality-set-selector" style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        {sets.map(code => (
+          <button
+            key={code}
+            onClick={() => setSelectedSet(code)}
+            style={{
+              padding: '8px 16px',
+              border: selectedSet === code ? '2px solid #27AE60' : '1px solid #444',
+              borderRadius: '8px',
+              background: selectedSet === code ? 'rgba(39, 174, 96, 0.2)' : 'rgba(255,255,255,0.05)',
+              color: '#fff',
+              cursor: 'pointer',
+              fontWeight: selectedSet === code ? 600 : 400,
+            }}
+          >
+            {code}
+          </button>
+        ))}
+      </div>
+
+      {data && (
+        <>
+          {/* Overview */}
+          <div className="qa-summary" style={{ marginBottom: '30px' }}>
+            <div className="qa-summary-card">
+              <div className="qa-summary-number">{data.sampleSize.totalPacks.toLocaleString()}</div>
+              <div className="qa-summary-label">Packs Generated</div>
+            </div>
+            <div className="qa-summary-card" style={{ borderColor: getHealthColor(data.overallHealth.status) }}>
+              <div className="qa-summary-number" style={{ color: getHealthColor(data.overallHealth.status) }}>
+                {data.overallHealth.score}%
+              </div>
+              <div className="qa-summary-label">Quality Score</div>
+            </div>
+            <div className="qa-summary-card">
+              <div className="qa-summary-number">
+                {data.overallHealth.metricsWithinExpected}/{data.overallHealth.totalMetrics}
+              </div>
+              <div className="qa-summary-label">Metrics OK</div>
+            </div>
+            <div className="qa-summary-card">
+              <div className="qa-summary-number">
+                {data.structuralMetrics.filter(m => m.status === 'pass').length}/{data.structuralMetrics.length}
+              </div>
+              <div className="qa-summary-label">Structure OK</div>
+            </div>
+          </div>
+
+          {/* Structural Metrics */}
+          <h3>Structural Validation</h3>
+          <table className="quality-table" style={{ width: '100%', marginBottom: '30px', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #333' }}>
+                <th style={{ textAlign: 'left', padding: '8px' }}>Check</th>
+                <th style={{ textAlign: 'right', padding: '8px' }}>Passed</th>
+                <th style={{ textAlign: 'right', padding: '8px' }}>Failed</th>
+                <th style={{ textAlign: 'center', padding: '8px' }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.structuralMetrics.map(m => (
+                <tr key={m.metric} style={{ borderBottom: '1px solid #222' }}>
+                  <td style={{ padding: '8px' }}>{m.metric}</td>
+                  <td style={{ textAlign: 'right', padding: '8px', color: '#27AE60' }}>{m.passed.toLocaleString()}</td>
+                  <td style={{ textAlign: 'right', padding: '8px', color: m.failed > 0 ? '#E74C3C' : '#888' }}>{m.failed}</td>
+                  <td style={{ textAlign: 'center', padding: '8px' }}>
+                    <span style={{
+                      background: m.status === 'pass' ? 'rgba(39,174,96,0.2)' : m.status === 'fail' ? 'rgba(231,76,60,0.2)' : 'rgba(255,255,255,0.1)',
+                      color: m.status === 'pass' ? '#27AE60' : m.status === 'fail' ? '#E74C3C' : '#888',
+                      padding: '2px 8px',
+                      borderRadius: '10px',
+                      fontSize: '11px',
+                    }}>
+                      {m.status === 'pass' ? '✓ Pass' : m.status === 'fail' ? '✗ Fail' : 'No Data'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Rarity & Treatment Metrics */}
+          <h3>Rate Validation</h3>
+          <table className="quality-table" style={{ width: '100%', marginBottom: '30px', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #333' }}>
+                <th style={{ textAlign: 'left', padding: '8px' }}>Metric</th>
+                <th style={{ textAlign: 'left', padding: '8px' }}>Expected</th>
+                <th style={{ textAlign: 'left', padding: '8px' }}>Observed</th>
+                <th style={{ textAlign: 'right', padding: '8px' }}>Sample</th>
+                <th style={{ textAlign: 'center', padding: '8px' }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {renderMetricRow('Legendary Rate', data.rarityMetrics.legendaryRate)}
+              {renderMetricRow('Hyperspace Leader', data.treatmentMetrics.hyperspaceLeader)}
+              {renderMetricRow('Hyperspace Base', data.treatmentMetrics.hyperspaceBase)}
+              {renderMetricRow('Hyperspace Common', data.treatmentMetrics.hyperspaceCommon)}
+              {renderMetricRow('Hyperfoil', data.treatmentMetrics.hyperfoil)}
+              {renderMetricRow('Showcase Leader', data.treatmentMetrics.showcaseLeader)}
+            </tbody>
+          </table>
+
+          {/* Foil Distribution */}
+          <h3>Foil Rarity Distribution</h3>
+          <table className="quality-table" style={{ width: '100%', marginBottom: '20px', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #333' }}>
+                <th style={{ textAlign: 'left', padding: '8px' }}>Rarity</th>
+                <th style={{ textAlign: 'left', padding: '8px' }}>Expected</th>
+                <th style={{ textAlign: 'left', padding: '8px' }}>Observed</th>
+                <th style={{ textAlign: 'right', padding: '8px' }}>Sample</th>
+                <th style={{ textAlign: 'center', padding: '8px' }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(data.rarityMetrics.foilRarityDistribution).map(([rarity, metric]) =>
+                renderMetricRow(rarity, metric)
+              )}
+            </tbody>
+          </table>
+
+          {/* Chi-squared result */}
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #333', borderRadius: '8px', padding: '16px', marginBottom: '30px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <strong>Foil Distribution Goodness-of-Fit Test</strong>
+              {getStatusBadge(data.rarityMetrics.foilDistributionTest.status)}
+            </div>
+            <p style={{ color: '#888', margin: '0 0 12px', fontSize: '14px' }}>
+              {data.rarityMetrics.foilDistributionTest.interpretation}
+            </p>
+            <div style={{ display: 'flex', gap: '24px', fontFamily: 'monospace', fontSize: '13px', color: '#888' }}>
+              <span>χ² = {data.rarityMetrics.foilDistributionTest.chiSquared}</span>
+              <span>df = {data.rarityMetrics.foilDistributionTest.degreesOfFreedom}</span>
+              <span>p = {data.rarityMetrics.foilDistributionTest.pValue}</span>
+            </div>
+          </div>
+
+          {/* Methodology */}
+          <h3>Methodology</h3>
+          <div style={{ color: '#888', fontSize: '14px', lineHeight: 1.6 }}>
+            <p><strong>Pack Structure:</strong> {data.reference.packStructure}</p>
+            <p><strong>Data Source:</strong> {data.reference.dataSource}</p>
+            <p><strong>Statistical Validation:</strong> We use Z-scores to compare observed vs expected rates.
+              Values within ±1.96 standard deviations are considered statistically expected (95% CI).</p>
+          </div>
+
+          <p style={{ color: '#555', fontSize: '12px', marginTop: '20px' }}>
+            Data generated: {new Date(data.generatedAt).toLocaleString()}
+          </p>
+        </>
       )}
     </div>
   )
