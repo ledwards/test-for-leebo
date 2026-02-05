@@ -342,11 +342,11 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }: AuthWidgetP
               </a>
 
               <a
-                href="/quality"
+                href="/stats#Quality"
                 className="auth-widget-drawer-menu-item"
                 onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                   e.preventDefault()
-                  router.push('/quality')
+                  router.push('/stats#Quality')
                   setDrawerOpen(false)
                 }}
               >
