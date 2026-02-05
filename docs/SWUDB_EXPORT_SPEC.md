@@ -71,11 +71,64 @@ Each card entry in `deck` or `sideboard` arrays:
 
 When exporting, all card variants (Hyperspace, Foil, Showcase, Hyperspace Foil) are converted to their Normal variant's card ID. SWUDB only recognizes Normal variant IDs.
 
+## Public API Endpoint
+
+Decks can be accessed programmatically via the public endpoint:
+
+```
+GET /api/pools/:shareId/deck.json
+```
+
+### Example Request
+
+```bash
+curl https://protectthepod.com/api/pools/abc123/deck.json
+```
+
+### Example Response
+
+```json
+{
+  "metadata": {
+    "name": "[PTP] My Draft Deck",
+    "author": "Protect the Pod"
+  },
+  "leader": { "id": "SOR_005", "count": 1 },
+  "base": { "id": "SOR_029", "count": 1 },
+  "deck": [
+    { "id": "SOR_195", "count": 1 },
+    { "id": "SOR_044", "count": 2 }
+  ],
+  "sideboard": [
+    { "id": "SOR_100", "count": 1 }
+  ]
+}
+```
+
+### Error Responses
+
+| Status | Description |
+|--------|-------------|
+| 404 | Pool not found |
+| 400 | No deck has been built for this pool yet |
+
+### Integration with External Tools
+
+This endpoint is designed for integration with:
+- **Karabast.net** - If they add our domain to their import sources
+- **Other tools** - Any tool that accepts SWUDB-format JSON
+
+To import a deck, use the full URL:
+```
+https://protectthepod.com/api/pools/{shareId}/deck.json
+```
+
 ## Implementation
 
 The export logic is in:
-- `src/hooks/useDeckExport.js` - Export hook used by DeckBuilder
-- `src/utils/variantDowngrade.js` - Card ID formatting and variant resolution
+- `app/api/pools/[shareId]/deck.json/route.ts` - Public API endpoint
+- `src/hooks/useDeckExport.ts` - Export hook used by DeckBuilder
+- `src/utils/variantDowngrade.ts` - Card ID formatting and variant resolution
 
 The `formatCardIdForExport()` function converts internal IDs to SWUDB format:
 
