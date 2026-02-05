@@ -221,6 +221,72 @@ These components have unique designs that should remain custom:
 | Toggle options | `<Button variant="toggle" active={isActive}>Option</Button>` |
 | Text actions | `<Button variant="primary" textOnly>Add</Button>` |
 
+## Tab/Folder Pattern
+
+Used for tabbed interfaces (e.g., History page Sealed/Draft tabs).
+
+### Structure
+
+```
+┌─────────┐ ┌─────────┐
+│  Tab 1  │ │  Tab 2  │       <- Tabs with rounded top corners
+└─────────┴─┴─────────┴────────────────────┐
+│                                          │
+│           Content Area                   │  <- Flat top, rounded bottom
+│                                          │
+└──────────────────────────────────────────┘
+```
+
+### Tab Styling
+
+Tabs have rounded top corners and flat bottom to "sit on" the content area:
+
+```css
+.tab {
+  border-radius: 8px 8px 0 0;  /* rounded top, flat bottom */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-bottom-color: transparent;  /* hide bottom border */
+  margin-bottom: -1px;  /* overlap with content container */
+  position: relative;
+  z-index: 1;
+}
+
+.tab.active {
+  border-bottom-color: rgba(0, 0, 0, 0.5);  /* match container background */
+}
+```
+
+### Content Container Styling
+
+Content area has flat top corners (where tabs connect) and rounded bottom corners:
+
+```css
+.tab-content-container {
+  /* Explicit corners for the folder effect */
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.5);
+}
+```
+
+### Key Points
+
+1. **Use explicit corner properties** (`border-top-left-radius`, etc.) instead of shorthand `border-radius` to avoid specificity issues
+2. **Tabs overlap container** by 1px (`margin-bottom: -1px`) so borders connect seamlessly
+3. **Active tab hides its bottom border** to create visual connection with content
+4. **Content area has flat top** so it appears the tabs "sit on" the folder
+
+### Example Implementation
+
+See `app/history/History.css` for the full implementation:
+- `.history-tab` - Tab button styling
+- `.history-tab.active` - Active tab state
+- `.history-table-container` - Content container with folder bottom
+
 ## File Organization
 
 ```
