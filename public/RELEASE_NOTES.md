@@ -1,5 +1,20 @@
 # Release Notes
 
+## 02.06.2026
+
+### 🎨 UI Improvements
+- Stats page tabs now look like proper folder tabs (rounded top, flat bottom)
+- Leaders and bases in pack viewer now display at consistent sizes
+
+### 🐞 Bug Fixes
+- Fixed Discord login button on Play page not working when logged out
+
+## 02.04.2026
+
+### 🐞 Bug Fixes
+- Fixed user menu dropdown flickering and failing to load recent pools/drafts
+- Fixed showcase collection attribution so your pulled showcases properly appear in your collection
+
 ## 02.01.2026
 
 ### 📦 Pack Generation
