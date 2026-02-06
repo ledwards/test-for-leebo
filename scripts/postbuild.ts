@@ -70,6 +70,36 @@ async function main(): Promise<void> {
     log('⚠️  Release notes file not found - skipping copy', 'yellow')
   }
 
+  // Run unit tests to generate fresh results
+  log('Running unit tests to generate fresh results...', 'cyan')
+  try {
+    execSync('npm run test:json', {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    })
+    log('✅ Unit tests completed', 'green')
+  } catch (error) {
+    log(`⚠️  Unit tests failed: ${(error as Error).message}`, 'yellow')
+  }
+
+  // Copy unit test results to public directory
+  const testResultsSource = join(projectRoot, 'src', 'tests', 'results.json')
+  const testResultsDest = join(publicDir, 'test-results.json')
+
+  if (existsSync(testResultsSource)) {
+    try {
+      copyFileSync(testResultsSource, testResultsDest)
+      log('✅ Copied unit test results to public directory', 'green')
+      log(`   Source: ${testResultsSource}`, 'cyan')
+      log(`   Destination: ${testResultsDest}`, 'cyan')
+    } catch (error) {
+      log(`⚠️  Failed to copy unit test results: ${(error as Error).message}`, 'yellow')
+    }
+  } else {
+    log('⚠️  Unit test results file not found - skipping copy', 'yellow')
+    log(`   Expected at: ${testResultsSource}`, 'cyan')
+  }
+
   // Run QA tests to generate fresh results
   log('Running QA tests to generate fresh results...', 'cyan')
   try {
@@ -119,6 +149,7 @@ async function main(): Promise<void> {
 
   const requiredFiles = [
     { path: join(projectRoot, '.next'), name: 'Next.js build output', type: 'dir' },
+    { path: testResultsDest, name: 'Unit test results', type: 'file' },
     { path: qaResultsDest, name: 'QA results', type: 'file' },
     { path: join(publicDir, 'qa-status.json'), name: 'QA status JSON', type: 'file' }
   ]
