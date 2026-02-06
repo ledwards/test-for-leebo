@@ -25,10 +25,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return jsonResponse({
         sets,
         generatedAt: new Date().toISOString(),
-      }, {
-        headers: {
-          'Cache-Control': 'public, max-age=300', // Cache for 5 minutes
-        }
       })
     }
 
@@ -49,17 +45,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return jsonResponse({
         error: 'Invalid set code',
         validSets,
-      }, { status: 400 })
+      }, 400)
     }
 
     // Get pack quality data
     const data = await getPackQualityData(normalizedSetCode)
 
-    return jsonResponse(data, {
-      headers: {
-        'Cache-Control': 'public, max-age=300', // Cache for 5 minutes
-      }
-    })
+    return jsonResponse(data)
   } catch (error) {
     console.error('Error fetching pack quality data:', error)
     return handleApiError(error)
