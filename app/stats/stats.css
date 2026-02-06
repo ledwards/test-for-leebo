@@ -39,46 +39,63 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* Tabs */
+.stats-header h3.stats-date-range {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+  margin-top: 0.5rem;
+}
+
+/* Tabs - folder/tab style with rounded top corners */
 .stats-tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  gap: 0;
+  margin-bottom: 0;
   overflow-x: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .stats-tab {
   padding: 0.75rem 1.5rem;
-  background: transparent;
-  border: none;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
   color: rgba(255, 255, 255, 0.6);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 3px solid transparent;
   white-space: nowrap;
+  margin-right: -1px;
+  position: relative;
 }
 
 .stats-tab:hover {
   color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.05);
-  border-bottom-color: var(--set-color, rgba(255, 255, 255, 0.4));
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .stats-tab.active {
   color: #fff;
-  border-bottom-color: var(--set-color, #2196F3);
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
+  z-index: 2;
 }
 
-/* Content Area */
+/* Content Area - folder body with flat top corners */
 .stats-content {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
   padding: 2rem;
   min-height: 400px;
+  margin-top: -1px;
+  position: relative;
 }
 
 .stats-loading,
@@ -1085,6 +1102,20 @@
 
 .pack-card.showcase {
   border-color: rgba(255, 105, 180, 0.6);
+}
+
+/* Leaders and bases use same container size as regular cards */
+/* Images fill the container with object-fit: contain */
+.pack-card.base,
+.pack-card.leader {
+  /* Same width/height as regular cards - portrait container */
+  /* Card image will be contained within, showing padding if landscape */
+}
+
+.pack-card.base .pack-card-image,
+.pack-card.leader .pack-card-image {
+  object-fit: contain;
+  background: #1a1a1a;
 }
 
 .pack-card-image {

@@ -280,12 +280,17 @@ Content area has flat top corners (where tabs connect) and rounded bottom corner
 3. **Active tab hides its bottom border** to create visual connection with content
 4. **Content area has flat top** so it appears the tabs "sit on" the folder
 
-### Example Implementation
+### Example Implementations
 
-See `app/history/History.css` for the full implementation:
+**History page** (`app/history/History.css`):
 - `.history-tab` - Tab button styling
 - `.history-tab.active` - Active tab state
 - `.history-table-container` - Content container with folder bottom
+
+**Stats page** (`app/stats/stats.css`):
+- `.stats-tab` - Tab button styling with set colors
+- `.stats-tab.active` - Active tab state
+- `.stats-content` - Content container with folder bottom
 
 ## File Organization
 
