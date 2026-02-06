@@ -921,7 +921,7 @@ export default function PlayPage({ params }: PageProps) {
                 <p>Login with Discord to permanently save this deck to your account. You'll be able to access it from any device and see it in your deck history.</p>
               </div>
               <a
-                href={`/api/auth/login?redirect=${encodeURIComponent(`/pool/${shareId}/deck/play`)}`}
+                href={`/api/auth/signin/discord?return_to=${encodeURIComponent(`/pool/${shareId}/deck/play`)}`}
                 className="login-banner-button"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
