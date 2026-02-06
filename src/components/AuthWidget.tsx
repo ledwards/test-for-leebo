@@ -325,6 +325,25 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }: AuthWidgetP
                 </a>
               )}
 
+              {/* Stats link - hidden for now
+              <a
+                href="/stats"
+                className="auth-widget-drawer-menu-item"
+                onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+                  e.preventDefault()
+                  router.push('/stats')
+                  setDrawerOpen(false)
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                Stats
+              </a>
+              */}
+
               <a
                 href="/history"
                 className="auth-widget-drawer-menu-item"
@@ -342,22 +361,6 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }: AuthWidgetP
               </a>
 
               <a
-                href="/stats#Quality"
-                className="auth-widget-drawer-menu-item"
-                onClick={(e: MouseEvent<HTMLAnchorElement>) => {
-                  e.preventDefault()
-                  router.push('/stats#Quality')
-                  setDrawerOpen(false)
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                Pack Quality
-              </a>
-
-              <a
                 href="/"
                 className="auth-widget-drawer-menu-item"
                 onClick={(e: MouseEvent<HTMLAnchorElement>) => {
@@ -372,6 +375,8 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }: AuthWidgetP
                 </svg>
                 Home
               </a>
+
+              <div className="auth-widget-drawer-divider"></div>
 
               <button
                 className="auth-widget-drawer-menu-item"
