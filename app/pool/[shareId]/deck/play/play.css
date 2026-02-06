@@ -175,8 +175,19 @@
 
 .login-banner-button:hover {
   background: #4752c4;
+  color: white;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+}
+
+/* Ensure link states don't change text color */
+a.login-banner-button,
+a.login-banner-button:visited,
+a.login-banner-button:hover,
+a.login-banner-button:active,
+a.login-banner-button:focus {
+  color: white;
+  text-decoration: none;
 }
 
 .play-instructions {
