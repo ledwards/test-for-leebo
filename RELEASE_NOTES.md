@@ -1,5 +1,14 @@
 # Release Notes
 
+## 02.06.2026
+
+### 🎨 UI Improvements
+- Stats page tabs now look like proper folder tabs (rounded top, flat bottom)
+- Leaders and bases in pack viewer now display at consistent sizes
+
+### 🐞 Bug Fixes
+- Fixed Discord login button on Play page not working when logged out
+
 ## 02.04.2026
 
 ### 🐞 Bug Fixes
