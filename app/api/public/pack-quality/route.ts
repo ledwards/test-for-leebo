@@ -18,6 +18,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const url = new URL(request.url)
     const setCode = url.searchParams.get('setCode')
     const all = url.searchParams.get('all') === 'true'
+    const since = url.searchParams.get('since') || '2020-01-01'
 
     // If requesting all sets summary
     if (all) {
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Get pack quality data
-    const data = await getPackQualityData(normalizedSetCode)
+    const data = await getPackQualityData(normalizedSetCode, since)
 
     return jsonResponse(data)
   } catch (error) {

@@ -317,7 +317,7 @@ function buildMetricResult(
 
 // === Main Service Function ===
 
-export async function getPackQualityData(setCode: string): Promise<PackQualityData> {
+export async function getPackQualityData(setCode: string, since: string = '2020-01-01'): Promise<PackQualityData> {
   const constants = getPackConstants(setCode)
   const setNumber = getSetNumber(setCode)
 
@@ -330,8 +330,8 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
       MIN(generated_at) as first_generated,
       MAX(generated_at) as last_generated
      FROM card_generations
-     WHERE set_code = $1`,
-    [setCode]
+     WHERE set_code = $1 AND generated_at >= $2`,
+    [setCode, since]
   )
 
   const totalCards = parseInt(countStats?.total_cards || 0)
@@ -350,9 +350,9 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
       pack_index,
       COUNT(*) as card_count
      FROM card_generations
-     WHERE set_code = $1 AND pack_index IS NOT NULL
+     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
      GROUP BY source_id, pack_index`,
-    [setCode]
+    [setCode, since]
   )
 
   const correctSizePacks = packSizeStats.filter(p => parseInt(p.card_count) === 16).length
@@ -373,11 +373,11 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
      FROM (
        SELECT source_id, pack_index
        FROM card_generations
-       WHERE set_code = $1 AND pack_index IS NOT NULL
+       WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
        GROUP BY source_id, pack_index, card_name, treatment
        HAVING COUNT(*) > 1
      ) dupes`,
-    [setCode]
+    [setCode, since]
   )
   const packsWithDupes = parseInt(dupStats?.packs_with_dupes || 0)
 
@@ -396,9 +396,9 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
       pack_index,
       COUNT(*) FILTER (WHERE slot_type = 'leader') as leader_count
      FROM card_generations
-     WHERE set_code = $1 AND pack_index IS NOT NULL
+     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
      GROUP BY source_id, pack_index`,
-    [setCode]
+    [setCode, since]
   )
   const correctLeaderPacks = leaderStats.filter(p => parseInt(p.leader_count) === 1).length
 
@@ -418,9 +418,9 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
       pack_index,
       COUNT(*) FILTER (WHERE slot_type = 'base') as base_count
      FROM card_generations
-     WHERE set_code = $1 AND pack_index IS NOT NULL
+     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
      GROUP BY source_id, pack_index`,
-    [setCode]
+    [setCode, since]
   )
   const correctBasePacks = baseStats.filter(p => parseInt(p.base_count) === 1).length
 
@@ -441,8 +441,8 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE rarity = 'Legendary') as legendary_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'rare_legendary'`,
-    [setCode]
+     WHERE set_code = $1 AND slot_type = 'rare_legendary' AND generated_at >= $2`,
+    [setCode, since]
   )
 
   const rlTotal = parseInt(rareLegendaryStats?.total || 0)
@@ -455,9 +455,9 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
   const foilStats = await queryRows(
     `SELECT rarity, COUNT(*) as count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'foil'
+     WHERE set_code = $1 AND slot_type = 'foil' AND generated_at >= $2
      GROUP BY rarity`,
-    [setCode]
+    [setCode, since]
   )
 
   const foilTotal = foilStats.reduce((sum, r) => sum + parseInt(r.count), 0)
@@ -510,8 +510,8 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'hyperspace') as hyperspace_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'leader'`,
-    [setCode]
+     WHERE set_code = $1 AND slot_type = 'leader' AND generated_at >= $2`,
+    [setCode, since]
   )
 
   const leaderTotal = parseInt(leaderTreatmentStats?.total || 0)
@@ -529,8 +529,8 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'hyperspace') as hyperspace_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'base'`,
-    [setCode]
+     WHERE set_code = $1 AND slot_type = 'base' AND generated_at >= $2`,
+    [setCode, since]
   )
 
   const baseTotal = parseInt(baseTreatmentStats?.total || 0)
@@ -548,8 +548,8 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'hyperspace') as hyperspace_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'common'`,
-    [setCode]
+     WHERE set_code = $1 AND slot_type = 'common' AND generated_at >= $2`,
+    [setCode, since]
   )
 
   const commonTotal = parseInt(commonTreatmentStats?.total || 0)
@@ -569,8 +569,8 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'hyperspace_foil') as hyperfoil_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'foil'`,
-    [setCode]
+     WHERE set_code = $1 AND slot_type = 'foil' AND generated_at >= $2`,
+    [setCode, since]
   )
 
   const foilTreatmentTotal = parseInt(foilTreatmentStats?.total || 0)
@@ -588,8 +588,8 @@ export async function getPackQualityData(setCode: string): Promise<PackQualityDa
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'showcase') as showcase_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'leader'`,
-    [setCode]
+     WHERE set_code = $1 AND slot_type = 'leader' AND generated_at >= $2`,
+    [setCode, since]
   )
 
   const showcaseTotal = parseInt(showcaseStats?.total || 0)

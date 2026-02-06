@@ -10,11 +10,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const url = new URL(request.url)
     const setCode = url.searchParams.get('setCode') || 'SOR'
+    const since = url.searchParams.get('since') || '2020-01-01'
 
     // Get all cards
     const allCards = getAllCards()
 
-    // Get all generations for this set
+    // Get all generations for this set since the specified date
     const generations = await queryRows(
       `SELECT
         card_id,
@@ -26,10 +27,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         treatment,
         COUNT(*) as count
        FROM card_generations
-       WHERE set_code = $1
+       WHERE set_code = $1 AND generated_at >= $2
        GROUP BY card_id, card_name, card_subtitle, card_type, rarity, aspects, treatment
        ORDER BY card_id, treatment`,
-      [setCode]
+      [setCode, since]
     )
 
     // Get comprehensive statistics
@@ -40,8 +41,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         COUNT(*) as total_cards,
         COUNT(*) / 16 as estimated_packs
        FROM card_generations
-       WHERE set_code = $1`,
-      [setCode]
+       WHERE set_code = $1 AND generated_at >= $2`,
+      [setCode, since]
     )
 
     // === POOL-LEVEL METRICS ===
@@ -52,48 +53,48 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const poolCounts = await queryRows(
       `SELECT source_type, COUNT(DISTINCT source_id) as pool_count
        FROM card_generations
-       WHERE set_code = $1
+       WHERE set_code = $1 AND generated_at >= $2
        GROUP BY source_type`,
-      [setCode]
+      [setCode, since]
     )
 
     // 2. Treatment distribution across all cards
     const treatmentDistribution = await queryRows(
       `SELECT treatment, COUNT(*) as count
        FROM card_generations
-       WHERE set_code = $1
+       WHERE set_code = $1 AND generated_at >= $2
        GROUP BY treatment
        ORDER BY count DESC`,
-      [setCode]
+      [setCode, since]
     )
 
     // 3. Rarity distribution
     const rarityDistribution = await queryRows(
       `SELECT rarity, COUNT(*) as count
        FROM card_generations
-       WHERE set_code = $1
+       WHERE set_code = $1 AND generated_at >= $2
        GROUP BY rarity
        ORDER BY count DESC`,
-      [setCode]
+      [setCode, since]
     )
 
     // 4. Cards per pool (should be ~96 for sealed, ~384 for draft)
     const cardsPerPool = await queryRows(
       `SELECT source_type, source_id, COUNT(*) as card_count
        FROM card_generations
-       WHERE set_code = $1
+       WHERE set_code = $1 AND generated_at >= $2
        GROUP BY source_type, source_id
        ORDER BY card_count`,
-      [setCode]
+      [setCode, since]
     )
 
     // 5. Legendary count per pool
     const legendariesPerPool = await queryRows(
       `SELECT source_type, source_id, COUNT(*) as legendary_count
        FROM card_generations
-       WHERE set_code = $1 AND rarity = 'Legendary'
+       WHERE set_code = $1 AND rarity = 'Legendary' AND generated_at >= $2
        GROUP BY source_type, source_id`,
-      [setCode]
+      [setCode, since]
     )
 
     // 6. Same-treatment duplicates within a pool (same card name + treatment appearing multiple times)
@@ -101,12 +102,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const sameTreatmentDuplicates = await queryRows(
       `SELECT source_type, source_id, card_name, card_subtitle, treatment, COUNT(*) as duplicate_count
        FROM card_generations
-       WHERE set_code = $1
+       WHERE set_code = $1 AND generated_at >= $2
        GROUP BY source_type, source_id, card_name, card_subtitle, treatment
        HAVING COUNT(*) > 1
        ORDER BY duplicate_count DESC
        LIMIT 50`,
-      [setCode]
+      [setCode, since]
     )
 
     // 7. Cross-treatment duplicates within a pool (same card appearing with different treatments)
@@ -117,12 +118,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               COUNT(DISTINCT treatment) as treatment_count,
               COUNT(*) as total_appearances
        FROM card_generations
-       WHERE set_code = $1
+       WHERE set_code = $1 AND generated_at >= $2
        GROUP BY source_type, source_id, card_name, card_subtitle
        HAVING COUNT(DISTINCT treatment) > 1
        ORDER BY treatment_count DESC, total_appearances DESC
        LIMIT 50`,
-      [setCode]
+      [setCode, since]
     )
 
     // 8. Count pools with any same-treatment duplicates
@@ -131,11 +132,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
        FROM (
          SELECT source_id
          FROM card_generations
-         WHERE set_code = $1
+         WHERE set_code = $1 AND generated_at >= $2
          GROUP BY source_id, card_name, card_subtitle, treatment
          HAVING COUNT(*) > 1
        ) as dupes`,
-      [setCode]
+      [setCode, since]
     )
 
     // 9. Count pools with cross-treatment duplicates
@@ -144,11 +145,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
        FROM (
          SELECT source_id
          FROM card_generations
-         WHERE set_code = $1
+         WHERE set_code = $1 AND generated_at >= $2
          GROUP BY source_id, card_name, card_subtitle
          HAVING COUNT(DISTINCT treatment) > 1
        ) as dupes`,
-      [setCode]
+      [setCode, since]
     )
 
     // Calculate average legendaries per pool type
@@ -174,8 +175,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const packsWithIndex = await queryRows(
       `SELECT COUNT(DISTINCT (source_id, pack_index)) as pack_count
        FROM card_generations
-       WHERE set_code = $1 AND pack_index IS NOT NULL`,
-      [setCode]
+       WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2`,
+      [setCode, since]
     )
     const totalPacksWithIndex = parseInt(packsWithIndex[0]?.pack_count || 0)
 
@@ -183,12 +184,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const packSameTreatmentDuplicates = await queryRows(
       `SELECT source_id, pack_index, card_name, card_subtitle, treatment, COUNT(*) as duplicate_count
        FROM card_generations
-       WHERE set_code = $1 AND pack_index IS NOT NULL
+       WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
        GROUP BY source_id, pack_index, card_name, card_subtitle, treatment
        HAVING COUNT(*) > 1
        ORDER BY duplicate_count DESC
        LIMIT 20`,
-      [setCode]
+      [setCode, since]
     )
 
     // 12. Count packs with same-treatment duplicates (should be 0)
@@ -197,11 +198,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
        FROM (
          SELECT source_id, pack_index
          FROM card_generations
-         WHERE set_code = $1 AND pack_index IS NOT NULL
+         WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
          GROUP BY source_id, pack_index, card_name, card_subtitle, treatment
          HAVING COUNT(*) > 1
        ) as dupes`,
-      [setCode]
+      [setCode, since]
     )
 
     // 13. Cross-treatment duplicates at PACK level (expected ~7-8% - card+foil pairs)
@@ -209,12 +210,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       `SELECT source_id, pack_index, card_name, card_subtitle,
               array_agg(DISTINCT treatment ORDER BY treatment) as treatments
        FROM card_generations
-       WHERE set_code = $1 AND pack_index IS NOT NULL
+       WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
        GROUP BY source_id, pack_index, card_name, card_subtitle
        HAVING COUNT(DISTINCT treatment) > 1
        ORDER BY source_id, pack_index
        LIMIT 20`,
-      [setCode]
+      [setCode, since]
     )
 
     // 14. Count packs with cross-treatment duplicates
@@ -223,11 +224,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
        FROM (
          SELECT source_id, pack_index
          FROM card_generations
-         WHERE set_code = $1 AND pack_index IS NOT NULL
+         WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
          GROUP BY source_id, pack_index, card_name, card_subtitle
          HAVING COUNT(DISTINCT treatment) > 1
        ) as dupes`,
-      [setCode]
+      [setCode, since]
     )
 
     const packMetrics = {
