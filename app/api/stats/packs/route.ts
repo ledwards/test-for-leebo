@@ -11,6 +11,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const setCode = url.searchParams.get('setCode') || 'SOR'
     const limit = parseInt(url.searchParams.get('limit') || '50')
     const offset = parseInt(url.searchParams.get('offset') || '0')
+    const since = url.searchParams.get('since') || '2020-01-01'
 
     // Get all cards for image lookup
     const allCards = getAllCards()
@@ -28,18 +29,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const packList = await queryRows(
       `SELECT DISTINCT source_id, source_type, pack_index, generated_at
        FROM card_generations
-       WHERE set_code = $1 AND pack_index IS NOT NULL
+       WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $4
        ORDER BY generated_at DESC, source_id, pack_index
        LIMIT $2 OFFSET $3`,
-      [setCode, limit, offset]
+      [setCode, limit, offset, since]
     )
 
     // Get total count
     const countResult = await queryRows(
       `SELECT COUNT(DISTINCT (source_id, pack_index)) as total
        FROM card_generations
-       WHERE set_code = $1 AND pack_index IS NOT NULL`,
-      [setCode]
+       WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2`,
+      [setCode, since]
     )
     const totalPacks = parseInt(countResult[0]?.total || 0)
 

@@ -75,6 +75,7 @@ interface PackCard {
   cardId: string
   name: string
   subtitle?: string
+  type?: string
   treatment: string
   isFoil?: boolean
   isHyperspace?: boolean
@@ -137,11 +138,21 @@ interface TestResults {
   }
 }
 
+// Stats start date - from env var or default to include all historical data
+const STATS_START_DATE = process.env.NEXT_PUBLIC_STATS_START_DATE || '2020-01-01'
+
 export default function StatsPage() {
   const [activeTab, setActiveTab] = useState('Reference')
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Format the stats start date for display
+  const formattedDate = new Date(STATS_START_DATE).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
 
   // Set initial tab from hash on mount
   useEffect(() => {
@@ -164,14 +175,14 @@ export default function StatsPage() {
   }
 
   useEffect(() => {
-    if (activeTab === 'Reference' || activeTab === 'Quality' || activeTab === 'QA' || activeTab === 'Test') {
+    if (activeTab === 'Reference' || activeTab === 'QA' || activeTab === 'Test') {
       setLoading(false)
       return
     }
 
     // Load stats for the active set
     setLoading(true)
-    fetch(`/api/stats/generations?setCode=${activeTab}`)
+    fetch(`/api/stats/generations?setCode=${activeTab}&since=${STATS_START_DATE}`)
       .then(res => res.json())
       .then(response => {
         // API wraps response in {success: true, data: {...}}
@@ -184,7 +195,7 @@ export default function StatsPage() {
       })
   }, [activeTab])
 
-  const tabs = ['Reference', 'Quality', 'QA', 'Test', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
+  const tabs = ['Reference', 'QA', 'Test', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
 
   // Set colors for tabs
   const setColors: Record<string, string> = {
@@ -201,6 +212,7 @@ export default function StatsPage() {
       <div className="stats-header">
         <h1>Statistics</h1>
         <p>Statistical analysis of card and pack generation for nerds</p>
+        <h3 className="stats-date-range">Since {formattedDate}</h3>
       </div>
 
       <div className="stats-tabs">
@@ -224,9 +236,7 @@ export default function StatsPage() {
 
       <div className="stats-content">
         {activeTab === 'Reference' ? (
-          <ReferenceTab stats={stats} />
-        ) : activeTab === 'Quality' ? (
-          <QualityTab />
+          <ReferenceTab />
         ) : activeTab === 'QA' ? (
           <QATab />
         ) : activeTab === 'Test' ? (
@@ -249,7 +259,25 @@ interface GenerationStatsTabProps {
 }
 
 function GenerationStatsTab({ stats, setCode }: GenerationStatsTabProps) {
-  const [subTab, setSubTab] = useState('cards')
+  const [subTab, setSubTab] = useState('quality')
+  const [qualityData, setQualityData] = useState<QualityData | null>(null)
+  const [qualityLoading, setQualityLoading] = useState(true)
+
+  // Fetch quality data for this set
+  useEffect(() => {
+    setQualityLoading(true)
+    fetch(`/api/public/pack-quality?setCode=${setCode}&since=${STATS_START_DATE}`)
+      .then(r => r.json())
+      .then(result => {
+        if (result.data) {
+          setQualityData(result.data)
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching quality data:', err)
+      })
+      .finally(() => setQualityLoading(false))
+  }, [setCode])
 
   if (!stats || !stats.cards || stats.cards.length === 0) {
     return (
@@ -305,13 +333,14 @@ function GenerationStatsTab({ stats, setCode }: GenerationStatsTabProps) {
         )}
       </div>
 
-      {/* Pack-Level Metrics Section */}
-      {stats.packMetrics && (
-        <PackMetricsSection metrics={stats.packMetrics} />
-      )}
-
-      {/* Sub-tabs for Cards and Packs - directly above content */}
+      {/* Sub-tabs for Quality, Cards and Packs */}
       <div className="stats-subtabs">
+        <button
+          className={`stats-subtab ${subTab === 'quality' ? 'active' : ''}`}
+          onClick={() => setSubTab('quality')}
+        >
+          Quality
+        </button>
         <button
           className={`stats-subtab ${subTab === 'cards' ? 'active' : ''}`}
           onClick={() => setSubTab('cards')}
@@ -326,7 +355,9 @@ function GenerationStatsTab({ stats, setCode }: GenerationStatsTabProps) {
         </button>
       </div>
 
-      {subTab === 'cards' ? (
+      {subTab === 'quality' ? (
+        <QualitySubTab data={qualityData} loading={qualityLoading} />
+      ) : subTab === 'cards' ? (
         <CardsSubTab stats={stats} setCode={setCode} hasEnoughData={hasEnoughData} />
       ) : (
         <PacksSubTab setCode={setCode} />
@@ -475,21 +506,25 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
               )}
             </div>
             <div className="pack-cards">
-              {pack.cards.map((card, cardIdx) => (
-                <div
-                  key={`${card.cardId}-${cardIdx}`}
-                  className={`pack-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`}
-                  title={`${card.name}${card.subtitle ? ` - ${card.subtitle}` : ''} (${card.treatment})`}
-                >
-                  {card.imageUrl ? (
-                    <img src={card.imageUrl} alt={card.name} className="pack-card-image" />
-                  ) : (
-                    <div className="pack-card-placeholder">
-                      <span className="placeholder-name">{card.name}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
+              {pack.cards.map((card, cardIdx) => {
+                const isBase = card.type === 'Base'
+                const isLeader = card.type === 'Leader'
+                return (
+                  <div
+                    key={`${card.cardId}-${cardIdx}`}
+                    className={`pack-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isBase ? 'base' : ''} ${isLeader ? 'leader' : ''}`}
+                    title={`${card.name}${card.subtitle ? ` - ${card.subtitle}` : ''} (${card.treatment})`}
+                  >
+                    {card.imageUrl ? (
+                      <img src={card.imageUrl} alt={card.name} className="pack-card-image" />
+                    ) : (
+                      <div className="pack-card-placeholder">
+                        <span className="placeholder-name">{card.name}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         ))}
@@ -809,67 +844,14 @@ function PackMetricsSection({ metrics }: PackMetricsSectionProps) {
   )
 }
 
-interface ReferenceTabProps {
-  stats: Stats | null
-}
-
-function ReferenceTab({ stats }: ReferenceTabProps) {
-  const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
-  const [selectedSet, setSelectedSet] = useState('SOR')
-
-  // Get set-specific info
-  const getSetInfo = (setCode: string) => {
-    const setNames: Record<string, string> = {
-      'SOR': 'Spark of Rebellion',
-      'SHD': 'Shadows of the Galaxy',
-      'TWI': 'Twilight of the Republic',
-      'JTL': 'Jump to Lightspeed',
-      'LOF': 'Legends of the Force',
-      'SEC': 'Secrets of Power'
-    }
-
-    // Sets 1-3 vs Sets 4-6 have different rules
-    const isLegacySet = ['SOR', 'SHD', 'TWI'].includes(setCode)
-
-    return {
-      name: setNames[setCode],
-      isLegacySet,
-      // Card counts vary by set but structure is similar
-      cardCounts: {
-        leaders: isLegacySet ? '16-18' : '18-20',
-        bases: isLegacySet ? '12-16' : '12-16',
-        commons: '81-90',
-        uncommons: '60',
-        rares: '47-48',
-        legendaries: '16-18',
-        special: isLegacySet ? '8' : '12-16'
-      },
-      legendaryRate: isLegacySet ? '~14.3%' : '~14.3%',
-      hyperfoilRate: '~2% (1 in 50 packs)',
-      showcaseRate: isLegacySet ? 'N/A' : '~5%'
-    }
-  }
-
-  const setInfo = getSetInfo(selectedSet)
-
+function ReferenceTab() {
   return (
     <div className="reference-tab">
-      <h2>Pack Generation Reference - {setInfo.name}</h2>
+      <h2>Pack Generation Reference</h2>
       <p className="reference-intro">
         Complete technical documentation of how booster packs are generated in Star Wars: Unlimited.
+        This covers universal rules that apply to all sets. For set-specific statistics, see the individual set tabs.
       </p>
-
-      <div className="reference-set-selector">
-        {sets.map(set => (
-          <button
-            key={set}
-            className={`go-button ${selectedSet === set ? 'selected' : ''}`}
-            onClick={() => setSelectedSet(set)}
-          >
-            {set}
-          </button>
-        ))}
-      </div>
 
       <div className="reference-sections">
         {/* Pack Structure */}
@@ -910,52 +892,12 @@ function ReferenceTab({ stats }: ReferenceTabProps) {
               <tr>
                 <td><strong>Rare/Legendary</strong></td>
                 <td>1-2</td>
-                <td>One guaranteed Rare or Legendary (L rate: {setInfo.legendaryRate}). Can be 2 if third UC upgrades.</td>
+                <td>One guaranteed Rare or Legendary. Legendary rate varies by set (see below). Can be 2 if third UC upgrades.</td>
               </tr>
               <tr>
                 <td><strong>Foil</strong></td>
                 <td>1</td>
-                <td>One foil card of any rarity (weighted: 70% C / 20% U / 8% R / 2% L). Can upgrade to Hyperfoil.</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        {/* Card Counts */}
-        <section className="reference-section">
-          <h3>Card Pool Sizes</h3>
-          <div className="reference-description">
-            <p>Total unique cards available in {setInfo.name}:</p>
-          </div>
-          <table className="reference-table">
-            <tbody>
-              <tr>
-                <td>Leaders</td>
-                <td><strong>{setInfo.cardCounts.leaders}</strong></td>
-              </tr>
-              <tr>
-                <td>Bases</td>
-                <td><strong>{setInfo.cardCounts.bases}</strong></td>
-              </tr>
-              <tr>
-                <td>Commons</td>
-                <td><strong>{setInfo.cardCounts.commons}</strong></td>
-              </tr>
-              <tr>
-                <td>Uncommons</td>
-                <td><strong>{setInfo.cardCounts.uncommons}</strong></td>
-              </tr>
-              <tr>
-                <td>Rares</td>
-                <td><strong>{setInfo.cardCounts.rares}</strong></td>
-              </tr>
-              <tr>
-                <td>Legendaries</td>
-                <td><strong>{setInfo.cardCounts.legendaries}</strong></td>
-              </tr>
-              <tr>
-                <td>Special</td>
-                <td><strong>{setInfo.cardCounts.special}</strong></td>
+                <td>One foil card of any rarity (weighted by set - see below). Can upgrade to Hyperfoil.</td>
               </tr>
             </tbody>
           </table>
@@ -965,35 +907,27 @@ function ReferenceTab({ stats }: ReferenceTabProps) {
         <section className="reference-section">
           <h3>Rarity Distribution</h3>
           <div className="reference-description">
-            <p><strong>Rare/Legendary Slot:</strong></p>
+            <p><strong>Rare/Legendary Slot (varies by set):</strong></p>
             <ul>
-              <li>Legendary: {setInfo.legendaryRate} (6:1 ratio)</li>
-              <li>Rare: ~85.7%</li>
+              <li>Sets 1-3: ~14.3% Legendary (6:1 ratio)</li>
+              <li>Sets 4+: ~16.7% Legendary (5:1 ratio)</li>
             </ul>
             <p><strong>Third UC Slot Upgrade:</strong></p>
             <ul>
-              <li>Stays UC: ~82%</li>
-              <li>Upgrades to R/L: ~18%</li>
+              <li>Sets 1-3: ~18% upgrade rate (1 in 5.5)</li>
+              <li>Sets 4+: ~20% upgrade rate (1 in 5)</li>
             </ul>
           </div>
         </section>
 
         {/* Leader Rarity */}
         <section className="reference-section">
-          <h3>Leader Rarity Distribution</h3>
+          <h3>Leader Distribution</h3>
           <div className="reference-description">
-            <p>Leaders come in two rarities:</p>
-            <ul>
-              <li><strong>Common Leaders:</strong> 8 per set (easier to pull)</li>
-              <li><strong>Rare/Legendary Leaders:</strong> 10 per set (harder to pull)</li>
-            </ul>
-            <p><strong>Total Leaders per Set:</strong> 18</p>
-
-            <p><strong>In the Leader Slot:</strong></p>
+            <p>Leaders come in two rarities (Common and Rare), but in the leader slot:</p>
             <ul>
               <li>All leaders have equal probability (uniform distribution)</li>
-              <li>1 in 18 chance for any specific leader</li>
-              <li>Rarity doesn't affect pull rate - it's aesthetic/collectibility</li>
+              <li>Rarity is aesthetic/collectibility, not pull rate</li>
             </ul>
           </div>
         </section>
@@ -1002,44 +936,42 @@ function ReferenceTab({ stats }: ReferenceTabProps) {
         <section className="reference-section reference-full-width">
           <h3>Foil Slot Distribution</h3>
           <div className="reference-description">
-            <p>The foil slot uses weighted random selection:</p>
+            <p>The foil slot uses weighted random selection (weights vary by set):</p>
           </div>
           <table className="reference-table">
             <thead>
               <tr>
                 <th>Rarity</th>
-                <th>Weight</th>
-                <th>Description</th>
+                <th>Sets 1-3</th>
+                <th>Sets 4-6</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>Common</td>
                 <td><strong>70%</strong></td>
-                <td>Most foils are commons</td>
+                <td><strong>65%</strong></td>
               </tr>
               <tr>
                 <td>Uncommon</td>
                 <td><strong>20%</strong></td>
-                <td>About 1 in 5 foils</td>
+                <td><strong>20%</strong></td>
               </tr>
               <tr>
                 <td>Rare</td>
                 <td><strong>8%</strong></td>
-                <td>Roughly 1 in 12 foils</td>
+                <td><strong>8%</strong></td>
               </tr>
               <tr>
                 <td>Legendary</td>
                 <td><strong>2%</strong></td>
-                <td>Very rare - 1 in 50 foils</td>
+                <td><strong>3%</strong></td>
               </tr>
-              {!setInfo.isLegacySet && (
-                <tr>
-                  <td>Special</td>
-                  <td><strong>Varies</strong></td>
-                  <td>Special rarity cards only appear in foil slot (Sets 4-6)</td>
-                </tr>
-              )}
+              <tr>
+                <td>Special</td>
+                <td><strong>0%</strong></td>
+                <td><strong>4%</strong></td>
+              </tr>
             </tbody>
           </table>
         </section>
@@ -1087,43 +1019,43 @@ function ReferenceTab({ stats }: ReferenceTabProps) {
             <tbody>
               <tr>
                 <td><strong>Leader → Showcase</strong></td>
-                <td>{setInfo.showcaseRate}</td>
-                <td>Showcase leaders (Sets 4-6 only, takes priority over Hyperspace)</td>
+                <td>~0.35%</td>
+                <td>Showcase leaders (all sets, ~1 in 288 packs). Takes priority over Hyperspace.</td>
               </tr>
               <tr>
                 <td><strong>Leader → Hyperspace</strong></td>
-                <td>~15%</td>
-                <td>Hyperspace variant of the leader</td>
+                <td>~17%</td>
+                <td>Hyperspace variant of the leader (1 in 6 packs)</td>
               </tr>
               <tr>
                 <td><strong>Base → Hyperspace</strong></td>
-                <td>~15%</td>
-                <td>Hyperspace variant of the base</td>
+                <td>~25%</td>
+                <td>Hyperspace variant of the base (1 in 4 packs)</td>
               </tr>
               <tr>
                 <td><strong>Rare → Hyperspace R/L</strong></td>
-                <td>~20%</td>
-                <td>Hyperspace variant in the rare slot</td>
+                <td>0%</td>
+                <td>Rare slot is always standard (black border), never Hyperspace</td>
               </tr>
               <tr>
-                <td><strong>3rd UC → Hyperspace R/L</strong></td>
-                <td>~18%</td>
-                <td>Third uncommon upgrades to rare/legendary (Hyperspace variant)</td>
+                <td><strong>3rd UC → R/L</strong></td>
+                <td>~18-20%</td>
+                <td>Third uncommon upgrades to rare/legendary (varies by set)</td>
               </tr>
               <tr>
                 <td><strong>Foil → Hyperfoil</strong></td>
-                <td>{setInfo.hyperfoilRate}</td>
-                <td>Ultra-rare Hyperfoil variant (about 1 per 2-3 boxes)</td>
+                <td>~2%</td>
+                <td>Ultra-rare Hyperfoil variant (1 in 50 packs, ~1 per 2 boxes)</td>
               </tr>
               <tr>
                 <td><strong>UC 1/2 → Hyperspace UC</strong></td>
-                <td>~15% each</td>
-                <td>First or second uncommon becomes Hyperspace variant</td>
+                <td>~12%</td>
+                <td>First or second uncommon becomes Hyperspace (1 in 8.5 packs)</td>
               </tr>
               <tr>
                 <td><strong>Common → Hyperspace C</strong></td>
-                <td>~10%</td>
-                <td>One random common becomes Hyperspace variant</td>
+                <td>~33%</td>
+                <td>One random common becomes Hyperspace variant (1 in 3 packs)</td>
               </tr>
             </tbody>
           </table>
@@ -1167,50 +1099,141 @@ function ReferenceTab({ stats }: ReferenceTabProps) {
         </section>
 
         {/* Showcase */}
-        {!setInfo.isLegacySet && (
-          <section className="reference-section">
-            <h3>Showcase Cards</h3>
-            <div className="reference-description">
-              <p><strong>What are Showcase Cards?</strong></p>
-              <p>Showcase cards are premium variants with special borderless art. They're exclusive to Sets 4-6.</p>
+        <section className="reference-section">
+          <h3>Showcase Cards</h3>
+          <div className="reference-description">
+            <p><strong>What are Showcase Cards?</strong></p>
+            <p>Showcase cards are premium variants with special borderless alternate art. They exist in all sets from SOR onwards.</p>
 
-              <p><strong>Showcase Distribution:</strong></p>
-              <ul>
-                <li>Only leaders can be Showcase</li>
-                <li>~5% chance to replace normal leader</li>
-                <li>Takes priority over Hyperspace leader upgrade</li>
-                <li>Can also appear as foils</li>
-              </ul>
-            </div>
-          </section>
-        )}
+            <p><strong>Showcase Distribution:</strong></p>
+            <ul>
+              <li>Only leaders can be Showcase</li>
+              <li>~0.35% chance (~1 in 288 packs)</li>
+              <li>Takes priority over Hyperspace leader upgrade</li>
+              <li>Can also appear as foils</li>
+            </ul>
+          </div>
+        </section>
+
+        {/* Quality Score Overview */}
+        <section className="reference-section reference-full-width">
+          <h3>Quality Score</h3>
+          <div className="reference-description">
+            <p>The Quality Score is a percentage representing overall pack generation health:</p>
+            <ul>
+              <li><strong>Calculation:</strong> (metrics within expected / total metrics) × 100</li>
+              <li><strong>Excellent (90-100%):</strong> Nearly all metrics pass validation</li>
+              <li><strong>Good (75-89%):</strong> Most metrics pass, minor variances acceptable</li>
+              <li><strong>Acceptable (60-74%):</strong> Some metrics failing, may need attention</li>
+              <li><strong>Needs Attention (&lt;60%):</strong> Significant issues with pack generation</li>
+            </ul>
+            <p>The score combines structural checks (pass/fail) and rate metrics (statistical tolerance).</p>
+          </div>
+        </section>
+
+        {/* Quality Metrics Explained */}
+        <section className="reference-section reference-full-width">
+          <h3>Quality Metrics Explained</h3>
+          <div className="reference-description">
+            <p>The Quality subtab in each set shows automated validation of pack generation. Here&apos;s what each metric measures:</p>
+
+            <p><strong>Structural Validation:</strong></p>
+            <ul>
+              <li><strong>Pack has exactly 16 cards:</strong> Every pack must contain exactly 16 cards</li>
+              <li><strong>Pack has 1 leader:</strong> Exactly one leader card per pack</li>
+              <li><strong>Pack has 1 base:</strong> Exactly one base card per pack</li>
+              <li><strong>Pack has 9 commons:</strong> Nine common cards (from A/B belts)</li>
+              <li><strong>Pack has 1 foil:</strong> Exactly one foil card of any rarity</li>
+              <li><strong>All 6 aspects in commons:</strong> The 9 commons must cover all 6 aspects</li>
+              <li><strong>No same-treatment duplicates:</strong> No card appears twice with the same treatment</li>
+            </ul>
+
+            <p><strong>Rate Validation:</strong></p>
+            <ul>
+              <li><strong>Legendary Rate:</strong> Sets 1-3: ~14.3% (6:1), Sets 4+: ~16.7% (5:1)</li>
+              <li><strong>Hyperspace Leader:</strong> ~17% of leaders should be Hyperspace (1 in 6 packs)</li>
+              <li><strong>Hyperspace Base:</strong> ~25% of bases should be Hyperspace (1 in 4 packs)</li>
+              <li><strong>Hyperspace Common:</strong> ~33% of packs should have a Hyperspace common (1 in 3)</li>
+              <li><strong>Hyperfoil:</strong> ~2% of foils should be Hyperspace Foil variants (1 in 50)</li>
+              <li><strong>Showcase Leader:</strong> ~0.35% of leaders should be Showcase (~1 in 288 packs)</li>
+            </ul>
+
+            <p><strong>Foil Distribution (Sets 1-3 / Sets 4+):</strong></p>
+            <ul>
+              <li><strong>Common foils:</strong> Expected ~70% / ~65%</li>
+              <li><strong>Uncommon foils:</strong> Expected ~20% / ~20%</li>
+              <li><strong>Rare foils:</strong> Expected ~8% / ~8%</li>
+              <li><strong>Legendary foils:</strong> Expected ~2% / ~3%</li>
+              <li><strong>Special foils:</strong> Expected 0% / ~4% (Sets 4+ only)</li>
+            </ul>
+          </div>
+        </section>
+
+        {/* Statistical Methods */}
+        <section className="reference-section reference-full-width">
+          <h3>Statistical Methods</h3>
+          <div className="reference-description">
+            <p><strong>Z-Score (Standard Score):</strong></p>
+            <p>Measures how many standard deviations an observed value is from the expected value.</p>
+            <ul>
+              <li>Formula: Z = (observed - expected) / standard_error</li>
+              <li>|Z| &lt; 1.96: Within 95% confidence (normal)</li>
+              <li>1.96 &lt; |Z| &lt; 2.58: Between 95-99% confidence (outlier)</li>
+              <li>|Z| &gt; 2.58: Beyond 99% confidence (extreme outlier)</li>
+            </ul>
+
+            <p><strong>Wilson Score Confidence Interval:</strong></p>
+            <p>Used for binomial proportions (rate metrics). More accurate than simple intervals for small samples or extreme probabilities.</p>
+            <ul>
+              <li>Provides upper and lower bounds for the true rate</li>
+              <li>If expected rate falls within the confidence interval, the metric passes</li>
+              <li>Handles edge cases (0% or 100% observed) better than simpler methods</li>
+            </ul>
+
+            <p><strong>Chi-Squared Goodness-of-Fit Test:</strong></p>
+            <p>Tests whether an observed distribution matches an expected distribution.</p>
+            <ul>
+              <li>Used for foil rarity distribution (multiple categories)</li>
+              <li>p-value &gt; 0.05: Distribution matches expected (pass)</li>
+              <li>p-value &lt; 0.05: Significant deviation from expected (fail)</li>
+              <li>Reports degrees of freedom (df) = number of categories - 1</li>
+            </ul>
+          </div>
+        </section>
 
         {/* Statistical Interpretation */}
         <section className="reference-section reference-full-width">
-          <h3>Statistical Interpretation</h3>
+          <h3>Status Color Coding</h3>
           <div className="reference-description">
-            <p>The statistics page uses Z-tests to compare actual vs expected generation rates:</p>
+            <p>All rate metrics use Z-tests to compare actual vs expected generation rates:</p>
           </div>
           <div className="stats-legend">
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: '#27AE6040' }}></span>
               <div className="legend-text">
-                <strong>Green (Expected)</strong>
-                <p>Within 95% confidence interval. Normal statistical variation. No action needed.</p>
+                <strong>Green (Within Expected)</strong>
+                <p>Within 95% confidence interval (|Z| &lt; 1.96). Normal statistical variation. No action needed.</p>
               </div>
             </div>
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: '#F39C1240' }}></span>
               <div className="legend-text">
-                <strong>Yellow (Outlier)</strong>
-                <p>95-99% confidence interval. Statistically unusual but could be random chance. Worth monitoring.</p>
+                <strong>Yellow (Slight Variance)</strong>
+                <p>95-99% confidence interval (1.96 &lt; |Z| &lt; 2.58). Statistically unusual but could be random chance. Worth monitoring.</p>
               </div>
             </div>
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: '#E74C3C40' }}></span>
               <div className="legend-text">
-                <strong>Red (Extreme Outlier)</strong>
-                <p>Beyond 99% confidence interval. Very unlikely to occur by chance. Likely indicates a bug in pack generation.</p>
+                <strong>Red (Outlier)</strong>
+                <p>Beyond 99% confidence interval (|Z| &gt; 2.58). Very unlikely to occur by chance. May indicate a bug in pack generation.</p>
+              </div>
+            </div>
+            <div className="legend-item">
+              <span className="legend-color" style={{ backgroundColor: '#88888840' }}></span>
+              <div className="legend-text">
+                <strong>Gray (Insufficient Data)</strong>
+                <p>Not enough samples for reliable statistics. Generate more packs for accurate results.</p>
               </div>
             </div>
           </div>
@@ -1222,10 +1245,10 @@ function ReferenceTab({ stats }: ReferenceTabProps) {
           <div className="reference-description">
             <p><strong>In a typical booster box (24 packs):</strong></p>
             <ul>
-              <li><strong>Legendaries:</strong> ~3-4 non-foil + ~0.5 foil = ~4 total</li>
+              <li><strong>Legendaries:</strong> ~3-4 non-foil + ~0.5 foil = ~4 total (Sets 1-3), ~4-5 total (Sets 4+)</li>
               <li><strong>Rares:</strong> ~20-21 non-foil + ~2 foil = ~22 total</li>
               <li><strong>Hyperfoils:</strong> ~0.5 (about 1 per 2 boxes)</li>
-              <li><strong>Showcase Leaders:</strong> ~1-2 (Sets 4-6 only)</li>
+              <li><strong>Showcase Leaders:</strong> ~0.08 per box (~1 per 12 boxes, all sets)</li>
               <li><strong>UC Upgrades:</strong> ~4-5 packs will have 2 rare/legendary</li>
             </ul>
 
@@ -1254,17 +1277,17 @@ function ReferenceTab({ stats }: ReferenceTabProps) {
               <tr>
                 <td><strong>Special Rarity</strong></td>
                 <td>Not in boosters</td>
-                <td>Foil slot only</td>
+                <td>Foil slot only (4% weight)</td>
               </tr>
               <tr>
                 <td><strong>Showcase Leaders</strong></td>
-                <td>Not available</td>
-                <td>~5% leader upgrade</td>
+                <td>~0.35% (1 in 288)</td>
+                <td>~0.35% (1 in 288)</td>
               </tr>
               <tr>
                 <td><strong>Legendary Rate</strong></td>
                 <td>~14.3% (6:1 ratio)</td>
-                <td>~14.3% (6:1 ratio)</td>
+                <td>~16.7% (5:1 ratio)</td>
               </tr>
               <tr>
                 <td><strong>Hyperfoil Rate</strong></td>
@@ -1274,7 +1297,12 @@ function ReferenceTab({ stats }: ReferenceTabProps) {
               <tr>
                 <td><strong>UC Upgrade Rate</strong></td>
                 <td>~18% (1 in 5.5)</td>
-                <td>~18% (1 in 5.5)</td>
+                <td>~20% (1 in 5)</td>
+              </tr>
+              <tr>
+                <td><strong>Foil Legendary Weight</strong></td>
+                <td>2%</td>
+                <td>3%</td>
               </tr>
             </tbody>
           </table>
@@ -1290,7 +1318,7 @@ function ReferenceTab({ stats }: ReferenceTabProps) {
               <li><strong>Hyperspace:</strong> Blue border alternate art version</li>
               <li><strong>Foil:</strong> Shiny/holographic version (any variant can be foil)</li>
               <li><strong>Hyperspace Foil:</strong> Foil version of Hyperspace variant</li>
-              <li><strong>Showcase:</strong> Borderless premium art (leaders only, Sets 4-6)</li>
+              <li><strong>Showcase:</strong> Borderless premium art (leaders only, all sets)</li>
             </ul>
 
             <p><strong>Duplicate Prevention:</strong></p>
@@ -1467,33 +1495,12 @@ interface QualityData {
   }
 }
 
-function QualityTab() {
-  const [selectedSet, setSelectedSet] = useState<string>('SOR')
-  const [data, setData] = useState<QualityData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+interface QualitySubTabProps {
+  data: QualityData | null
+  loading: boolean
+}
 
-  const sets = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
-
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
-    fetch(`/api/public/pack-quality?setCode=${selectedSet}`)
-      .then(r => r.json())
-      .then(result => {
-        if (result.data) {
-          setData(result.data)
-        } else if (result.error) {
-          setError(result.error)
-        }
-      })
-      .catch(err => {
-        setError('Failed to load pack quality data')
-        console.error(err)
-      })
-      .finally(() => setLoading(false))
-  }, [selectedSet])
-
+function QualitySubTab({ data, loading }: QualitySubTabProps) {
   const getStatusBadge = (status: QualityMetricResult['status']) => {
     const styles: Record<string, { bg: string; color: string; label: string }> = {
       expected: { bg: 'rgba(39, 174, 96, 0.2)', color: '#27AE60', label: 'Within Expected' },
@@ -1535,172 +1542,141 @@ function QualityTab() {
     return <div className="stats-loading">Loading pack quality data...</div>
   }
 
-  if (error) {
-    return <div className="stats-error">Error: {error}</div>
+  if (!data) {
+    return <div className="stats-empty"><p>No quality data available yet.</p></div>
   }
 
   return (
-    <div className="quality-tab">
-      <div className="qa-header">
-        <h2>Pack Quality Metrics</h2>
-        <p style={{ color: '#888', marginTop: '4px' }}>
-          Statistical validation that our pack generation matches real-world collation
+    <div className="quality-subtab">
+      {/* Quality Score Overview */}
+      <div className="qa-summary" style={{ marginBottom: '30px' }}>
+        <div className="qa-summary-card">
+          <div className="qa-summary-number">{data.sampleSize.totalPacks.toLocaleString()}</div>
+          <div className="qa-summary-label">Packs Generated</div>
+        </div>
+        <div className="qa-summary-card" style={{ borderColor: getHealthColor(data.overallHealth.status) }}>
+          <div className="qa-summary-number" style={{ color: getHealthColor(data.overallHealth.status) }}>
+            {data.overallHealth.score}%
+          </div>
+          <div className="qa-summary-label">Quality Score</div>
+        </div>
+        <div className="qa-summary-card">
+          <div className="qa-summary-number">
+            {data.overallHealth.metricsWithinExpected}/{data.overallHealth.totalMetrics}
+          </div>
+          <div className="qa-summary-label">Metrics OK</div>
+        </div>
+        <div className="qa-summary-card">
+          <div className="qa-summary-number">
+            {data.structuralMetrics.filter(m => m.status === 'pass').length}/{data.structuralMetrics.length}
+          </div>
+          <div className="qa-summary-label">Structure OK</div>
+        </div>
+      </div>
+
+      {/* Structural Metrics */}
+      <h3>Structural Validation</h3>
+      <table className="quality-table" style={{ width: '100%', marginBottom: '30px', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid #333' }}>
+            <th style={{ textAlign: 'left', padding: '8px' }}>Check</th>
+            <th style={{ textAlign: 'right', padding: '8px' }}>Passed</th>
+            <th style={{ textAlign: 'right', padding: '8px' }}>Failed</th>
+            <th style={{ textAlign: 'center', padding: '8px' }}>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.structuralMetrics.map(m => (
+            <tr key={m.metric} style={{ borderBottom: '1px solid #222' }}>
+              <td style={{ padding: '8px' }}>{m.metric}</td>
+              <td style={{ textAlign: 'right', padding: '8px', color: '#27AE60' }}>{m.passed.toLocaleString()}</td>
+              <td style={{ textAlign: 'right', padding: '8px', color: m.failed > 0 ? '#E74C3C' : '#888' }}>{m.failed}</td>
+              <td style={{ textAlign: 'center', padding: '8px' }}>
+                <span style={{
+                  background: m.status === 'pass' ? 'rgba(39,174,96,0.2)' : m.status === 'fail' ? 'rgba(231,76,60,0.2)' : 'rgba(255,255,255,0.1)',
+                  color: m.status === 'pass' ? '#27AE60' : m.status === 'fail' ? '#E74C3C' : '#888',
+                  padding: '2px 8px',
+                  borderRadius: '10px',
+                  fontSize: '11px',
+                }}>
+                  {m.status === 'pass' ? '✓ Pass' : m.status === 'fail' ? '✗ Fail' : 'No Data'}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Rate Validation */}
+      <h3>Rate Validation</h3>
+      <table className="quality-table" style={{ width: '100%', marginBottom: '30px', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid #333' }}>
+            <th style={{ textAlign: 'left', padding: '8px' }}>Metric</th>
+            <th style={{ textAlign: 'left', padding: '8px' }}>Expected</th>
+            <th style={{ textAlign: 'left', padding: '8px' }}>Observed</th>
+            <th style={{ textAlign: 'right', padding: '8px' }}>Sample</th>
+            <th style={{ textAlign: 'center', padding: '8px' }}>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {renderMetricRow('Legendary Rate', data.rarityMetrics.legendaryRate)}
+          {renderMetricRow('Hyperspace Leader', data.treatmentMetrics.hyperspaceLeader)}
+          {renderMetricRow('Hyperspace Base', data.treatmentMetrics.hyperspaceBase)}
+          {renderMetricRow('Hyperspace Common', data.treatmentMetrics.hyperspaceCommon)}
+          {renderMetricRow('Hyperfoil', data.treatmentMetrics.hyperfoil)}
+          {renderMetricRow('Showcase Leader', data.treatmentMetrics.showcaseLeader)}
+        </tbody>
+      </table>
+
+      {/* Foil Distribution */}
+      <h3>Foil Rarity Distribution</h3>
+      <table className="quality-table" style={{ width: '100%', marginBottom: '20px', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid #333' }}>
+            <th style={{ textAlign: 'left', padding: '8px' }}>Rarity</th>
+            <th style={{ textAlign: 'left', padding: '8px' }}>Expected</th>
+            <th style={{ textAlign: 'left', padding: '8px' }}>Observed</th>
+            <th style={{ textAlign: 'right', padding: '8px' }}>Sample</th>
+            <th style={{ textAlign: 'center', padding: '8px' }}>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(data.rarityMetrics.foilRarityDistribution).map(([rarity, metric]) =>
+            renderMetricRow(rarity, metric)
+          )}
+        </tbody>
+      </table>
+
+      {/* Chi-squared result */}
+      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #333', borderRadius: '8px', padding: '16px', marginBottom: '30px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <strong>Foil Distribution Goodness-of-Fit Test</strong>
+          {getStatusBadge(data.rarityMetrics.foilDistributionTest.status)}
+        </div>
+        <p style={{ color: '#888', margin: '0 0 12px', fontSize: '14px' }}>
+          {data.rarityMetrics.foilDistributionTest.interpretation}
         </p>
+        <div style={{ display: 'flex', gap: '24px', fontFamily: 'monospace', fontSize: '13px', color: '#888' }}>
+          <span>χ² = {data.rarityMetrics.foilDistributionTest.chiSquared}</span>
+          <span>df = {data.rarityMetrics.foilDistributionTest.degreesOfFreedom}</span>
+          <span>p = {data.rarityMetrics.foilDistributionTest.pValue}</span>
+        </div>
       </div>
 
-      {/* Set selector */}
-      <div className="quality-set-selector" style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-        {sets.map(code => (
-          <button
-            key={code}
-            onClick={() => setSelectedSet(code)}
-            style={{
-              padding: '8px 16px',
-              border: selectedSet === code ? '2px solid #27AE60' : '1px solid #444',
-              borderRadius: '8px',
-              background: selectedSet === code ? 'rgba(39, 174, 96, 0.2)' : 'rgba(255,255,255,0.05)',
-              color: '#fff',
-              cursor: 'pointer',
-              fontWeight: selectedSet === code ? 600 : 400,
-            }}
-          >
-            {code}
-          </button>
-        ))}
-      </div>
+      <p style={{ color: '#555', fontSize: '12px', marginTop: '20px' }}>
+        Data generated: {new Date(data.generatedAt).toLocaleString()}
+      </p>
+    </div>
+  )
+}
 
-      {data && (
-        <>
-          {/* Overview */}
-          <div className="qa-summary" style={{ marginBottom: '30px' }}>
-            <div className="qa-summary-card">
-              <div className="qa-summary-number">{data.sampleSize.totalPacks.toLocaleString()}</div>
-              <div className="qa-summary-label">Packs Generated</div>
-            </div>
-            <div className="qa-summary-card" style={{ borderColor: getHealthColor(data.overallHealth.status) }}>
-              <div className="qa-summary-number" style={{ color: getHealthColor(data.overallHealth.status) }}>
-                {data.overallHealth.score}%
-              </div>
-              <div className="qa-summary-label">Quality Score</div>
-            </div>
-            <div className="qa-summary-card">
-              <div className="qa-summary-number">
-                {data.overallHealth.metricsWithinExpected}/{data.overallHealth.totalMetrics}
-              </div>
-              <div className="qa-summary-label">Metrics OK</div>
-            </div>
-            <div className="qa-summary-card">
-              <div className="qa-summary-number">
-                {data.structuralMetrics.filter(m => m.status === 'pass').length}/{data.structuralMetrics.length}
-              </div>
-              <div className="qa-summary-label">Structure OK</div>
-            </div>
-          </div>
-
-          {/* Structural Metrics */}
-          <h3>Structural Validation</h3>
-          <table className="quality-table" style={{ width: '100%', marginBottom: '30px', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #333' }}>
-                <th style={{ textAlign: 'left', padding: '8px' }}>Check</th>
-                <th style={{ textAlign: 'right', padding: '8px' }}>Passed</th>
-                <th style={{ textAlign: 'right', padding: '8px' }}>Failed</th>
-                <th style={{ textAlign: 'center', padding: '8px' }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.structuralMetrics.map(m => (
-                <tr key={m.metric} style={{ borderBottom: '1px solid #222' }}>
-                  <td style={{ padding: '8px' }}>{m.metric}</td>
-                  <td style={{ textAlign: 'right', padding: '8px', color: '#27AE60' }}>{m.passed.toLocaleString()}</td>
-                  <td style={{ textAlign: 'right', padding: '8px', color: m.failed > 0 ? '#E74C3C' : '#888' }}>{m.failed}</td>
-                  <td style={{ textAlign: 'center', padding: '8px' }}>
-                    <span style={{
-                      background: m.status === 'pass' ? 'rgba(39,174,96,0.2)' : m.status === 'fail' ? 'rgba(231,76,60,0.2)' : 'rgba(255,255,255,0.1)',
-                      color: m.status === 'pass' ? '#27AE60' : m.status === 'fail' ? '#E74C3C' : '#888',
-                      padding: '2px 8px',
-                      borderRadius: '10px',
-                      fontSize: '11px',
-                    }}>
-                      {m.status === 'pass' ? '✓ Pass' : m.status === 'fail' ? '✗ Fail' : 'No Data'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Rarity & Treatment Metrics */}
-          <h3>Rate Validation</h3>
-          <table className="quality-table" style={{ width: '100%', marginBottom: '30px', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #333' }}>
-                <th style={{ textAlign: 'left', padding: '8px' }}>Metric</th>
-                <th style={{ textAlign: 'left', padding: '8px' }}>Expected</th>
-                <th style={{ textAlign: 'left', padding: '8px' }}>Observed</th>
-                <th style={{ textAlign: 'right', padding: '8px' }}>Sample</th>
-                <th style={{ textAlign: 'center', padding: '8px' }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {renderMetricRow('Legendary Rate', data.rarityMetrics.legendaryRate)}
-              {renderMetricRow('Hyperspace Leader', data.treatmentMetrics.hyperspaceLeader)}
-              {renderMetricRow('Hyperspace Base', data.treatmentMetrics.hyperspaceBase)}
-              {renderMetricRow('Hyperspace Common', data.treatmentMetrics.hyperspaceCommon)}
-              {renderMetricRow('Hyperfoil', data.treatmentMetrics.hyperfoil)}
-              {renderMetricRow('Showcase Leader', data.treatmentMetrics.showcaseLeader)}
-            </tbody>
-          </table>
-
-          {/* Foil Distribution */}
-          <h3>Foil Rarity Distribution</h3>
-          <table className="quality-table" style={{ width: '100%', marginBottom: '20px', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #333' }}>
-                <th style={{ textAlign: 'left', padding: '8px' }}>Rarity</th>
-                <th style={{ textAlign: 'left', padding: '8px' }}>Expected</th>
-                <th style={{ textAlign: 'left', padding: '8px' }}>Observed</th>
-                <th style={{ textAlign: 'right', padding: '8px' }}>Sample</th>
-                <th style={{ textAlign: 'center', padding: '8px' }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(data.rarityMetrics.foilRarityDistribution).map(([rarity, metric]) =>
-                renderMetricRow(rarity, metric)
-              )}
-            </tbody>
-          </table>
-
-          {/* Chi-squared result */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #333', borderRadius: '8px', padding: '16px', marginBottom: '30px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <strong>Foil Distribution Goodness-of-Fit Test</strong>
-              {getStatusBadge(data.rarityMetrics.foilDistributionTest.status)}
-            </div>
-            <p style={{ color: '#888', margin: '0 0 12px', fontSize: '14px' }}>
-              {data.rarityMetrics.foilDistributionTest.interpretation}
-            </p>
-            <div style={{ display: 'flex', gap: '24px', fontFamily: 'monospace', fontSize: '13px', color: '#888' }}>
-              <span>χ² = {data.rarityMetrics.foilDistributionTest.chiSquared}</span>
-              <span>df = {data.rarityMetrics.foilDistributionTest.degreesOfFreedom}</span>
-              <span>p = {data.rarityMetrics.foilDistributionTest.pValue}</span>
-            </div>
-          </div>
-
-          {/* Methodology */}
-          <h3>Methodology</h3>
-          <div style={{ color: '#888', fontSize: '14px', lineHeight: 1.6 }}>
-            <p><strong>Pack Structure:</strong> {data.reference.packStructure}</p>
-            <p><strong>Data Source:</strong> {data.reference.dataSource}</p>
-            <p><strong>Statistical Validation:</strong> We use Z-scores to compare observed vs expected rates.
-              Values within ±1.96 standard deviations are considered statistically expected (95% CI).</p>
-          </div>
-
-          <p style={{ color: '#555', fontSize: '12px', marginTop: '20px' }}>
-            Data generated: {new Date(data.generatedAt).toLocaleString()}
-          </p>
-        </>
-      )}
+// Legacy QualityTab for backwards compatibility - redirects to Reference
+function QualityTab() {
+  return (
+    <div className="quality-tab">
+      <p style={{ color: '#888' }}>Quality metrics are now shown in each set&apos;s tab under the &quot;Quality&quot; subtab.</p>
+      <p style={{ color: '#888' }}>Select a set (SOR, SHD, TWI, etc.) to view quality metrics for that set.</p>
     </div>
   )
 }
