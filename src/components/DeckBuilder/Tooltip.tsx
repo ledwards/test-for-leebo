@@ -13,6 +13,7 @@ export interface TooltipData {
   y: number
   text: string
   alignLeft?: boolean
+  position?: 'left' | 'above' | 'below'
   marginRight?: string
 }
 
@@ -23,16 +24,29 @@ export interface TooltipProps {
 export function Tooltip({ tooltip }: TooltipProps) {
   if (!tooltip.show) return null
 
+  // Determine transform based on position
+  let transform: string
+  let marginTop: string = '0'
+
+  if (tooltip.position === 'below') {
+    transform = 'translateX(-50%) translateY(0)'
+    marginTop = '8px'
+  } else if (tooltip.alignLeft || tooltip.position === 'left') {
+    transform = 'translateX(-100%) translateY(-50%)'
+  } else {
+    // above (default)
+    transform = 'translateX(-50%) translateY(-100%)'
+    marginTop = '-8px'
+  }
+
   const style: CSSProperties = {
     position: 'fixed',
     left: `${tooltip.x}px`,
     top: `${tooltip.y}px`,
-    transform: tooltip.alignLeft
-      ? 'translateX(-100%) translateY(-50%)'
-      : 'translateX(-50%) translateY(-100%)',
+    transform,
     zIndex: 10000,
     pointerEvents: 'none',
-    marginTop: tooltip.alignLeft ? '0' : '-8px',
+    marginTop,
     ...(tooltip.marginRight && { marginRight: tooltip.marginRight })
   }
 

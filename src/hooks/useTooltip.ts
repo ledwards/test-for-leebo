@@ -16,6 +16,7 @@ interface TooltipState {
   x: number;
   y: number;
   alignLeft: boolean;
+  position?: 'left' | 'above' | 'below';
 }
 
 /** Event with currentTarget that has getBoundingClientRect */
@@ -78,15 +79,28 @@ export function useTooltip(): UseTooltipReturn {
   }, []);
 
   // Show tooltip immediately (for nav buttons)
-  const showNavTooltip = useCallback((text: string, event: TooltipEvent) => {
+  // position: 'left' (default) or 'below'
+  const showNavTooltip = useCallback((text: string, event: TooltipEvent, position: 'left' | 'below' = 'left') => {
     const rect = event.currentTarget.getBoundingClientRect();
-    setTooltip({
-      show: true,
-      text,
-      x: rect.left,
-      y: rect.top + rect.height / 2,
-      alignLeft: true
-    });
+    if (position === 'below') {
+      setTooltip({
+        show: true,
+        text,
+        x: rect.left + rect.width / 2,
+        y: rect.bottom,
+        alignLeft: false,
+        position: 'below'
+      });
+    } else {
+      setTooltip({
+        show: true,
+        text,
+        x: rect.left,
+        y: rect.top + rect.height / 2,
+        alignLeft: true,
+        position: 'left'
+      });
+    }
   }, []);
 
   // Hide tooltip
