@@ -1,10 +1,18 @@
 # Release Notes
 
+## 02.07.2026
+
+### 🎉 New Features
+- **Arena View**: Magic Arena fans rejoice. New deckbuilder layout for desktop with split-screen pool/deck, aspect filters, and cost-column organization inspired by everyone's favorite online limited deckbuilder. Thanks to Eric Hunter for the idea.
+
 ## 02.06.2026
+### 💽 Data
+- Tracking pack generation data for a near-term feature related to quality control
 
 ### 🎨 UI Improvements
-- Stats page tabs now look like proper folder tabs (rounded top, flat bottom)
-- Leaders and bases in pack viewer now display at consistent sizes
+- Some increased consistency in UI elements around the site
+- Stats page: Renamed tabs to "Code Quality" and "Pack Quality" for clarity
+- Stats page: All numbers now display with comma formatting (1,234 instead of 1234)
 
 ### 🐞 Bug Fixes
 - Fixed Discord login button on Play page not working when logged out
