@@ -38,10 +38,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       shareId = generateShareId(8)
     }
 
-    // Helper function to generate default pool name
+    // Helper function to generate default pool name with date
     const generatePoolName = (shareId, poolType, setCode) => {
       const formatType = poolType === 'draft' ? 'Draft' : 'Sealed'
-      return `${setCode} ${formatType}`
+      const now = new Date()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const day = String(now.getDate()).padStart(2, '0')
+      const year = String(now.getFullYear()).slice(-2)
+      return `${setCode} ${formatType} ${month}/${day}/${year}`
     }
 
     // Insert pool with retry logic to handle unique constraint violations
