@@ -27,7 +27,8 @@ import { PoolListSection } from './DeckBuilder/PoolListSection'
 import { Tooltip } from './DeckBuilder/Tooltip'
 import { DeckImageModal } from './DeckBuilder/DeckImageModal'
 import { DeleteDeckSection } from './DeckBuilder/DeleteDeckSection'
-import { ViewModeToggle } from './DeckBuilder/ViewModeToggle'
+import { ViewModeToggle, type ViewMode } from './DeckBuilder/ViewModeToggle'
+import { ArenaView } from './DeckBuilder/ArenaView'
 import { CollapsibleSectionHeader } from './DeckBuilder/CollapsibleSectionHeader'
 import { getTypeStringOrder } from '../utils/cardSort'
 import { useDeckExport } from '../hooks/useDeckExport'
@@ -182,7 +183,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [sectionLabels, setSectionLabels] = useState<SectionLabel[]>([])
   const [sectionBounds, setSectionBounds] = useState<Record<string, SectionBound>>({})
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid') // 'grid' or 'list'
+  const [viewMode, setViewMode] = useState<ViewMode>('grid') // 'grid' (playmat), 'list' (table), or 'arena' (desktop only)
   const [aspectFilters, setAspectFilters] = useState<Record<string, boolean>>({
     Vigilance: poolType !== 'draft',
     Command: poolType !== 'draft',
@@ -1882,14 +1883,21 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         savedState={savedState}
         poolType={poolType}
         currentPoolName={currentPoolName}
-      />
-
-      <ViewModeToggle
         viewMode={viewMode}
         setViewMode={setViewMode}
         showNavTooltip={showNavTooltip}
         hideTooltip={hideTooltip}
       />
+
+      {/* View mode toggle - hidden when sticky (shown in nav bar instead) */}
+      {!isInfoBarSticky && (
+        <ViewModeToggle
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          showNavTooltip={showNavTooltip}
+          hideTooltip={hideTooltip}
+        />
+      )}
 
       {/* Grid View */}
       {viewMode === 'grid' && (
@@ -2047,6 +2055,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
             }}
           />
         </div>
+      )}
+
+      {/* Arena View */}
+      {viewMode === 'arena' && (
+        <ArenaView
+          onCardMouseEnter={handleCardMouseEnter}
+          onCardMouseLeave={handleCardMouseLeave}
+        />
       )}
 
       {/* Enlarged card preview (3x size) */}
