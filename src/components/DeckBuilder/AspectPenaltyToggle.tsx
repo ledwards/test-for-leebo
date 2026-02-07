@@ -72,7 +72,7 @@ export function AspectPenaltyToggle({
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
         <Button
           variant="toggle"
-          glowColor="blue"
+          glowColor="yellow"
           size="xs"
           active={showAspectPenalties}
           className={showAspectPenalties ? "aspect-penalty-button-active" : "aspect-penalty-button"}
