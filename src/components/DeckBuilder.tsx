@@ -183,13 +183,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [sectionLabels, setSectionLabels] = useState<SectionLabel[]>([])
   const [sectionBounds, setSectionBounds] = useState<Record<string, SectionBound>>({})
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
-  // Default to 'arena' on desktop, 'grid' on mobile (arena requires wider screen)
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
-      return 'arena'
-    }
-    return 'grid'
-  })
+  // Start with 'grid' for SSR consistency, then update to 'arena' on desktop after hydration
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [viewModeInitialized, setViewModeInitialized] = useState(false)
   const [aspectFilters, setAspectFilters] = useState<Record<string, boolean>>({
     Vigilance: poolType !== 'draft',
     Command: poolType !== 'draft',
@@ -228,6 +224,32 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [messageType, setMessageType] = useState<'error' | 'success' | null>(null) // 'error' or 'success'
   const [isInfoBarSticky, setIsInfoBarSticky] = useState(false)
   const [showAspectPenalties, setShowAspectPenalties] = useState(false)
+
+  // Set default view mode to 'arena' on desktop after hydration (before localStorage restore)
+  useEffect(() => {
+    if (viewModeInitialized) return
+    // Check if there's a saved viewMode in localStorage
+    if (shareId) {
+      try {
+        const uiState = localStorage.getItem(`deckBuilderUI_${shareId}`)
+        if (uiState) {
+          const state = JSON.parse(uiState)
+          if (state.viewMode) {
+            // localStorage has a saved viewMode, let the restore effect handle it
+            setViewModeInitialized(true)
+            return
+          }
+        }
+      } catch (e) {
+        // Ignore localStorage errors
+      }
+    }
+    // No saved viewMode - default to 'arena' on desktop
+    if (window.innerWidth >= 1024) {
+      setViewMode('arena')
+    }
+    setViewModeInitialized(true)
+  }, [shareId, viewModeInitialized])
 
   // Memoized active leader and base cards (derived from cardPositions)
   const leaderCard = useMemo(() => {
