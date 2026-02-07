@@ -141,6 +141,9 @@ interface TestResults {
 // Stats start date - from env var or default to include all historical data
 const STATS_START_DATE = process.env.NEXT_PUBLIC_STATS_START_DATE || '2020-01-01'
 
+// Format numbers with commas
+const fmt = (n: number) => n.toLocaleString()
+
 export default function StatsPage() {
   const [activeTab, setActiveTab] = useState('Reference')
   const [stats, setStats] = useState<Stats | null>(null)
@@ -175,7 +178,7 @@ export default function StatsPage() {
   }
 
   useEffect(() => {
-    if (activeTab === 'Reference' || activeTab === 'QA' || activeTab === 'Test') {
+    if (activeTab === 'Reference' || activeTab === 'Code Quality' || activeTab === 'Pack Quality') {
       setLoading(false)
       return
     }
@@ -195,7 +198,7 @@ export default function StatsPage() {
       })
   }, [activeTab])
 
-  const tabs = ['Reference', 'QA', 'Test', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
+  const tabs = ['Reference', 'Code Quality', 'Pack Quality', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
 
   // Set colors for tabs
   const setColors: Record<string, string> = {
@@ -237,10 +240,10 @@ export default function StatsPage() {
       <div className="stats-content">
         {activeTab === 'Reference' ? (
           <ReferenceTab />
-        ) : activeTab === 'QA' ? (
-          <QATab />
-        ) : activeTab === 'Test' ? (
+        ) : activeTab === 'Code Quality' ? (
           <TestTab />
+        ) : activeTab === 'Pack Quality' ? (
+          <QATab />
         ) : loading ? (
           <div className="stats-loading">Loading statistics...</div>
         ) : error ? (
@@ -310,20 +313,20 @@ function GenerationStatsTab({ stats, setCode }: GenerationStatsTabProps) {
         <div className="stats-summary-grid">
           <div className="stat-item">
             <span className="stat-label">Pools:</span>
-            <span className="stat-value">{stats.totalPools}</span>
-            <span className="stat-detail">({stats.draftPools} draft, {stats.sealedPools} sealed)</span>
+            <span className="stat-value">{fmt(stats.totalPools)}</span>
+            <span className="stat-detail">({fmt(stats.draftPools)} draft, {fmt(stats.sealedPools)} sealed)</span>
           </div>
           <div className="stat-item">
             <span className="stat-label">Packs:</span>
-            <span className="stat-value">{stats.totalPacks}</span>
+            <span className="stat-value">{fmt(stats.totalPacks)}</span>
           </div>
           <div className="stat-item">
             <span className="stat-label">Cards Tracked:</span>
-            <span className="stat-value">{stats.totalCards.toLocaleString()}</span>
+            <span className="stat-value">{fmt(stats.totalCards)}</span>
           </div>
           <div className="stat-item">
             <span className="stat-label">Unique Cards:</span>
-            <span className="stat-value">{stats.cards.length}</span>
+            <span className="stat-value">{fmt(stats.cards.length)}</span>
           </div>
         </div>
         {!hasEnoughData && (
@@ -491,7 +494,7 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
   return (
     <div className="packs-subtab">
       <div className="packs-summary">
-        <p>Showing {packs.length} of {total} packs</p>
+        <p>Showing {fmt(packs.length)} of {fmt(total)} packs</p>
       </div>
       <div className="packs-grid">
         {packs.map((pack, idx) => (
@@ -532,7 +535,7 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
       {packs.length < total && (
         <div className="load-more-container">
           <button className="load-more-button" onClick={loadMore} disabled={loading}>
-            {loading ? 'Loading...' : `Load More (${total - packs.length} remaining)`}
+            {loading ? 'Loading...' : `Load More (${fmt(total - packs.length)} remaining)`}
           </button>
         </div>
       )}
@@ -646,7 +649,7 @@ function PackMetricsSection({ metrics }: PackMetricsSectionProps) {
       {/* Pack-Level Statistics */}
       <h3>Pack-Level Statistics</h3>
       <p className="pack-metrics-description">
-        Per-pack analysis from {totalPacks.toLocaleString()} tracked packs
+        Per-pack analysis from {fmt(totalPacks)} tracked packs
       </p>
 
       {totalPacks === 0 ? (
@@ -680,7 +683,7 @@ function PackMetricsSection({ metrics }: PackMetricsSectionProps) {
               </div>
             </div>
             <p className="metric-description">
-              {metrics.packSameTreatmentDuplicates?.packsAffected || 0} / {totalPacks} packs have duplicate cards
+              {fmt(metrics.packSameTreatmentDuplicates?.packsAffected || 0)} / {fmt(totalPacks)} packs have duplicate cards
             </p>
             {metrics.packSameTreatmentDuplicates?.samples?.length > 0 && (
               <div className="metric-samples">
@@ -716,7 +719,7 @@ function PackMetricsSection({ metrics }: PackMetricsSectionProps) {
               </div>
             </div>
             <p className="metric-description">
-              {metrics.packCrossTreatmentDuplicates?.packsAffected || 0} / {totalPacks} packs have card+foil pair
+              {fmt(metrics.packCrossTreatmentDuplicates?.packsAffected || 0)} / {fmt(totalPacks)} packs have card+foil pair
             </p>
             {metrics.packCrossTreatmentDuplicates?.samples?.length > 0 && (
               <div className="metric-samples">
@@ -778,7 +781,7 @@ function PackMetricsSection({ metrics }: PackMetricsSectionProps) {
       {/* Pool-Level Statistics */}
       <h3 style={{ marginTop: '2rem' }}>Pool-Level Statistics</h3>
       <p className="pack-metrics-description">
-        Aggregate statistics from {totalPools} pools
+        Aggregate statistics from {fmt(totalPools)} pools
       </p>
 
       <div className="pack-metrics-grid">
@@ -807,7 +810,7 @@ function PackMetricsSection({ metrics }: PackMetricsSectionProps) {
             </div>
           </div>
           <p className="metric-description">
-            {metrics.poolSameTreatmentDuplicates?.poolsAffected || 0} / {totalPools} pools have card appearing 2+ times
+            {fmt(metrics.poolSameTreatmentDuplicates?.poolsAffected || 0)} / {fmt(totalPools)} pools have card appearing 2+ times
           </p>
         </div>
 
@@ -836,7 +839,7 @@ function PackMetricsSection({ metrics }: PackMetricsSectionProps) {
             </div>
           </div>
           <p className="metric-description">
-            {metrics.poolCrossTreatmentDuplicates?.poolsAffected || 0} / {totalPools} pools have card+foil pair
+            {fmt(metrics.poolCrossTreatmentDuplicates?.poolsAffected || 0)} / {fmt(totalPools)} pools have card+foil pair
           </p>
         </div>
       </div>
@@ -1384,15 +1387,15 @@ function QATab() {
         <div className="qa-results">
           <div className="qa-summary">
             <div className="qa-summary-card">
-              <div className="qa-summary-number">{qaResults.latestRun.summary.total}</div>
+              <div className="qa-summary-number">{fmt(qaResults.latestRun.summary.total)}</div>
               <div className="qa-summary-label">Total Tests</div>
             </div>
             <div className="qa-summary-card qa-summary-passed">
-              <div className="qa-summary-number">{qaResults.latestRun.summary.passed}</div>
+              <div className="qa-summary-number">{fmt(qaResults.latestRun.summary.passed)}</div>
               <div className="qa-summary-label">Passed</div>
             </div>
             <div className="qa-summary-card qa-summary-failed">
-              <div className="qa-summary-number">{qaResults.latestRun.summary.failed}</div>
+              <div className="qa-summary-number">{fmt(qaResults.latestRun.summary.failed)}</div>
               <div className="qa-summary-label">Failed</div>
             </div>
           </div>
@@ -1533,7 +1536,7 @@ function QualitySubTab({ data, loading }: QualitySubTabProps) {
       <td>{label}</td>
       <td>{metric.displayRate}</td>
       <td>{formatPercent(metric.observedRate)}</td>
-      <td>{metric.sampleSize.toLocaleString()}</td>
+      <td>{fmt(metric.sampleSize)}</td>
       <td style={{ textAlign: 'center' }}>{getStatusBadge(metric.status)}</td>
     </tr>
   )
@@ -1551,7 +1554,7 @@ function QualitySubTab({ data, loading }: QualitySubTabProps) {
       {/* Quality Score Overview */}
       <div className="qa-summary" style={{ marginBottom: '30px' }}>
         <div className="qa-summary-card">
-          <div className="qa-summary-number">{data.sampleSize.totalPacks.toLocaleString()}</div>
+          <div className="qa-summary-number">{fmt(data.sampleSize.totalPacks)}</div>
           <div className="qa-summary-label">Packs Generated</div>
         </div>
         <div className="qa-summary-card" style={{ borderColor: getHealthColor(data.overallHealth.status) }}>
@@ -1568,7 +1571,7 @@ function QualitySubTab({ data, loading }: QualitySubTabProps) {
         </div>
         <div className="qa-summary-card">
           <div className="qa-summary-number">
-            {data.structuralMetrics.filter(m => m.status === 'pass').length}/{data.structuralMetrics.length}
+            {fmt(data.structuralMetrics.filter(m => m.status === 'pass').length)}/{fmt(data.structuralMetrics.length)}
           </div>
           <div className="qa-summary-label">Structure OK</div>
         </div>
@@ -1589,8 +1592,8 @@ function QualitySubTab({ data, loading }: QualitySubTabProps) {
           {data.structuralMetrics.map(m => (
             <tr key={m.metric} style={{ borderBottom: '1px solid #222' }}>
               <td style={{ padding: '8px' }}>{m.metric}</td>
-              <td style={{ textAlign: 'right', padding: '8px', color: '#27AE60' }}>{m.passed.toLocaleString()}</td>
-              <td style={{ textAlign: 'right', padding: '8px', color: m.failed > 0 ? '#E74C3C' : '#888' }}>{m.failed}</td>
+              <td style={{ textAlign: 'right', padding: '8px', color: '#27AE60' }}>{fmt(m.passed)}</td>
+              <td style={{ textAlign: 'right', padding: '8px', color: m.failed > 0 ? '#E74C3C' : '#888' }}>{fmt(m.failed)}</td>
               <td style={{ textAlign: 'center', padding: '8px' }}>
                 <span style={{
                   background: m.status === 'pass' ? 'rgba(39,174,96,0.2)' : m.status === 'fail' ? 'rgba(231,76,60,0.2)' : 'rgba(255,255,255,0.1)',
@@ -1721,19 +1724,19 @@ function TestTab() {
         <div className="qa-results">
           <div className="qa-summary">
             <div className="qa-summary-card">
-              <div className="qa-summary-number">{testResults.latestRun.summary.totalSuites}</div>
+              <div className="qa-summary-number">{fmt(testResults.latestRun.summary.totalSuites)}</div>
               <div className="qa-summary-label">Test Suites</div>
             </div>
             <div className="qa-summary-card">
-              <div className="qa-summary-number">{testResults.latestRun.summary.totalTests}</div>
+              <div className="qa-summary-number">{fmt(testResults.latestRun.summary.totalTests)}</div>
               <div className="qa-summary-label">Total Tests</div>
             </div>
             <div className="qa-summary-card qa-summary-passed">
-              <div className="qa-summary-number">{testResults.latestRun.summary.passed}</div>
+              <div className="qa-summary-number">{fmt(testResults.latestRun.summary.passed)}</div>
               <div className="qa-summary-label">Passed</div>
             </div>
             <div className="qa-summary-card qa-summary-failed">
-              <div className="qa-summary-number">{testResults.latestRun.summary.failed}</div>
+              <div className="qa-summary-number">{fmt(testResults.latestRun.summary.failed)}</div>
               <div className="qa-summary-label">Failed</div>
             </div>
           </div>
