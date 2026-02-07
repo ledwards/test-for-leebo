@@ -89,7 +89,11 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
     // Create a new pool
     const poolShareId = nanoid(8)
     const setName = pod.set_name || pod.set_code
-    const defaultName = `${pod.set_code} Draft (${poolShareId})`
+    const now = new Date()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const year = String(now.getFullYear()).slice(-2)
+    const defaultName = `${pod.set_code} Draft ${month}/${day}/${year}`
 
     await query(
       `INSERT INTO card_pools (
