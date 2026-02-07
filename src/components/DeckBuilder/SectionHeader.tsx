@@ -86,51 +86,66 @@ export function SectionHeader({
   const setShowAspectPenalties = setShowAspectPenaltiesProp ?? contextValue?.setShowAspectPenalties
   // Sort option uses mode-specific context values
   const sortOption = sortOptionProp ?? (mode === 'deck' ? contextValue?.deckSortOption : contextValue?.poolSortOption)
-  const headerStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
+  const containerStyle = {
     marginTop: '1.5rem',
     marginBottom: '0.75rem',
-    fontSize: '1.2rem',
-    fontWeight: 600,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '1px',
     paddingBottom: '0.25rem',
     borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
     userSelect: 'none' as const,
   }
 
+  const titleRowStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontSize: '1.2rem',
+    fontWeight: 600,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '1px',
+  }
+
+  const controlsRowStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    marginTop: '0.5rem',
+    flexWrap: 'wrap' as const,
+  }
+
   return (
-    <div id={id} style={headerStyle}>
-      <span
-        style={{ cursor: 'pointer' }}
-        onClick={onToggleExpanded}
-      >
-        {expanded ? '▼' : '▶'}
-      </span>
-      <span
-        style={{ cursor: 'pointer' }}
-        onClick={onToggleExpanded}
-      >
-        {title} ({cardCount})
-      </span>
-      <SortControls
-        value={sortOption}
-        onChange={onSortChange}
-        className={mode === 'pool' ? "marginLeft: '0.5rem'" : ''}
-      />
-      <FilterWithModal
-        isOpen={filterOpen}
-        onToggle={onFilterToggle}
-        onClose={onFilterClose}
-        mode={mode}
-        onFilterAspectsExpandedChange={onFilterAspectsExpandedChange}
-        cardCount={cardCount}
-      />
-      <AspectPenaltyToggle sortOption={sortOption || 'aspect'} />
-      <BulkMoveButtons mode={mode} />
+    <div id={id} style={containerStyle}>
+      <div style={titleRowStyle}>
+        <span
+          style={{ cursor: 'pointer' }}
+          onClick={onToggleExpanded}
+        >
+          {expanded ? '▼' : '▶'}
+        </span>
+        <span
+          style={{ cursor: 'pointer' }}
+          onClick={onToggleExpanded}
+        >
+          {title} ({cardCount})
+        </span>
+      </div>
+      <div style={controlsRowStyle}>
+        <SortControls
+          value={sortOption}
+          onChange={onSortChange}
+          className={mode === 'pool' ? "marginLeft: '0.5rem'" : ''}
+        />
+        <FilterWithModal
+          isOpen={filterOpen}
+          onToggle={onFilterToggle}
+          onClose={onFilterClose}
+          mode={mode}
+          onFilterAspectsExpandedChange={onFilterAspectsExpandedChange}
+          cardCount={cardCount}
+        />
+        <AspectPenaltyToggle sortOption={sortOption || 'aspect'} />
+        <BulkMoveButtons mode={mode} />
+      </div>
     </div>
   )
 }

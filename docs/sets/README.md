@@ -23,7 +23,7 @@ This directory contains detailed documentation for each Star Wars: Unlimited set
 - Belt B: Cunning, Villainy, Heroism, Neutral (30 cards)
 - Belt A fills slots 1-6, Belt B fills slots 7-9
 - Hyperspace upgrades in slot 6
-- 6:1 rare-to-legendary ratio
+- 7:1 rare-to-legendary ratio (1 in 8)
 
 ### Block A (Sets 4-6: JTL, LOF, SEC)
 - Belt A: Vigilance, Command, Villainy (50 cards)

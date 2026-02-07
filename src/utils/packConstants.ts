@@ -109,9 +109,9 @@ export const SETS_1_3_CONSTANTS: PackConstants = {
 
   // ---------------------------------------------------------------------------
   // Rare Slot Legendary Ratio (Question 15)
-  // Standard Legendary rate is 1 in 8 (so 7:1 ratio R:L, or 6 rares per 1 legendary)
+  // Standard Legendary rate is 1 in 8 (7:1 ratio R:L, 7 rares per 1 legendary)
   // ---------------------------------------------------------------------------
-  rareSlotLegendaryRatio: 6,  // 6:1 means 6 rares for every 1 legendary
+  rareSlotLegendaryRatio: 7,  // 7:1 means 7 rares for every 1 legendary (1 in 8)
 
   // ---------------------------------------------------------------------------
   // UC Slot 3 Upgrade Rate (Question 3)
@@ -223,9 +223,9 @@ export const SETS_4_6_CONSTANTS: PackConstants = {
 
   // ---------------------------------------------------------------------------
   // Rare Slot Legendary Ratio (Question 15)
-  // Standard Legendary rate is 1 in 5 (so 4:1 ratio R:L, or 5 rares per 1 legendary)
+  // Standard Legendary rate is 1 in 6 (5:1 ratio R:L, 5 rares per 1 legendary)
   // ---------------------------------------------------------------------------
-  rareSlotLegendaryRatio: 5,  // 5:1 means 5 rares for every 1 legendary
+  rareSlotLegendaryRatio: 5,  // 5:1 means 5 rares for every 1 legendary (1 in 6)
 
   // ---------------------------------------------------------------------------
   // UC Slot 3 Upgrade Rate (Question 3)
