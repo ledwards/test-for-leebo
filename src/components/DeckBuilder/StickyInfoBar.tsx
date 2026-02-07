@@ -12,6 +12,7 @@ import { useRef, type RefObject, type MouseEvent, type TouchEvent } from 'react'
 import Button from '../Button'
 import { getAspectColor } from '../../utils/aspectColors'
 import { savePool } from '../../utils/poolApi'
+import { ViewModeToggle, type ViewMode } from './ViewModeToggle'
 import type { CardPosition } from './AspectPenaltyToggle'
 import type { MessageType } from './DeleteDeckSection'
 import type { PoolType } from './DeckImageModal'
@@ -62,6 +63,11 @@ export interface StickyInfoBarProps {
   savedState: unknown
   poolType: PoolType
   currentPoolName?: string
+  // View mode toggle props
+  viewMode: ViewMode
+  setViewMode: (mode: ViewMode) => void
+  showNavTooltip: (text: string, e: MouseEvent, position?: 'left' | 'below') => void
+  hideTooltip: () => void
 }
 
 export function StickyInfoBar({
@@ -92,6 +98,10 @@ export function StickyInfoBar({
   savedState,
   poolType,
   currentPoolName,
+  viewMode,
+  setViewMode,
+  showNavTooltip,
+  hideTooltip,
 }: StickyInfoBarProps) {
   const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -286,6 +296,16 @@ export function StickyInfoBar({
         >
           {isDraftMode ? 'Card Pool' : 'Sideboard'} ({poolCardCount})
         </span>
+
+        {/* View mode toggle between Sideboard and action buttons */}
+        {isInfoBarSticky && (
+          <ViewModeToggle
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            showNavTooltip={showNavTooltip}
+            hideTooltip={hideTooltip}
+          />
+        )}
       </div>
 
       {/* Action buttons when sticky */}
@@ -299,7 +319,7 @@ export function StickyInfoBar({
                 <circle cx="8.5" cy="7" r="4"></circle>
                 <path d="M20 8v6M23 11h-6"></path>
               </svg>
-              <span className="button-tooltip">{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
+              <span className="button-tooltip tooltip-below">{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
             </Button>
           )}
 
@@ -326,7 +346,7 @@ export function StickyInfoBar({
                 <circle cx="8.5" cy="7" r="4"></circle>
                 <path d="M20 8v6M23 11h-6"></path>
               </svg>
-              <span className="button-tooltip">Clone</span>
+              <span className="button-tooltip tooltip-below">Clone</span>
             </Button>
           )}
 
