@@ -1234,10 +1234,11 @@ export default function PlayPage({ params }: PageProps) {
         currentY += leaderBaseHeight + sectionSpacing
       }
 
-      // Pool section
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+      // Pool section - same styling as Deck
+      ctx.fillStyle = 'white'
       ctx.font = 'bold 50px Barlow'
       ctx.textAlign = 'left'
+      ctx.textBaseline = 'top'
       ctx.fillText(`Pool (${poolCards.length} cards)`, padding, currentY)
       currentY += labelHeight
 

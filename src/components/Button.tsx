@@ -21,7 +21,7 @@ import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react'
  *   - disabled: boolean
  *   - active: boolean - for toggle variant, shows active state
  *   - textOnly: boolean - renders as text-only button (no background/border)
- *   - glowColor: 'green' | 'red' | 'blue' | string - custom glow color on hover (overrides variant)
+ *   - glowColor: 'green' | 'red' | 'blue' | 'yellow' - custom glow color on hover (overrides variant)
  *   - className: string - additional classes
  *   - children: button content
  *   - ...rest: passed to underlying button element
@@ -29,7 +29,7 @@ import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react'
 
 type ButtonVariant = 'primary' | 'danger' | 'back' | 'secondary' | 'discord' | 'icon' | 'toggle' | 'interactive' | 'warning'
 type ButtonSize = 'xs' | 'sm' | 'md' | 'lg'
-type GlowColorName = 'green' | 'red' | 'blue'
+type GlowColorName = 'green' | 'red' | 'blue' | 'yellow'
 
 interface GlowColor {
   r: number
@@ -42,6 +42,7 @@ const GLOW_COLORS: Record<GlowColorName, GlowColor> = {
   green: { r: 0, g: 255, b: 0 },
   red: { r: 255, g: 0, b: 0 },
   blue: { r: 33, g: 150, b: 243 },
+  yellow: { r: 255, g: 200, b: 0 },
 }
 
 export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'style'> {
