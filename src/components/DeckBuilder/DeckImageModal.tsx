@@ -3,9 +3,10 @@
  * DeckImageModal Component
  *
  * Modal for displaying and downloading deck export images.
+ * Supports toggling between deck view and full pool view.
  */
 
-import type { MouseEvent } from 'react'
+import { useState, type MouseEvent } from 'react'
 import Button from '../Button'
 
 export type PoolType = 'draft' | 'sealed'
@@ -16,19 +17,49 @@ export interface DeckImageModalProps {
   poolName?: string
   setCode?: string
   poolType?: PoolType
+  exportPoolImage?: () => Promise<string | null>
 }
 
-export function DeckImageModal({ imageUrl, onClose, poolName, setCode, poolType }: DeckImageModalProps) {
+export function DeckImageModal({ imageUrl, onClose, poolName, setCode, poolType, exportPoolImage }: DeckImageModalProps) {
+  const [showingPool, setShowingPool] = useState(false)
+  const [poolImageUrl, setPoolImageUrl] = useState<string | null>(null)
+  const [loadingPool, setLoadingPool] = useState(false)
+
   if (!imageUrl) return null
+
+  const currentImageUrl = showingPool && poolImageUrl ? poolImageUrl : imageUrl
 
   const handleClose = () => {
     URL.revokeObjectURL(imageUrl)
+    if (poolImageUrl) {
+      URL.revokeObjectURL(poolImageUrl)
+    }
     onClose()
+  }
+
+  const handleToggleView = async () => {
+    if (showingPool) {
+      // Switch back to deck view
+      setShowingPool(false)
+    } else {
+      // Switch to pool view - generate if needed
+      if (poolImageUrl) {
+        setShowingPool(true)
+      } else if (exportPoolImage) {
+        setLoadingPool(true)
+        const url = await exportPoolImage()
+        setLoadingPool(false)
+        if (url) {
+          setPoolImageUrl(url)
+          setShowingPool(true)
+        }
+      }
+    }
   }
 
   const handleDownload = () => {
     const a = document.createElement('a')
-    a.href = imageUrl
+    a.href = currentImageUrl
 
     // Generate filename with pool name and timestamp
     const now = new Date()
@@ -45,8 +76,9 @@ export function DeckImageModal({ imageUrl, onClose, poolName, setCode, poolType 
     // Sanitize filename - remove invalid characters
     const sanitizedName = displayName.replace(/[^a-z0-9]/gi, '_').toLowerCase()
     const prefix = poolType === 'draft' ? 'ptp_draft' : 'ptp_sealed'
+    const suffix = showingPool ? '_pool' : '_deck'
 
-    a.download = `${prefix}_${sanitizedName}_${timeStr}.png`
+    a.download = `${prefix}_${sanitizedName}${suffix}_${timeStr}.png`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -64,8 +96,8 @@ export function DeckImageModal({ imageUrl, onClose, poolName, setCode, poolType 
           ×
         </Button>
         <img
-          src={imageUrl}
-          alt="Deck Export"
+          src={currentImageUrl}
+          alt={showingPool ? "Pool Export" : "Deck Export"}
           className="deck-image-modal-image"
         />
         <div className="deck-image-modal-actions">
@@ -76,6 +108,16 @@ export function DeckImageModal({ imageUrl, onClose, poolName, setCode, poolType 
           >
             Download Image
           </Button>
+          {exportPoolImage && (
+            <Button
+              variant="secondary"
+              className="deck-image-modal-toggle"
+              onClick={handleToggleView}
+              disabled={loadingPool}
+            >
+              {loadingPool ? 'Loading...' : showingPool ? 'Show Deck' : 'Show Pool'}
+            </Button>
+          )}
         </div>
       </div>
     </div>

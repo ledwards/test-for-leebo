@@ -1797,7 +1797,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   }, [baseCardMap])
 
   // Export functions (JSON, clipboard, image)
-  const { exportJSON, copyJSON, exportDeckImage } = useDeckExport({
+  const { exportJSON, copyJSON, exportDeckImage, exportPoolImage } = useDeckExport({
     cardPositions,
     activeLeader,
     activeBase,
@@ -2129,6 +2129,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         poolName={currentPoolName}
         setCode={setCode}
         poolType={poolType}
+        exportPoolImage={exportPoolImage}
       />
 
       <DeleteDeckSection
