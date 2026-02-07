@@ -110,7 +110,7 @@ export class RareLegendaryBelt {
 
   /**
    * Fill the hopper with segments of rares + legendaries
-   * Creates X segments where X is the ratio (5 or 6)
+   * Creates X segments where X is the ratio (5 or 7)
    * Each segment has all rares + 1/X of legendaries
    */
   _fill(): void {
