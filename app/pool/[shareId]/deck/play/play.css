@@ -554,25 +554,47 @@ a.login-banner-button:focus {
 
 .deck-image-modal-actions {
   margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
 }
 
-.deck-image-modal-download {
+.deck-image-modal-download,
+.deck-image-modal-toggle {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
   font-family: 'Barlow', sans-serif;
-  border: 2px solid rgba(0, 255, 0, 0.6);
-  background: rgba(0, 100, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
   color: white;
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: 8px;
 }
 
+.deck-image-modal-download {
+  border-color: rgba(0, 255, 0, 0.6);
+  background: rgba(0, 100, 0, 0.3);
+}
+
 .deck-image-modal-download:hover {
   background: rgba(0, 100, 0, 0.5);
   border-color: rgba(0, 255, 0, 0.8);
   box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+}
+
+.deck-image-modal-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+.deck-image-modal-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 @media (max-width: 768px) {

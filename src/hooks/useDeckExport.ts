@@ -290,16 +290,26 @@ export function useDeckExport({
       const sectionSpacing = 30
       const leaderBaseWidth = 180
       const leaderBaseHeight = 252
+      // Leaders are rotated 90 CCW, so their dimensions are swapped
+      const leaderRotatedWidth = leaderBaseHeight  // 252
+      const leaderRotatedHeight = leaderBaseWidth  // 180
       const cardsPerRow = 8
       const deckRows = Math.ceil(deckCards.length / cardsPerRow)
       const sideboardRows = Math.ceil(sideboardCards.length / cardsPerRow)
       const hasLeaderBase = selectedLeader || selectedBase
+      // Leader/base row height depends on what's shown
+      const leaderBaseRowHeight = hasLeaderBase
+        ? Math.max(
+            selectedLeader ? leaderRotatedHeight : 0,
+            selectedBase ? leaderBaseHeight : 0
+          )
+        : 0
       const footerHeight = poolOwnerUsername ? 100 : 70
 
       const width = padding * 2 + cardsPerRow * cardWidth + (cardsPerRow - 1) * spacing
       const totalHeight = padding * 2 +
         titleHeight + sectionSpacing +
-        (hasLeaderBase ? leaderBaseHeight + sectionSpacing : 0) +
+        (hasLeaderBase ? leaderBaseRowHeight + sectionSpacing : 0) +
         labelHeight + deckRows * (cardHeight + spacing) + sectionSpacing +
         labelHeight + sideboardRows * (cardHeight + spacing) + sectionSpacing +
         footerHeight
@@ -340,6 +350,7 @@ export function useDeckExport({
       const drawCard = (card: ExportCard, x: number, y: number, cardW: number, cardH: number, count: number | null, grayscale: boolean): Promise<void> => {
         return new Promise((resolve) => {
           const imageUrl = card.frontArt || '/card-back.png'
+          const isLeader = card.isLeader
 
           const drawPlaceholder = (): void => {
             ctx.fillStyle = '#333'
@@ -365,7 +376,34 @@ export function useDeckExport({
             img.onload = (): void => {
               clearTimeout(timeoutId)
               try {
-                if (grayscale) {
+                if (isLeader) {
+                  // Rotate leader 90 degrees CCW
+                  ctx.save()
+                  ctx.translate(x + cardW / 2, y + cardH / 2)
+                  ctx.rotate(-Math.PI / 2)
+                  if (grayscale) {
+                    const tempCanvas = document.createElement('canvas')
+                    tempCanvas.width = cardH
+                    tempCanvas.height = cardW
+                    const tempCtx = tempCanvas.getContext('2d')
+                    if (tempCtx) {
+                      tempCtx.drawImage(img, 0, 0, cardH, cardW)
+                      const imageData = tempCtx.getImageData(0, 0, cardH, cardW)
+                      const data = imageData.data
+                      for (let i = 0; i < data.length; i += 4) {
+                        const avg = (data[i]! + data[i + 1]! + data[i + 2]!) / 3
+                        data[i] = avg
+                        data[i + 1] = avg
+                        data[i + 2] = avg
+                      }
+                      tempCtx.putImageData(imageData, 0, 0)
+                      ctx.drawImage(tempCanvas, -cardH / 2, -cardW / 2, cardH, cardW)
+                    }
+                  } else {
+                    ctx.drawImage(img, -cardH / 2, -cardW / 2, cardH, cardW)
+                  }
+                  ctx.restore()
+                } else if (grayscale) {
                   const tempCanvas = document.createElement('canvas')
                   tempCanvas.width = cardW
                   tempCanvas.height = cardH
@@ -432,18 +470,21 @@ export function useDeckExport({
       currentY += titleHeight + sectionSpacing
 
       // Draw selected leader and base at top, centered in one row
+      // Leaders are rotated 90 CCW so they use swapped dimensions
       if (selectedLeader || selectedBase) {
-        const totalWidth = (selectedLeader ? leaderBaseWidth : 0) + (selectedBase ? leaderBaseWidth : 0) + (selectedLeader && selectedBase ? spacing : 0)
+        const leaderW = selectedLeader ? leaderRotatedWidth : 0
+        const baseW = selectedBase ? leaderBaseWidth : 0
+        const totalWidth = leaderW + baseW + (selectedLeader && selectedBase ? spacing : 0)
         const startX = (width - totalWidth) / 2
         let x = startX
         if (selectedLeader) {
-          await drawCard(selectedLeader, x, currentY, leaderBaseWidth, leaderBaseHeight, null, false)
-          x += leaderBaseWidth + spacing
+          await drawCard(selectedLeader, x, currentY, leaderRotatedWidth, leaderRotatedHeight, null, false)
+          x += leaderRotatedWidth + spacing
         }
         if (selectedBase) {
           await drawCard(selectedBase, x, currentY, leaderBaseWidth, leaderBaseHeight, null, false)
         }
-        currentY += leaderBaseHeight + sectionSpacing
+        currentY += leaderBaseRowHeight + sectionSpacing
       }
 
       // Draw "Deck" section label
@@ -607,21 +648,38 @@ export function useDeckExport({
       const sectionSpacing = 30
       const leaderBaseWidth = 180
       const leaderBaseHeight = 252
+      // Leaders are rotated 90 CCW, so their dimensions are swapped
+      const leaderRotatedWidth = leaderBaseHeight  // 252
+      const leaderRotatedHeight = leaderBaseWidth  // 180
       const cardsPerRow = 8
       const separatorHeight = 4
       const deckRows = Math.ceil(deckCards.length / cardsPerRow)
       const poolRows = Math.ceil(poolCards.length / cardsPerRow)
       const hasLeaderBase = selectedLeader || selectedBase
       const hasOtherLeadersOrBases = otherLeaders.length > 0 || otherBases.length > 0
+      // Leader/base row height depends on what's shown
+      const leaderBaseRowHeight = hasLeaderBase
+        ? Math.max(
+            selectedLeader ? leaderRotatedHeight : 0,
+            selectedBase ? leaderBaseHeight : 0
+          )
+        : 0
+      // Other leaders row height (all leaders rotated, bases not)
+      const otherLeadersRowHeight = hasOtherLeadersOrBases
+        ? Math.max(
+            otherLeaders.length > 0 ? leaderRotatedHeight : 0,
+            otherBases.length > 0 ? leaderBaseHeight : 0
+          )
+        : 0
       const footerHeight = poolOwnerUsername ? 100 : 70
 
       const width = padding * 2 + cardsPerRow * cardWidth + (cardsPerRow - 1) * spacing
       const totalHeight = padding * 2 +
         titleHeight + sectionSpacing +
-        (hasLeaderBase ? leaderBaseHeight + sectionSpacing : 0) +
+        (hasLeaderBase ? leaderBaseRowHeight + sectionSpacing : 0) +
         labelHeight + deckRows * (cardHeight + spacing) + sectionSpacing +
         separatorHeight + sectionSpacing +
-        (hasOtherLeadersOrBases ? labelHeight + leaderBaseHeight + sectionSpacing : 0) +
+        (hasOtherLeadersOrBases ? labelHeight + otherLeadersRowHeight + sectionSpacing : 0) +
         labelHeight + poolRows * (cardHeight + spacing) + sectionSpacing +
         footerHeight
 
@@ -661,6 +719,7 @@ export function useDeckExport({
       const drawCard = (card: ExportCard, x: number, y: number, cardW: number, cardH: number, grayscale: boolean): Promise<void> => {
         return new Promise((resolve) => {
           const imageUrl = card.frontArt || '/card-back.png'
+          const isLeader = card.isLeader
 
           const drawPlaceholder = (): void => {
             ctx.fillStyle = '#333'
@@ -683,7 +742,34 @@ export function useDeckExport({
           img.onload = (): void => {
             clearTimeout(timeoutId)
             try {
-              if (grayscale) {
+              if (isLeader) {
+                // Rotate leader 90 degrees CCW
+                ctx.save()
+                ctx.translate(x + cardW / 2, y + cardH / 2)
+                ctx.rotate(-Math.PI / 2)
+                if (grayscale) {
+                  const tempCanvas = document.createElement('canvas')
+                  tempCanvas.width = cardH
+                  tempCanvas.height = cardW
+                  const tempCtx = tempCanvas.getContext('2d')
+                  if (tempCtx) {
+                    tempCtx.drawImage(img, 0, 0, cardH, cardW)
+                    const imageData = tempCtx.getImageData(0, 0, cardH, cardW)
+                    const data = imageData.data
+                    for (let i = 0; i < data.length; i += 4) {
+                      const avg = (data[i]! + data[i + 1]! + data[i + 2]!) / 3
+                      data[i] = avg
+                      data[i + 1] = avg
+                      data[i + 2] = avg
+                    }
+                    tempCtx.putImageData(imageData, 0, 0)
+                    ctx.drawImage(tempCanvas, -cardH / 2, -cardW / 2, cardH, cardW)
+                  }
+                } else {
+                  ctx.drawImage(img, -cardH / 2, -cardW / 2, cardH, cardW)
+                }
+                ctx.restore()
+              } else if (grayscale) {
                 const tempCanvas = document.createElement('canvas')
                 tempCanvas.width = cardW
                 tempCanvas.height = cardH
@@ -731,18 +817,21 @@ export function useDeckExport({
       currentY += titleHeight + sectionSpacing
 
       // Draw selected leader and base at top
+      // Leaders are rotated 90 CCW so they use swapped dimensions
       if (selectedLeader || selectedBase) {
-        const totalWidth = (selectedLeader ? leaderBaseWidth : 0) + (selectedBase ? leaderBaseWidth : 0) + (selectedLeader && selectedBase ? spacing : 0)
+        const leaderW = selectedLeader ? leaderRotatedWidth : 0
+        const baseW = selectedBase ? leaderBaseWidth : 0
+        const totalWidth = leaderW + baseW + (selectedLeader && selectedBase ? spacing : 0)
         const startX = (width - totalWidth) / 2
         let x = startX
         if (selectedLeader) {
-          await drawCard(selectedLeader, x, currentY, leaderBaseWidth, leaderBaseHeight, false)
-          x += leaderBaseWidth + spacing
+          await drawCard(selectedLeader, x, currentY, leaderRotatedWidth, leaderRotatedHeight, false)
+          x += leaderRotatedWidth + spacing
         }
         if (selectedBase) {
           await drawCard(selectedBase, x, currentY, leaderBaseWidth, leaderBaseHeight, false)
         }
-        currentY += leaderBaseHeight + sectionSpacing
+        currentY += leaderBaseRowHeight + sectionSpacing
       }
 
       // Draw "Deck" section label
@@ -774,6 +863,7 @@ export function useDeckExport({
       currentY += separatorHeight + sectionSpacing
 
       // Draw other leaders/bases in pool
+      // Leaders are rotated 90 CCW so they use swapped dimensions
       if (hasOtherLeadersOrBases) {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
         ctx.font = 'bold 24px Arial'
@@ -782,15 +872,27 @@ export function useDeckExport({
         ctx.fillText('Other Leaders & Bases', padding, currentY)
         currentY += labelHeight
 
-        const allOtherLeadersAndBases = [...otherLeaders, ...otherBases]
-        const totalLBWidth = allOtherLeadersAndBases.length * (leaderBaseWidth + spacing) - spacing
+        // Calculate total width accounting for different leader/base dimensions
+        let totalLBWidth = 0
+        for (const card of otherLeaders) {
+          totalLBWidth += leaderRotatedWidth + spacing
+        }
+        for (const card of otherBases) {
+          totalLBWidth += leaderBaseWidth + spacing
+        }
+        totalLBWidth -= spacing // Remove last spacing
+
         const startX = Math.max(padding, (width - totalLBWidth) / 2)
         let x = startX
-        for (const card of allOtherLeadersAndBases) {
+        for (const card of otherLeaders) {
+          await drawCard(card, x, currentY, leaderRotatedWidth, leaderRotatedHeight, true)
+          x += leaderRotatedWidth + spacing
+        }
+        for (const card of otherBases) {
           await drawCard(card, x, currentY, leaderBaseWidth, leaderBaseHeight, true)
           x += leaderBaseWidth + spacing
         }
-        currentY += leaderBaseHeight + sectionSpacing
+        currentY += otherLeadersRowHeight + sectionSpacing
       }
 
       // Draw "Pool" section label

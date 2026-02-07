@@ -4,6 +4,7 @@
 
 ### 🎉 New Features
 - **Arena View**: Magic Arena fans rejoice. New deckbuilder layout for desktop with split-screen pool/deck, aspect filters, and cost-column organization inspired by everyone's favorite online limited deckbuilder. Thanks to Eric Hunter for the idea.
+- **Pool Image Export**: When viewing a deck image, click "Show Pool" to generate a full pool image showing your deck, other leaders, rare bases, and remaining pool cards. Great for sharing your sealed pool with friends.
 
 ## 02.06.2026
 ### 💽 Data
