@@ -563,7 +563,10 @@
 }
 
 .arena-cost-header {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
   font-size: 0.9rem;
   font-weight: 600;
   color: white;
@@ -577,7 +580,6 @@
   font-size: 0.75rem;
   font-weight: 400;
   color: rgba(255, 255, 255, 0.6);
-  margin-left: 0.25rem;
 }
 
 /* Card Stack within Column - 15% offset */

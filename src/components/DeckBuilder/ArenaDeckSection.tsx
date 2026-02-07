@@ -12,6 +12,7 @@ import { useMemo, useCallback, type MouseEvent } from 'react'
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
 import { ArenaCardStack } from './ArenaCardStack'
 import { calculateAspectPenalty } from '../../services/cards/aspectPenalties'
+import CostIcon from '../CostIcon'
 import type { CardData } from '../Card'
 
 interface PoolCardEntry {
@@ -338,7 +339,7 @@ export function ArenaDeckSection({
           return (
             <div key={bucket} className="arena-cost-column">
               <div className="arena-cost-header">
-                {bucket}
+                <CostIcon cost={bucket} size={28} />
                 {totalCount > 0 && (
                   <span className="cost-count">({totalCount})</span>
                 )}
