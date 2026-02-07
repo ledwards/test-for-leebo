@@ -183,7 +183,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [sectionLabels, setSectionLabels] = useState<SectionLabel[]>([])
   const [sectionBounds, setSectionBounds] = useState<Record<string, SectionBound>>({})
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<ViewMode>('grid') // 'grid' (playmat), 'list' (table), or 'arena' (desktop only)
+  // Default to 'arena' on desktop, 'grid' on mobile (arena requires wider screen)
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      return 'arena'
+    }
+    return 'grid'
+  })
   const [aspectFilters, setAspectFilters] = useState<Record<string, boolean>>({
     Vigilance: poolType !== 'draft',
     Command: poolType !== 'draft',
@@ -213,6 +219,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   const [sideboardAspectSectionsExpanded, setSideboardAspectSectionsExpanded] = useState<Record<string, boolean>>({}) // Track expanded aspect combination sections for sideboard
   const [deckCostSectionsExpanded, setDeckCostSectionsExpanded] = useState<Record<string, boolean>>({}) // Track expanded cost sections (default all expanded)
   const [sideboardCostSectionsExpanded, setSideboardCostSectionsExpanded] = useState<Record<string, boolean>>({}) // Track expanded cost sections for sideboard
+  const [arenaFilters, setArenaFilters] = useState<Record<string, boolean>>({}) // Arena view aspect filters (empty = all active)
+  const [arenaSearchQuery, setArenaSearchQuery] = useState('') // Arena view search query
   const deckBlocksRowRef = useRef<HTMLDivElement>(null)
   const [activeLeader, setActiveLeader] = useState<string | null>(null)
   const [activeBase, setActiveBase] = useState<string | null>(null)
@@ -880,6 +888,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         if (state.tableSort) {
           setTableSort(state.tableSort)
         }
+        // Restore arena view filters
+        if (state.arenaFilters) {
+          setArenaFilters(state.arenaFilters)
+        }
+        if (state.arenaSearchQuery) {
+          setArenaSearchQuery(state.arenaSearchQuery)
+        }
         // Restore active leader/base from localStorage (backup for debounced database save)
         if (state.activeLeader) {
           setActiveLeader(state.activeLeader)
@@ -1262,6 +1277,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         poolGroupsExpanded,
         showAspectPenalties,
         tableSort,
+        arenaFilters,
+        arenaSearchQuery,
         // Also save active leader/base to localStorage as backup (database save is debounced)
         activeLeader,
         activeBase,
@@ -1281,7 +1298,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         onStateChange(deckStateToSave)
       }
     }
-  }, [shareId, cardPositions, sectionLabels, sectionBounds, canvasHeight, activeLeader, activeBase, viewMode, aspectFilters, inAspectFilter, outAspectFilter, poolSortOption, deckSortOption, leadersBasesExpanded, leadersExpanded, basesExpanded, deckExpanded, sideboardExpanded, deckAspectSectionsExpanded, sideboardAspectSectionsExpanded, deckCostSectionsExpanded, sideboardCostSectionsExpanded, deckGroupsExpanded, poolGroupsExpanded, showAspectPenalties, tableSort, onStateChange, currentPoolName])
+  }, [shareId, cardPositions, sectionLabels, sectionBounds, canvasHeight, activeLeader, activeBase, viewMode, aspectFilters, inAspectFilter, outAspectFilter, poolSortOption, deckSortOption, leadersBasesExpanded, leadersExpanded, basesExpanded, deckExpanded, sideboardExpanded, deckAspectSectionsExpanded, sideboardAspectSectionsExpanded, deckCostSectionsExpanded, sideboardCostSectionsExpanded, deckGroupsExpanded, poolGroupsExpanded, showAspectPenalties, tableSort, arenaFilters, arenaSearchQuery, onStateChange, currentPoolName])
 
   // Cleanup: Remove any bases/leaders from deck/sideboard sections and move cards based on enabled state
   useEffect(() => {
@@ -1814,6 +1831,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     setPoolSortOption,
     deckSortOption,
     setDeckSortOption,
+    // Arena view state
+    arenaFilters,
+    setArenaFilters,
+    arenaSearchQuery,
+    setArenaSearchQuery,
     // Actions
     toggleCardSection,
     moveCardsToDeck,
@@ -1822,7 +1844,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     cardPositions, activeLeader, activeBase, leaderCard, baseCard,
     selectedCards, hoveredCard, filterAspectsExpanded, deckFilterOpen,
     poolFilterOpen, showAspectPenalties, viewMode, poolSortOption,
-    deckSortOption, toggleCardSection, moveCardsToDeck, moveCardsToPool,
+    deckSortOption, arenaFilters, arenaSearchQuery,
+    toggleCardSection, moveCardsToDeck, moveCardsToPool,
   ])
 
   return (

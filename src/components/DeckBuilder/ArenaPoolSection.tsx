@@ -6,7 +6,7 @@
  * Shows pool cards in a grid with aspect combo filters and search.
  */
 
-import { useState, useMemo, useCallback, type MouseEvent, type ChangeEvent } from 'react'
+import { useMemo, useCallback, type MouseEvent, type ChangeEvent } from 'react'
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
 import { ResizableCard } from './ResizableCard'
 import { calculateAspectPenalty } from '../../services/cards/aspectPenalties'
@@ -68,11 +68,19 @@ export function ArenaPoolSection({
     hoveredCard,
     selectedCards,
     toggleCardSection,
+    arenaFilters,
+    setArenaFilters,
+    arenaSearchQuery,
+    setArenaSearchQuery,
   } = useDeckBuilder()
 
-  // Filter state: which aspect combos are active
-  const [activeFilters, setActiveFilters] = useState<Record<string, boolean>>(() => {
-    // Start with all filters active
+  // Build default filters if arenaFilters is empty
+  const activeFilters = useMemo(() => {
+    // If we have saved filters, use them
+    if (Object.keys(arenaFilters).length > 0) {
+      return arenaFilters
+    }
+    // Default: all filters active
     const initial: Record<string, boolean> = { neutral: true }
     PRIMARY_ASPECTS.forEach(primary => {
       initial[primary] = true
@@ -86,9 +94,11 @@ export function ArenaPoolSection({
       initial[secondary] = true
     })
     return initial
-  })
+  }, [arenaFilters])
 
-  const [searchQuery, setSearchQuery] = useState('')
+  const setActiveFilters = setArenaFilters
+  const searchQuery = arenaSearchQuery
+  const setSearchQuery = setArenaSearchQuery
 
   // Get ALL cards (pool + deck) for determining filter visibility
   const allCards = useMemo((): CardEntry[] => {
