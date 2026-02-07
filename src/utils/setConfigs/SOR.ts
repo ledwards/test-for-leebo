@@ -53,7 +53,7 @@ export const SOR_CONFIG: SetConfig = {
 
   // Belt ratios
   beltRatios: {
-    rareToLegendary: constants.rareSlotLegendaryRatio,  // 6:1 for R slot
+    rareToLegendary: constants.rareSlotLegendaryRatio,  // 7:1 for R slot (1 in 8)
   },
 
   // Upgrade probabilities (chance for slot to be upgraded)

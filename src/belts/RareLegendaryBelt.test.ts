@@ -59,14 +59,14 @@ async function runTests(): Promise<void> {
     )
   })
 
-  test('sets 1-3 use 6:1 ratio', () => {
+  test('sets 1-3 use 7:1 ratio (1 in 8 legendary)', () => {
     for (const setCode of ['SOR', 'SHD', 'TWI']) {
       const belt = new RareLegendaryBelt(setCode)
-      assertEqual(belt.ratio, 6, `${setCode} should use 6:1 ratio`)
+      assertEqual(belt.ratio, 7, `${setCode} should use 7:1 ratio`)
     }
   })
 
-  test('sets 4-6 use 5:1 ratio', () => {
+  test('sets 4-6 use 5:1 ratio (1 in 6 legendary)', () => {
     for (const setCode of ['JTL', 'LOF', 'SEC']) {
       const belt = new RareLegendaryBelt(setCode)
       assertEqual(belt.ratio, 5, `${setCode} should use 5:1 ratio`)
@@ -137,8 +137,8 @@ async function runTests(): Promise<void> {
       `Rares (${counts.Rare}) should appear more than legendaries (${counts.Legendary})`)
 
     // The ratio in the hopper depends on card pool:
-    // SOR has 48 rares and 16 legendaries, with 6:1 ratio
-    // Each segment has 48 rares + ~2-3 legendaries = ~48:2.67 ≈ 18:1 in hopper
+    // SOR has 48 rares and 16 legendaries, with 7:1 ratio
+    // Each segment has 48 rares + ~2-3 legendaries = ~48:2.29 ≈ 21:1 in hopper
     const ratio = counts.Rare / counts.Legendary
     assert(ratio > 2 && ratio < 30,
       `Rare:Legendary ratio should be reasonable, got ${ratio.toFixed(2)}`)

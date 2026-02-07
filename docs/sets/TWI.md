@@ -37,7 +37,7 @@
 2. **Base** (1) - Common from BaseBelt
 3. **Commons** (9) - Slots 1-6 from Belt A, slots 7-9 from Belt B
 4. **Uncommons** (3) - From UncommonBelt
-5. **Rare/Legendary** (1) - 6:1 ratio (includes rare bases)
+5. **Rare/Legendary** (1) - 7:1 ratio, 1 in 8 legendary (includes rare bases)
 6. **Foil** (1) - Any rarity, can upgrade to Hyperspace Foil
 
 ### Belt Configuration (Block 0)

@@ -30,7 +30,7 @@ The Pack Quality Dashboard will display real-time statistics from the `card_gene
 
 **Rarity Distribution:**
 - Leaders: 5:1 common-to-rare ratio (1/6 packs have rare leader)
-- Rare slot: 6:1 rare-to-legendary for Sets 1-3, 5:1 for Sets 4+
+- Rare slot: 7:1 rare-to-legendary for Sets 1-3 (1 in 8), 5:1 for Sets 4+ (1 in 6)
 - Foil slot: 70% Common, 20% Uncommon, 8% Rare, 2% Legendary
 
 **Treatment/Upgrade Rates:**
@@ -65,7 +65,7 @@ The Pack Quality Dashboard will display real-time statistics from the `card_gene
 
 | Metric | Expected | Display |
 |--------|----------|---------|
-| Legendary in R/L Slot | ~14-17% (set dependent) | Gauge with confidence interval |
+| Legendary in R/L Slot | ~12.5-16.7% (set dependent) | Gauge with confidence interval |
 | Foil Rarity Breakdown | 70/20/8/2 | Pie chart + comparison |
 | UC3 Upgrade Rate | ~18% | Percentage bar |
 
@@ -157,7 +157,7 @@ interface MetricResult {
 │  Rarity Distribution                                         │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │ Legendary Drop Rate                                    │  │
-│  │ Expected: 14.3% (1 in 7)  |  Observed: 14.1%          │  │
+│  │ Expected: 12.5% (1 in 8)  |  Observed: 12.3%          │  │
 │  │ [████████████████░░░░] z=0.42 ✓ Within Expected       │  │
 │  │ Sample: 8,234 packs                                    │  │
 │  └───────────────────────────────────────────────────────┘  │

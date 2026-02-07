@@ -6,8 +6,8 @@
  * Includes non-leader Rares and all Legendaries.
  *
  * Ratio varies by set:
- * - Sets 1-3: 6:1 (Rare:Legendary)
- * - Sets 4-6: 5:1 (Rare:Legendary)
+ * - Sets 1-3: 7:1 (Rare:Legendary) = 1 in 8 rare slots are legendary
+ * - Sets 4+: 5:1 (Rare:Legendary) = 1 in 6 rare slots are legendary
  *
  * Fill algorithm:
  * - Get 1 of each Rare and 1/X of the Legendaries (where X is the ratio)
@@ -55,7 +55,7 @@ export class RareLegendaryBelt {
     this.fillingPool = []
     this.rares = []
     this.legendaries = []
-    this.ratio = 6 // Default, will be set based on config
+    this.ratio = 7 // Default, will be set based on config
 
     this._initialize()
   }
@@ -69,9 +69,9 @@ export class RareLegendaryBelt {
     const config = getSetConfig(this.setCode) as any
 
     // Determine ratio based on set number
-    // Sets 1-3: 6:1, Sets 4-6: 5:1
+    // Sets 1-3: 7:1 (1 in 8), Sets 4+: 5:1 (1 in 6)
     const setNumber = config?.setNumber || 1
-    this.ratio = setNumber <= 3 ? 6 : 5
+    this.ratio = setNumber <= 3 ? 7 : 5
 
     // Filter to normal variant non-leader rares and legendaries
     this.rares = cards.filter(c =>
