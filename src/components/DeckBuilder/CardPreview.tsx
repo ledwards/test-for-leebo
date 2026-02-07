@@ -78,11 +78,14 @@ export function CardPreview({
         height: `${previewHeight}px`,
         borderRadius: borderRadius,
         overflow: 'visible',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+        // Only apply shadow to container when NOT showing side-by-side (each inner card has its own shadow)
+        boxShadow: hasBackImage ? 'none' : '0 8px 32px rgba(0, 0, 0, 0.8)',
         border: 'none',
         display: 'flex',
         flexDirection: 'row',
         gap: '20px',
+        // Align items to top so front card doesn't center vertically in taller container
+        alignItems: hasBackImage ? 'flex-start' : 'stretch',
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
