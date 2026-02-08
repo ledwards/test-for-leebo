@@ -158,21 +158,29 @@ export function ArenaPoolSection({
     })
   }, [poolCards, activeFilters, searchQuery])
 
-  // Sort cards by aspect, then cost, then name
+  // Sort cards by default sort: aspect combo -> type -> cost -> name
   const sortedCards = useMemo(() => {
     return [...filteredCards].sort((a, b) => {
       const cardA = a.position.card
       const cardB = b.position.card
 
-      const aspectA = (cardA.aspects || [])[0] || 'ZZZ'
-      const aspectB = (cardB.aspects || [])[0] || 'ZZZ'
-      const aspectCompare = aspectA.localeCompare(aspectB)
+      // Sort by aspect combo (sorted aspects joined)
+      const aspectComboA = [...(cardA.aspects || [])].sort().join('+') || 'ZZZ'
+      const aspectComboB = [...(cardB.aspects || [])].sort().join('+') || 'ZZZ'
+      const aspectCompare = aspectComboA.localeCompare(aspectComboB)
       if (aspectCompare !== 0) return aspectCompare
 
+      // Then by type
+      const typeA = cardA.type || ''
+      const typeB = cardB.type || ''
+      if (typeA !== typeB) return typeA.localeCompare(typeB)
+
+      // Then by cost
       const costA = cardA.cost ?? 0
       const costB = cardB.cost ?? 0
       if (costA !== costB) return costA - costB
 
+      // Then by name
       return (cardA.name || '').localeCompare(cardB.name || '')
     })
   }, [filteredCards])
