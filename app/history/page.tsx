@@ -18,6 +18,7 @@ interface SealedPool {
   name?: string
   leaderName?: string
   baseName?: string
+  mainDeckCount?: number
   createdAt: string
   poolType?: string
   hidden?: boolean
@@ -32,10 +33,16 @@ interface DraftPod {
   draftName?: string
   leaderName?: string
   baseName?: string
+  mainDeckCount?: number
   createdAt: string
   isHost?: boolean
   isBot?: boolean
   hidden?: boolean
+}
+
+// Check if a deck is valid for play (has leader, base, and 30+ main deck cards)
+function isDeckPlayable(leaderName?: string, baseName?: string, mainDeckCount?: number): boolean {
+  return !!leaderName && !!baseName && (mainDeckCount || 0) >= 30
 }
 
 interface DeleteConfirmState {
@@ -334,6 +341,17 @@ export default function HistoryPage() {
                                 >
                                   View
                                 </button>
+                                {isDeckPlayable(pool.leaderName, pool.baseName, pool.mainDeckCount) && (
+                                  <button
+                                    className="history-play-button"
+                                    onClick={() => window.location.href = `/pool/${pool.shareId}/deck/play`}
+                                    title="Play"
+                                  >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                    </svg>
+                                  </button>
+                                )}
                                 <button
                                   className="history-hide-button"
                                   onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'sealed')}
@@ -427,6 +445,17 @@ export default function HistoryPage() {
                                     >
                                       View
                                     </button>
+                                    {isDeckPlayable(pool.leaderName, pool.baseName, pool.mainDeckCount) && (
+                                      <button
+                                        className="history-play-button"
+                                        onClick={() => window.location.href = `/pool/${pool.shareId}/deck/play`}
+                                        title="Play"
+                                      >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                        </svg>
+                                      </button>
+                                    )}
                                     <button
                                       className="history-unhide-button"
                                       onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'sealed')}
@@ -565,6 +594,17 @@ export default function HistoryPage() {
                                   )}
                                   {!isActive && pod.poolShareId && (
                                     <>
+                                      {isDeckPlayable(pod.leaderName, pod.baseName, pod.mainDeckCount) && (
+                                        <button
+                                          className="history-play-button"
+                                          onClick={() => window.location.href = `/draft_pool/${pod.poolShareId}/play`}
+                                          title="Play"
+                                        >
+                                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                          </svg>
+                                        </button>
+                                      )}
                                       <button
                                         className="history-hide-button"
                                         onClick={() => handleToggleHidden(pod.poolShareId, pod.hidden, 'draft')}
@@ -675,6 +715,17 @@ export default function HistoryPage() {
                                       </button>
                                       {pod.poolShareId && (
                                         <>
+                                          {isDeckPlayable(pod.leaderName, pod.baseName, pod.mainDeckCount) && (
+                                            <button
+                                              className="history-play-button"
+                                              onClick={() => window.location.href = `/draft_pool/${pod.poolShareId}/play`}
+                                              title="Play"
+                                            >
+                                              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                              </svg>
+                                            </button>
+                                          )}
                                           <button
                                             className="history-unhide-button"
                                             onClick={() => handleToggleHidden(pod.poolShareId, pod.hidden, 'draft')}
