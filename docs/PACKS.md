@@ -49,21 +49,33 @@ Slot 9: Belt B
 
 ## Upgrade System
 
-After the base pack is assembled, an upgrade pass may modify certain slots based on probabilities.
+After the base pack is assembled, an upgrade pass may modify certain slots.
+
+### HyperspaceUpgradeBelt (Sets 1-6)
+
+HS upgrades use a **budget belt** instead of independent coin flips. Each cycle of 60 packs
+pre-determines how many HS upgrades each pack receives:
+
+- **20 packs** (33.3%) get **0 HS** upgrades
+- **30 packs** (50.0%) get **1 HS** upgrade
+- **10 packs** (16.7%) get **2 HS** upgrades
+
+This gives μ = 0.833 HS/pack with σ ≈ 0.70, ensuring that 3 HS per pack is a ≥3σ outlier.
+Leader and base HS never co-occur in the same pack.
 
 ### Upgrade Types
 
-| Upgrade | Description | Probability Source |
-|---------|-------------|-------------------|
-| Leader → Showcase | Find showcase variant of same leader | `leaderToShowcase` |
-| Leader → Hyperspace | Find HS variant of same leader | `leaderToHyperspace` |
-| Base → Hyperspace | Find HS variant of same base | `baseToHyperspace` |
-| Rare → Hyperspace | Find HS variant of same rare | `rareToHyperspaceRL` |
-| Foil → Hyperfoil | Draw random HS foil | `foilToHyperfoil` |
-| UC1 → HS Uncommon | Find HS variant of 1st uncommon | `firstUCToHyperspaceUC` |
-| UC2 → HS Uncommon | Find HS variant of 2nd uncommon | `secondUCToHyperspaceUC` |
-| UC3 → HS Rare/Legendary | Draw random HS R/L | `thirdUCToHyperspaceRL` |
-| Common → Hyperspace | Find HS variant of common in slot | `commonToHyperspace` |
+| Upgrade | Description | Mechanism | Effective Rate |
+|---------|-------------|-----------|---------------|
+| Leader → Showcase | Find showcase variant of same leader | Independent coin flip | 1/288 |
+| Leader → Hyperspace | Find HS variant of same leader | HyperspaceUpgradeBelt | 1/6 |
+| Base → Hyperspace | Find HS variant of same base | HyperspaceUpgradeBelt | 1/6 |
+| Rare → Hyperspace | Find HS variant of same rare | HyperspaceUpgradeBelt | 1/15 |
+| Foil → Hyperfoil | Draw random HS foil | Independent coin flip | 1/50 |
+| UC1 → HS Uncommon | Find HS variant of 1st uncommon | HyperspaceUpgradeBelt | 1/15 |
+| UC2 → HS Uncommon | Find HS variant of 2nd uncommon | HyperspaceUpgradeBelt | 1/30 |
+| UC3 → HS Rare/Legendary | Draw random HS R/L | HyperspaceUpgradeBelt | 1/7.5 |
+| Common → Hyperspace | Find HS variant of common in slot | HyperspaceUpgradeBelt | 1/5 |
 
 ### Common Hyperspace Upgrade
 

@@ -33,14 +33,20 @@ The Pack Quality Dashboard will display real-time statistics from the `card_gene
 - Rare slot: 7:1 rare-to-legendary for Sets 1-3 (1 in 8), 5:1 for Sets 4+ (1 in 6)
 - Foil slot: 70% Common, 20% Uncommon, 8% Rare, 2% Legendary
 
-**Treatment/Upgrade Rates:**
-| Treatment | Expected Rate |
-|-----------|---------------|
-| Hyperspace Leader | 16.7% (1/6) |
-| Hyperspace Base | 25% (1/4) |
-| Hyperspace Common | 33% (1/3) |
-| Hyperfoil | 2% (1/50) |
-| Showcase Leader | 0.35% (1/288) |
+**Treatment/Upgrade Rates (Sets 1-6, belt-driven):**
+| Treatment | Expected Rate | Mechanism |
+|-----------|---------------|-----------|
+| Hyperspace Leader | 16.7% (1/6) | HyperspaceUpgradeBelt |
+| Hyperspace Base | 16.7% (1/6) | HyperspaceUpgradeBelt |
+| Hyperspace Common | 20% (1/5) | HyperspaceUpgradeBelt |
+| Hyperspace Rare | 6.7% (1/15) | HyperspaceUpgradeBelt |
+| Hyperfoil | 2% (1/50) | Independent coin flip |
+| Showcase Leader | 0.35% (1/288) | Independent coin flip |
+
+**HS Distribution Stats (belt-driven):**
+- ~2/3 of packs have at least 1 HS card, ~1/3 have none
+- Max 2 HS cards per pack (3+ is a ≥3σ outlier)
+- HS Leader + HS Base never co-occur in same pack
 
 ### Industry Standards
 

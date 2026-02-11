@@ -115,12 +115,13 @@ The pack generation uses a "belt" metaphor - each card slot type has a belt that
 - **RareLegendaryBelt**: 1 rare or legendary
 - **FoilBelt**: 1 foil of any rarity
 - **ShowcaseLeaderBelt**: Very rare showcase leaders (~1 in 288 packs)
-- **Hyperspace belts**: Various hyperspace variants
+- **HyperspaceUpgradeBelt**: Controls HS upgrade distribution per pack (budget belt, not coin flips). Pre-determines which slots get HS upgrades in cycles of 60 packs. ~2/3 of packs get at least 1 HS, max 2.
+- **Hyperspace belts**: Various hyperspace variants (card selection after upgrade decision)
 
 Belts maintain a "hopper" that refills from a "filling pool" when depleted. This ensures proper distribution while preventing adjacent duplicates.
 
-### Booster Pack Generation (`src/utils/boosterPack.js`)
-Orchestrates belt usage to create 16-card packs. Handles variant replacement (hyperspace, showcase, hyperfoil) at various probability rates.
+### Booster Pack Generation (`src/utils/boosterPack.ts`)
+Orchestrates belt usage to create 16-card packs. HS upgrades are belt-driven (Sets 1-6) for controlled variance. Non-HS upgrades (Showcase, Hyperfoil) remain independent coin flips.
 
 ### Set Configs (`src/utils/setConfigs/`)
 Per-set parameters: card counts, rarity distributions, legendary drop rates. Sets 4-6 (JTL, LOF, SEC) have different rules than sets 1-3. Set 7 (LAW) is a beta set with `beta: true` flag.
