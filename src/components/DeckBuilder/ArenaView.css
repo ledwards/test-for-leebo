@@ -277,7 +277,6 @@
 .arena-filter-btn {
   display: flex;
   align-items: center;
-  flex: 1;
   padding: 3px 5px;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.2);
