@@ -32,6 +32,7 @@ import { HyperspaceBaseBelt } from '../belts/HyperspaceBaseBelt';
 import { HyperspaceUncommonBelt } from '../belts/HyperspaceUncommonBelt';
 import { HyperspaceCommonBelt } from '../belts/HyperspaceCommonBelt';
 import { HyperspaceRareLegendaryBelt } from '../belts/HyperspaceRareLegendaryBelt';
+import { HyperspaceUpgradeBelt, type UpgradePlan } from '../belts/HyperspaceUpgradeBelt';
 import { getSetConfig } from './setConfigs/index';
 import { getCachedCards } from './cardCache';
 
@@ -117,6 +118,13 @@ function findHyperspaceVariant(card: RawCard | null, setCode: SetCode | string):
   if (hsVariant) {
     return { ...hsVariant, isHyperspace: true };
   }
+
+  // Fallback: if no Hyperspace variant exists in the data (e.g., LAW before HS data is loaded),
+  // return the original card marked as Hyperspace (placeholder treatment)
+  if (usesLawPackRules(setCode)) {
+    return { ...card, isHyperspace: true };
+  }
+
   return null;
 }
 
@@ -289,6 +297,31 @@ function getHyperspaceRareLegendaryBelt(setCode: SetCode | string): Belt {
 }
 
 /**
+ * Get the set group key for HS belt config ('1-3', '4-6', 'LAW')
+ * All sets use the HyperspaceUpgradeBelt for controlled variance.
+ * LAW+ belt guarantees ≥1 HS per pack (budget-0 = 0).
+ */
+function getHSBeltGroup(setCode: SetCode | string): string | null {
+  const config = getSetConfig(setCode);
+  if (!config) return null;
+  const n = config.setNumber;
+  if (n >= 1 && n <= 3) return '1-3';
+  if (n >= 4 && n <= 6) return '4-6';
+  if (n >= 7) return 'LAW';
+  return null;
+}
+
+function getHyperspaceUpgradeBelt(setCode: SetCode | string): HyperspaceUpgradeBelt | null {
+  const group = getHSBeltGroup(setCode);
+  if (!group) return null;
+  const key = `hs-upgrade-${setCode}`;
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new HyperspaceUpgradeBelt(group));
+  }
+  return beltCache.get(key) as HyperspaceUpgradeBelt;
+}
+
+/**
  * Clear belt cache (useful for testing or resetting state)
  */
 export function clearBeltCache(): void {
@@ -342,42 +375,53 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
     }
   });
 
-  // 1. Leader upgrades (Showcase takes precedence if both hit)
-  // IMPORTANT: Upgrades must find the variant of the SAME leader, not a random one!
-  // This prevents getting both HS and Normal versions of the same leader in a pod.
+  // Get HS upgrade plan from belt (sets 1-6) or null (LAW+)
+  const hsBelt = getHyperspaceUpgradeBelt(setCode);
+  const hsPlan: UpgradePlan | null = hsBelt ? hsBelt.next() : null;
+
+  // 1. Leader upgrades
+  // Showcase takes precedence (independent coin flip — too rare to affect variance)
+  // HS upgrade is belt-driven for sets 1-6, coin-flip for LAW+
   if (leaderIndex >= 0) {
     const currentLeader = pack.cards[leaderIndex];
     if (currentLeader && probs.leaderToShowcase && shouldUpgrade(probs.leaderToShowcase)) {
-      // Upgrade to Showcase version of THIS leader
       const upgraded = findShowcaseVariant(currentLeader, setCode);
       if (upgraded) pack.cards[leaderIndex] = upgraded;
-    } else if (currentLeader && probs.leaderToHyperspace && shouldUpgrade(probs.leaderToHyperspace)) {
-      // Upgrade to Hyperspace version of THIS leader
-      const upgraded = findHyperspaceVariant(currentLeader, setCode);
-      if (upgraded) pack.cards[leaderIndex] = upgraded;
+    } else if (currentLeader) {
+      const shouldUpgradeLeader = hsPlan ? hsPlan.leader : (probs.leaderToHyperspace && shouldUpgrade(probs.leaderToHyperspace));
+      if (shouldUpgradeLeader) {
+        const upgraded = findHyperspaceVariant(currentLeader, setCode);
+        if (upgraded) pack.cards[leaderIndex] = upgraded;
+      }
     }
   }
 
   // 2. Base upgrade - find HS version of THIS base
-  if (baseIndex >= 0 && probs.baseToHyperspace && shouldUpgrade(probs.baseToHyperspace)) {
-    const currentBase = pack.cards[baseIndex];
-    if (currentBase) {
-      const upgraded = findHyperspaceVariant(currentBase, setCode);
-      if (upgraded) pack.cards[baseIndex] = upgraded;
+  if (baseIndex >= 0) {
+    const shouldUpgradeBase = hsPlan ? hsPlan.base : (probs.baseToHyperspace && shouldUpgrade(probs.baseToHyperspace));
+    if (shouldUpgradeBase) {
+      const currentBase = pack.cards[baseIndex];
+      if (currentBase) {
+        const upgraded = findHyperspaceVariant(currentBase, setCode);
+        if (upgraded) pack.cards[baseIndex] = upgraded;
+      }
     }
   }
 
   // 3. Rare slot upgrade to Hyperspace R/L - find HS version of THIS card
-  if (rareIndex >= 0 && probs.rareToHyperspaceRL && shouldUpgrade(probs.rareToHyperspaceRL)) {
-    const currentRare = pack.cards[rareIndex];
-    if (currentRare) {
-      const upgraded = findHyperspaceVariant(currentRare, setCode);
-      if (upgraded) pack.cards[rareIndex] = upgraded;
+  if (rareIndex >= 0) {
+    const shouldUpgradeRare = hsPlan ? hsPlan.rare : (probs.rareToHyperspaceRL && shouldUpgrade(probs.rareToHyperspaceRL));
+    if (shouldUpgradeRare) {
+      const currentRare = pack.cards[rareIndex];
+      if (currentRare) {
+        const upgraded = findHyperspaceVariant(currentRare, setCode);
+        if (upgraded) pack.cards[rareIndex] = upgraded;
+      }
     }
   }
 
   // 4. Foil upgrade to Hyperfoil - replace with a Hyperspace Foil card from belt
-  // For LAW+, foil slot is ALREADY Hyperspace Foil (no upgrade needed)
+  // Independent coin flip (too rare to affect variance). LAW+ skips entirely.
   const skipFoilUpgrade = usesLawPackRules(setCode);
   if (!skipFoilUpgrade && foilIndex >= 0 && probs.foilToHyperfoil && shouldUpgrade(probs.foilToHyperfoil)) {
     const hyperfoilBelt = getHyperfoilBelt(setCode);
@@ -390,57 +434,52 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
   // 5. First UC upgrade to Hyperspace UC - find HS version of THIS uncommon
   // IMPORTANT: Apply UC->HS_UC upgrades BEFORE UC->HS_R/L to avoid index corruption
   const firstUCIndex = uncommonIndices[0];
-  if (firstUCIndex !== undefined && probs.firstUCToHyperspaceUC && shouldUpgrade(probs.firstUCToHyperspaceUC)) {
-    const currentUC = pack.cards[firstUCIndex];
-    if (currentUC) {
-      const upgraded = findHyperspaceVariant(currentUC, setCode);
-      if (upgraded) pack.cards[firstUCIndex] = upgraded;
+  if (firstUCIndex !== undefined) {
+    const shouldUpgradeUC1 = hsPlan ? hsPlan.uc1 : (probs.firstUCToHyperspaceUC && shouldUpgrade(probs.firstUCToHyperspaceUC));
+    if (shouldUpgradeUC1) {
+      const currentUC = pack.cards[firstUCIndex];
+      if (currentUC) {
+        const upgraded = findHyperspaceVariant(currentUC, setCode);
+        if (upgraded) pack.cards[firstUCIndex] = upgraded;
+      }
     }
   }
 
   // 6. Second UC upgrade to Hyperspace UC - find HS version of THIS uncommon
   const secondUCIndex = uncommonIndices[1];
-  if (secondUCIndex !== undefined && probs.secondUCToHyperspaceUC && shouldUpgrade(probs.secondUCToHyperspaceUC)) {
-    const currentUC = pack.cards[secondUCIndex];
-    if (currentUC) {
-      const upgraded = findHyperspaceVariant(currentUC, setCode);
-      if (upgraded) pack.cards[secondUCIndex] = upgraded;
+  if (secondUCIndex !== undefined) {
+    const shouldUpgradeUC2 = hsPlan ? hsPlan.uc2 : (probs.secondUCToHyperspaceUC && shouldUpgrade(probs.secondUCToHyperspaceUC));
+    if (shouldUpgradeUC2) {
+      const currentUC = pack.cards[secondUCIndex];
+      if (currentUC) {
+        const upgraded = findHyperspaceVariant(currentUC, setCode);
+        if (upgraded) pack.cards[secondUCIndex] = upgraded;
+      }
     }
   }
 
   // 7. Third UC upgrade to Hyperspace R/L (RARITY change - uses belt for random R/L)
   // This is intentionally a random R/L card, not the same UC in HS form
   // This MUST happen after UC->HS_UC upgrades since it changes rarity and corrupts uncommonIndices
-  // IMPORTANT: Must avoid picking a card whose Normal version is already in the pack (e.g., the Rare slot)
+  // IMPORTANT: Must avoid picking a card whose Normal version is already in the pack
   const thirdUCIndex = uncommonIndices[2];
-  if (thirdUCIndex !== undefined && probs.thirdUCToHyperspaceRL && shouldUpgrade(probs.thirdUCToHyperspaceRL)) {
-    const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode);
-    // Get names of all non-foil cards already in the pack to avoid duplicates
-    const existingNames = new Set(pack.cards.filter(c => !c.isFoil).map(c => c.name));
-
-    // Try to get a HS R/L card that isn't already in the pack (up to 5 attempts)
-    let upgraded: RawCard | null = null;
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const candidate = hsRLBelt.next();
-      if (candidate && !existingNames.has(candidate.name)) {
-        upgraded = candidate;
-        break;
-      }
+  if (thirdUCIndex !== undefined) {
+    const shouldUpgradeUC3 = hsPlan ? hsPlan.uc3 : (probs.thirdUCToHyperspaceRL && shouldUpgrade(probs.thirdUCToHyperspaceRL));
+    if (shouldUpgradeUC3) {
+      const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode);
+      const upgraded = hsRLBelt.next();
+      if (upgraded) pack.cards[thirdUCIndex] = upgraded;
     }
-    if (upgraded) pack.cards[thirdUCIndex] = upgraded;
   }
 
   // 8. Common upgrade - find HS version of the card in the specific hyperspace slot
-  // Block 0: Slot 6 (index 7 = leader + base + 5 more)
-  // Block A: Slot 4 (index 5 = leader + base + 3 more)
-  // Block B (LAW+): Slot 5 is GUARANTEED Hyperspace (always upgrade)
   const block = getBlockForSet(setCode);
   const blockConfig: BeltConfig = getBeltConfig(block);
   const isLawPlus = usesLawPackRules(setCode);
 
-  // For LAW+, slot 5 is always Hyperspace (guaranteed)
-  if (isLawPlus && blockConfig.guaranteedHyperspace) {
-    const hyperspaceIndex = 1 + blockConfig.hyperspaceSlot; // +1 for leader, slot is 1-indexed
+  // For LAW+, slot 5 is always Hyperspace (guaranteed) — but only as fallback when no belt
+  if (isLawPlus && blockConfig.guaranteedHyperspace && !hsPlan) {
+    const hyperspaceIndex = 1 + blockConfig.hyperspaceSlot;
     if (hyperspaceIndex < pack.cards.length) {
       const currentCommon = pack.cards[hyperspaceIndex];
       if (currentCommon && currentCommon.rarity === 'Common' && !currentCommon.isLeader && !currentCommon.isBase) {
@@ -448,14 +487,16 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
         if (upgraded) pack.cards[hyperspaceIndex] = upgraded;
       }
     }
-  } else if (probs.commonToHyperspace && shouldUpgrade(probs.commonToHyperspace)) {
-    // For earlier sets, probabilistic upgrade
-    const hyperspaceIndex = 1 + blockConfig.hyperspaceSlot; // +1 for leader, slot is 1-indexed
-    if (hyperspaceIndex < pack.cards.length) {
-      const currentCommon = pack.cards[hyperspaceIndex];
-      if (currentCommon && currentCommon.rarity === 'Common' && !currentCommon.isLeader && !currentCommon.isBase) {
-        const upgraded = findHyperspaceVariant(currentCommon, setCode);
-        if (upgraded) pack.cards[hyperspaceIndex] = upgraded;
+  } else {
+    const shouldUpgradeCommon = hsPlan ? hsPlan.common : (probs.commonToHyperspace && shouldUpgrade(probs.commonToHyperspace));
+    if (shouldUpgradeCommon) {
+      const hyperspaceIndex = 1 + blockConfig.hyperspaceSlot;
+      if (hyperspaceIndex < pack.cards.length) {
+        const currentCommon = pack.cards[hyperspaceIndex];
+        if (currentCommon && currentCommon.rarity === 'Common' && !currentCommon.isLeader && !currentCommon.isBase) {
+          const upgraded = findHyperspaceVariant(currentCommon, setCode);
+          if (upgraded) pack.cards[hyperspaceIndex] = upgraded;
+        }
       }
     }
   }
