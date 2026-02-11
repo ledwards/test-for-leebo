@@ -121,6 +121,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         let poolNameFromState = null
         let leaderName = null
         let baseName = null
+        let mainDeckCount = 0
         if (pool.deck_builder_state) {
           try {
             const state = typeof pool.deck_builder_state === 'string'
@@ -142,6 +143,12 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
               if (baseCard) {
                 baseName = baseCard.name || baseCard.title
               }
+            }
+            // Count cards in main deck (section === 'deck' and enabled !== false)
+            if (state.cardPositions) {
+              mainDeckCount = Object.values(state.cardPositions).filter((pos: any) =>
+                pos.section === 'deck' && pos.enabled !== false && !pos.card?.isLeader && !pos.card?.isBase
+              ).length
             }
           } catch (e) {
             console.error('Failed to parse deck_builder_state:', e)
@@ -170,6 +177,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
           cardCount: parseInt(pool.card_count, 10),
           leaderName,
           baseName,
+          mainDeckCount,
         }
       }),
       total,

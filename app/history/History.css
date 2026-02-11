@@ -158,6 +158,28 @@
   text-decoration: none;
 }
 
+.history-play-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(0, 200, 100, 0.4);
+  color: rgba(0, 220, 120, 0.9);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.history-play-button:hover {
+  background: rgba(0, 200, 100, 0.15);
+  border-color: rgba(0, 255, 100, 0.8);
+  color: rgba(0, 255, 150, 1);
+  box-shadow: 0 0 12px rgba(0, 255, 100, 0.5);
+}
+
 .history-empty {
   text-align: center;
   padding: 3rem;

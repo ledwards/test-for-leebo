@@ -42,6 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       let poolNameFromState = null
       let leaderName = null
       let baseName = null
+      let mainDeckCount = 0
       if (pod.deck_builder_state) {
         try {
           const state = typeof pod.deck_builder_state === 'string'
@@ -63,6 +64,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             if (baseCard) {
               baseName = baseCard.name || baseCard.title
             }
+          }
+          // Count cards in main deck (section === 'deck' and enabled !== false)
+          if (state.cardPositions) {
+            mainDeckCount = Object.values(state.cardPositions).filter((pos: any) =>
+              pos.section === 'deck' && pos.enabled !== false && !pos.card?.isLeader && !pos.card?.isBase
+            ).length
           }
         } catch (e) {
           console.error('Failed to parse deck_builder_state:', e)
@@ -87,6 +94,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         hidden: pod.pool_hidden === true,
         leaderName,
         baseName,
+        mainDeckCount,
       }
     })
 
