@@ -1,13 +1,14 @@
 # Release Notes
 
-## 02.11.2026
-
-### 🎉 New Features
-- **LAW Beta Access**: Visit `/beta` to join the beta program and get early access to A Lawless Time (Set 7)
+## 02.10.2026
 
 ### 🎨 UI Improvements
-- Stats page: Added LAW tab for Set 7 statistics
-- Stats page: Set tabs now show a lighter version of their color on hover
+- **Arena view**: Lots of tweaks, optimizations, and style fixes
+- **Deck image export**: Reduced image size for Discord upload compatibility
+
+### 💽 Data
+- Major improvements to hyperspace collation that should make packs more realistic.
+- A few things to prepare for A Lawless Time!
 
 ## 02.07.2026
 
