@@ -1,5 +1,10 @@
 # Release Notes
 
+## 02.11.2026
+
+### 🐞 Bug Fixes
+- **Arena view filters**: Fixed a bug where filters were not being applied correctly
+
 ## 02.10.2026
 
 ### 🎨 UI Improvements

@@ -193,14 +193,14 @@ export function ArenaPoolSection({
     }))
   }, [])
 
-  // Check if all filters are active
-  const allFiltersActive = useMemo(() => {
-    return [...presentCombos].every(k => activeFilters[k])
+  // Check if ANY filter is active (eye shows "visible" unless everything is hidden)
+  const anyFilterActive = useMemo(() => {
+    return [...presentCombos].some(k => activeFilters[k])
   }, [activeFilters, presentCombos])
 
   // Toggle all filters on/off
   const toggleAllFilters = useCallback(() => {
-    const showAll = !allFiltersActive
+    const showAll = !anyFilterActive
     if (showAll) setSearchQuery('')
     setActiveFilters(prev => {
       const newState = { ...prev }
@@ -209,10 +209,10 @@ export function ArenaPoolSection({
       })
       return newState
     })
-  }, [allFiltersActive, presentCombos])
+  }, [anyFilterActive, presentCombos])
 
   // Toggle all combos for a primary aspect group
-  // If any are active, turn all off. If all are off, turn all on.
+  // If any present combos are active, turn all off. If none are active, turn all on.
   const togglePrimaryAspect = useCallback((primary: string) => {
     setActiveFilters(prev => {
       const combosForPrimary = [
@@ -223,17 +223,18 @@ export function ArenaPoolSection({
           return sorted.join('+')
         })
       ]
-      const anyActive = combosForPrimary.some(k => prev[k])
+      // Only consider present combos for determining toggle direction
+      const anyPresentActive = combosForPrimary.some(k => presentCombos.has(k) && prev[k])
       const newState = { ...prev }
       combosForPrimary.forEach(k => {
-        newState[k] = !anyActive
+        newState[k] = !anyPresentActive
       })
       return newState
     })
-  }, [])
+  }, [presentCombos])
 
   // Toggle secondary aspect (and all combos containing it)
-  // If any are active, turn all off. If all are off, turn all on.
+  // If any present combos are active, turn all off. If none are active, turn all on.
   const toggleSecondaryAspect = useCallback((secondary: string) => {
     setActiveFilters(prev => {
       const combosWithSecondary = [
@@ -243,17 +244,18 @@ export function ArenaPoolSection({
           return sorted.join('+')
         })
       ]
-      const anyActive = combosWithSecondary.some(k => prev[k])
+      // Only consider present combos for determining toggle direction
+      const anyPresentActive = combosWithSecondary.some(k => presentCombos.has(k) && prev[k])
       const newState = { ...prev }
       combosWithSecondary.forEach(k => {
-        newState[k] = !anyActive
+        newState[k] = !anyPresentActive
       })
       return newState
     })
-  }, [])
+  }, [presentCombos])
 
-  // Check if ANY combo for a primary aspect is active
-  // Parent shows as "active" if any child is active
+  // Check if ANY present combo for a primary aspect is active
+  // Parent shows as "active" only if at least one present child is active
   const isPrimaryAspectActive = useCallback((primary: string) => {
     const combosForPrimary = [
       primary,
@@ -263,10 +265,10 @@ export function ArenaPoolSection({
         return sorted.join('+')
       })
     ]
-    return combosForPrimary.some(k => activeFilters[k])
-  }, [activeFilters])
+    return combosForPrimary.some(k => presentCombos.has(k) && activeFilters[k])
+  }, [activeFilters, presentCombos])
 
-  // Check if ANY combo for a secondary aspect is active
+  // Check if ANY present combo for a secondary aspect is active
   const isSecondaryAspectActive = useCallback((secondary: string) => {
     const combosWithSecondary = [
       secondary,
@@ -275,8 +277,8 @@ export function ArenaPoolSection({
         return sorted.join('+')
       })
     ]
-    return combosWithSecondary.some(k => activeFilters[k])
-  }, [activeFilters])
+    return combosWithSecondary.some(k => presentCombos.has(k) && activeFilters[k])
+  }, [activeFilters, presentCombos])
 
   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
@@ -369,11 +371,11 @@ export function ArenaPoolSection({
 
           {/* Hide All / Show All toggle */}
           <button
-            className={`arena-filter-btn arena-toggle-all-filter ${allFiltersActive ? 'active' : 'inactive'}`}
+            className={`arena-filter-btn arena-toggle-all-filter ${anyFilterActive ? 'active' : 'inactive'}`}
             onClick={toggleAllFilters}
-            title={allFiltersActive ? 'Hide All' : 'Show All'}
+            title={anyFilterActive ? 'Hide All' : 'Show All'}
           >
-            {allFiltersActive ? (
+            {anyFilterActive ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                 <circle cx="12" cy="12" r="3" />
