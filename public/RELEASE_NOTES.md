@@ -1,5 +1,14 @@
 # Release Notes
 
+## 02.11.2026
+
+### 🎉 New Features
+- **LAW Beta Access**: Visit `/beta` to join the beta program and get early access to A Lawless Time (Set 7)
+
+### 🎨 UI Improvements
+- Stats page: Added LAW tab for Set 7 statistics
+- Stats page: Set tabs now show a lighter version of their color on hover
+
 ## 02.07.2026
 
 ### 🎉 New Features

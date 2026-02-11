@@ -1,5 +1,5 @@
 {
-  "runAt": "2026-02-07T08:59:21.296Z",
+  "runAt": "2026-02-11T08:58:01.921Z",
   "summary": {
     "total": 108,
     "passed": 108,
@@ -16,7 +16,7 @@
       "suite": "pack_generation",
       "name": "SOR: all packs have exactly 1 leader",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -28,7 +28,7 @@
       "suite": "pack_generation",
       "name": "SOR: all packs have exactly 1 foil",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -52,7 +52,7 @@
       "suite": "pack_generation",
       "name": "SOR: packs have 1 or 2 rare/legendary/special in non-foil slots",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -82,7 +82,7 @@
       "suite": "pack_generation",
       "name": "SOR: HS+Normal same-leader rate should be within expected range",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -142,7 +142,7 @@
       "suite": "pack_generation",
       "name": "SHD: no duplicate base treatment cards within any pack",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
@@ -190,25 +190,25 @@
       "suite": "pack_generation",
       "name": "SHD: HS+Normal same-leader rate should be within expected range",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
       "name": "SHD: card+foil pairs within single packs should be rare (ideal < 5%)",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
       "name": "SHD: card+foil pairs within sealed pods should be uncommon (acceptable < 100%)",
       "status": "passed",
-      "executionTime": 2
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
       "name": "SHD: average card+foil pairs per pod should be reasonable (< 5)",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
@@ -220,7 +220,7 @@
       "suite": "pack_generation",
       "name": "SHD: leaders show good variety",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -232,7 +232,7 @@
       "suite": "pack_generation",
       "name": "TWI: all packs have exactly 1 leader",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -256,7 +256,7 @@
       "suite": "pack_generation",
       "name": "TWI: all packs have exactly 9 commons (non-foil)",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -268,13 +268,13 @@
       "suite": "pack_generation",
       "name": "TWI: packs have 1 or 2 rare/legendary/special in non-foil slots",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
       "name": "TWI: when UC slot upgrades, counts are consistent",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -310,19 +310,19 @@
       "suite": "pack_generation",
       "name": "TWI: card+foil pairs within sealed pods should be uncommon (acceptable < 100%)",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
       "name": "TWI: average card+foil pairs per pod should be reasonable (< 5)",
       "status": "passed",
-      "executionTime": 2
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
       "name": "TWI: good card variety across all packs",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
@@ -334,13 +334,13 @@
       "suite": "pack_generation",
       "name": "JTL: all packs have 16 cards",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
       "name": "JTL: all packs have exactly 1 leader",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -418,7 +418,7 @@
       "suite": "pack_generation",
       "name": "JTL: card+foil pairs within sealed pods should be uncommon (acceptable < 100%)",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
@@ -430,7 +430,7 @@
       "suite": "pack_generation",
       "name": "JTL: good card variety across all packs",
       "status": "passed",
-      "executionTime": 2
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -472,7 +472,7 @@
       "suite": "pack_generation",
       "name": "LOF: all packs have exactly 9 commons (non-foil)",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -484,7 +484,7 @@
       "suite": "pack_generation",
       "name": "LOF: packs have 1 or 2 rare/legendary/special in non-foil slots",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -514,7 +514,7 @@
       "suite": "pack_generation",
       "name": "LOF: HS+Normal same-leader rate should be within expected range",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -526,19 +526,19 @@
       "suite": "pack_generation",
       "name": "LOF: card+foil pairs within sealed pods should be uncommon (acceptable < 100%)",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
       "name": "LOF: average card+foil pairs per pod should be reasonable (< 5)",
       "status": "passed",
-      "executionTime": 2
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
       "name": "LOF: good card variety across all packs",
       "status": "passed",
-      "executionTime": 2
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -556,7 +556,7 @@
       "suite": "pack_generation",
       "name": "SEC: all packs have exactly 1 leader",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -574,7 +574,7 @@
       "suite": "pack_generation",
       "name": "SEC: no duplicate base treatment cards within any pack",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
@@ -598,7 +598,7 @@
       "suite": "pack_generation",
       "name": "SEC: when UC slot upgrades, counts are consistent",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -622,7 +622,7 @@
       "suite": "pack_generation",
       "name": "SEC: HS+Normal same-leader rate should be within expected range",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -634,7 +634,7 @@
       "suite": "pack_generation",
       "name": "SEC: card+foil pairs within sealed pods should be uncommon (acceptable < 100%)",
       "status": "passed",
-      "executionTime": 2
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
