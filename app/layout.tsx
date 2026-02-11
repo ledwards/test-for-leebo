@@ -71,7 +71,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body>
         <AuthProvider>
-          <AuthWidget showOnlyWhenLoggedIn={true} />
+          <AuthWidget />
           {children}
         </AuthProvider>
       </body>

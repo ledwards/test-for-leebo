@@ -4,7 +4,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../src/contexts/AuthContext'
-import AuthWidget from '../../src/components/AuthWidget'
 import { dropFromDraft } from '../../src/utils/draftApi'
 import '../../src/App.css'
 import '../../src/components/LandingPage.css'
@@ -162,7 +161,6 @@ export default function DraftLandingPage() {
 
   return (
     <div className="draft-page-bg">
-      <AuthWidget />
       <div className="draft-landing">
         <h1>Draft Mode</h1>
         <p className="draft-description">

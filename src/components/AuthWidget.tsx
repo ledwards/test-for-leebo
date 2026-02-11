@@ -23,11 +23,7 @@ interface DraftPod {
   isActive?: boolean
 }
 
-export interface AuthWidgetProps {
-  showOnlyWhenLoggedIn?: boolean
-}
-
-export default function AuthWidget({ showOnlyWhenLoggedIn = false }: AuthWidgetProps) {
+export default function AuthWidget() {
   const { user, loading, signOut } = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [mostRecentSealed, setMostRecentSealed] = useState<SealedPool | null>(null)
@@ -124,10 +120,10 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }: AuthWidgetP
     return name && name.length > maxLength ? name.substring(0, maxLength) + '...' : (name || '')
   }
 
+  const isHomepage = pathname === '/'
+
   if (loading) {
-    if (showOnlyWhenLoggedIn) {
-      return null
-    }
+    if (isHomepage) return null
     return (
       <div className="auth-widget">
         <div className="auth-widget-loading">...</div>
@@ -135,13 +131,10 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }: AuthWidgetP
     )
   }
 
-  // If showOnlyWhenLoggedIn is true, only show when logged in
   if (!user) {
-    if (showOnlyWhenLoggedIn) {
-      return null
-    }
+    if (isHomepage) return null
     // Build login URL with redirect back to current page
-    const loginUrl = `/api/auth/login?redirect=${encodeURIComponent(pathname || '/')}`
+    const loginUrl = `/api/auth/signin/discord?return_to=${encodeURIComponent(pathname || '/')}`
     return (
       <div className="auth-widget">
         <a href={loginUrl} className="auth-widget-login-button" title="Login with Discord">
