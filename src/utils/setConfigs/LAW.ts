@@ -55,6 +55,7 @@ export const LAW_CONFIG: SetConfig = {
     rareBasesInRareSlot: true,
 
     // No regular foils - foil slot is always Hyperspace Foil
+    // HyperfoilBelt falls back to Normal variants when no HSF data exists
     foilSlotIsHyperspaceFoil: true,
 
     // Guaranteed Hyperspace common in every pack
@@ -87,29 +88,31 @@ export const LAW_CONFIG: SetConfig = {
     rareToLegendary: constants.rareSlotLegendaryRatio,
   },
 
-  // Upgrade probabilities
+  // Upgrade probabilities (belt-driven via HyperspaceUpgradeBelt with 'LAW' config)
+  // Belt guarantees ≥1 HS per pack (budget-0 = 0). Common fills the gap.
+  // When no HS variant data exists, findHyperspaceVariant() falls back to Normal + isHyperspace flag
   upgradeProbabilities: {
     // Leader upgrades
-    leaderToHyperspace: constants.leaderHyperspaceRate,
-    leaderToShowcase: constants.showcaseLeaderRate,
+    leaderToHyperspace: constants.leaderHyperspaceRate,       // 1/6 (belt: 10/60)
+    leaderToShowcase: constants.showcaseLeaderRate,            // ~1/576 (independent)
 
     // Base upgrade
-    baseToHyperspace: constants.baseHyperspaceRate,
+    baseToHyperspace: constants.baseHyperspaceRate,            // 1/6 (belt: 10/60)
 
     // Foil slot - NO upgrade needed, it's always Hyperspace Foil
     // foilToHyperfoil is effectively 1.0 but handled differently
     foilToHyperfoil: 0, // Handled by foilSlotIsHyperspaceFoil rule
 
     // UC slot upgrades
-    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,
-    firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,
-    secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,
+    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,      // 1/5 (belt: 8/60)
+    firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // 1/8 (belt: 4/60)
+    secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,  // 1/8 (belt: 2/60)
 
-    // Common upgrades (beyond the guaranteed HS common)
-    commonToHyperspace: constants.commonHyperspaceRate,
+    // Common upgrades (belt-driven, fills the gap for guaranteed ≥1 HS)
+    commonToHyperspace: constants.commonHyperspaceRate,        // (belt: 28/60 ≈ 47%)
 
-    // Rare slot - can be replaced by Prestige
-    rareToHyperspaceRL: constants.rareSlotHyperspaceRate,
+    // Rare slot - can be replaced by Prestige or HS R/L
+    rareToHyperspaceRL: constants.rareSlotHyperspaceRate,      // 1/15 (belt: 4/60)
     rareToPrestige: constants.prestigeInRareSlotRate || 1/18,
   },
 

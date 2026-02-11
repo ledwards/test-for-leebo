@@ -101,6 +101,49 @@ async function runTests(): Promise<void> {
     assert(belt.size >= bootSize, 'Hopper should refill')
   })
 
+  // === LAW-specific tests ===
+  console.log('')
+  console.log('\x1b[1m\x1b[35m🤠 LAW HyperfoilBelt Tests\x1b[0m')
+
+  test('LAW: initializes with Normal variant fallback (no HSF data)', () => {
+    const belt = new HyperfoilBelt('LAW')
+    assert(belt.fillingPool.length > 0, 'Filling pool should not be empty (should fall back to Normal variants)')
+    assert(belt.fillingPool.every(c => c.variantType === 'Normal'), 'Fallback should use Normal variant cards')
+  })
+
+  test('LAW: next() returns card marked as isFoil and isHyperspace', () => {
+    const belt = new HyperfoilBelt('LAW')
+    const card = belt.next()
+    assert(card !== null, 'next() should return a card')
+    assert(card.isFoil === true, 'Card should be marked as foil')
+    assert(card.isHyperspace === true, 'Card should be marked as hyperspace')
+  })
+
+  test('LAW: includes Special rarity in pool', () => {
+    const belt = new HyperfoilBelt('LAW')
+    const hasSpecial = belt.fillingPool.some(c => c.rarity === 'Special')
+    assert(hasSpecial, 'LAW should include Special rarity in hyperfoil pool')
+    assertEqual(belt.rarityQuantities.Special, 6, 'Special should use 6x rate (same as Rare)')
+  })
+
+  test('LAW: no leaders or bases in pool', () => {
+    const belt = new HyperfoilBelt('LAW')
+    assert(belt.fillingPool.every(c => !c.isLeader), 'No leaders in filling pool')
+    assert(belt.fillingPool.every(c => !c.isBase), 'No bases in filling pool')
+  })
+
+  test('LAW: rarity distribution follows expected weights', () => {
+    const belt = new HyperfoilBelt('LAW')
+    const counts: Record<string, number> = { Common: 0, Uncommon: 0, Rare: 0, Special: 0, Legendary: 0 }
+    for (let i = 0; i < 300; i++) {
+      const card = belt.next()
+      counts[card.rarity] = (counts[card.rarity] || 0) + 1
+    }
+    assert(counts.Common > counts.Uncommon, `Commons (${counts.Common}) should exceed uncommons (${counts.Uncommon})`)
+    assert(counts.Uncommon > counts.Rare, `Uncommons (${counts.Uncommon}) should exceed rares (${counts.Rare})`)
+    assert(counts.Rare > counts.Legendary, `Rares (${counts.Rare}) should exceed legendaries (${counts.Legendary})`)
+  })
+
   test('no repeating pattern: consecutive belt fills produce different sequences', () => {
     const belt = new HyperfoilBelt('SOR')
     const fillSize = Math.min(belt.fillingPool.length, 30)

@@ -72,6 +72,17 @@ export class HyperfoilBelt {
       (includeSpecial || c.rarity !== 'Special')
     )
 
+    // Fallback: if no HSF variants in data, use Normal variants as placeholders
+    // This handles LAW before HSF card data is loaded
+    if (this.fillingPool.length === 0) {
+      this.fillingPool = cards.filter(c =>
+        c.variantType === 'Normal' &&
+        !c.isLeader &&
+        !c.isBase &&
+        (includeSpecial || c.rarity !== 'Special')
+      )
+    }
+
     // Initial fill
     this._fillIfNeeded()
   }
