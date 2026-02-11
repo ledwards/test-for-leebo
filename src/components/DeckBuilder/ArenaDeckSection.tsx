@@ -240,18 +240,24 @@ export function ArenaDeckSection({
 
   const hasLeaderAndBase = leaderCard && baseCard
 
+  // Calculate disabled states for buttons
+  const allCardsInDeck = poolCards.length === 0
+  const allCardsInPool = deckCards.length === 0
+  const allInAspectInDeck = hasLeaderAndBase && poolCards.every(({ position }) => calculatePenalty(position.card) > 0)
+  const noOutOfAspectInDeck = hasLeaderAndBase && deckCards.every(({ position }) => calculatePenalty(position.card) === 0)
+
   return (
     <div className="arena-deck-section">
       <div className="arena-deck-header">
-        <h3 className="arena-deck-title">Deck</h3>
-        <span className="arena-deck-count">({deckCards.length} cards)</span>
+        <h3 className="arena-section-title">Deck ({deckCards.length} cards)</h3>
 
-        {/* Utility buttons */}
         <div className="arena-utility-buttons">
+          <span className="arena-utility-label">Actions:</span>
           <button
             className="arena-utility-button primary"
             onClick={handleAddAll}
             title="Move all pool cards to deck"
+            disabled={allCardsInDeck}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 5v14M5 12h14" />
@@ -262,6 +268,7 @@ export function ArenaDeckSection({
             className="arena-utility-button danger"
             onClick={handleRemoveAll}
             title="Move all deck cards to pool"
+            disabled={allCardsInPool}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 12h14" />
@@ -269,7 +276,7 @@ export function ArenaDeckSection({
             All
           </button>
           <button
-            className="arena-utility-button"
+            className="arena-utility-button gold"
             onClick={handleSwap}
             title="Swap pool and deck"
           >
@@ -278,6 +285,35 @@ export function ArenaDeckSection({
             </svg>
             Swap
           </button>
+
+          {hasLeaderAndBase && (
+            <>
+              <button
+                className="arena-utility-button primary"
+                onClick={handleAddInAspect}
+                title="Add all in-aspect cards to deck"
+                disabled={allInAspectInDeck}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14M5 12h14" />
+                  <circle cx="12" cy="12" r="9" />
+                </svg>
+                In Aspect
+              </button>
+              <button
+                className="arena-utility-button danger"
+                onClick={handleRemoveOutOfAspect}
+                title="Remove all out-of-aspect cards from deck"
+                disabled={noOutOfAspectInDeck}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14" />
+                  <circle cx="12" cy="12" r="9" />
+                </svg>
+                Out of Aspect
+              </button>
+            </>
+          )}
 
           <div className="arena-utility-separator" />
           <button
@@ -299,33 +335,6 @@ export function ArenaDeckSection({
             )}
             Aspect Penalties
           </button>
-
-          {hasLeaderAndBase && (
-            <>
-              <button
-                className="arena-utility-button primary"
-                onClick={handleAddInAspect}
-                title="Add all in-aspect cards to deck"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 5v14M5 12h14" />
-                  <circle cx="12" cy="12" r="9" />
-                </svg>
-                In Aspect
-              </button>
-              <button
-                className="arena-utility-button danger"
-                onClick={handleRemoveOutOfAspect}
-                title="Remove all out-of-aspect cards from deck"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14" />
-                  <circle cx="12" cy="12" r="9" />
-                </svg>
-                Out of Aspect
-              </button>
-            </>
-          )}
         </div>
       </div>
 

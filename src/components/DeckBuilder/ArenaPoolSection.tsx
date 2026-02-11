@@ -320,10 +320,11 @@ export function ArenaPoolSection({
     <div className="arena-pool-section">
       <div className="arena-pool-header">
         {/* Pool title on its own row */}
-        <h3 className="arena-pool-title">Pool ({sortedCards.length})</h3>
+        <h3 className="arena-section-title">Pool ({sortedCards.length} cards)</h3>
 
         {/* Search and aspect filters row */}
-        <div className="arena-filters-row">
+        <div className="arena-filters-row arena-controls-row">
+          <span className="arena-filter-label">Filter:</span>
           {/* Search box - separate from filters */}
           <div className="arena-search-container">
             <svg className="arena-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -404,7 +405,7 @@ export function ArenaPoolSection({
         </div>{/* Close arena-filters-row */}
       </div>
 
-      <div className="arena-pool-cards">
+      <div className="arena-content-area">
         <div className="arena-pool-grid">
           {sortedCards.map(({ cardId, position }) => {
             const card = position.card
