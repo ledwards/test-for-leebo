@@ -1268,7 +1268,7 @@ export default function PlayPage({ params }: PageProps) {
           } else {
             resolve(null)
           }
-        }, 'image/png')
+        }, 'image/jpeg', 0.85)
       })
     } catch (error) {
       console.error('Error generating pool image:', error)
@@ -1563,7 +1563,8 @@ export default function PlayPage({ params }: PageProps) {
                   const sanitizedName = poolName.replace(/[^a-z0-9]/gi, '_').toLowerCase()
                   const prefix = pool?.poolType === 'draft' ? 'ptp_draft' : 'ptp_sealed'
                   const suffix = showingPool ? '_pool' : '_deck'
-                  a.download = `${prefix}_${sanitizedName}${suffix}.png`
+                  const extension = showingPool ? 'jpg' : 'png'
+                  a.download = `${prefix}_${sanitizedName}${suffix}.${extension}`
                   document.body.appendChild(a)
                   a.click()
                   document.body.removeChild(a)
@@ -1576,7 +1577,7 @@ export default function PlayPage({ params }: PageProps) {
                 onClick={handleToggleView}
                 disabled={loadingPool}
               >
-                {loadingPool ? 'Loading...' : showingPool ? 'Show Deck' : 'Show Pool'}
+                {loadingPool ? 'Loading...' : showingPool ? 'Show Deck' : 'Show Entire Pool'}
               </button>
             </div>
           </div>

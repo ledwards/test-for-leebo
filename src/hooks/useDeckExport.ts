@@ -956,7 +956,7 @@ export function useDeckExport({
           } else {
             resolve(null)
           }
-        }, 'image/png')
+        }, 'image/jpeg', 0.85)
       })
 
     } catch (error) {
