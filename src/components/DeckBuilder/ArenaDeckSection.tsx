@@ -196,47 +196,66 @@ export function ArenaDeckSection({
       .map(([cardId, position]) => ({ cardId, position: position as PoolCardEntry['position'] }))
   }, [cardPositions])
 
+  // Helper: save scroll position before bulk card moves, restore after
+  const withScrollLock = useCallback((fn: () => void) => {
+    const scrollY = window.scrollY
+    fn()
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollY)
+    })
+  }, [])
+
   // Move all pool cards to deck
   const handleAddAll = useCallback(() => {
-    poolCards.forEach(({ cardId }) => {
-      toggleCardSection(cardId)
+    withScrollLock(() => {
+      poolCards.forEach(({ cardId }) => {
+        toggleCardSection(cardId)
+      })
     })
-  }, [poolCards, toggleCardSection])
+  }, [poolCards, toggleCardSection, withScrollLock])
 
   // Move all deck cards to pool
   const handleRemoveAll = useCallback(() => {
-    deckCards.forEach(({ cardId }) => {
-      toggleCardSection(cardId)
+    withScrollLock(() => {
+      deckCards.forEach(({ cardId }) => {
+        toggleCardSection(cardId)
+      })
     })
-  }, [deckCards, toggleCardSection])
+  }, [deckCards, toggleCardSection, withScrollLock])
 
   // Swap pool and deck
   const handleSwap = useCallback(() => {
-    const poolCardIds = poolCards.map(({ cardId }) => cardId)
-    const deckCardIds = deckCards.map(({ cardId }) => cardId)
-    poolCardIds.forEach(cardId => toggleCardSection(cardId))
-    deckCardIds.forEach(cardId => toggleCardSection(cardId))
-  }, [poolCards, deckCards, toggleCardSection])
+    withScrollLock(() => {
+      const poolCardIds = poolCards.map(({ cardId }) => cardId)
+      const deckCardIds = deckCards.map(({ cardId }) => cardId)
+      poolCardIds.forEach(cardId => toggleCardSection(cardId))
+      deckCardIds.forEach(cardId => toggleCardSection(cardId))
+    })
+  }, [poolCards, deckCards, toggleCardSection, withScrollLock])
 
   // Add all in-aspect cards to deck
   const handleAddInAspect = useCallback(() => {
-    poolCards.forEach(({ cardId, position }) => {
-      const penalty = calculatePenalty(position.card)
-      if (penalty === 0) {
-        toggleCardSection(cardId)
-      }
+    withScrollLock(() => {
+      poolCards.forEach(({ cardId, position }) => {
+        const penalty = calculatePenalty(position.card)
+        if (penalty === 0) {
+          toggleCardSection(cardId)
+        }
+      })
     })
-  }, [poolCards, calculatePenalty, toggleCardSection])
+  }, [poolCards, calculatePenalty, toggleCardSection, withScrollLock])
 
   // Remove all out-of-aspect cards from deck
   const handleRemoveOutOfAspect = useCallback(() => {
-    deckCards.forEach(({ cardId, position }) => {
-      const penalty = calculatePenalty(position.card)
-      if (penalty > 0) {
-        toggleCardSection(cardId)
-      }
+    withScrollLock(() => {
+      deckCards.forEach(({ cardId, position }) => {
+        const penalty = calculatePenalty(position.card)
+        if (penalty > 0) {
+          toggleCardSection(cardId)
+        }
+      })
     })
-  }, [deckCards, calculatePenalty, toggleCardSection])
+  }, [deckCards, calculatePenalty, toggleCardSection, withScrollLock])
 
   const hasLeaderAndBase = leaderCard && baseCard
 

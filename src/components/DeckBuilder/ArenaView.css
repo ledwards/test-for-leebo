@@ -108,8 +108,8 @@
 /* Aspect penalty badge */
 .resizable-card .aspect-penalty-badge {
   position: absolute;
-  top: 12%;
-  left: 12%;
+  top: 2%;
+  left: calc(12% + 4px);
   width: 16%;
   height: auto;
   aspect-ratio: 1;
@@ -117,9 +117,9 @@
   z-index: 10;
 }
 
-/* Aspect penalty badge in deck section - 10% higher */
-.arena-deck-section .resizable-card .aspect-penalty-badge {
-  top: 2%;
+/* Fade penalty badge on hover */
+.resizable-card:hover .aspect-penalty-badge {
+  opacity: 0.3;
 }
 
 .resizable-card .aspect-penalty-badge .penalty-icon {
@@ -386,6 +386,20 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Toggle all filters button */
+.arena-toggle-all-filter {
+  flex: 0 0 auto;
+  border-radius: 6px;
+  padding: 6px 8px;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.arena-toggle-all-filter svg {
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
 /* Neutral filter styled like aspect groups */
 .arena-neutral-filter {
   width: 40px;
@@ -422,6 +436,21 @@
   color: white;
   font-size: 0.8rem;
   outline: none;
+}
+
+.arena-search-clear {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.arena-search-clear:hover {
+  color: white;
 }
 
 .arena-search-input::placeholder {
@@ -527,6 +556,14 @@
 /* Tooltip for utility buttons */
 .arena-utility-button[title] {
   position: relative;
+}
+
+/* Empty pool message */
+.arena-empty-pool {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  padding: 1rem 0;
+  text-align: center;
 }
 
 /* Pool Cards Grid */
