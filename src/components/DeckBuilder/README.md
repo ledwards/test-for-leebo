@@ -28,6 +28,17 @@ This folder contains sub-components extracted from the main `DeckBuilder.jsx` to
 | `PoolListSection.jsx` | Table view for pool, deck, and sideboard with sorting |
 | `ListTableHeader.jsx` | Reusable sortable table header with checkbox |
 
+### Section Components (Arena View)
+
+| Component | Description |
+|-----------|-------------|
+| `ArenaView.tsx` | Main arena view container (desktop only) |
+| `ArenaPoolSection.tsx` | Top half: pool cards with aspect filters and search |
+| `ArenaDeckSection.tsx` | Bottom half: deck cards in cost columns |
+| `ArenaCardStack.tsx` | Stacked cards within a cost column |
+| `ArenaLeaderBaseSelector.tsx` | Horizontal leader/base row for arena view |
+| `ResizableCard.tsx` | Card component that scales to container width |
+
 ### Header & Controls
 
 | Component | Description |
@@ -62,16 +73,21 @@ This folder contains sub-components extracted from the main `DeckBuilder.jsx` to
 ```
 DeckBuilder.jsx (Main Orchestrator)
 ├── Uses DeckBuilderContext for shared state
-├── Renders based on viewMode (grid/list)
+├── Renders based on viewMode (grid/list/arena)
 │
 ├── Grid View:
 │   ├── LeaderBaseSelector
 │   ├── PoolSection → CardGrid
 │   └── DeckSection → CardGrid
 │
-└── List View:
-    ├── SelectionListSection (Leaders/Bases)
-    └── PoolListSection (Pool/Deck/Sideboard)
+├── List View:
+│   ├── SelectionListSection (Leaders/Bases)
+│   └── PoolListSection (Pool/Deck/Sideboard)
+│
+└── Arena View (desktop only):
+    ├── ArenaLeaderBaseSelector (horizontal row)
+    ├── ArenaPoolSection (aspect filters + card grid)
+    └── ArenaDeckSection (cost columns with stacked cards)
 ```
 
 ## Context Usage
@@ -102,6 +118,7 @@ function MyComponent() {
 
 Card-specific styles are in `Card.css` (imported by `Card.jsx`).
 DeckBuilder layout and section styles are in `DeckBuilder.css`.
+Arena view styles are in `ArenaView.css`.
 
 ### Key CSS Classes
 
@@ -110,6 +127,12 @@ DeckBuilder layout and section styles are in `DeckBuilder.css`.
 - `.card-block` - Section block container
 - `.list-table` - Table styling for list view
 - `.section-header` - Section header styling
+- `.arena-view` - Arena view container
+- `.arena-pool-section` - Pool section in arena view
+- `.arena-deck-section` - Deck section in arena view
+- `.arena-section-title` - Shared title styling for Pool/Deck
+- `.arena-controls-row` - Shared spacing class for filter/action rows
+- `.arena-content-area` - Shared spacing class for content below controls
 
 ## Adding New Components
 

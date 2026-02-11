@@ -8,6 +8,13 @@
 ### 🎨 UI Improvements
 - Stats page: Added LAW tab for Set 7 statistics
 - Stats page: Set tabs now show a lighter version of their color on hover
+- Arena view: Villainy filter now matches other aspect filters (no white background)
+- Arena view: Aspect Penalties and Swap buttons are now gold/yellow to match cost icons
+- Arena view: Reordered buttons - In Aspect and Out of Aspect now before Aspect Penalties toggle
+- Arena view: Added "Filter:" and "Actions:" labels for clarity
+- Arena view: Unified Pool and Deck title styling for consistency
+- Arena view: Bulk action buttons now disable when not applicable (e.g., +All disabled when pool is empty)
+- Pool image export: Reduced image size by 10% for Discord upload compatibility while keeping PNG format
 
 ## 02.07.2026
 
