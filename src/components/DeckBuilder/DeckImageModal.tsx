@@ -78,7 +78,8 @@ export function DeckImageModal({ imageUrl, onClose, poolName, setCode, poolType,
     const prefix = poolType === 'draft' ? 'ptp_draft' : 'ptp_sealed'
     const suffix = showingPool ? '_pool' : '_deck'
 
-    a.download = `${prefix}_${sanitizedName}${suffix}_${timeStr}.png`
+    const extension = showingPool ? 'jpg' : 'png'
+    a.download = `${prefix}_${sanitizedName}${suffix}_${timeStr}.${extension}`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -115,7 +116,7 @@ export function DeckImageModal({ imageUrl, onClose, poolName, setCode, poolType,
               onClick={handleToggleView}
               disabled={loadingPool}
             >
-              {loadingPool ? 'Loading...' : showingPool ? 'Show Deck' : 'Show Pool'}
+              {loadingPool ? 'Loading...' : showingPool ? 'Show Deck' : 'Show Entire Pool'}
             </Button>
           )}
         </div>
