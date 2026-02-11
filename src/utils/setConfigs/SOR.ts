@@ -56,30 +56,31 @@ export const SOR_CONFIG: SetConfig = {
     rareToLegendary: constants.rareSlotLegendaryRatio,  // 7:1 for R slot (1 in 8)
   },
 
-  // Upgrade probabilities (chance for slot to be upgraded)
-  // NOTE: Key names must match what boosterPack.js expects
+  // Upgrade probabilities
+  // NOTE: For Sets 1-6, HS upgrades are belt-driven (HyperspaceUpgradeBelt),
+  // not independent coin flips. These values are used as fallback for LAW+
+  // and for non-HS upgrades (Showcase, Hyperfoil).
+  // Actual HS rates are in HS_BELT_CONFIGS in packConstants.ts.
   upgradeProbabilities: {
     // Leader upgrades
-    leaderToHyperspace: constants.leaderHyperspaceRate,         // ~1/6
-    leaderToShowcase: constants.showcaseLeaderRate,             // ~1/288
+    leaderToHyperspace: constants.leaderHyperspaceRate,         // ~1/6 (belt: 10/60)
+    leaderToShowcase: constants.showcaseLeaderRate,             // ~1/288 (independent)
 
     // Base upgrade
-    baseToHyperspace: constants.baseHyperspaceRate,             // ~1/4
+    baseToHyperspace: constants.baseHyperspaceRate,             // ~1/6 (belt: 10/60)
 
     // Foil upgrade
-    foilToHyperfoil: constants.hyperfoilRate,                   // ~1/50
+    foilToHyperfoil: constants.hyperfoilRate,                   // ~1/50 (independent)
 
-    // UC slot upgrades (slot 3 can upgrade to HS R/L)
-    // NOTE: thirdUCToHyperspaceRL is the total UC3 upgrade rate
-    // The ucSlot3UpgradedWeights determines what rarity within that
-    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,        // ~1/5.5
-    firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,    // ~1/8.5
-    secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // ~1/8.5
+    // UC slot upgrades
+    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,        // ~1/5.5 (belt: 8/60)
+    firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,    // ~1/8.5 (belt: 4/60)
+    secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // ~1/8.5 (belt: 2/60)
 
     // Common upgrade
-    commonToHyperspace: constants.commonHyperspaceRate,         // ~1/3
+    commonToHyperspace: constants.commonHyperspaceRate,         // ~1/3 (belt: 12/60)
 
-    // Rare slot upgrade (always 0% - R slot is always black-border)
-    rareToHyperspaceRL: constants.rareSlotHyperspaceRate,       // 0%
+    // Rare slot upgrade to Hyperspace R/L
+    rareToHyperspaceRL: constants.rareSlotHyperspaceRate,       // ~1/15 (belt: 4/60)
   }
 }

@@ -58,14 +58,18 @@
 
 | Upgrade | Rate | Notes |
 |---------|------|-------|
-| Leader → Hyperspace | 1/6 (~16.7%) | ~4 per box |
-| Leader → Showcase | 1/288 (~0.35%) | Very rare |
-| Base → Hyperspace | 1/4 (25%) | ~6 per box |
-| Foil → Hyperfoil | 1/50 (2%) | ~1 per 2 boxes |
-| Common → Hyperspace | 1/3 (~33%) | In slot 4 |
-| UC Slot 3 → HS R/L | 1/5 (20%) | Slightly higher than Block 0 |
-| UC → Hyperspace UC | 1/8 (12.5%) | Slots 1-2 |
-| Rare → Hyperspace | 0% | Never |
+| Leader → Hyperspace | 1/6 (~16.7%) | Belt-driven, ~4 per box |
+| Leader → Showcase | 1/288 (~0.35%) | Independent coin flip |
+| Base → Hyperspace | 1/6 (~16.7%) | Belt-driven, ~4 per box |
+| Foil → Hyperfoil | 1/50 (2%) | Independent, ~1 per 2 boxes |
+| Common → Hyperspace | 1/5 (20%) | Belt-driven, in slot 4 |
+| UC Slot 3 → HS R/L | 1/7.5 (~13.3%) | Belt-driven, rarity upgrade |
+| UC1 → Hyperspace UC | 1/15 (~6.7%) | Belt-driven |
+| UC2 → Hyperspace UC | 1/30 (~3.3%) | Belt-driven |
+| Rare → Hyperspace | 1/15 (~6.7%) | Belt-driven |
+
+All HS upgrades use the HyperspaceUpgradeBelt (budget system, not independent coin flips).
+~2/3 of packs have at least 1 HS card, max 2 per pack.
 
 ## Rarity Weights
 
