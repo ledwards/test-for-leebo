@@ -229,18 +229,32 @@
 .arena-pool-header {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
   margin-bottom: 0.75rem;
 }
 
-.arena-pool-title {
+.arena-section-title {
   font-size: 1rem;
   font-weight: 600;
   color: white;
   margin: 0;
 }
 
+.arena-filter-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.5rem;
+  white-space: nowrap;
+}
+
 /* Filters row - search then filters, wraps when search hits min-width */
+/* Shared controls row spacing */
+.arena-controls-row {
+  margin-bottom: 0.75rem;
+}
+
 .arena-filters-row {
   display: flex;
   align-items: center;
@@ -363,8 +377,8 @@
 }
 
 .arena-secondary-aspect.villainy {
-  border-color: rgba(75, 0, 130, 0.5);
-  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(75, 0, 130, 0.1);
 }
 
 .arena-secondary-aspect.heroism {
@@ -425,7 +439,6 @@
   gap: 0.5rem;
   align-items: center;
   flex-wrap: wrap;
-  margin-top: 0.25rem;
 }
 
 .arena-utility-button {
@@ -471,17 +484,26 @@
 }
 
 .arena-utility-button.toggle {
-  border-color: rgba(33, 150, 243, 0.5);
-  color: #2196f3;
+  border-color: rgba(255, 179, 0, 0.5);
+  color: #ffb300;
 }
 
 .arena-utility-button.toggle:hover:not(:disabled) {
-  background: rgba(33, 150, 243, 0.2);
+  background: rgba(255, 179, 0, 0.2);
 }
 
 .arena-utility-button.toggle.active {
-  background: rgba(33, 150, 243, 0.3);
-  border-color: rgba(33, 150, 243, 0.8);
+  background: rgba(255, 179, 0, 0.3);
+  border-color: rgba(255, 179, 0, 0.8);
+}
+
+.arena-utility-button.gold {
+  border-color: rgba(255, 179, 0, 0.5);
+  color: #ffb300;
+}
+
+.arena-utility-button.gold:hover:not(:disabled) {
+  background: rgba(255, 179, 0, 0.2);
 }
 
 .arena-utility-button.disabled-red {
@@ -508,7 +530,8 @@
 }
 
 /* Pool Cards Grid */
-.arena-pool-cards {
+/* Content area below controls row */
+.arena-content-area {
   margin-top: 0.5rem;
 }
 
@@ -532,21 +555,19 @@
 
 .arena-deck-header {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 1rem;
   margin-bottom: 0.75rem;
 }
 
-.arena-deck-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: white;
-  margin: 0;
-}
 
-.arena-deck-count {
-  font-size: 0.85rem;
+.arena-utility-label {
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.5rem;
+  white-space: nowrap;
 }
 
 /* Cost Columns Container */
