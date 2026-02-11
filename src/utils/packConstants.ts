@@ -138,9 +138,9 @@ export const SETS_1_3_CONSTANTS: PackConstants = {
 
   // ---------------------------------------------------------------------------
   // Base Hyperspace Upgrade Rate (Question 6)
-  // ~1 in 4 packs (6 per box)
+  // ~1 in 6 packs (~4 per box)
   // ---------------------------------------------------------------------------
-  baseHyperspaceRate: 1 / 4,
+  baseHyperspaceRate: 1 / 6,
 
   // ---------------------------------------------------------------------------
   // Common Hyperspace Upgrade Rate (Question 7)
@@ -156,9 +156,9 @@ export const SETS_1_3_CONSTANTS: PackConstants = {
 
   // ---------------------------------------------------------------------------
   // Rare/Legendary Hyperspace Upgrade in R Slot (Questions 9, 10)
-  // 0% - R slot is always black-border
+  // ~1 in 15 packs
   // ---------------------------------------------------------------------------
-  rareSlotHyperspaceRate: 0,
+  rareSlotHyperspaceRate: 1 / 15,
 
   // ---------------------------------------------------------------------------
   // HS Non-Foil Rarity Weights (Question 12)
@@ -252,9 +252,9 @@ export const SETS_4_6_CONSTANTS: PackConstants = {
 
   // ---------------------------------------------------------------------------
   // Base Hyperspace Upgrade Rate (Question 6)
-  // ~1 in 4 packs (6 per box)
+  // ~1 in 6 packs (~4 per box)
   // ---------------------------------------------------------------------------
-  baseHyperspaceRate: 1 / 4,
+  baseHyperspaceRate: 1 / 6,
 
   // ---------------------------------------------------------------------------
   // Common Hyperspace Upgrade Rate (Question 7)
@@ -270,9 +270,9 @@ export const SETS_4_6_CONSTANTS: PackConstants = {
 
   // ---------------------------------------------------------------------------
   // Rare/Legendary Hyperspace Upgrade in R Slot (Questions 9, 10)
-  // 0% - R slot is always black-border
+  // ~1 in 15 packs
   // ---------------------------------------------------------------------------
-  rareSlotHyperspaceRate: 0,
+  rareSlotHyperspaceRate: 1 / 15,
 
   // ---------------------------------------------------------------------------
   // HS Non-Foil Rarity Weights (Question 12)
@@ -384,8 +384,9 @@ export const SET_7_PLUS_CONSTANTS: PackConstants = {
 
   // ---------------------------------------------------------------------------
   // Base Hyperspace Upgrade Rate
+  // Same as sets 1-6 (belt-driven)
   // ---------------------------------------------------------------------------
-  baseHyperspaceRate: 1 / 4,
+  baseHyperspaceRate: 1 / 6,
 
   // ---------------------------------------------------------------------------
   // Guaranteed Hyperspace Common (NEW)
@@ -408,9 +409,9 @@ export const SET_7_PLUS_CONSTANTS: PackConstants = {
 
   // ---------------------------------------------------------------------------
   // Rare/Legendary Hyperspace Upgrade in R Slot
-  // Still 0% - R slot is always black-border (or Prestige)
+  // Same as sets 1-6 (belt-driven)
   // ---------------------------------------------------------------------------
-  rareSlotHyperspaceRate: 0,
+  rareSlotHyperspaceRate: 1 / 15,
 
   // ---------------------------------------------------------------------------
   // HS Non-Foil Rarity Weights
@@ -457,6 +458,88 @@ export const SET_7_PLUS_CONSTANTS: PackConstants = {
 // ============================================================================
 // HELPER FUNCTION TO GET CONSTANTS BY SET
 // ============================================================================
+
+// ============================================================================
+// HYPERSPACE UPGRADE BELT CONFIGS
+// ============================================================================
+
+export interface HSBeltConfig {
+  cycleSize: number
+  budgetDistribution: { 0: number, 1: number, 2: number }
+  slotCounts: {
+    leader: number
+    base: number
+    common: number
+    uc1: number
+    uc2: number
+    uc3: number
+    rare: number
+  }
+}
+
+/**
+ * HS Belt configurations by set group.
+ *
+ * Cycle of 60 packs:
+ *   budget-0: 20 (33.3% — 1/3 of packs have no HS)
+ *   budget-1: 30 (50.0%)
+ *   budget-2: 10 (16.7%)
+ *   total upgrades: 0×20 + 1×30 + 2×10 = 50 → μ = 0.833
+ *
+ * σ = 0.687, Z(2) = 1.70, Z(3) = 3.16
+ *
+ * Extra margin in μ accounts for variant-lookup failures
+ * (findHyperspaceVariant returns null), which add noise above theoretical σ.
+ */
+export const HS_BELT_CONFIGS: Record<string, HSBeltConfig> = {
+  '1-3': {
+    cycleSize: 60,
+    budgetDistribution: { 0: 20, 1: 30, 2: 10 },
+    slotCounts: {
+      leader: 10,   // 1/6
+      base: 10,     // 1/6
+      common: 12,   // 1/5
+      uc1: 4,       // ~1/15
+      uc2: 2,       // ~1/30
+      uc3: 8,       // ~1/7.5
+      rare: 4,      // 1/15
+    }
+    // total: 10+10+12+4+2+8+4 = 50 ✓
+  },
+  '4-6': {
+    cycleSize: 60,
+    budgetDistribution: { 0: 20, 1: 30, 2: 10 },
+    slotCounts: {
+      leader: 10,   // 1/6
+      base: 10,     // 1/6
+      common: 12,   // 1/5
+      uc1: 4,       // ~1/15
+      uc2: 2,       // ~1/30
+      uc3: 8,       // ~1/7.5
+      rare: 4,      // 1/15
+    }
+    // total: 50 ✓
+  },
+  // LAW (Set 7+): Guaranteed ≥1 HS per pack (no budget-0).
+  // The belt ensures every pack has at least 1 HS upgrade.
+  // Non-common slots use the same rates as sets 1-6.
+  // Common fills the gap to guarantee the minimum.
+  'LAW': {
+    cycleSize: 60,
+    budgetDistribution: { 0: 0, 1: 54, 2: 6 },
+    slotCounts: {
+      leader: 10,   // 1/6
+      base: 10,     // 1/6
+      common: 28,   // ~1/2.1 (fills the gap: 66-38=28)
+      uc1: 4,       // ~1/15
+      uc2: 2,       // ~1/30
+      uc3: 8,       // ~1/7.5
+      rare: 4,      // 1/15
+    }
+    // total: 10+10+28+4+2+8+4 = 66 ✓
+    // μ = 66/60 = 1.1 HS per pack
+  },
+}
 
 /**
  * Get pack constants for a specific set number
