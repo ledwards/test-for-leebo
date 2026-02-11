@@ -193,6 +193,24 @@ export function ArenaPoolSection({
     }))
   }, [])
 
+  // Check if all filters are active
+  const allFiltersActive = useMemo(() => {
+    return [...presentCombos].every(k => activeFilters[k])
+  }, [activeFilters, presentCombos])
+
+  // Toggle all filters on/off
+  const toggleAllFilters = useCallback(() => {
+    const showAll = !allFiltersActive
+    if (showAll) setSearchQuery('')
+    setActiveFilters(prev => {
+      const newState = { ...prev }
+      presentCombos.forEach(k => {
+        newState[k] = showAll
+      })
+      return newState
+    })
+  }, [allFiltersActive, presentCombos])
+
   // Toggle all combos for a primary aspect group
   // If any are active, turn all off. If all are off, turn all on.
   const togglePrimaryAspect = useCallback((primary: string) => {
@@ -325,7 +343,7 @@ export function ArenaPoolSection({
         {/* Search and aspect filters row */}
         <div className="arena-filters-row arena-controls-row">
           <span className="arena-filter-label">Filter:</span>
-          {/* Search box - separate from filters */}
+          {/* Search box */}
           <div className="arena-search-container">
             <svg className="arena-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8" />
@@ -338,9 +356,37 @@ export function ArenaPoolSection({
               value={searchQuery}
               onChange={handleSearchChange}
             />
+            {searchQuery && (
+              <button
+                className="arena-search-clear"
+                onClick={() => setSearchQuery('')}
+                title="Clear search"
+              >
+                &times;
+              </button>
+            )}
           </div>
 
-          {/* Aspect filters in their own scrollable container */}
+          {/* Hide All / Show All toggle */}
+          <button
+            className={`arena-filter-btn arena-toggle-all-filter ${allFiltersActive ? 'active' : 'inactive'}`}
+            onClick={toggleAllFilters}
+            title={allFiltersActive ? 'Hide All' : 'Show All'}
+          >
+            {allFiltersActive ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            )}
+          </button>
+
+          {/* Aspect filters */}
           <div className="arena-aspect-filters">
             {/* Primary aspect groups */}
           {PRIMARY_ASPECTS.map(primary => {
@@ -406,6 +452,9 @@ export function ArenaPoolSection({
       </div>
 
       <div className="arena-content-area">
+        {sortedCards.length === 0 && (
+          <div className="arena-empty-pool">No cards.</div>
+        )}
         <div className="arena-pool-grid">
           {sortedCards.map(({ cardId, position }) => {
             const card = position.card
