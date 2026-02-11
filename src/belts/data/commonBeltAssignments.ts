@@ -733,8 +733,12 @@ export function getBeltConfig(block: BlockType): BeltConfig {
 }
 
 /**
- * Determine which belt a card should be assigned to based on its aspects
- * Used for auto-assignment of cards (especially triple-aspect cards)
+ * Determine which belt a card should be assigned to based on its aspects.
+ * Used for auto-assignment of cards (LAW double/triple-aspect cards).
+ *
+ * Uses first-listed-aspect rule: the first aspect in the card's aspects array
+ * determines belt assignment. This is a TBD assumption — we don't yet know
+ * how FFG actually assigns double-aspect cards to print belts.
  *
  * @param card - Card object with aspects array
  * @param block - Block identifier ('0', 'A', or 'B')
@@ -752,15 +756,12 @@ export function assignCardToBelt(card: RawCard, block: BlockType): 'A' | 'B' {
     beltAAspects = ['Vigilance', 'Command', 'Villainy']
   }
 
-  // If card has ANY Belt A aspect, assign to Belt A
-  // This handles triple-aspect cards (e.g., Vigilance + Command + Heroism -> Belt A)
-  for (const aspect of aspects) {
-    if (beltAAspects.includes(aspect)) {
-      return 'A'
-    }
+  // First-listed-aspect rule: use the first aspect to determine belt
+  // For double-aspect cards (e.g., Vigilance+Cunning), first aspect wins
+  if (aspects.length > 0 && beltAAspects.includes(aspects[0])) {
+    return 'A'
   }
 
-  // No Belt A aspects found, assign to Belt B
   return 'B'
 }
 
