@@ -1,12 +1,12 @@
 {
-  "runAt": "2026-02-11T08:58:00.763Z",
-  "executionTime": 12517,
+  "runAt": "2026-02-11T10:22:00.247Z",
+  "executionTime": 15961,
   "summary": {
     "totalSuites": 22,
     "passedSuites": 22,
     "failedSuites": 0,
-    "totalTests": 484,
-    "passed": 484,
+    "totalTests": 489,
+    "passed": 489,
     "failed": 0
   },
   "suites": [
@@ -15,7 +15,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 911,
+      "executionTime": 1243,
       "tests": [
         {
           "suite": "utils",
@@ -215,7 +215,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 615,
+      "executionTime": 793,
       "tests": [
         {
           "suite": "utils",
@@ -295,7 +295,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 442,
+      "executionTime": 549,
       "tests": [
         {
           "suite": "utils",
@@ -310,7 +310,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 444,
+      "executionTime": 536,
       "tests": [
         {
           "suite": "utils",
@@ -325,7 +325,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 609,
+      "executionTime": 745,
       "tests": [
         {
           "suite": "belts",
@@ -395,7 +395,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 609,
+      "executionTime": 771,
       "tests": [
         {
           "suite": "belts",
@@ -495,7 +495,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 630,
+      "executionTime": 783,
       "tests": [
         {
           "suite": "belts",
@@ -590,7 +590,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 612,
+      "executionTime": 796,
       "tests": [
         {
           "suite": "belts",
@@ -629,12 +629,37 @@
         },
         {
           "suite": "belts",
+          "name": "LAW: initializes with Normal variant fallback (no HSF data)\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "LAW: next() returns card marked as isFoil and isHyperspace\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "LAW: includes Special rarity in pool\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "LAW: no leaders or bases in pool\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "LAW: rarity distribution follows expected weights\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
           "name": "no repeating pattern: consecutive belt fills produce different sequences\u001b[0m",
           "status": "passed"
         },
         {
           "suite": "belts",
-          "name": "Tests passed: 8\u001b[0m",
+          "name": "Tests passed: 13\u001b[0m",
           "status": "passed"
         }
       ],
@@ -645,7 +670,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 621,
+      "executionTime": 785,
       "tests": [
         {
           "suite": "belts",
@@ -660,7 +685,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 615,
+      "executionTime": 812,
       "tests": [
         {
           "suite": "belts",
@@ -735,7 +760,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 613,
+      "executionTime": 816,
       "tests": [
         {
           "suite": "belts",
@@ -820,7 +845,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 619,
+      "executionTime": 1002,
       "tests": [
         {
           "suite": "belts",
@@ -875,7 +900,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 625,
+      "executionTime": 781,
       "tests": [
         {
           "suite": "belts",
@@ -950,7 +975,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 427,
+      "executionTime": 539,
       "tests": [
         {
           "suite": "fixes",
@@ -965,7 +990,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 643,
+      "executionTime": 782,
       "tests": [
         {
           "suite": "draft",
@@ -980,7 +1005,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 446,
+      "executionTime": 507,
       "tests": [
         {
           "suite": "bots",
@@ -1125,7 +1150,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 648,
+      "executionTime": 756,
       "tests": [
         {
           "suite": "data",
@@ -1560,7 +1585,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 622,
+      "executionTime": 782,
       "tests": [
         {
           "suite": "data",
@@ -2595,7 +2620,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 455,
+      "executionTime": 547,
       "tests": [
         {
           "suite": "hooks",
@@ -2610,7 +2635,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 430,
+      "executionTime": 548,
       "tests": [
         {
           "suite": "hooks",
@@ -2625,7 +2650,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 445,
+      "executionTime": 538,
       "tests": [
         {
           "suite": "hooks",
@@ -2640,7 +2665,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 435,
+      "executionTime": 548,
       "tests": [
         {
           "suite": "hooks",
@@ -3194,12 +3219,37 @@
     },
     {
       "suite": "belts",
+      "name": "LAW: initializes with Normal variant fallback (no HSF data)\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "LAW: next() returns card marked as isFoil and isHyperspace\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "LAW: includes Special rarity in pool\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "LAW: no leaders or bases in pool\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "LAW: rarity distribution follows expected weights\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
       "name": "no repeating pattern: consecutive belt fills produce different sequences\u001b[0m",
       "status": "passed"
     },
     {
       "suite": "belts",
-      "name": "Tests passed: 8\u001b[0m",
+      "name": "Tests passed: 13\u001b[0m",
       "status": "passed"
     },
     {

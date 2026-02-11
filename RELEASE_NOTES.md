@@ -1,6 +1,6 @@
 # Release Notes
 
-## 02.11.2026
+## 02.10.2026
 
 ### 🎨 UI Improvements
 - **Arena view**: Lots of tweaks, optimizations, and style fixes

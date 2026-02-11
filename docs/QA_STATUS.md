@@ -1,13 +1,13 @@
 ## QA Test Status
 
-✅ **PASSING** - 108/108 tests passing (100.0%)
+⚠️ **MOSTLY PASSING** - 107/108 tests passing (99.1%)
 
-Last run: 2/11/2026, 12:58:01 AM
+Last run: 2/11/2026, 2:22:01 AM
 
 ### Test Summary by Set
 
 - ✅ **SOR**: 18/18 passing
-- ✅ **SHD**: 18/18 passing
+- ⚠️ **SHD**: 17/18 passing
 - ✅ **TWI**: 18/18 passing
 - ✅ **JTL**: 18/18 passing
 - ✅ **LOF**: 18/18 passing
@@ -15,6 +15,6 @@ Last run: 2/11/2026, 12:58:01 AM
 
 ### Quick Stats
 - Total Tests: 108
-- Passed: 108 ✅
-- Failed: 0 ❌
-- Pass Rate: 100.0%
+- Passed: 107 ✅
+- Failed: 1 ❌
+- Pass Rate: 99.1%
