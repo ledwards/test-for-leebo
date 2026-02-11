@@ -32,10 +32,11 @@ export default function NotFound() {
           position: 'absolute',
           inset: 0,
           background: `
-            linear-gradient(to bottom, rgb(9, 9, 9) 0%, transparent 15%),
-            linear-gradient(to top, rgb(9, 9, 9) 0%, transparent 15%),
-            linear-gradient(to right, rgb(9, 9, 9) 0%, transparent 15%),
-            linear-gradient(to left, rgb(9, 9, 9) 0%, transparent 15%)
+            linear-gradient(to bottom, rgb(9, 9, 9) 0%, transparent 20%),
+            linear-gradient(to top, rgb(9, 9, 9) 0%, transparent 20%),
+            linear-gradient(to right, rgb(9, 9, 9) 0%, transparent 20%),
+            linear-gradient(to left, rgb(9, 9, 9) 0%, transparent 20%),
+            linear-gradient(0deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3))
           `,
           pointerEvents: 'none',
         }} />
