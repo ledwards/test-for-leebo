@@ -198,7 +198,7 @@ export default function StatsPage() {
       })
   }, [activeTab])
 
-  const tabs = ['Reference', 'Code Quality', 'Pack Quality', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC']
+  const tabs = ['Reference', 'Code Quality', 'Pack Quality', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC', 'LAW']
 
   // Set colors for tabs
   const setColors: Record<string, string> = {
@@ -207,7 +207,8 @@ export default function StatsPage() {
     'TWI': '#0891B2',
     'JTL': '#EA580C',
     'LOF': '#16A34A',
-    'SEC': '#7C3AED'
+    'SEC': '#7C3AED',
+    'LAW': '#D93600'
   }
 
   return (

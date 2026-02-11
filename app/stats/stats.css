@@ -77,6 +77,11 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Colored set tabs use a lighter version of their color on hover */
+.stats-tab[style*="--set-color"]:hover:not(.active) {
+  background: color-mix(in srgb, var(--set-color) 30%, transparent);
+}
+
 .stats-tab.active {
   color: #fff;
   background: rgba(0, 0, 0, 0.5);

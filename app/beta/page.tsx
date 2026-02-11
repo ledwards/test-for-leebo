@@ -1,6 +1,7 @@
 // @ts-nocheck
 'use client'
 
+import { useEffect } from 'react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import Button from '@/src/components/Button'
 import { useRouter } from 'next/navigation'
@@ -12,6 +13,13 @@ export default function BetaPage() {
 
   const hasBetaAccess = user?.is_beta_tester || user?.is_admin
 
+  // Force login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      signIn()
+    }
+  }, [loading, user, signIn])
+
   const handleJoinBeta = async () => {
     const success = await enrollBeta()
     if (success) {
@@ -19,7 +27,7 @@ export default function BetaPage() {
     }
   }
 
-  if (loading) {
+  if (loading || !user) {
     return (
       <div className="beta-page">
         <div className="beta-container">
@@ -45,33 +53,18 @@ export default function BetaPage() {
         </div>
 
         <div className="beta-actions">
-          {!user && (
-            <>
-              <p className="beta-prompt">Sign in to join the beta.</p>
-              <Button variant="discord" onClick={signIn}>
-                Sign in with Discord
-              </Button>
-            </>
-          )}
-
-          {user && !hasBetaAccess && (
+          {!hasBetaAccess && (
             <Button variant="primary" size="lg" onClick={handleJoinBeta}>
               Join the Beta
             </Button>
           )}
 
-          {user && hasBetaAccess && (
+          {hasBetaAccess && (
             <div className="beta-success">
               <span className="checkmark">✓</span>
               <span>You have beta access</span>
             </div>
           )}
-        </div>
-
-        <div className="beta-footer">
-          <Button variant="back" onClick={() => router.push('/')}>
-            Back
-          </Button>
         </div>
       </div>
     </div>
