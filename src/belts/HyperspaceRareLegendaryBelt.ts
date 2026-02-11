@@ -75,6 +75,22 @@ export class HyperspaceRareLegendaryBelt {
       !c.isBase
     )
 
+    // Fallback: if no Hyperspace variants in data (e.g., LAW), use Normal variants
+    if (this.rares.length === 0 && this.legendaries.length === 0) {
+      this.rares = cards.filter(c =>
+        c.variantType === 'Normal' &&
+        c.rarity === 'Rare' &&
+        !c.isLeader &&
+        !c.isBase
+      )
+      this.legendaries = cards.filter(c =>
+        c.variantType === 'Normal' &&
+        c.rarity === 'Legendary' &&
+        !c.isLeader &&
+        !c.isBase
+      )
+    }
+
     this.fillingPool = [...this.rares, ...this.legendaries]
 
     this._fillIfNeeded()
