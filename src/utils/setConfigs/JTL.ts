@@ -53,27 +53,18 @@ export const JTL_CONFIG: SetConfig = {
     rareToLegendary: constants.rareSlotLegendaryRatio,  // 5:1 for R slot
   },
 
-  // Upgrade probabilities (chance for slot to be upgraded)
+  // Upgrade probabilities
+  // NOTE: For Sets 1-6, HS upgrades are belt-driven (HyperspaceUpgradeBelt).
+  // Actual HS rates are in HS_BELT_CONFIGS in packConstants.ts.
   upgradeProbabilities: {
-    // Leader upgrades
-    leaderToHyperspace: constants.leaderHyperspaceRate,         // ~1/6
-    leaderToShowcase: constants.showcaseLeaderRate,             // ~1/288
-
-    // Base upgrade
-    baseToHyperspace: constants.baseHyperspaceRate,             // ~1/4
-
-    // Foil upgrade
-    foilToHyperfoil: constants.hyperfoilRate,                   // ~1/50
-
-    // UC slot upgrades
-    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,        // ~1/5
-    firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,    // ~1/8
-    secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // ~1/8
-
-    // Common upgrade
-    commonToHyperspace: constants.commonHyperspaceRate,         // ~1/3
-
-    // Rare slot upgrade (always 0%)
-    rareToHyperspaceRL: constants.rareSlotHyperspaceRate,       // 0%
+    leaderToHyperspace: constants.leaderHyperspaceRate,         // ~1/6 (belt: 10/60)
+    leaderToShowcase: constants.showcaseLeaderRate,             // ~1/288 (independent)
+    baseToHyperspace: constants.baseHyperspaceRate,             // ~1/6 (belt: 10/60)
+    foilToHyperfoil: constants.hyperfoilRate,                   // ~1/50 (independent)
+    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,        // ~1/5 (belt: 8/60)
+    firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,    // ~1/8 (belt: 4/60)
+    secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // ~1/8 (belt: 2/60)
+    commonToHyperspace: constants.commonHyperspaceRate,         // ~1/3 (belt: 12/60)
+    rareToHyperspaceRL: constants.rareSlotHyperspaceRate,       // ~1/15 (belt: 4/60)
   }
 }
