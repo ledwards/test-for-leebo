@@ -638,19 +638,19 @@ export function useDeckExport({
       const selectedLeader = leaderCard
       const selectedBase = baseCard
 
-      // Canvas dimensions
-      const padding = 40
-      const cardWidth = 150
-      const cardHeight = 210
-      const spacing = 10
-      const titleHeight = 50
-      const labelHeight = 40
-      const sectionSpacing = 30
-      const leaderBaseWidth = 180
-      const leaderBaseHeight = 252
+      // Canvas dimensions (90% of normal to reduce file size for Discord)
+      const padding = 36
+      const cardWidth = 135
+      const cardHeight = 189
+      const spacing = 9
+      const titleHeight = 45
+      const labelHeight = 36
+      const sectionSpacing = 27
+      const leaderBaseWidth = 162
+      const leaderBaseHeight = 227
       // Leaders are rotated 90 CCW, so their dimensions are swapped
-      const leaderRotatedWidth = leaderBaseHeight  // 252
-      const leaderRotatedHeight = leaderBaseWidth  // 180
+      const leaderRotatedWidth = leaderBaseHeight  // 227
+      const leaderRotatedHeight = leaderBaseWidth  // 162
       const cardsPerRow = 8
       const separatorHeight = 4
       const deckRows = Math.ceil(deckCards.length / cardsPerRow)
@@ -956,7 +956,7 @@ export function useDeckExport({
           } else {
             resolve(null)
           }
-        }, 'image/jpeg', 0.85)
+        }, 'image/png')
       })
 
     } catch (error) {

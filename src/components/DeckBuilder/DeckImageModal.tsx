@@ -78,8 +78,7 @@ export function DeckImageModal({ imageUrl, onClose, poolName, setCode, poolType,
     const prefix = poolType === 'draft' ? 'ptp_draft' : 'ptp_sealed'
     const suffix = showingPool ? '_pool' : '_deck'
 
-    const extension = showingPool ? 'jpg' : 'png'
-    a.download = `${prefix}_${sanitizedName}${suffix}_${timeStr}.${extension}`
+    a.download = `${prefix}_${sanitizedName}${suffix}_${timeStr}.png`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

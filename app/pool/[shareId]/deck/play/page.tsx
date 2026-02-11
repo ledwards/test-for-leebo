@@ -837,24 +837,24 @@ export default function PlayPage({ params }: PageProps) {
       document.fonts.add(barlowFont)
       document.fonts.add(barlowBold)
 
-      // Canvas settings - SAME as deck image
-      const width = 2767
-      const padding = 100
-      const cardWidth = 300
-      const cardHeight = 420
-      const cardBorderRadius = 15
-      // Leader/base are landscape (wider than tall) - SAME as deck image
-      const leaderBaseWidth = 525
-      const leaderBaseHeight = 375
-      const spacing = 25
-      const titleHeight = 100
-      const byLineHeight = 60
-      const subtitleHeight = 65
-      const labelHeight = 90
-      const sectionSpacing = 50
-      const footerHeight = 200
+      // Canvas settings - 90% of deck image to reduce file size for Discord
+      const width = 2490
+      const padding = 90
+      const cardWidth = 270
+      const cardHeight = 378
+      const cardBorderRadius = 14
+      // Leader/base are landscape (wider than tall) - 90% of deck image
+      const leaderBaseWidth = 473
+      const leaderBaseHeight = 338
+      const spacing = 23
+      const titleHeight = 90
+      const byLineHeight = 54
+      const subtitleHeight = 59
+      const labelHeight = 81
+      const sectionSpacing = 45
+      const footerHeight = 180
       const cardsPerRow = 8
-      const separatorHeight = 8
+      const separatorHeight = 7
 
       const deckRows = Math.ceil(deckCards.length / cardsPerRow)
       const poolRows = Math.ceil(poolCards.length / cardsPerRow)
@@ -1268,7 +1268,7 @@ export default function PlayPage({ params }: PageProps) {
           } else {
             resolve(null)
           }
-        }, 'image/jpeg', 0.85)
+        }, 'image/png')
       })
     } catch (error) {
       console.error('Error generating pool image:', error)
@@ -1563,8 +1563,7 @@ export default function PlayPage({ params }: PageProps) {
                   const sanitizedName = poolName.replace(/[^a-z0-9]/gi, '_').toLowerCase()
                   const prefix = pool?.poolType === 'draft' ? 'ptp_draft' : 'ptp_sealed'
                   const suffix = showingPool ? '_pool' : '_deck'
-                  const extension = showingPool ? 'jpg' : 'png'
-                  a.download = `${prefix}_${sanitizedName}${suffix}.${extension}`
+                  a.download = `${prefix}_${sanitizedName}${suffix}.png`
                   document.body.appendChild(a)
                   a.click()
                   document.body.removeChild(a)
