@@ -72,18 +72,22 @@ LAW introduces significant pack construction changes per [official FFG announcem
 
 ## Upgrade Probabilities
 
-| Upgrade | Rate | Notes |
-|---------|------|-------|
-| Leader → Hyperspace | 1/6 (~16.7%) | ~4 per box |
-| Leader → Showcase | **1/576 (~0.17%)** | Significantly rarer |
-| Base → Hyperspace | 1/4 (25%) | ~6 per box |
-| Foil → Hyperfoil | **N/A** | Foil IS Hyperspace Foil |
-| Common → Hyperspace | **100%** | Slot 5 always HS |
-| Additional Common → HS | 1/6 (~16.7%) | Beyond guaranteed |
-| UC Slot 3 → HS R/L | 1/5 (20%) | Rarity upgrade |
-| UC → Hyperspace UC | 1/8 (12.5%) | Slots 1-2 |
-| Rare → Hyperspace | 0% | Never |
-| Rare → Prestige | **1/18 (~5.5%)** | New in LAW |
+LAW uses a **HyperspaceUpgradeBelt** (same as Sets 1-6) with `budget-0 = 0`, guaranteeing every pack has at least 1 HS card. The common slot fills the gap when no other slot upgrades.
+
+| Upgrade | Rate | Belt | Notes |
+|---------|------|------|-------|
+| Leader → Hyperspace | 1/6 (~16.7%) | 10/60 | Same as Sets 1-6 |
+| Leader → Showcase | **1/576 (~0.17%)** | independent | Significantly rarer |
+| Base → Hyperspace | 1/6 (~16.7%) | 10/60 | Same as Sets 1-6 |
+| Foil → Hyperfoil | **N/A** | — | Foil IS Hyperspace Foil |
+| Common → Hyperspace | ~47% | 28/60 | Fills the gap for guaranteed ≥1 HS |
+| UC Slot 3 → HS R/L | ~13% | 8/60 | Same as Sets 1-6 |
+| UC1 → Hyperspace UC | ~7% | 4/60 | Same as Sets 1-6 |
+| UC2 → Hyperspace UC | ~3% | 2/60 | Same as Sets 1-6 |
+| Rare → Hyperspace | 1/15 (~6.7%) | 4/60 | Same as Sets 1-6 |
+| Rare → Prestige | **1/18 (~5.5%)** | independent | New in LAW |
+
+**Belt stats:** μ = 1.1 HS/pack, 90% budget-1 (exactly 1 HS), 10% budget-2 (2 HS)
 
 ## Rarity Weights
 
@@ -135,28 +139,24 @@ This handles triple-aspect cards (see below).
 - Heroism
 - Neutral
 
-## Triple-Aspect Cards
+## Multi-Aspect Cards
 
-LAW introduces cards with **three aspects** (double primary aspect):
-- Example: Zeb Orellios has Vigilance + Aggression + Heroism
-- Example: Maul has multiple aspects
+LAW introduces cards with **multiple primary aspects**:
 
-### Belt Assignment Strategy
-Configurable in `LAW_CONFIG.tripleAspect`:
+### Double-Aspect Cards
+Cards with two primary color aspects (e.g., Vigilance+Command, Vigilance+Cunning).
 
-```javascript
-tripleAspect: {
-  enabled: true,
-  beltAssignment: 'primaryAspectPriority',
-  // Options: 'primaryAspectPriority', 'randomBelt', 'splitEvenly'
-}
-```
+### Triple-Aspect Cards
+Cards with three aspects — double primary + faction (e.g., Vigilance+Aggression+Heroism).
 
-**Primary Aspect Priority** (current):
-- If card has ANY Belt A aspect → Belt A
+### Belt Assignment Strategy (Common Belts Only)
+
+**First-Listed-Aspect Rule** (current assumption — see TBD):
+- Use the **first aspect** in the card's aspects array to determine belt
+- If first aspect is Belt A (Vigilance, Command, Villainy) → Belt A
 - Otherwise → Belt B
 
-This ensures cards like Zeb (Vig+Agg+Hero) go to Belt A (has Vigilance).
+Example: Vigilance+Cunning → first is Vigilance → Belt A
 
 ## Special Rules
 
@@ -165,10 +165,11 @@ This ensures cards like Zeb (Vig+Agg+Hero) go to Belt A (has Vigilance).
 - Regular black-border foils are eliminated
 - `packRules.foilSlotIsHyperspaceFoil: true`
 
-### Guaranteed Hyperspace Common
-- Every pack contains at least 1 Hyperspace common
-- Slot 5 (middle common) is always upgraded
-- `packRules.guaranteedHyperspaceCommon: true`
+### Guaranteed Hyperspace Card
+- Every pack contains at least 1 Hyperspace card (not counting HSF)
+- Enforced by HyperspaceUpgradeBelt with `budget-0 = 0`
+- The upgrade may be leader, base, common, UC, or R/L — the belt decides
+- Common slot 5 fills the gap when no other slot upgrades (~47% of packs)
 
 ### Prestige Cards in Standard Packs
 - ~1 in 18 packs contains a non-foil Prestige variant
@@ -191,10 +192,17 @@ This ensures cards like Zeb (Vig+Agg+Hero) go to Belt A (has Vigilance).
 ### Pack Generation Flow
 1. Generate base pack (leader, base, commons, uncommons, R/L)
 2. Use HyperfoilBelt for foil slot (not FoilBelt)
-3. Always upgrade slot 5 to Hyperspace (guaranteed)
-4. Apply other upgrades (leader HS, base HS, etc.)
+3. HyperspaceUpgradeBelt ('LAW' config) determines which slots get HS upgrades
+4. Belt guarantees ≥1 HS per pack (budget-0 = 0)
 5. Skip foil→hyperfoil upgrade (already HS)
 6. (TODO) Handle Prestige in rare slot
+
+### HSF & HS Variant Data Fallback
+LAW currently has no Hyperspace or Hyperspace Foil variant card data. Two fallback mechanisms handle this:
+- **HyperfoilBelt**: Falls back to Normal variants when no `variantType === 'Hyperspace Foil'` cards exist. Cards are marked `isFoil: true, isHyperspace: true` as placeholders.
+- **findHyperspaceVariant()**: Falls back to returning the original card with `isHyperspace: true` when no `variantType === 'Hyperspace'` variant exists (only for LAW+ sets).
+
+When real HS/HSF data is loaded (via `npm run fetch-cards`), the fallbacks are automatically bypassed.
 
 ### Code Checks
 ```javascript
@@ -218,6 +226,25 @@ _To be determined after set release._
 
 _To be determined after set release._
 
+## TBD / Unknowns
+
+Things we don't know yet or are making assumptions about:
+
+| Item | Current Assumption | Status |
+|------|-------------------|--------|
+| **Double-aspect belt assignment** | First-listed-aspect determines belt (A or B) for common cards | Assumption — no data on how FFG actually collates these |
+| **Triple-aspect belt assignment** | Same first-listed-aspect rule | Assumption — same as above |
+| **Hyperspace Foil card data** | Using Normal variants as placeholders, marked `isFoil+isHyperspace` | Waiting for swuapi.com to add HSF data |
+| **Hyperspace card data** | Using Normal variants with `isHyperspace` flag as placeholders | Waiting for swuapi.com to add HS data |
+| **Exact HS rates** | Matching Sets 1-6 (leader 1/6, base 1/6, R/L 1/15) with belt guaranteeing ≥1 | No official data; real rates TBD |
+| **HS belt budget distribution** | 90% budget-1, 10% budget-2, μ=1.1 | Tunable — real distribution unknown |
+| **Prestige card implementation** | Placeholder only (commented out) | Waiting for Prestige variant data |
+| **Prestige rate** | ~1/18 in rare slot | Estimated from FFG announcement |
+| **Showcase leader rate** | ~1/576 ("significantly rarer" than 1/288) | Estimated — exact multiplier unknown |
+| **Common belt assignments** | Auto-assigned by aspect (no static list yet) | Need to finalize static assignments from actual print data |
+| **Card counts** | Preliminary from partial swuapi.com data | Will change when full data is available |
+| **Rare base behavior** | In rare slot (same as Sets 1-6) | Confirmed as last set for this rule |
+
 ## Sources
 
 - [A Shift from What Was](https://starwarsunlimited.com/articles/a-shift-from-what-was) - Pack rule changes
@@ -226,7 +253,9 @@ _To be determined after set release._
 
 ## Related Files
 
-- `src/utils/setConfigs/LAW.js` - Set configuration
-- `src/belts/data/commonBeltAssignments.js` - Belt assignments and helpers
-- `src/utils/packConstants.js` - `SET_7_PLUS_CONSTANTS`
-- `src/utils/boosterPack.js` - `usesLawPackRules()` function
+- `src/utils/setConfigs/LAW.ts` - Set configuration
+- `src/belts/data/commonBeltAssignments.ts` - Belt assignments and helpers
+- `src/belts/HyperfoilBelt.ts` - HSF belt (with Normal variant fallback for LAW)
+- `src/utils/packConstants.ts` - `SET_7_PLUS_CONSTANTS`
+- `src/utils/boosterPack.ts` - `usesLawPackRules()`, `findHyperspaceVariant()` (with LAW fallback)
+- `src/qa/hyperspaceDistribution.test.ts` - LAW HS distribution QA tests
