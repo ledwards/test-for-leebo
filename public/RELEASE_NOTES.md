@@ -3,7 +3,7 @@
 ## 02.11.2026
 
 ### 🎉 New Features
-- **Casual Mode (Beta)**: New alternative limited formats for beta testers! Includes Chaos Draft, Rotisserie Draft, Pack Wars, and Pack Blitz. More details coming as each mode is implemented.
+- **Casual Formats (Beta)**: New alternative limited formats for beta testers! Includes Chaos Draft, Rotisserie Draft, Pack Wars, and Pack Blitz. More details coming as each mode is implemented.
 
 ### 🎁 Patreon
 - Some of you have asked about how to support Protect the Pod and I want be clear that the site is free to use. That being said, it does cost me a bit of money every month to host, as well as tokens to develop, so I certainly won't say no to help offsetting the cost! You can support Protect the Pod via [Patreon](https://patreon.com/ProtectthePod) with my thanks!
