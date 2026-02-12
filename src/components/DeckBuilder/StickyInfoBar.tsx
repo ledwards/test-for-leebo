@@ -297,7 +297,7 @@ export function StickyInfoBar({
           {isDraftMode ? 'Card Pool' : 'Sideboard'} ({poolCardCount})
         </span>
 
-        {/* View mode toggle between Sideboard and action buttons */}
+        {/* View mode toggle between Sideboard and action buttons (desktop) */}
         {isInfoBarSticky && (
           <ViewModeToggle
             viewMode={viewMode}
@@ -308,16 +308,24 @@ export function StickyInfoBar({
         )}
       </div>
 
-      {/* Action buttons when sticky */}
+      {/* Action buttons + view mode toggle row when sticky */}
       {isInfoBarSticky && (
         <div className="header-buttons-in-nav">
+          {/* View mode toggle (mobile row companion) */}
+          <div className="mobile-view-mode-in-nav">
+            <ViewModeToggle
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              showNavTooltip={showNavTooltip}
+              hideTooltip={hideTooltip}
+            />
+          </div>
           {/* Clone button for non-owners */}
           {!isOwner && (
             <Button variant="icon" className="export-button-icon" onClick={handleClone}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="8.5" cy="7" r="4"></circle>
-                <path d="M20 8v6M23 11h-6"></path>
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
               <span className="button-tooltip tooltip-below">{isAuthenticated ? 'Clone' : 'Login to Clone'}</span>
             </Button>
@@ -342,9 +350,8 @@ export function StickyInfoBar({
           {isOwner && (
             <Button variant="icon" className="export-button-icon" onClick={handleClone}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="8.5" cy="7" r="4"></circle>
-                <path d="M20 8v6M23 11h-6"></path>
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
               <span className="button-tooltip tooltip-below">Clone</span>
             </Button>
