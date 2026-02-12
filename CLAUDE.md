@@ -338,14 +338,22 @@ describe('Feature X', () => {
 **When a plan is complete, move it to `/docs/`.** Completed plans become documentation.
 
 Current plans:
+- `plans/TOURNAMENT_MODE_PLAN.md` - Swiss-format tournament system
+- `plans/CASUAL_MODE_PLAN.md` - Casual limited formats
 - `plans/TYPESCRIPT_MIGRATION_PLAN.md` - Type system spec and TS migration strategy
+- `plans/REFACTORING_PLAN.md` - Large-scale architectural refactoring
+- `plans/STYLEGUIDE_PLAN.md` - Interactive style guide page
 
 Completed plans (now in docs/):
+- `docs/DECKBUILDER_REFACTOR_PLAN.md` - DeckBuilder refactor (6700 to 2030 lines)
+- `docs/COMPONENT_EXTRACTION_PLAN.md` - Component library extraction
+- `docs/HIDE_POOLS_PLAN.md` - Hide pools feature spec
 - `docs/HIDE_POOL_FEATURE.md` - Hide/show pools in history
+- `docs/HYPERSPACE_BELT_PLAN.md` - Hyperspace upgrade belt system
 
 ## Architecture & Refactoring
 
-**See `DECKBUILDER_REFACTOR_PLAN.md` for the completed refactoring summary.**
+**See `docs/DECKBUILDER_REFACTOR_PLAN.md` for the completed refactoring summary.**
 
 ### Key Principles
 1. **Red-Green Bug Fixes**: Always write a failing test that demonstrates the bug BEFORE fixing it (see "Bug Fixing Process" above)
