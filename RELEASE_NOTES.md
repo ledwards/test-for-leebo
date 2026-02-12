@@ -3,16 +3,27 @@
 ## 02.12.2026
 
 ### 🎉 New Features
-- **Multi-primary aspect filters**: Arena view now supports LAW set cards with multiple primary aspects (e.g., Aggression+Command). These appear as compact filter buttons below the standard combos in each aspect group. Iterating on this design tog et it right before the release of A Lawless Time.
+- **Multi-primary aspect filters**: Arena view now supports LAW set cards with multiple primary aspects (e.g., Aggression+Command). These appear as compact filter buttons below the standard combos in each aspect group. Iterating on this design to get it right before the release of A Lawless Time.
+- **Chaos Sealed**: New casual format — build a sealed pool from any 6 packs across any combination of sets!
+- **Casual format history**: Your casual games (Pack Wars, Pack Blitz, Chaos Draft, Chaos Sealed, Rotisserie) now appear in your history page.
 
 ### 🎨 UI Improvements
 - **Mobile landscape**: Arena mode now works on phones turned sideways! Cost columns wrap into two rows of four. Nav bar compresses to a single row.
 - **Arena deck sorting**: Cards in cost columns now sort by cost, then aspect color order, then alphabetically (instead of just alphabetical).
 - **Mobile portrait mode**: Mobile is simply not wide enough to support the full arena view layout. Instead, we are disabling Arena mode in portrait and encouraging you to use your phone in landscape mode for Arena, or use the deckbuilder's other modes in portrait.
 - **Error pages**: Nice little easter egg in the error pages for anyone old enough to remember Twitter's failwhale.
+- **Casual set picker**: Beta sets now appear inline with released sets. Set buttons glow in their primary color on hover.
+
+### 📦 Pack Generation
+- **Foil rarity weights**: Fixed foil slot weights to match actual belt output. Special rarity foils in sets 4-6 now correctly appear at the same rate as Rare foils.
+- **Hyperfoil tracking**: Fixed hyperfoil cards being tracked as regular foils instead of hyperspace foils.
+- **Slot type accuracy**: Sealed packs now use position-based slot types for tracking, so uncommon-to-rare upgrades don't inflate rare slot statistics.
 
 ### 🔧 Maintenance
+- Stats page: Removed Code Quality tab, renamed QA tab to Overall
+- Added QA tests for legendary rate, hyperfoil rate, and showcase leader rate (185 total QA tests)
 - Documentation cleanup: organized plans vs. completed docs, removed stale files, updated indexes
+- Removed unused debug scripts
 
 ## 02.11.2026
 
