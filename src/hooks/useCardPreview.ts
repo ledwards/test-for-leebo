@@ -81,8 +81,8 @@ export function useCardPreview(): UseCardPreviewReturn {
   const handleCardMouseEnter = useCallback((card: PreviewCard, event: PreviewEvent | null) => {
     if (!event) return;
 
-    // DISABLE enlarged preview on mobile/touch devices
-    if (window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    // DISABLE enlarged preview on all touch devices (mobile, iPad, etc.)
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
       return;
     }
 
