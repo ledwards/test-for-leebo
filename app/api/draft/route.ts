@@ -22,10 +22,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     } = body
 
     // Get set name from config
-    // For chaos draft, use "Chaos Draft (SET1, SET2, SET3)"
+    // For chaos draft, use "Chaos Draft (SET1, SET2, SET3) MM/DD/YYYY"
     let setName: string
     if (settings.draftMode === 'chaos' && settings.chaosSets) {
-      setName = `Chaos Draft (${settings.chaosSets.join(', ')})`
+      const now = new Date()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const day = String(now.getDate()).padStart(2, '0')
+      const year = now.getFullYear()
+      setName = `Chaos Draft (${settings.chaosSets.join(', ')}) ${month}/${day}/${year}`
     } else {
       const setConfig = getSetConfig(setCode)
       setName = setConfig?.setName || setCode
