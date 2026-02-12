@@ -6,6 +6,10 @@ import { waitForCardsToLoad } from './helpers.ts'
 /**
  * Chaos Sealed E2E test
  * Tests: navigate to chaos sealed → select 6 packs → generate pool → view cards
+ *
+ * Note: Run separately from chaos-draft (not in parallel) to avoid ECONNRESET
+ * from dev server under concurrent pack generation load.
+ * e.g.: npx playwright test tests/e2e/chaos-sealed.spec.ts --workers=1
  */
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000'
