@@ -46,7 +46,7 @@ export default function ChaosSealedPage() {
       if (prev.includes(setCode)) {
         return prev.filter(s => s !== setCode)
       }
-      if (prev.length >= 3) {
+      if (prev.length >= 6) {
         // Replace oldest selection
         return [...prev.slice(1), setCode]
       }
@@ -55,7 +55,7 @@ export default function ChaosSealedPage() {
   }
 
   const handleGenerate = async () => {
-    if (selectedSets.length !== 3) return
+    if (selectedSets.length !== 6) return
 
     try {
       setGenerating(true)
@@ -102,11 +102,11 @@ export default function ChaosSealedPage() {
           Back to Casual Formats
         </Button>
         <h1>Chaos Sealed</h1>
-        <p className="chaos-sealed-subtitle">Open 6 packs from 3 different sets!</p>
+        <p className="chaos-sealed-subtitle">Open 6 packs from 6 different sets!</p>
 
         <div className="chaos-sealed-section">
-          <h3>Select 3 Sets ({selectedSets.length}/3)</h3>
-          <p className="section-hint">You'll open 2 packs from each set (6 total)</p>
+          <h3>Select 6 Sets ({selectedSets.length}/6)</h3>
+          <p className="section-hint">You'll open 1 pack from each set</p>
           <div className="set-grid">
             {sets.map((set) => {
               const selectionIndex = selectedSets.indexOf(set.code)
@@ -126,13 +126,13 @@ export default function ChaosSealedPage() {
               )
             })}
           </div>
-          {selectedSets.length === 3 && (
+          {selectedSets.length === 6 && (
             <div className="selected-sets-order">
               <p>Your sets:</p>
               <ul>
                 {selectedSets.map((setCode) => {
                   const set = sets.find(s => s.code === setCode)
-                  return <li key={setCode}>{set?.name || setCode} (2 packs)</li>
+                  return <li key={setCode}>{set?.name || setCode}</li>
                 })}
               </ul>
             </div>
@@ -145,7 +145,7 @@ export default function ChaosSealedPage() {
           <Button
             variant="primary"
             size="lg"
-            disabled={selectedSets.length !== 3 || generating}
+            disabled={selectedSets.length !== 6 || generating}
             onClick={handleGenerate}
           >
             {generating ? 'Generating...' : 'Generate Chaos Sealed Pool'}

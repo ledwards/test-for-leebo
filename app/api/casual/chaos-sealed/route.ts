@@ -20,9 +20,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const { setCodes } = body
 
-    // Validate exactly 3 sets
-    if (!Array.isArray(setCodes) || setCodes.length !== 3) {
-      return jsonResponse({ error: 'Must select exactly 3 sets' }, 400)
+    // Validate exactly 6 sets
+    if (!Array.isArray(setCodes) || setCodes.length !== 6) {
+      return jsonResponse({ error: 'Must select exactly 6 sets' }, 400)
     }
 
     // Validate all sets exist
@@ -35,19 +35,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       setConfigs.push(setConfig)
     }
 
-    // Generate 6 packs total (2 from each set)
+    // Generate 6 packs (1 from each set)
     const cards = await getCachedCards()
     const packs = []
     const allCards = []
 
     for (let i = 0; i < 6; i++) {
-      const setIndex = i % 3 // Cycle through the 3 sets
-      const setCode = setCodes[setIndex]
+      const setCode = setCodes[i]
       const pack = generateBoosterPack(cards, setCode)
       packs.push({
         ...pack,
         setCode,
-        setName: setConfigs[setIndex].setName
+        setName: setConfigs[i].setName
       })
       allCards.push(...pack.cards)
     }
@@ -66,7 +65,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         userId,
         shareId,
         setCodes.join(','),
-        'Chaos Sealed',
+        `Chaos Sealed (${setCodes.join(', ')})`,
         'chaos_sealed',
         JSON.stringify(allCards),
         JSON.stringify(packs),
