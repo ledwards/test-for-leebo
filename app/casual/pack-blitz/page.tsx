@@ -63,11 +63,11 @@ export default function PackBlitzPage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to generate pool')
+        throw new Error(data.message || data.error || 'Failed to generate pool')
       }
 
-      const data = await response.json()
-      router.push(`/casual/pack-blitz/${data.shareId}`)
+      const result = await response.json()
+      router.push(`/casual/pack-blitz/${result.data.shareId}`)
     } catch (err) {
       setError(err.message || 'Failed to generate pool')
     } finally {
@@ -88,6 +88,9 @@ export default function PackBlitzPage() {
   return (
     <div className="pack-blitz-page">
       <div className="pack-blitz-container">
+        <Button variant="back" onClick={() => router.push('/casual')}>
+          Back to Casual Formats
+        </Button>
         <h1>Pack Blitz</h1>
         <p className="pack-blitz-subtitle">Open 1 pack, shuffle it up, and play!</p>
 

@@ -63,11 +63,11 @@ export default function PackWarsPage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to generate pool')
+        throw new Error(data.message || data.error || 'Failed to generate pool')
       }
 
-      const data = await response.json()
-      router.push(`/casual/pack-wars/${data.shareId}`)
+      const result = await response.json()
+      router.push(`/casual/pack-wars/${result.data.shareId}`)
     } catch (err) {
       setError(err.message || 'Failed to generate pool')
     } finally {
@@ -88,6 +88,9 @@ export default function PackWarsPage() {
   return (
     <div className="pack-wars-page">
       <div className="pack-wars-container">
+        <Button variant="back" onClick={() => router.push('/casual')}>
+          Back to Casual Formats
+        </Button>
         <h1>Pack Wars</h1>
         <p className="pack-wars-subtitle">Open 2 packs, choose your leader, and battle!</p>
 

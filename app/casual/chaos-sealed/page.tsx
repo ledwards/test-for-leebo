@@ -15,15 +15,13 @@ interface SetData {
   beta?: boolean
 }
 
-export default function RotisseriePage() {
+export default function ChaosSealedPage() {
   const router = useRouter()
   const { user } = useAuth()
   const [sets, setSets] = useState<SetData[]>([])
   const [selectedSets, setSelectedSets] = useState<string[]>([])
-  const [maxPlayers, setMaxPlayers] = useState(4)
-  const [pickTimerSeconds, setPickTimerSeconds] = useState(60)
   const [loading, setLoading] = useState(true)
-  const [creating, setCreating] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const hasBetaAccess = user?.is_beta_tester || user?.is_admin
@@ -48,46 +46,49 @@ export default function RotisseriePage() {
       if (prev.includes(setCode)) {
         return prev.filter(s => s !== setCode)
       }
+      if (prev.length >= 3) {
+        // Replace oldest selection
+        return [...prev.slice(1), setCode]
+      }
       return [...prev, setCode]
     })
   }
 
-  const handleCreate = async () => {
-    if (selectedSets.length === 0) return
+  const handleGenerate = async () => {
+    if (selectedSets.length !== 3) return
 
     try {
-      setCreating(true)
+      setGenerating(true)
       setError(null)
 
-      const response = await fetch('/api/casual/rotisserie', {
+      const response = await fetch('/api/casual/chaos-sealed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          setCodes: selectedSets,
-          maxPlayers,
-          pickTimerSeconds
+          setCodes: selectedSets
         })
       })
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.message || data.error || 'Failed to create draft')
+        throw new Error(data.message || data.error || 'Failed to generate pool')
       }
 
       const result = await response.json()
-      router.push(`/casual/rotisserie/${result.data.shareId}`)
+      // Redirect to the standard sealed pool page
+      router.push(`/pool/${result.data.shareId}`)
     } catch (err) {
-      setError(err.message || 'Failed to create draft')
+      setError(err.message || 'Failed to generate pool')
     } finally {
-      setCreating(false)
+      setGenerating(false)
     }
   }
 
   if (loading) {
     return (
-      <div className="rotisserie-page">
-        <div className="rotisserie-container">
+      <div className="chaos-sealed-page">
+        <div className="chaos-sealed-container">
           <div className="loading">Loading sets...</div>
         </div>
       </div>
@@ -95,77 +96,59 @@ export default function RotisseriePage() {
   }
 
   return (
-    <div className="rotisserie-page">
-      <div className="rotisserie-container">
+    <div className="chaos-sealed-page">
+      <div className="chaos-sealed-container">
         <Button variant="back" onClick={() => router.push('/casual')}>
           Back to Casual Formats
         </Button>
-        <h1>Rotisserie Draft</h1>
-        <p className="rotisserie-subtitle">Snake draft from the entire card pool, face-up!</p>
+        <h1>Chaos Sealed</h1>
+        <p className="chaos-sealed-subtitle">Open 6 packs from 3 different sets!</p>
 
-        <div className="rotisserie-section">
-          <h3>Select Sets for Card Pool ({selectedSets.length} selected)</h3>
-          <p className="section-hint">Select one or more sets to build the card pool</p>
+        <div className="chaos-sealed-section">
+          <h3>Select 3 Sets ({selectedSets.length}/3)</h3>
+          <p className="section-hint">You'll open 2 packs from each set (6 total)</p>
           <div className="set-grid">
             {sets.map((set) => {
-              const isSelected = selectedSets.includes(set.code)
+              const selectionIndex = selectedSets.indexOf(set.code)
+              const isSelected = selectionIndex !== -1
               return (
                 <button
                   key={set.code}
                   className={`set-button ${isSelected ? 'selected' : ''}`}
                   onClick={() => toggleSetSelection(set.code)}
                 >
+                  {isSelected && (
+                    <span className="selection-number">{selectionIndex + 1}</span>
+                  )}
                   {set.name}
                   {set.beta && <span className="beta-badge">Beta</span>}
                 </button>
               )
             })}
           </div>
-        </div>
-
-        <div className="rotisserie-section">
-          <h3>Draft Settings</h3>
-          <div className="options-list">
-            <div className="option-item">
-              <label>
-                <span>Players: {maxPlayers}</span>
-                <input
-                  type="range"
-                  min="2"
-                  max="8"
-                  value={maxPlayers}
-                  onChange={(e) => setMaxPlayers(parseInt(e.target.value))}
-                />
-              </label>
-              <p className="option-hint">Each player drafts 50 cards</p>
+          {selectedSets.length === 3 && (
+            <div className="selected-sets-order">
+              <p>Your sets:</p>
+              <ul>
+                {selectedSets.map((setCode) => {
+                  const set = sets.find(s => s.code === setCode)
+                  return <li key={setCode}>{set?.name || setCode} (2 packs)</li>
+                })}
+              </ul>
             </div>
-
-            <div className="option-item">
-              <label>
-                <span>Pick Timer: {pickTimerSeconds} seconds</span>
-                <input
-                  type="range"
-                  min="30"
-                  max="180"
-                  step="30"
-                  value={pickTimerSeconds}
-                  onChange={(e) => setPickTimerSeconds(parseInt(e.target.value))}
-                />
-              </label>
-            </div>
-          </div>
+          )}
         </div>
 
         {error && <div className="error-message">{error}</div>}
 
-        <div className="rotisserie-actions">
+        <div className="chaos-sealed-actions">
           <Button
             variant="primary"
             size="lg"
-            disabled={selectedSets.length === 0 || creating}
-            onClick={handleCreate}
+            disabled={selectedSets.length !== 3 || generating}
+            onClick={handleGenerate}
           >
-            {creating ? 'Creating...' : 'Create Rotisserie Draft'}
+            {generating ? 'Generating...' : 'Generate Chaos Sealed Pool'}
           </Button>
         </div>
       </div>

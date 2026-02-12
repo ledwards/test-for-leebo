@@ -11,6 +11,10 @@ interface DraftSettings {
   maxPlayers?: number
   timerEnabled?: boolean
   timerSeconds?: number
+  settings?: {
+    draftMode?: 'chaos' | 'standard'
+    chaosSets?: string[]
+  }
 }
 
 interface CreateDraftResult {
