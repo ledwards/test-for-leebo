@@ -9,6 +9,7 @@ import SealedPod from '../src/components/SealedPod'
 import DeckBuilder from '../src/components/DeckBuilder'
 import TermsOfService from '../src/components/TermsOfService'
 import PrivacyPolicy from '../src/components/PrivacyPolicy'
+import About from '../src/components/About'
 import { initializeCardCache } from '../src/utils/cardCache'
 
 interface CardType {
@@ -17,7 +18,7 @@ interface CardType {
   [key: string]: unknown
 }
 
-type ViewType = 'landing' | 'set-selection' | 'sealed-pod' | 'deck-builder' | 'terms-of-service' | 'privacy-policy'
+type ViewType = 'landing' | 'set-selection' | 'sealed-pod' | 'deck-builder' | 'terms-of-service' | 'privacy-policy' | 'about'
 
 export default function Home() {
   const [view, setView] = useState<ViewType>('landing')
@@ -39,6 +40,8 @@ export default function Home() {
       setView('terms-of-service')
     } else if (path === '/privacy-policy') {
       setView('privacy-policy')
+    } else if (path === '/about') {
+      setView('about')
     } else if (path === '/sets') {
       setView('set-selection')
     }
@@ -52,6 +55,8 @@ export default function Home() {
         setView('terms-of-service')
       } else if (path === '/privacy-policy') {
         setView('privacy-policy')
+      } else if (path === '/about') {
+        setView('about')
       } else if (path === '/sets') {
         setView('set-selection')
       } else if (path === '/' || path === '') {
@@ -89,7 +94,7 @@ export default function Home() {
   }
 
   const handleBack = () => {
-    if (view === 'terms-of-service' || view === 'privacy-policy') {
+    if (view === 'terms-of-service' || view === 'privacy-policy' || view === 'about') {
       window.history.pushState({}, '', '/')
       setView('landing')
     } else if (view === 'deck-builder') {
@@ -183,6 +188,9 @@ export default function Home() {
       )}
       {view === 'privacy-policy' && (
         <PrivacyPolicy onBack={handleBack} />
+      )}
+      {view === 'about' && (
+        <About onBack={handleBack} />
       )}
     </div>
   )
