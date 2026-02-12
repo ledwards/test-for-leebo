@@ -249,15 +249,23 @@
   white-space: nowrap;
 }
 
-/* Filters row - search then filters, wraps when search hits min-width */
 /* Shared controls row spacing */
 .arena-controls-row {
   margin-bottom: 0.75rem;
 }
 
-.arena-filters-row {
+/* Row 1: Filter label + search + eye toggle */
+.arena-search-row {
   display: flex;
   align-items: center;
+  width: 100%;
+  gap: 1em;
+}
+
+/* Row 2: Aspect filter groups */
+.arena-filters-row {
+  display: flex;
+  align-items: flex-start;
   width: 100%;
   gap: 1em;
   flex-wrap: wrap;
@@ -268,7 +276,7 @@
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
-  align-items: center;
+  align-items: stretch;
   gap: 0.75em;
   flex-wrap: wrap;
 }
@@ -303,10 +311,11 @@
   height: 18px;
 }
 
-/* Primary aspect group (icon + combos in a row) */
+/* Primary aspect group (vertical: header row on top, multi-primary below) */
 .arena-aspect-group {
   flex: 0 0 auto;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   gap: 4px;
   padding: 3px 5px;
   border-radius: 6px;
@@ -320,8 +329,8 @@
 /* Group header (primary aspect icon - toggles all) */
 .arena-aspect-group-header {
   display: flex;
-  flex: 1;
   align-items: center;
+  justify-content: center;
   cursor: pointer;
   padding: 2px;
   border-radius: 4px;
@@ -341,12 +350,46 @@
   opacity: 0.4;
 }
 
-/* Separator between header and combos */
+/* Separator between header and standard combos (vertical line) */
 .arena-aspect-group-separator {
   width: 1px;
   height: 20px;
   background: rgba(255, 255, 255, 0.2);
   margin: 0 2px;
+}
+
+/* Standard combos row (inline with header) */
+.arena-aspect-group-standard-combos {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Top row: header + separator + standard combos */
+.arena-aspect-group-top-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Multi-primary combos row (below the top row) */
+.arena-aspect-group-multi-combos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+/* Multi-primary filter buttons (75% icon size) */
+.arena-multi-primary-filter {
+  padding: 2px 3px;
+  gap: 1px;
+}
+
+.arena-multi-primary-filter img {
+  width: 14px;
+  height: 14px;
 }
 
 /* Individual aspect filter button (combo) */
@@ -359,7 +402,7 @@
   display: flex;
   flex: 0 0 auto;
   gap: 0.75em;
-  align-items: center;
+  align-items: stretch;
 }
 
 /* Secondary aspects styled like primary aspect groups */
@@ -368,6 +411,9 @@
   border-radius: 6px;
   flex: 0 0 auto;
   padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .arena-secondary-aspect img {
@@ -402,7 +448,6 @@
 /* Neutral filter styled like aspect groups */
 .arena-neutral-filter {
   width: 40px;
-  height: 36px;
   border-color: rgba(128, 128, 128, 0.5);
   background: rgba(128, 128, 128, 0.1);
 }
@@ -762,8 +807,20 @@
   font-size: 0.9rem;
 }
 
-@media (max-width: 768px) {
-  /* Hide arena content on small screens */
+/* Mobile landscape: cost columns wrap into two rows of 4 */
+@media (max-width: 932px) and (orientation: landscape) {
+  .arena-cost-columns {
+    flex-wrap: wrap;
+  }
+
+  .arena-cost-column {
+    flex: 1 1 calc(25% - 6px);
+    min-width: calc(25% - 6px);
+  }
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  /* Hide arena content on small portrait screens */
   .arena-view > *:not(.arena-small-screen-message) {
     display: none;
   }

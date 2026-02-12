@@ -45,6 +45,42 @@ function getAspectComboKey(card: CardData): string {
   return sorted.join('+')
 }
 
+// Check if a combo key has 2+ distinct primary aspects (e.g., "Aggression+Command")
+function isMultiPrimaryCombo(comboKey: string): boolean {
+  const aspects = comboKey.split('+')
+  const uniquePrimaries = new Set(aspects.filter(a => PRIMARY_ASPECTS.includes(a)))
+  return uniquePrimaries.size >= 2
+}
+
+// Get all multi-primary combo keys from presentCombos that contain the given primary
+function getMultiPrimaryCombosForPrimary(primary: string, presentCombos: Set<string>): string[] {
+  return [...presentCombos].filter(comboKey => {
+    if (!isMultiPrimaryCombo(comboKey)) return false
+    return comboKey.split('+').includes(primary)
+  }).sort()
+}
+
+// Get all multi-primary combo keys from presentCombos that contain the given secondary
+function getMultiPrimaryCombosForSecondary(secondary: string, presentCombos: Set<string>): string[] {
+  return [...presentCombos].filter(comboKey => {
+    if (!isMultiPrimaryCombo(comboKey)) return false
+    return comboKey.split('+').includes(secondary)
+  }).sort()
+}
+
+// Get standard 4 combos for a primary aspect (mono, double, +Villainy, +Heroism)
+function getStandardCombosForPrimary(primary: string): string[] {
+  const combos = [
+    primary, // mono
+    `${primary}+${primary}`, // double
+  ]
+  SECONDARY_ASPECTS.forEach(secondary => {
+    const sorted = [primary, secondary].sort()
+    combos.push(sorted.join('+'))
+  })
+  return combos
+}
+
 // Aspect icon component
 function AspectIcon({ aspect }: { aspect: string }) {
   return (
@@ -73,28 +109,6 @@ export function ArenaPoolSection({
     arenaSearchQuery,
     setArenaSearchQuery,
   } = useDeckBuilder()
-
-  // Build default filters if arenaFilters is empty
-  const activeFilters = useMemo(() => {
-    // If we have saved filters, use them
-    if (Object.keys(arenaFilters).length > 0) {
-      return arenaFilters
-    }
-    // Default: all filters active
-    const initial: Record<string, boolean> = { neutral: true }
-    PRIMARY_ASPECTS.forEach(primary => {
-      initial[primary] = true
-      initial[`${primary}+${primary}`] = true
-      SECONDARY_ASPECTS.forEach(secondary => {
-        const sorted = [primary, secondary].sort()
-        initial[sorted.join('+')] = true
-      })
-    })
-    SECONDARY_ASPECTS.forEach(secondary => {
-      initial[secondary] = true
-    })
-    return initial
-  }, [arenaFilters])
 
   const setActiveFilters = setArenaFilters
   const searchQuery = arenaSearchQuery
@@ -132,6 +146,42 @@ export function ArenaPoolSection({
     })
     return combos
   }, [allCards])
+
+  // Build default filters, including multi-primary combos from presentCombos
+  const activeFilters = useMemo(() => {
+    // Build full default set (standard 19 keys)
+    const defaults: Record<string, boolean> = { neutral: true }
+    PRIMARY_ASPECTS.forEach(primary => {
+      defaults[primary] = true
+      defaults[`${primary}+${primary}`] = true
+      SECONDARY_ASPECTS.forEach(secondary => {
+        const sorted = [primary, secondary].sort()
+        defaults[sorted.join('+')] = true
+      })
+    })
+    SECONDARY_ASPECTS.forEach(secondary => {
+      defaults[secondary] = true
+    })
+    // Include any multi-primary combos from presentCombos
+    presentCombos.forEach(comboKey => {
+      if (!(comboKey in defaults)) {
+        defaults[comboKey] = true
+      }
+    })
+
+    if (Object.keys(arenaFilters).length > 0) {
+      // Merge saved filters with defaults; new combos default to visible
+      const merged = { ...defaults, ...arenaFilters }
+      presentCombos.forEach(comboKey => {
+        if (!(comboKey in arenaFilters)) {
+          merged[comboKey] = true
+        }
+      })
+      return merged
+    }
+
+    return defaults
+  }, [arenaFilters, presentCombos])
 
   // Filter cards by aspect combo and search
   const filteredCards = useMemo(() => {
@@ -211,18 +261,19 @@ export function ArenaPoolSection({
     })
   }, [anyFilterActive, presentCombos])
 
+  // Get all combos for a primary (standard + multi-primary from presentCombos)
+  const getAllCombosForPrimary = useCallback((primary: string) => {
+    return [
+      ...getStandardCombosForPrimary(primary),
+      ...getMultiPrimaryCombosForPrimary(primary, presentCombos)
+    ]
+  }, [presentCombos])
+
   // Toggle all combos for a primary aspect group
   // If any present combos are active, turn all off. If none are active, turn all on.
   const togglePrimaryAspect = useCallback((primary: string) => {
     setActiveFilters(prev => {
-      const combosForPrimary = [
-        primary,
-        `${primary}+${primary}`,
-        ...SECONDARY_ASPECTS.map(s => {
-          const sorted = [primary, s].sort()
-          return sorted.join('+')
-        })
-      ]
+      const combosForPrimary = getAllCombosForPrimary(primary)
       // Only consider present combos for determining toggle direction
       const anyPresentActive = combosForPrimary.some(k => presentCombos.has(k) && prev[k])
       const newState = { ...prev }
@@ -231,7 +282,7 @@ export function ArenaPoolSection({
       })
       return newState
     })
-  }, [presentCombos])
+  }, [presentCombos, getAllCombosForPrimary])
 
   // Toggle secondary aspect (and all combos containing it)
   // If any present combos are active, turn all off. If none are active, turn all on.
@@ -242,7 +293,8 @@ export function ArenaPoolSection({
         ...PRIMARY_ASPECTS.map(p => {
           const sorted = [p, secondary].sort()
           return sorted.join('+')
-        })
+        }),
+        ...getMultiPrimaryCombosForSecondary(secondary, presentCombos)
       ]
       // Only consider present combos for determining toggle direction
       const anyPresentActive = combosWithSecondary.some(k => presentCombos.has(k) && prev[k])
@@ -257,16 +309,9 @@ export function ArenaPoolSection({
   // Check if ANY present combo for a primary aspect is active
   // Parent shows as "active" only if at least one present child is active
   const isPrimaryAspectActive = useCallback((primary: string) => {
-    const combosForPrimary = [
-      primary,
-      `${primary}+${primary}`,
-      ...SECONDARY_ASPECTS.map(s => {
-        const sorted = [primary, s].sort()
-        return sorted.join('+')
-      })
-    ]
+    const combosForPrimary = getAllCombosForPrimary(primary)
     return combosForPrimary.some(k => presentCombos.has(k) && activeFilters[k])
-  }, [activeFilters, presentCombos])
+  }, [activeFilters, presentCombos, getAllCombosForPrimary])
 
   // Check if ANY present combo for a secondary aspect is active
   const isSecondaryAspectActive = useCallback((secondary: string) => {
@@ -275,7 +320,8 @@ export function ArenaPoolSection({
       ...PRIMARY_ASPECTS.map(p => {
         const sorted = [p, secondary].sort()
         return sorted.join('+')
-      })
+      }),
+      ...getMultiPrimaryCombosForSecondary(secondary, presentCombos)
     ]
     return combosWithSecondary.some(k => presentCombos.has(k) && activeFilters[k])
   }, [activeFilters, presentCombos])
@@ -322,18 +368,26 @@ export function ArenaPoolSection({
     )
   }
 
-  // Get all 4 combos for a primary aspect (in order: mono, double, +Villainy, +Heroism)
-  const getCombosForPrimary = (primary: string) => {
-    const combos = [
-      primary, // mono
-      `${primary}+${primary}`, // double
-    ]
-    // Add secondary combos in order
-    SECONDARY_ASPECTS.forEach(secondary => {
-      const sorted = [primary, secondary].sort()
-      combos.push(sorted.join('+'))
-    })
-    return combos
+  // Render a multi-primary combo filter button (smaller icons)
+  const renderMultiPrimaryComboFilter = (comboKey: string) => {
+    const aspects = comboKey.split('+')
+    const isActive = activeFilters[comboKey]
+    const isPresent = presentCombos.has(comboKey)
+
+    if (!isPresent) return null
+
+    return (
+      <button
+        key={comboKey}
+        className={`arena-filter-btn arena-aspect-filter arena-multi-primary-filter ${isActive ? 'active' : 'inactive'}`}
+        onClick={() => toggleFilter(comboKey)}
+        title={comboKey}
+      >
+        {aspects.map((aspect, i) => (
+          <AspectIcon key={i} aspect={aspect} />
+        ))}
+      </button>
+    )
   }
 
   return (
@@ -342,10 +396,9 @@ export function ArenaPoolSection({
         {/* Pool title on its own row */}
         <h3 className="arena-section-title">Pool ({sortedCards.length} cards)</h3>
 
-        {/* Search and aspect filters row */}
-        <div className="arena-filters-row arena-controls-row">
+        {/* Row 1: Filter label + search box + eye toggle */}
+        <div className="arena-controls-row arena-search-row">
           <span className="arena-filter-label">Filter:</span>
-          {/* Search box */}
           <div className="arena-search-container">
             <svg className="arena-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8" />
@@ -369,7 +422,6 @@ export function ArenaPoolSection({
             )}
           </div>
 
-          {/* Hide All / Show All toggle */}
           <button
             className={`arena-filter-btn arena-toggle-all-filter ${anyFilterActive ? 'active' : 'inactive'}`}
             onClick={toggleAllFilters}
@@ -387,70 +439,83 @@ export function ArenaPoolSection({
               </svg>
             )}
           </button>
+        </div>
 
-          {/* Aspect filters */}
+        {/* Row 2: All aspect filter groups */}
+        <div className="arena-controls-row arena-filters-row">
           <div className="arena-aspect-filters">
-            {/* Primary aspect groups */}
-          {PRIMARY_ASPECTS.map(primary => {
-            const combos = getCombosForPrimary(primary)
-            const hasAnyCombos = combos.some(k => presentCombos.has(k))
-            if (!hasAnyCombos) return null
+            {/* Primary aspect groups (vertical layout) */}
+            {PRIMARY_ASPECTS.map(primary => {
+              const standardCombos = getStandardCombosForPrimary(primary)
+              const multiPrimaryCombos = getMultiPrimaryCombosForPrimary(primary, presentCombos)
+              const allCombos = [...standardCombos, ...multiPrimaryCombos]
+              const hasAnyCombos = allCombos.some(k => presentCombos.has(k))
+              if (!hasAnyCombos) return null
 
-            const isGroupActive = isPrimaryAspectActive(primary)
-
-            return (
-              <div key={primary} className={`arena-filter-btn arena-aspect-group ${primary.toLowerCase()}`}>
-                <div
-                  className={`arena-aspect-group-header ${isGroupActive ? 'active' : 'inactive'}`}
-                  onClick={() => togglePrimaryAspect(primary)}
-                  title={`Toggle all ${primary} combos`}
-                >
-                  <AspectIcon aspect={primary} />
-                </div>
-                <div className="arena-aspect-group-separator" />
-                {combos.map(comboKey => renderComboFilter(comboKey))}
-              </div>
-            )
-          })}
-
-          {/* Secondary aspects (Villainy, Heroism) and Neutral in a row */}
-          <div className="arena-secondary-aspects">
-            {SECONDARY_ASPECTS.map(secondary => {
-              const isActive = isSecondaryAspectActive(secondary)
-              const hasCards = presentCombos.has(secondary) ||
-                PRIMARY_ASPECTS.some(p => {
-                  const sorted = [p, secondary].sort()
-                  return presentCombos.has(sorted.join('+'))
-                })
-              if (!hasCards) return null
+              const isGroupActive = isPrimaryAspectActive(primary)
 
               return (
-                <button
-                  key={secondary}
-                  className={`arena-filter-btn arena-secondary-aspect ${secondary.toLowerCase()} ${isActive ? 'active' : 'inactive'}`}
-                  onClick={() => toggleSecondaryAspect(secondary)}
-                  title={`Toggle all ${secondary} cards`}
-                >
-                  <AspectIcon aspect={secondary} />
-                </button>
+                <div key={primary} className={`arena-filter-btn arena-aspect-group ${primary.toLowerCase()}`}>
+                  <div className="arena-aspect-group-top-row">
+                    <div
+                      className={`arena-aspect-group-header ${isGroupActive ? 'active' : 'inactive'}`}
+                      onClick={() => togglePrimaryAspect(primary)}
+                      title={`Toggle all ${primary} combos`}
+                    >
+                      <AspectIcon aspect={primary} />
+                    </div>
+                    <div className="arena-aspect-group-separator" />
+                    <div className="arena-aspect-group-standard-combos">
+                      {standardCombos.map(comboKey => renderComboFilter(comboKey))}
+                    </div>
+                  </div>
+                  {multiPrimaryCombos.some(k => presentCombos.has(k)) && (
+                    <div className="arena-aspect-group-multi-combos">
+                      {multiPrimaryCombos.map(comboKey => renderMultiPrimaryComboFilter(comboKey))}
+                    </div>
+                  )}
+                </div>
               )
             })}
 
-            {/* Neutral filter */}
-            {presentCombos.has('neutral') && (
-              <button
-                className={`arena-filter-btn arena-neutral-filter ${activeFilters.neutral ? 'active' : 'inactive'}`}
-                onClick={() => toggleFilter('neutral')}
-                title="Toggle neutral cards"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="rgba(128, 128, 128, 0.7)">
-                  <polygon points="12,2 22,7 22,17 12,22 2,17 2,7" />
-                </svg>
-              </button>
-            )}
+            {/* Secondary aspects (Villainy, Heroism) and Neutral */}
+            <div className="arena-secondary-aspects">
+              {SECONDARY_ASPECTS.map(secondary => {
+                const isActive = isSecondaryAspectActive(secondary)
+                const hasCards = presentCombos.has(secondary) ||
+                  PRIMARY_ASPECTS.some(p => {
+                    const sorted = [p, secondary].sort()
+                    return presentCombos.has(sorted.join('+'))
+                  }) ||
+                  getMultiPrimaryCombosForSecondary(secondary, presentCombos).length > 0
+                if (!hasCards) return null
+
+                return (
+                  <button
+                    key={secondary}
+                    className={`arena-filter-btn arena-secondary-aspect ${secondary.toLowerCase()} ${isActive ? 'active' : 'inactive'}`}
+                    onClick={() => toggleSecondaryAspect(secondary)}
+                    title={`Toggle all ${secondary} cards`}
+                  >
+                    <AspectIcon aspect={secondary} />
+                  </button>
+                )
+              })}
+
+              {presentCombos.has('neutral') && (
+                <button
+                  className={`arena-filter-btn arena-neutral-filter ${activeFilters.neutral ? 'active' : 'inactive'}`}
+                  onClick={() => toggleFilter('neutral')}
+                  title="Toggle neutral cards"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="rgba(128, 128, 128, 0.7)">
+                    <polygon points="12,2 22,7 22,17 12,22 2,17 2,7" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
-          </div>{/* Close arena-aspect-filters */}
-        </div>{/* Close arena-filters-row */}
+        </div>
       </div>
 
       <div className="arena-content-area">
