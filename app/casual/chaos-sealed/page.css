@@ -161,6 +161,10 @@
   background: rgba(0, 0, 0, 0.9);
 }
 
+.selection-button.hidden {
+  visibility: hidden;
+}
+
 .selection-number {
   width: 28px;
   height: 28px;
@@ -192,28 +196,17 @@
   z-index: 10;
 }
 
-.selected-sets-order {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  text-align: left;
-}
-
-.selected-sets-order p {
-  margin: 0 0 0.75rem 0;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+.selected-sets-order h3 {
+  margin-bottom: 1.5rem;
 }
 
 .selected-packs-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: flex-start;
   gap: 1rem;
-  width: calc(3 * 120px + 2 * 1rem);
+  width: calc(6 * 120px + 5 * 1rem);
   margin: 0 auto;
 }
 

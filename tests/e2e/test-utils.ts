@@ -51,16 +51,16 @@ interface TestUserResult {
 /**
  * Create a test user directly in the database
  */
-export async function createTestUser(username: string, testId: string): Promise<TestUserResult> {
+export async function createTestUser(username: string, testId: string, options?: { isBetaTester?: boolean }): Promise<TestUserResult> {
   const uniqueId = `test_${testId}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 
   // Insert user into database
   const db = getPool()
   const result = await db.query(
-    `INSERT INTO users (discord_id, username, email, avatar_url)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO users (discord_id, username, email, avatar_url, is_beta_tester)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [uniqueId, username, `${uniqueId}@test.local`, null]
+    [uniqueId, username, `${uniqueId}@test.local`, null, options?.isBetaTester || false]
   )
 
   const user = result.rows[0]

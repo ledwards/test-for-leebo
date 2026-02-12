@@ -97,8 +97,10 @@ export default function ChaosDraftPage() {
       if (selectedSets.length < 3) {
         setSelectedSets(prev => [...prev, setCode])
       }
+    } else {
+      // Already selected: remove all instances
+      setSelectedSets(prev => prev.filter(s => s !== setCode))
     }
-    // If already selected, do nothing on main click - use +/- buttons
   }
 
   const handleAddOne = (setCode: string, e: React.MouseEvent) => {
@@ -172,14 +174,12 @@ export default function ChaosDraftPage() {
                 −
               </span>
               <span className="selection-number">{count}</span>
-              {canAddMore && (
-                <span
-                  className="selection-button"
-                  onClick={(e) => handleAddOne(set.code, e)}
-                >
-                  +
-                </span>
-              )}
+              <span
+                className={`selection-button ${!canAddMore ? 'hidden' : ''}`}
+                onClick={(e) => canAddMore && handleAddOne(set.code, e)}
+              >
+                +
+              </span>
             </div>
           )}
         </div>
@@ -230,35 +230,35 @@ export default function ChaosDraftPage() {
               {sortedSets.bottom.map(renderSetButton)}
             </div>
           )}
+        </div>
 
-          <div className="selected-sets-order">
-            <p>Your Chaos Draft ({selectedSets.length}/3):</p>
-            <div className="selected-packs-row">
-              {[0, 1, 2].map((slotIndex) => {
-                const setCode = selectedSets[slotIndex]
-                if (setCode) {
-                  const packImageUrl = getPackImageUrl(setCode)
-                  return (
-                    <div
-                      key={slotIndex}
-                      className="selected-pack"
-                      onClick={() => {
-                        setSelectedSets(prev => [...prev.slice(0, slotIndex), ...prev.slice(slotIndex + 1)])
-                      }}
-                    >
-                      <div className="selected-pack-image">
-                        <img src={packImageUrl} alt={setCode} />
-                      </div>
-                    </div>
-                  )
-                }
+        <div className="chaos-draft-section selected-sets-order">
+          <h3>Your Chaos Draft ({selectedSets.length}/3)</h3>
+          <div className="selected-packs-row">
+            {[0, 1, 2].map((slotIndex) => {
+              const setCode = selectedSets[slotIndex]
+              if (setCode) {
+                const packImageUrl = getPackImageUrl(setCode)
                 return (
-                  <div key={slotIndex} className="selected-pack skeleton">
-                    <div className="selected-pack-image"></div>
+                  <div
+                    key={slotIndex}
+                    className="selected-pack"
+                    onClick={() => {
+                      setSelectedSets(prev => [...prev.slice(0, slotIndex), ...prev.slice(slotIndex + 1)])
+                    }}
+                  >
+                    <div className="selected-pack-image">
+                      <img src={packImageUrl} alt={setCode} />
+                    </div>
                   </div>
                 )
-              })}
-            </div>
+              }
+              return (
+                <div key={slotIndex} className="selected-pack skeleton">
+                  <div className="selected-pack-image"></div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
