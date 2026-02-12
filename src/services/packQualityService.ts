@@ -86,6 +86,8 @@ export interface PackQualityData {
 
   reference: {
     packStructure: string
+    slotOrder: string
+    setVariants: Record<string, string>
     dataSource: string
   }
 }
@@ -317,6 +319,17 @@ export function buildMetricResult(
 
 // === Main Service Function ===
 
+/**
+ * Get pack quality metrics for a specific set.
+ *
+ * IMPORTANT: The `since` parameter should be set to exclude data before position-based
+ * slot_type tracking was deployed (2026-02-12). Earlier data used rarity-based inference
+ * which incorrectly classified upgraded slots (e.g., UC3→Rare was marked as 'rare_legendary'
+ * instead of 'uncommon').
+ *
+ * @param setCode - The set code (SOR, SHD, TWI, JTL, LOF, SEC, LAW)
+ * @param since - ISO date string to filter data (default: 2020-01-01)
+ */
 export async function getPackQualityData(setCode: string, since: string = '2020-01-01'): Promise<PackQualityData> {
   const constants = getPackConstants(setCode)
   const setNumber = getSetNumber(setCode)
@@ -350,7 +363,8 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       pack_index,
       COUNT(*) as card_count
      FROM card_generations
-     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2     GROUP BY source_id, pack_index`,
+     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
+     GROUP BY source_id, pack_index`,
     [setCode, since]
   )
 
@@ -372,7 +386,8 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
      FROM (
        SELECT source_id, pack_index
        FROM card_generations
-       WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2       GROUP BY source_id, pack_index, card_name, treatment
+       WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
+       GROUP BY source_id, pack_index, card_name, treatment
        HAVING COUNT(*) > 1
      ) dupes`,
     [setCode, since]
@@ -394,7 +409,8 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       pack_index,
       COUNT(*) FILTER (WHERE slot_type = 'leader') as leader_count
      FROM card_generations
-     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2     GROUP BY source_id, pack_index`,
+     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
+     GROUP BY source_id, pack_index`,
     [setCode, since]
   )
   const correctLeaderPacks = leaderStats.filter(p => parseInt(p.leader_count) === 1).length
@@ -415,7 +431,8 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       pack_index,
       COUNT(*) FILTER (WHERE slot_type = 'base') as base_count
      FROM card_generations
-     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2     GROUP BY source_id, pack_index`,
+     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
+     GROUP BY source_id, pack_index`,
     [setCode, since]
   )
   const correctBasePacks = baseStats.filter(p => parseInt(p.base_count) === 1).length
@@ -427,6 +444,43 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
     rate: baseStats.length > 0 ? correctBasePacks / baseStats.length : 1,
     status: baseStats.length === 0 ? 'warning' :
             correctBasePacks === baseStats.length ? 'pass' : 'fail',
+  })
+
+  // 5. Slot composition per pack
+  // Expected: 1 Leader, 1 Base, 9 Commons, 3 Uncommons, 1 Rare/Legendary, 1 Foil = 16 cards
+  const slotCompositionStats = await queryRows(
+    `SELECT
+      source_id,
+      pack_index,
+      COUNT(*) FILTER (WHERE slot_type = 'leader') as leaders,
+      COUNT(*) FILTER (WHERE slot_type = 'base') as bases,
+      COUNT(*) FILTER (WHERE slot_type = 'common') as commons,
+      COUNT(*) FILTER (WHERE slot_type = 'uncommon') as uncommons,
+      COUNT(*) FILTER (WHERE slot_type = 'rare_legendary') as rare_legendaries,
+      COUNT(*) FILTER (WHERE slot_type = 'foil') as foils
+     FROM card_generations
+     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
+     GROUP BY source_id, pack_index`,
+    [setCode, since]
+  )
+
+  // A pack has correct composition if: 1L, 1B, 9C, 3U, 1R/L, 1F
+  const correctCompositionPacks = slotCompositionStats.filter(p =>
+    parseInt(p.leaders) === 1 &&
+    parseInt(p.bases) === 1 &&
+    parseInt(p.commons) === 9 &&
+    parseInt(p.uncommons) === 3 &&
+    parseInt(p.rare_legendaries) === 1 &&
+    parseInt(p.foils) === 1
+  ).length
+
+  structuralMetrics.push({
+    metric: 'Slot Composition (1L/1B/9C/3U/1R/1F)',
+    passed: correctCompositionPacks,
+    failed: slotCompositionStats.length - correctCompositionPacks,
+    rate: slotCompositionStats.length > 0 ? correctCompositionPacks / slotCompositionStats.length : 1,
+    status: slotCompositionStats.length === 0 ? 'warning' :
+            correctCompositionPacks === slotCompositionStats.length ? 'pass' : 'fail',
   })
 
   // === RARITY METRICS ===
@@ -451,7 +505,8 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
   const foilStats = await queryRows(
     `SELECT rarity, COUNT(*) as count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'foil' AND generated_at >= $2     GROUP BY rarity`,
+     WHERE set_code = $1 AND slot_type = 'foil' AND generated_at >= $2
+     GROUP BY rarity`,
     [setCode, since]
   )
 
@@ -668,6 +723,12 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
 
     reference: {
       packStructure: '16 cards: 1 Leader, 1 Base, 9 Commons, 3 Uncommons, 1 Rare/Legendary, 1 Foil',
+      slotOrder: 'Leader → Base → 9 Commons (Belt A/B alternating) → 3 Uncommons (UC3 can upgrade) → Rare/Legendary → Foil',
+      setVariants: {
+        'Sets 1-3': 'UC3 upgrades to HS R/L at ~1/5.5 rate',
+        'Sets 4-6': 'UC3 upgrades at ~1/5 rate, Special rarity in foil slot',
+        'Set 7+': 'Foil slot always Hyperspace Foil, guaranteed HS common',
+      },
       dataSource: 'Community box break analysis and FFG announcements',
     },
   }
