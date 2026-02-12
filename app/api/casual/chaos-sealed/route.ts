@@ -55,16 +55,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate unique share ID
     const shareId = generateShareId(8)
 
-    // Store pool data
-    const poolData = {
-      setCodes,
-      setNames: setConfigs.map(c => c.setName),
-      poolType: 'chaos_sealed',
-      cards: allCards,
-      packs
-    }
-
     // Insert into card_pools table
+    // cards column = flat array of all cards
+    // packs column = array of pack objects with setCode/setName metadata
     const result = await query(
       `INSERT INTO card_pools (user_id, share_id, set_code, set_name, pool_type, cards, packs, is_public)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -75,7 +68,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         setCodes.join(','),
         'Chaos Sealed',
         'chaos_sealed',
-        JSON.stringify(poolData),
+        JSON.stringify(allCards),
         JSON.stringify(packs),
         true
       ]
