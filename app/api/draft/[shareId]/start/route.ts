@@ -56,9 +56,18 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     // Initialize card cache before generating packs
     await initializeCardCache()
 
+    // Check for chaos draft settings
+    const settings = pod.settings || {}
+    const chaosSets = settings.draftMode === 'chaos' && settings.chaosSets
+      ? settings.chaosSets
+      : undefined
+
     // Generate packs for all players
     // console.log('[START] Generating packs for', players.length, 'players, set:', pod.set_code)
-    const { packs, leaders } = generateDraftPacks(pod.set_code, players.length)
+    const { packs, leaders } = generateDraftPacks(pod.set_code, {
+      playerCount: players.length,
+      chaosSets
+    })
     // console.log('[START] Packs generated, leaders per player:', leaders[0]?.length)
 
     // NOTE: We don't track cards at draft start anymore.

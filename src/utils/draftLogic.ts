@@ -42,15 +42,34 @@ interface PositionCoordinates {
 
 // === PACK GENERATION ===
 
+/** Options for generating draft packs */
+interface DraftPacksOptions {
+  /** Number of players (default 8) */
+  playerCount?: number;
+  /** For Chaos Draft: array of 3 set codes, one per pack round */
+  chaosSets?: (SetCode | string)[];
+}
+
 /**
  * Generate draft packs for all players
  * Each player gets 3 packs, with leaders extracted separately
  *
- * @param setCode - Set code (SOR, SHD, etc.)
- * @param playerCount - Number of players (default 8)
+ * @param setCode - Set code (SOR, SHD, etc.) - ignored if chaosSets provided
+ * @param playerCountOrOptions - Number of players OR options object
  * @returns { packs: playerPacks[][], leaders: playerLeaders[][] }
  */
-export function generateDraftPacks(setCode: SetCode | string, playerCount: number = 8): DraftPacksResult {
+export function generateDraftPacks(
+  setCode: SetCode | string,
+  playerCountOrOptions: number | DraftPacksOptions = 8
+): DraftPacksResult {
+  // Handle both old signature (playerCount number) and new signature (options object)
+  const options: DraftPacksOptions = typeof playerCountOrOptions === 'number'
+    ? { playerCount: playerCountOrOptions }
+    : playerCountOrOptions;
+
+  const playerCount = options.playerCount ?? 8;
+  const chaosSets = options.chaosSets;
+
   // Clear belt cache for fresh generation
   clearBeltCache();
 
@@ -66,8 +85,14 @@ export function generateDraftPacks(setCode: SetCode | string, playerCount: numbe
     const playerLeaders: DraftCard[] = [];
 
     for (let packNum = 0; packNum < packsPerPlayer; packNum++) {
+      // For Chaos Draft, use a different set for each pack
+      // Otherwise use the single setCode
+      const packSetCode = chaosSets && chaosSets[packNum]
+        ? chaosSets[packNum]
+        : setCode;
+
       // Generate a pack
-      const pack: Pack = generateBoosterPack([], setCode);
+      const pack: Pack = generateBoosterPack([], packSetCode);
 
       // Add unique instance IDs to all cards in the pack
       // This prevents race conditions where the same base card ID exists in multiple packs

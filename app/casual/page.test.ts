@@ -50,16 +50,6 @@ describe('/casual page', () => {
       handleModeSelect('chaos-draft')
       assert.strictEqual(navigatedTo, '/casual/chaos-draft')
     })
-
-    it('should navigate back to home on back button', () => {
-      let navigatedTo: string | null = null
-      const handleBack = () => {
-        navigatedTo = '/'
-      }
-
-      handleBack()
-      assert.strictEqual(navigatedTo, '/')
-    })
   })
 
   describe('Mode availability', () => {

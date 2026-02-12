@@ -1,0 +1,235 @@
+.pack-wars-play-page {
+  min-height: 100vh;
+  background-color: rgb(76, 77, 81);
+  background-image:
+    linear-gradient(rgb(9, 9, 9) 0%, rgba(0, 0, 0, 0) 18.23%),
+    linear-gradient(rgba(0, 0, 0, 0) 78.12%, rgb(9, 9, 9) 93.23%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+    url("/background-images/bg-texture-crop.png");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 150% auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat-y;
+  background-position: center center, center center, center center, center center;
+  color: white;
+  font-family: 'Barlow', sans-serif;
+  padding: 2rem;
+}
+
+.pack-wars-play-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pack-wars-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.pack-wars-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.set-name {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.option-badge {
+  display: inline-block;
+  background: rgba(0, 255, 0, 0.2);
+  border: 1px solid rgba(0, 255, 0, 0.5);
+  color: #00ff00;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin: 0 4px;
+}
+
+.pack-wars-leaders-bases {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.leaders-section,
+.bases-section {
+  text-align: center;
+}
+
+.leaders-section h3,
+.bases-section h3 {
+  margin-bottom: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.leaders-grid,
+.bases-grid {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.leader-card,
+.base-card {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.leader-card:hover {
+  transform: translateY(-4px);
+}
+
+.leader-card.selected {
+  transform: translateY(-4px);
+}
+
+.leader-card.selected .canvas-card {
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+}
+
+.selected-indicator {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 255, 0, 0.9);
+  color: black;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.leader-card .canvas-card,
+.base-card .canvas-card {
+  width: 150px;
+}
+
+.pack-wars-deck-section {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.pack-wars-deck-section h3 {
+  margin: 0 0 1rem 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.draw-section {
+  padding: 2rem 0;
+}
+
+.hand-section {
+  margin-bottom: 1.5rem;
+}
+
+.hand-section h4 {
+  margin: 0 0 1rem 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hand-cards {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hand-card .canvas-card {
+  width: 120px;
+}
+
+.buffer-card {
+  width: 120px;
+  height: 168px;
+  background: rgba(100, 100, 100, 0.5);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+}
+
+.reshuffle-section {
+  margin-top: 1rem;
+}
+
+.pack-wars-all-cards {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.pack-wars-all-cards h3 {
+  margin: 0 0 1rem 0;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+}
+
+.all-cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pool-card .canvas-card {
+  width: 100px;
+}
+
+.loading,
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.error {
+  color: #ff6b6b;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .pack-wars-play-page {
+    padding: 1rem;
+    background-size: 100% 100%, 100% 100%, 100% 100%, 300% auto;
+  }
+
+  .pack-wars-header h1 {
+    font-size: 2rem;
+  }
+
+  .pack-wars-leaders-bases {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .leader-card .canvas-card,
+  .base-card .canvas-card {
+    width: 120px;
+  }
+
+  .hand-card .canvas-card {
+    width: 100px;
+  }
+
+  .pool-card .canvas-card {
+    width: 80px;
+  }
+}

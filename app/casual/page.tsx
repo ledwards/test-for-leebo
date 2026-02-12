@@ -2,7 +2,6 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import Button from '@/src/components/Button'
 import './page.css'
 
 interface CasualMode {
@@ -17,25 +16,25 @@ const CASUAL_MODES: CasualMode[] = [
     id: 'chaos-draft',
     name: 'Chaos Draft',
     description: 'Draft with packs from 3 different sets',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'rotisserie',
     name: 'Rotisserie Draft',
     description: 'Snake draft from entire card pool, face-up',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'pack-wars',
     name: 'Pack Wars',
     description: 'Build deck from 2 packs',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'pack-blitz',
     name: 'Pack Blitz',
     description: 'Build deck from 1 pack',
-    comingSoon: true,
+    comingSoon: false,
   },
 ]
 
@@ -47,10 +46,6 @@ export default function CasualModePage() {
       return // Don't navigate if coming soon
     }
     router.push(`/casual/${mode.id}`)
-  }
-
-  const handleBack = () => {
-    router.push('/')
   }
 
   return (
@@ -74,12 +69,6 @@ export default function CasualModePage() {
               )}
             </button>
           ))}
-        </div>
-
-        <div className="casual-actions">
-          <Button variant="back" onClick={handleBack}>
-            Back
-          </Button>
         </div>
       </div>
     </div>
