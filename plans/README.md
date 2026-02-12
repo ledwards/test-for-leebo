@@ -1,22 +1,17 @@
 # SWUPOD Planning Documents
 
-This directory contains planning documents, roadmaps, and progress tracking for SWUPOD development initiatives.
+This directory contains planning documents for features that have **not yet been implemented**. Once a plan is fully implemented, it should be moved to `docs/`.
 
 ## Active Plans
 
-| Plan | Status | Description |
-|------|--------|-------------|
-| [REFACTORING_PLAN.md](./REFACTORING_PLAN.md) | Planning | Comprehensive codebase refactoring initiative |
-| [REFACTORING_PROGRESS.md](./REFACTORING_PROGRESS.md) | Active | Progress tracker with checkboxes |
-| [STYLEGUIDE_PLAN.md](./STYLEGUIDE_PLAN.md) | Planning | Interactive style guide page implementation |
-
-## Completed Plans
-
-| Plan | Status | Description |
-|------|--------|-------------|
-| [DECKBUILDER_REFACTOR_PLAN.md](./DECKBUILDER_REFACTOR_PLAN.md) | Complete | DeckBuilder.jsx reduced by 70% |
-| [COMPONENT_EXTRACTION_PLAN.md](./COMPONENT_EXTRACTION_PLAN.md) | Complete | Component library extracted |
+| Plan | Description |
+|------|-------------|
+| [TOURNAMENT_MODE_PLAN.md](./TOURNAMENT_MODE_PLAN.md) | Swiss-format tournament system for Sealed and Draft |
+| [CASUAL_MODE_PLAN.md](./CASUAL_MODE_PLAN.md) | Casual limited formats (Chaos Draft, Rotisserie, Pack Wars, Pack Blitz) |
+| [TYPESCRIPT_MIGRATION_PLAN.md](./TYPESCRIPT_MIGRATION_PLAN.md) | Type system spec and incremental TS migration strategy |
+| [REFACTORING_PLAN.md](./REFACTORING_PLAN.md) | Large-scale architectural refactoring (partially complete) |
+| [STYLEGUIDE_PLAN.md](./STYLEGUIDE_PLAN.md) | Interactive living style guide page at `/styleguide` |
 
 ---
 
-For current architecture and reference documentation, see [docs/README.md](../docs/README.md).
+For completed plans and reference documentation, see [docs/README.md](../docs/README.md).

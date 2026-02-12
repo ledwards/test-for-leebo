@@ -14,6 +14,9 @@
 - **Error pages**: Updated to use failpurrgil.png with outward glow effect.
 - **Card preview**: Disabled on all touch devices (including iPad), not just small screens.
 
+### 🔧 Maintenance
+- Documentation cleanup: organized plans vs. completed docs, removed stale files, updated indexes
+
 ## 02.11.2026
 
 ### 🎉 New Features
@@ -166,10 +169,6 @@ Additionally, we've got a Discord now: [https://discord.gg/u6fkdDzWqF](https://d
 - Player status indicators
 - Aspect-based card coloring
 - Multiple deck builder view modes
-
----
-
----
 
 ---
 
