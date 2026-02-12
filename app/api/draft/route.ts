@@ -22,8 +22,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     } = body
 
     // Get set name from config
-    const setConfig = getSetConfig(setCode)
-    const setName = setConfig?.setName || setCode
+    // For chaos draft, use "Chaos Draft (SET1, SET2, SET3)"
+    let setName: string
+    if (settings.draftMode === 'chaos' && settings.chaosSets) {
+      setName = `Chaos Draft (${settings.chaosSets.join(', ')})`
+    } else {
+      const setConfig = getSetConfig(setCode)
+      setName = setConfig?.setName || setCode
+    }
 
     // Generate share ID with retry logic
     let shareId = generateShareId(8)

@@ -21,7 +21,7 @@ const CASUAL_MODES: CasualMode[] = [
   {
     id: 'chaos-sealed',
     name: 'Chaos Sealed',
-    description: 'Open 6 packs from 3 different sets',
+    description: 'Open 6 packs from 6 different sets',
     comingSoon: false,
   },
   {
