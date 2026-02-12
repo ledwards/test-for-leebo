@@ -27,12 +27,13 @@ export default function Error({ reset }: ErrorProps) {
         marginBottom: '2rem',
       }}>
         <img
-          src="/errorpurrgil.png"
+          src="/failpurrgil.png"
           alt="Error"
           style={{
             maxWidth: '600px',
             width: '100%',
             display: 'block',
+            boxShadow: '0 0 80px 40px rgb(9, 9, 9)',
           }}
         />
         <div style={{
