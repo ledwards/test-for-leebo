@@ -1,5 +1,10 @@
 # Release Notes
 
+## 02.11.2026
+
+### 🦾 Testing
+- If this works we should see this posted to the test channel for release notes on push.
+
 ## 02.01.2026
 
 ### 📦 Pack Generation
