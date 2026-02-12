@@ -111,33 +111,6 @@ interface QAResults {
   }
 }
 
-interface TestSuite {
-  name: string
-  suite: string
-  status: 'passed' | 'failed'
-  executionTime?: number
-  errorMessage?: string
-  tests?: Array<{
-    name: string
-    status: 'passed' | 'failed'
-  }>
-}
-
-interface TestResults {
-  available: boolean
-  latestRun?: {
-    summary: {
-      totalSuites: number
-      totalTests: number
-      passed: number
-      failed: number
-    }
-    executionTime: number
-    runAt: string
-    suites: TestSuite[]
-  }
-}
-
 // Stats start date - from env var or default to include all historical data
 const STATS_START_DATE = process.env.NEXT_PUBLIC_STATS_START_DATE || '2020-01-01'
 
@@ -178,7 +151,7 @@ export default function StatsPage() {
   }
 
   useEffect(() => {
-    if (activeTab === 'Reference' || activeTab === 'Code Quality' || activeTab === 'Pack Quality') {
+    if (activeTab === 'Reference' || activeTab === 'Overall') {
       setLoading(false)
       return
     }
@@ -198,7 +171,7 @@ export default function StatsPage() {
       })
   }, [activeTab])
 
-  const tabs = ['Reference', 'Code Quality', 'Pack Quality', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC', 'LAW']
+  const tabs = ['Reference', 'Overall', 'SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC', 'LAW']
 
   // Set colors for tabs
   const setColors: Record<string, string> = {
@@ -241,9 +214,7 @@ export default function StatsPage() {
       <div className="stats-content">
         {activeTab === 'Reference' ? (
           <ReferenceTab />
-        ) : activeTab === 'Code Quality' ? (
-          <TestTab />
-        ) : activeTab === 'Pack Quality' ? (
+        ) : activeTab === 'Overall' ? (
           <QATab />
         ) : loading ? (
           <div className="stats-loading">Loading statistics...</div>
@@ -593,11 +564,13 @@ function PackMetricsSection({ metrics }: PackMetricsSectionProps) {
   const totalPools = metrics.poolSameTreatmentDuplicates?.totalPools || 0
   const totalPacks = metrics.totalPacksTracked || 0
 
-  // Statistical analysis helper
+  // Statistical analysis helper — uses relative tolerance for small expected values
   const getMetricStatus = (observed: number, expected: number, threshold = 10) => {
     const diff = Math.abs(observed - expected)
-    if (diff <= threshold) return { status: 'expected', color: '#27AE60' }
-    if (diff <= threshold * 2) return { status: 'outlier', color: '#F39C12' }
+    // For very small expected values (< 1%), use absolute threshold of 2
+    const effectiveThreshold = expected < 1 ? Math.max(threshold, 2) : threshold
+    if (diff <= effectiveThreshold) return { status: 'expected', color: '#27AE60' }
+    if (diff <= effectiveThreshold * 2) return { status: 'outlier', color: '#F39C12' }
     return { status: 'extreme', color: '#E74C3C' }
   }
 
@@ -626,23 +599,29 @@ function PackMetricsSection({ metrics }: PackMetricsSectionProps) {
   const poolCrossTreatmentStatus = getMetricStatus(poolCrossTreatmentPercent, 95, 10)
 
   // Treatment distribution expected percentages (per 16 cards)
+  // base: ~14/16 cards are base treatment (no HS/foil/showcase)
+  // hyperspace: ~0.83 HS upgrades per pack / 16 = ~5.2%
+  // foil: 1 foil per pack / 16 = 6.25%
+  // hyperspace_foil: ~1 in 50 packs = ~0.13%
+  // showcase: ~1 in 288 packs = ~0.02%
   const treatmentExpected: Record<string, number> = {
-    base: 87, // ~14 of 16 cards
-    hyperspace: 6, // ~1 card
-    foil: 6, // 1 foil per pack
-    hyperspace_foil: 0.5, // rare
-    showcase: 0.5 // rare, leaders only
+    base: 88,
+    hyperspace: 5,
+    foil: 6,
+    hyperspace_foil: 0.1,
+    showcase: 0.02
   }
 
   // Rarity distribution expected (per 16 cards)
+  // Note: these are approximate and vary by set
   const rarityExpected: Record<string, number> = {
     Common: 56, // 9/16
-    Uncommon: 16, // 2.5/16
-    Rare: 8, // ~1.3/16
-    Legendary: 2, // ~0.3/16
+    Uncommon: 19, // 3/16
+    Rare: 7, // ~1.1/16
+    Legendary: 1, // ~0.15/16
     Leader: 6, // 1/16
     Base: 6, // 1/16
-    Special: 0.5
+    Special: 1
   }
 
   return (
@@ -953,28 +932,28 @@ function ReferenceTab() {
             <tbody>
               <tr>
                 <td>Common</td>
-                <td><strong>70%</strong></td>
-                <td><strong>65%</strong></td>
+                <td><strong>~78%</strong></td>
+                <td><strong>~75%</strong></td>
               </tr>
               <tr>
                 <td>Uncommon</td>
-                <td><strong>20%</strong></td>
-                <td><strong>20%</strong></td>
+                <td><strong>~17%</strong></td>
+                <td><strong>~17%</strong></td>
               </tr>
               <tr>
                 <td>Rare</td>
-                <td><strong>8%</strong></td>
-                <td><strong>8%</strong></td>
+                <td><strong>~5%</strong></td>
+                <td><strong>~4%</strong></td>
               </tr>
               <tr>
                 <td>Legendary</td>
-                <td><strong>2%</strong></td>
-                <td><strong>3%</strong></td>
+                <td><strong>~0.3%</strong></td>
+                <td><strong>~0.3%</strong></td>
               </tr>
               <tr>
                 <td>Special</td>
                 <td><strong>0%</strong></td>
-                <td><strong>4%</strong></td>
+                <td><strong>~4%</strong></td>
               </tr>
             </tbody>
           </table>
@@ -1097,7 +1076,7 @@ function ReferenceTab() {
               <li>Special rarity can appear in the <strong>foil slot only</strong></li>
               <li>Never in regular rare/legendary slot</li>
               <li>12-16 special cards per set</li>
-              <li>Distribution weighted similar to legendary foils</li>
+              <li>Same total output rate as Rare (dynamic multiplier scales for card count)</li>
             </ul>
           </div>
         </section>
@@ -1164,11 +1143,11 @@ function ReferenceTab() {
 
             <p><strong>Foil Distribution (Sets 1-3 / Sets 4+):</strong></p>
             <ul>
-              <li><strong>Common foils:</strong> Expected ~70% / ~65%</li>
-              <li><strong>Uncommon foils:</strong> Expected ~20% / ~20%</li>
-              <li><strong>Rare foils:</strong> Expected ~8% / ~8%</li>
-              <li><strong>Legendary foils:</strong> Expected ~2% / ~3%</li>
-              <li><strong>Special foils:</strong> Expected 0% / ~4% (Sets 4+ only)</li>
+              <li><strong>Common foils:</strong> Expected ~78% / ~75%</li>
+              <li><strong>Uncommon foils:</strong> Expected ~17% / ~17%</li>
+              <li><strong>Rare foils:</strong> Expected ~5% / ~4%</li>
+              <li><strong>Legendary foils:</strong> Expected ~0.3% / ~0.3%</li>
+              <li><strong>Special foils:</strong> Expected 0% / ~4% (Sets 4+ only, same rate as Rare)</li>
             </ul>
           </div>
         </section>
@@ -1281,7 +1260,7 @@ function ReferenceTab() {
               <tr>
                 <td><strong>Special Rarity</strong></td>
                 <td>Not in boosters</td>
-                <td>Foil slot only (4% weight)</td>
+                <td>Foil slot only (same rate as Rare)</td>
               </tr>
               <tr>
                 <td><strong>Showcase Leaders</strong></td>
@@ -1685,108 +1664,3 @@ function QualityTab() {
   )
 }
 
-function TestTab() {
-  const [testResults, setTestResults] = useState<TestResults | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadTestResults()
-  }, [])
-
-  const loadTestResults = () => {
-    setLoading(true)
-    fetch('/api/stats/tests')
-      .then(res => res.json())
-      .then(response => {
-        setTestResults(response.data || response)
-        setLoading(false)
-      })
-      .catch(() => {
-        setLoading(false)
-      })
-  }
-
-  if (loading) {
-    return <div className="stats-loading">Loading test results...</div>
-  }
-
-  return (
-    <div className="test-tab">
-      <div className="qa-header">
-        <h2>Unit Test Results</h2>
-      </div>
-
-      {!testResults?.available || !testResults?.latestRun ? (
-        <div className="stats-empty">
-          <p>Unit tests have not been run yet.</p>
-          <p>Run <code>npm run test:json</code> to generate results.</p>
-        </div>
-      ) : (
-        <div className="qa-results">
-          <div className="qa-summary">
-            <div className="qa-summary-card">
-              <div className="qa-summary-number">{fmt(testResults.latestRun.summary.totalSuites)}</div>
-              <div className="qa-summary-label">Test Suites</div>
-            </div>
-            <div className="qa-summary-card">
-              <div className="qa-summary-number">{fmt(testResults.latestRun.summary.totalTests)}</div>
-              <div className="qa-summary-label">Total Tests</div>
-            </div>
-            <div className="qa-summary-card qa-summary-passed">
-              <div className="qa-summary-number">{fmt(testResults.latestRun.summary.passed)}</div>
-              <div className="qa-summary-label">Passed</div>
-            </div>
-            <div className="qa-summary-card qa-summary-failed">
-              <div className="qa-summary-number">{fmt(testResults.latestRun.summary.failed)}</div>
-              <div className="qa-summary-label">Failed</div>
-            </div>
-          </div>
-
-          <div className="test-execution-time">
-            Execution time: {(testResults.latestRun.executionTime / 1000).toFixed(2)}s
-          </div>
-
-          <div className="qa-test-list">
-            <h3>Test Suites</h3>
-            <p className="qa-run-time">
-              Run at: {new Date(testResults.latestRun.runAt).toLocaleString()}
-            </p>
-
-            {testResults.latestRun.suites.map((suite, index) => (
-              <div
-                key={index}
-                className={`qa-test-item qa-test-${suite.status}`}
-              >
-                <div className="qa-test-header">
-                  <span className={`qa-test-status qa-status-${suite.status}`}>
-                    {suite.status === 'passed' ? '✓' : '✗'}
-                  </span>
-                  <span className="qa-test-name">{suite.name}</span>
-                  <span className="qa-test-suite">{suite.suite}</span>
-                  {suite.executionTime != null && (
-                    <span className="qa-test-time">{suite.executionTime}ms</span>
-                  )}
-                </div>
-                {suite.errorMessage && (
-                  <div className="qa-test-error">{suite.errorMessage}</div>
-                )}
-                {suite.tests && suite.tests.length > 1 && (
-                  <div className="test-suite-details">
-                    {suite.tests.map((test, testIdx) => (
-                      <div key={testIdx} className={`test-detail test-detail-${test.status}`}>
-                        <span className="test-detail-icon">
-                          {test.status === 'passed' ? '✓' : '✗'}
-                        </span>
-                        <span className="test-detail-name">{test.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}

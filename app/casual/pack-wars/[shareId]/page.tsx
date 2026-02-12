@@ -52,7 +52,8 @@ export default function PackWarsPlayPage() {
           throw new Error('Pool not found')
         }
 
-        const data = await response.json()
+        const response_data = await response.json()
+        const data = response_data.data
 
         // Parse the cards JSON which contains pool data
         const poolInfo = typeof data.cards === 'string' ? JSON.parse(data.cards) : data.cards

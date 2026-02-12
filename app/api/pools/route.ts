@@ -5,7 +5,7 @@ import { requireAuth } from '@/lib/auth'
 import { generateShareId } from '@/lib/utils'
 import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
-import { trackBulkGenerations } from '@/src/utils/trackGeneration'
+import { trackBulkGenerations, PACK_SLOT_TYPES } from '@/src/utils/trackGeneration'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         // Support both formats: pack as array or pack as {cards: [...]} object
         const packCards = Array.isArray(pack) ? pack : pack.cards
         if (Array.isArray(packCards)) {
-          packCards.forEach(card => {
+          packCards.forEach((card, cardIndex) => {
             trackingRecords.push({
               card,
               options: {
@@ -187,6 +187,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 sourceId: pool.id,
                 sourceShareId: shareId,
                 packIndex,
+                slotType: PACK_SLOT_TYPES[cardIndex] || null,
                 userId
               }
             })

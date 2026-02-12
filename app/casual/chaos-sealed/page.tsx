@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { fetchSets } from '@/src/utils/api'
+import { getPackImageUrl } from '@/src/utils/packArt'
+import { getSetConfig } from '@/src/utils/setConfigs'
 import Button from '@/src/components/Button'
 import './page.css'
 
@@ -15,11 +17,52 @@ interface SetData {
   beta?: boolean
 }
 
+// Get set color from config
+function getSetColor(setCode: string): string {
+  const config = getSetConfig(setCode)
+  return config?.color || '#ffffff'
+}
+
+// Get set number for ordering (1-3, 4-6, 7+)
+function getSetNumber(setCode: string): number {
+  const setCodeMap: Record<string, number> = {
+    'SOR': 1, 'SHD': 2, 'TWI': 3,
+    'JTL': 4, 'LOF': 5, 'SEC': 6,
+    'LAW': 7,
+  }
+  return setCodeMap[setCode] || 999
+}
+
+// Sort sets for display: 1-3 top, 4-6 middle, 7-9 bottom
+function sortSetsForDisplay(sets: SetData[]): { top: SetData[], middle: SetData[], bottom: SetData[] } {
+  const top: SetData[] = []
+  const middle: SetData[] = []
+  const bottom: SetData[] = []
+
+  for (const set of sets) {
+    const num = getSetNumber(set.code)
+    if (num >= 7) {
+      bottom.push(set)
+    } else if (num >= 4 && num <= 6) {
+      middle.push(set)
+    } else {
+      top.push(set)
+    }
+  }
+
+  // Sort each group by set number
+  top.sort((a, b) => getSetNumber(a.code) - getSetNumber(b.code))
+  middle.sort((a, b) => getSetNumber(a.code) - getSetNumber(b.code))
+  bottom.sort((a, b) => getSetNumber(a.code) - getSetNumber(b.code))
+
+  return { top, middle, bottom }
+}
+
 export default function ChaosSealedPage() {
   const router = useRouter()
   const { user } = useAuth()
   const [sets, setSets] = useState<SetData[]>([])
-  const [selectedSets, setSelectedSets] = useState<string[]>([])
+  const [selectedSets, setSelectedSets] = useState<string[]>([]) // Can have duplicates
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -41,17 +84,36 @@ export default function ChaosSealedPage() {
     loadSets()
   }, [hasBetaAccess])
 
-  const toggleSetSelection = (setCode: string) => {
-    setSelectedSets(prev => {
-      if (prev.includes(setCode)) {
-        return prev.filter(s => s !== setCode)
+  // Count how many times each set is selected
+  const getSetCount = (setCode: string) => {
+    return selectedSets.filter(s => s === setCode).length
+  }
+
+  const handleSetClick = (setCode: string) => {
+    const count = getSetCount(setCode)
+    if (count === 0) {
+      // First click: add the set
+      if (selectedSets.length < 6) {
+        setSelectedSets(prev => [...prev, setCode])
       }
-      if (prev.length >= 6) {
-        // Replace oldest selection
-        return [...prev.slice(1), setCode]
-      }
-      return [...prev, setCode]
-    })
+    }
+    // If already selected, do nothing on main click - use +/- buttons
+  }
+
+  const handleAddOne = (setCode: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (selectedSets.length < 6) {
+      setSelectedSets(prev => [...prev, setCode])
+    }
+  }
+
+  const handleRemoveOne = (setCode: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    // Remove one instance of this set
+    const index = selectedSets.indexOf(setCode)
+    if (index > -1) {
+      setSelectedSets(prev => [...prev.slice(0, index), ...prev.slice(index + 1)])
+    }
   }
 
   const handleGenerate = async () => {
@@ -85,6 +147,54 @@ export default function ChaosSealedPage() {
     }
   }
 
+  const sortedSets = sortSetsForDisplay(sets)
+
+  const renderSetButton = (set: SetData) => {
+    const count = getSetCount(set.code)
+    const isSelected = count > 0
+    const canAddMore = selectedSets.length < 6
+    const setColor = getSetColor(set.code)
+    const packImageUrl = getPackImageUrl(set.code)
+
+    return (
+      <button
+        key={set.code}
+        className={`set-button ${isSelected ? 'selected' : ''}`}
+        onClick={() => handleSetClick(set.code)}
+        style={{
+          '--set-color': setColor,
+        } as React.CSSProperties}
+      >
+        <div className="set-button-image">
+          <img src={packImageUrl} alt={set.name} />
+          {isSelected && (
+            <div className="selection-badge">
+              <span
+                className="selection-button"
+                onClick={(e) => handleRemoveOne(set.code, e)}
+              >
+                −
+              </span>
+              <span className="selection-number">{count}</span>
+              {canAddMore && (
+                <span
+                  className="selection-button"
+                  onClick={(e) => handleAddOne(set.code, e)}
+                >
+                  +
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="set-button-content">
+          <span className="set-name">{set.name}</span>
+        </div>
+        {set.beta && <span className="beta-badge">Beta</span>}
+      </button>
+    )
+  }
+
   if (loading) {
     return (
       <div className="chaos-sealed-page">
@@ -98,43 +208,54 @@ export default function ChaosSealedPage() {
   return (
     <div className="chaos-sealed-page">
       <div className="chaos-sealed-container">
-        <Button variant="back" onClick={() => router.push('/casual')}>
-          Back to Casual Formats
-        </Button>
         <h1>Chaos Sealed</h1>
-        <p className="chaos-sealed-subtitle">Open 6 packs from 6 different sets!</p>
+        <p className="chaos-sealed-subtitle">Open 6 packs from any combination of sets!</p>
 
         <div className="chaos-sealed-section">
-          <h3>Select 6 Sets ({selectedSets.length}/6)</h3>
-          <p className="section-hint">You'll open 1 pack from each set</p>
-          <div className="set-grid">
-            {sets.map((set) => {
-              const selectionIndex = selectedSets.indexOf(set.code)
-              const isSelected = selectionIndex !== -1
-              return (
-                <button
-                  key={set.code}
-                  className={`set-button ${isSelected ? 'selected' : ''}`}
-                  onClick={() => toggleSetSelection(set.code)}
-                >
-                  {isSelected && (
-                    <span className="selection-number">{selectionIndex + 1}</span>
-                  )}
-                  {set.name}
-                  {set.beta && <span className="beta-badge">Beta</span>}
-                </button>
-              )
-            })}
-          </div>
-          {selectedSets.length === 6 && (
+          <h3>Select 6 Packs ({selectedSets.length}/6)</h3>
+
+          {/* Top row (1-3) */}
+          {sortedSets.top.length > 0 && (
+            <div className="set-grid">
+              {sortedSets.top.map(renderSetButton)}
+            </div>
+          )}
+
+          {/* Middle row (4-6) */}
+          {sortedSets.middle.length > 0 && (
+            <div className="set-grid">
+              {sortedSets.middle.map(renderSetButton)}
+            </div>
+          )}
+
+          {/* Bottom row (7+) */}
+          {sortedSets.bottom.length > 0 && (
+            <div className="set-grid">
+              {sortedSets.bottom.map(renderSetButton)}
+            </div>
+          )}
+
+          {selectedSets.length > 0 && (
             <div className="selected-sets-order">
-              <p>Your sets:</p>
-              <ul>
-                {selectedSets.map((setCode) => {
-                  const set = sets.find(s => s.code === setCode)
-                  return <li key={setCode}>{set?.name || setCode}</li>
+              <p>Your Chaos Sealed ({selectedSets.length}/6):</p>
+              <div className="selected-packs-row">
+                {selectedSets.map((setCode, index) => {
+                  const packImageUrl = getPackImageUrl(setCode)
+                  return (
+                    <div
+                      key={index}
+                      className="selected-pack"
+                      onClick={() => {
+                        setSelectedSets(prev => [...prev.slice(0, index), ...prev.slice(index + 1)])
+                      }}
+                    >
+                      <div className="selected-pack-image">
+                        <img src={packImageUrl} alt={setCode} />
+                      </div>
+                    </div>
+                  )
                 })}
-              </ul>
+              </div>
             </div>
           )}
         </div>
@@ -142,6 +263,13 @@ export default function ChaosSealedPage() {
         {error && <div className="error-message">{error}</div>}
 
         <div className="chaos-sealed-actions">
+          <Button
+            variant="danger"
+            size="lg"
+            onClick={() => router.push('/casual')}
+          >
+            Cancel
+          </Button>
           <Button
             variant="primary"
             size="lg"

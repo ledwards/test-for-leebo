@@ -1,6 +1,6 @@
 {
-  "runAt": "2026-02-12T08:52:09.318Z",
-  "executionTime": 15080,
+  "runAt": "2026-02-12T17:52:03.487Z",
+  "executionTime": 15654,
   "summary": {
     "totalSuites": 22,
     "passedSuites": 22,
@@ -15,7 +15,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1060,
+      "executionTime": 1080,
       "tests": [
         {
           "suite": "utils",
@@ -215,7 +215,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 734,
+      "executionTime": 812,
       "tests": [
         {
           "suite": "utils",
@@ -295,7 +295,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 520,
+      "executionTime": 561,
       "tests": [
         {
           "suite": "utils",
@@ -310,7 +310,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 538,
+      "executionTime": 535,
       "tests": [
         {
           "suite": "utils",
@@ -325,7 +325,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 792,
+      "executionTime": 744,
       "tests": [
         {
           "suite": "belts",
@@ -395,7 +395,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 766,
+      "executionTime": 841,
       "tests": [
         {
           "suite": "belts",
@@ -495,7 +495,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 766,
+      "executionTime": 806,
       "tests": [
         {
           "suite": "belts",
@@ -564,7 +564,7 @@
         },
         {
           "suite": "belts",
-          "name": "sets 4-6 use Rare rate (6x) for Special rarity\u001b[0m",
+          "name": "sets 4-6 scale Special so total output equals Rare total output\u001b[0m",
           "status": "passed"
         },
         {
@@ -590,7 +590,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 737,
+      "executionTime": 780,
       "tests": [
         {
           "suite": "belts",
@@ -619,7 +619,7 @@
         },
         {
           "suite": "belts",
-          "name": "sets 4-6 include Special rarity at Rare rate\u001b[0m",
+          "name": "sets 4-6 scale Special so total output equals Rare total output\u001b[0m",
           "status": "passed"
         },
         {
@@ -670,7 +670,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 742,
+      "executionTime": 750,
       "tests": [
         {
           "suite": "belts",
@@ -685,7 +685,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 749,
+      "executionTime": 758,
       "tests": [
         {
           "suite": "belts",
@@ -760,7 +760,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 752,
+      "executionTime": 761,
       "tests": [
         {
           "suite": "belts",
@@ -845,7 +845,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 744,
+      "executionTime": 776,
       "tests": [
         {
           "suite": "belts",
@@ -900,7 +900,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 745,
+      "executionTime": 755,
       "tests": [
         {
           "suite": "belts",
@@ -975,7 +975,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 537,
+      "executionTime": 550,
       "tests": [
         {
           "suite": "fixes",
@@ -990,7 +990,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 773,
+      "executionTime": 788,
       "tests": [
         {
           "suite": "draft",
@@ -1005,7 +1005,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 503,
+      "executionTime": 506,
       "tests": [
         {
           "suite": "bots",
@@ -1150,7 +1150,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 745,
+      "executionTime": 891,
       "tests": [
         {
           "suite": "data",
@@ -1585,7 +1585,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 758,
+      "executionTime": 761,
       "tests": [
         {
           "suite": "data",
@@ -2620,7 +2620,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 529,
+      "executionTime": 546,
       "tests": [
         {
           "suite": "hooks",
@@ -2635,7 +2635,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 529,
+      "executionTime": 553,
       "tests": [
         {
           "suite": "hooks",
@@ -2650,7 +2650,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 531,
+      "executionTime": 540,
       "tests": [
         {
           "suite": "hooks",
@@ -2665,7 +2665,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 527,
+      "executionTime": 556,
       "tests": [
         {
           "suite": "hooks",
@@ -3164,7 +3164,7 @@
     },
     {
       "suite": "belts",
-      "name": "sets 4-6 use Rare rate (6x) for Special rarity\u001b[0m",
+      "name": "sets 4-6 scale Special so total output equals Rare total output\u001b[0m",
       "status": "passed"
     },
     {
@@ -3209,7 +3209,7 @@
     },
     {
       "suite": "belts",
-      "name": "sets 4-6 include Special rarity at Rare rate\u001b[0m",
+      "name": "sets 4-6 scale Special so total output equals Rare total output\u001b[0m",
       "status": "passed"
     },
     {

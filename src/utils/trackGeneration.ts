@@ -22,10 +22,35 @@ interface TrackingRecord {
 }
 
 /**
+ * Position-based slot types for 16-card booster packs.
+ * Maps card index within a pack to its slot type.
+ * This avoids inference bugs where e.g. UC3 upgrading to Rare
+ * gets misclassified as 'rare_legendary'.
+ */
+export const PACK_SLOT_TYPES: SlotType[] = [
+  'leader',        // 0
+  'base',          // 1
+  'common',        // 2
+  'common',        // 3
+  'common',        // 4
+  'common',        // 5
+  'common',        // 6
+  'common',        // 7
+  'common',        // 8
+  'common',        // 9
+  'common',        // 10
+  'uncommon',      // 11
+  'uncommon',      // 12
+  'uncommon',      // 13 (UC3 - stays uncommon even when upgraded)
+  'rare_legendary', // 14
+  'foil',          // 15
+]
+
+/**
  * Determine treatment type from card properties
  */
-function determineTreatment(card: RawCard): Treatment {
-  const isHyperspace = card.variantType === 'Hyperspace'
+export function determineTreatment(card: RawCard): Treatment {
+  const isHyperspace = card.isHyperspace === true || card.variantType === 'Hyperspace'
   const isShowcase = card.variantType === 'Showcase'
   const isFoil = card.isFoil === true
 
@@ -39,7 +64,7 @@ function determineTreatment(card: RawCard): Treatment {
 /**
  * Determine slot type from card properties and context
  */
-function determineSlotType(card: RawCard, _context: TrackingOptions = {} as TrackingOptions): SlotType {
+export function determineSlotType(card: RawCard, _context: TrackingOptions = {} as TrackingOptions): SlotType {
   if (card.isLeader) return 'leader'
   if (card.isBase) return 'base'
   if (card.isFoil) return 'foil'
@@ -110,7 +135,7 @@ export async function trackCardGeneration(card: RawCard, options: TrackingOption
         determineTreatment(card),
         card.variantType,
         card.isFoil || false,
-        card.variantType === 'Hyperspace',
+        card.isHyperspace === true || card.variantType === 'Hyperspace',
         card.variantType === 'Showcase',
         packType,
         slotType || determineSlotType(card),
@@ -178,7 +203,7 @@ export async function trackBulkGenerations(records: TrackingRecord[]): Promise<v
         determineTreatment(card),
         card.variantType,
         card.isFoil || false,
-        card.variantType === 'Hyperspace',
+        card.isHyperspace === true || card.variantType === 'Hyperspace',
         card.variantType === 'Showcase',
         options.packType,
         options.slotType || determineSlotType(card),

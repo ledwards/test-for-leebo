@@ -80,10 +80,12 @@ async function runTests(): Promise<void> {
     assert(!hasSpecial, 'SOR should not have Special rarity in hyperfoil')
   })
 
-  test('sets 4-6 include Special rarity at Rare rate', () => {
+  test('sets 4-6 scale Special so total output equals Rare total output', () => {
     const belt = new HyperfoilBelt('JTL')
-    // Special should be included and at 6x rate (same as Rare)
-    assertEqual(belt.rarityQuantities.Special, 6, 'Special should use Rare rate (6x) in sets 4-6')
+    const rareCount = belt.fillingPool.filter(c => c.rarity === 'Rare').length
+    const specialCount = belt.fillingPool.filter(c => c.rarity === 'Special').length
+    const expectedMultiplier = Math.round((rareCount * belt.rarityQuantities.Rare) / specialCount)
+    assertEqual(belt.rarityQuantities.Special, expectedMultiplier, 'Special multiplier should scale so total Special output = total Rare output')
   })
 
   test('hopper refills when depleted', () => {
@@ -123,7 +125,10 @@ async function runTests(): Promise<void> {
     const belt = new HyperfoilBelt('LAW')
     const hasSpecial = belt.fillingPool.some(c => c.rarity === 'Special')
     assert(hasSpecial, 'LAW should include Special rarity in hyperfoil pool')
-    assertEqual(belt.rarityQuantities.Special, 6, 'Special should use 6x rate (same as Rare)')
+    const rareCount = belt.fillingPool.filter(c => c.rarity === 'Rare').length
+    const specialCount = belt.fillingPool.filter(c => c.rarity === 'Special').length
+    const expectedMultiplier = Math.round((rareCount * belt.rarityQuantities.Rare) / specialCount)
+    assertEqual(belt.rarityQuantities.Special, expectedMultiplier, 'Special multiplier should scale so total Special output = total Rare output')
   })
 
   test('LAW: no leaders or bases in pool', () => {

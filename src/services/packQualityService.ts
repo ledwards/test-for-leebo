@@ -200,7 +200,7 @@ function formatDisplayRate(rate: number): string {
  * Calculate chi-squared statistic for goodness-of-fit test
  * Compares observed distribution against expected distribution
  */
-function calculateChiSquared(
+export function calculateChiSquared(
   observed: Record<string, number>,
   expected: Record<string, number>
 ): ChiSquaredResult {
@@ -287,7 +287,7 @@ function approximateChiSquaredPValue(chiSquared: number, df: number): number {
 /**
  * Build a metric result
  */
-function buildMetricResult(
+export function buildMetricResult(
   observed: number,
   sampleSize: number,
   expectedRate: number,
@@ -330,7 +330,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       MIN(generated_at) as first_generated,
       MAX(generated_at) as last_generated
      FROM card_generations
-     WHERE set_code = $1 AND generated_at >= $2`,
+     WHERE set_code = $1 AND generated_at >= $2 AND source_type = 'sealed'`,
     [setCode, since]
   )
 
@@ -350,8 +350,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       pack_index,
       COUNT(*) as card_count
      FROM card_generations
-     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
-     GROUP BY source_id, pack_index`,
+     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2     GROUP BY source_id, pack_index`,
     [setCode, since]
   )
 
@@ -373,8 +372,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
      FROM (
        SELECT source_id, pack_index
        FROM card_generations
-       WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
-       GROUP BY source_id, pack_index, card_name, treatment
+       WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2       GROUP BY source_id, pack_index, card_name, treatment
        HAVING COUNT(*) > 1
      ) dupes`,
     [setCode, since]
@@ -396,8 +394,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       pack_index,
       COUNT(*) FILTER (WHERE slot_type = 'leader') as leader_count
      FROM card_generations
-     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
-     GROUP BY source_id, pack_index`,
+     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2     GROUP BY source_id, pack_index`,
     [setCode, since]
   )
   const correctLeaderPacks = leaderStats.filter(p => parseInt(p.leader_count) === 1).length
@@ -418,8 +415,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       pack_index,
       COUNT(*) FILTER (WHERE slot_type = 'base') as base_count
      FROM card_generations
-     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
-     GROUP BY source_id, pack_index`,
+     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2     GROUP BY source_id, pack_index`,
     [setCode, since]
   )
   const correctBasePacks = baseStats.filter(p => parseInt(p.base_count) === 1).length
@@ -441,7 +437,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE rarity = 'Legendary') as legendary_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'rare_legendary' AND generated_at >= $2`,
+     WHERE set_code = $1 AND slot_type = 'rare_legendary' AND generated_at >= $2 AND source_type = 'sealed'`,
     [setCode, since]
   )
 
@@ -455,8 +451,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
   const foilStats = await queryRows(
     `SELECT rarity, COUNT(*) as count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'foil' AND generated_at >= $2
-     GROUP BY rarity`,
+     WHERE set_code = $1 AND slot_type = 'foil' AND generated_at >= $2     GROUP BY rarity`,
     [setCode, since]
   )
 
@@ -510,7 +505,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'hyperspace') as hyperspace_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'leader' AND generated_at >= $2`,
+     WHERE set_code = $1 AND slot_type = 'leader' AND generated_at >= $2 AND source_type = 'sealed'`,
     [setCode, since]
   )
 
@@ -529,7 +524,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'hyperspace') as hyperspace_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'base' AND generated_at >= $2`,
+     WHERE set_code = $1 AND slot_type = 'base' AND generated_at >= $2 AND source_type = 'sealed'`,
     [setCode, since]
   )
 
@@ -548,7 +543,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'hyperspace') as hyperspace_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'common' AND generated_at >= $2`,
+     WHERE set_code = $1 AND slot_type = 'common' AND generated_at >= $2 AND source_type = 'sealed'`,
     [setCode, since]
   )
 
@@ -569,7 +564,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'hyperspace_foil') as hyperfoil_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'foil' AND generated_at >= $2`,
+     WHERE set_code = $1 AND slot_type = 'foil' AND generated_at >= $2 AND source_type = 'sealed'`,
     [setCode, since]
   )
 
@@ -588,7 +583,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'showcase') as showcase_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'leader' AND generated_at >= $2`,
+     WHERE set_code = $1 AND slot_type = 'leader' AND generated_at >= $2 AND source_type = 'sealed'`,
     [setCode, since]
   )
 

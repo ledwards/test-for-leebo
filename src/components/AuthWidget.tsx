@@ -242,6 +242,25 @@ export default function AuthWidget() {
                 New Draft Pod
               </a>
 
+              {(user.is_beta_tester || user.is_admin) && (
+                <a
+                  href="/casual"
+                  className="auth-widget-drawer-menu-item"
+                  onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+                    e.preventDefault()
+                    router.push('/casual')
+                    setDrawerOpen(false)
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M8 12h8M12 8v8" strokeLinecap="round"></path>
+                  </svg>
+                  Casual Formats
+                  <span className="auth-widget-beta-badge">Beta</span>
+                </a>
+              )}
+
               {(loadingData || mostRecentSealed || currentDraft) && (
                 <div className="auth-widget-drawer-divider"></div>
               )}

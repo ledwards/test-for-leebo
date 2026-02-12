@@ -741,6 +741,84 @@ async function runQA(silentMode: boolean = false): Promise<TestResult[]> {
       }
     })
 
+    // ===== RATE TESTS (matching stats quality tab) =====
+    console.log('')
+    console.log('\x1b[36m📈 Testing Rate Metrics (Stats Quality Tab)...\x1b[0m')
+
+    const setNum = ['SOR', 'SHD', 'TWI'].includes(setCode) ? 1 : 4
+
+    // Legendary rate in R/L slot (card index 14)
+    // RareLegendaryBelt creates `ratio` segments, each with ALL rares + 1/ratio of legendaries
+    // So: total = ratio * numRares + numLegendaries, rate = numLegendaries / total
+    test(`${setCode}: legendary rate in R/L slot matches expected`, () => {
+      const rlCards = allPacks.map(p => p.cards[14])
+      const legendaryCount = rlCards.filter(c => c.rarity === 'Legendary').length
+      const total = rlCards.length
+
+      const ratio = setNum <= 3 ? 7 : 5
+      const normalCards = cards.filter(c => c.variantType === 'Normal' && !c.isLeader && !c.isBase)
+      const numRares = normalCards.filter(c => c.rarity === 'Rare').length
+      const numLegendaries = normalCards.filter(c => c.rarity === 'Legendary').length
+      const expectedRate = numLegendaries / (ratio * numRares + numLegendaries)
+      const expected = total * expectedRate
+      const stdDev = Math.sqrt(total * expectedRate * (1 - expectedRate))
+      const zScore = stdDev > 0 ? (legendaryCount - expected) / stdDev : 0
+
+      console.log(`\x1b[36m   Legendary rate: ${legendaryCount}/${total} = ${(legendaryCount/total*100).toFixed(1)}% (expected ${(expectedRate*100).toFixed(1)}%, z=${zScore.toFixed(2)})\x1b[0m`)
+
+      if (Math.abs(zScore) > 3) {
+        throw new Error(
+          `Legendary rate z-score ${zScore.toFixed(2)} exceeds threshold 3. ` +
+          `Got ${legendaryCount}/${total} = ${(legendaryCount/total*100).toFixed(1)}%, expected ${(expectedRate*100).toFixed(1)}%`
+        )
+      }
+    })
+
+    // Hyperfoil rate (foil slot, index 15, with isHyperspace)
+    test(`${setCode}: hyperfoil rate matches expected (~2%)`, () => {
+      const foilCards = allPacks.map(p => p.cards[15])
+      const hyperfoilCount = foilCards.filter(c => c.isFoil && c.isHyperspace).length
+      const total = foilCards.length
+
+      const expectedRate = 1 / 50 // 2%
+      const expected = total * expectedRate
+      const stdDev = Math.sqrt(total * expectedRate * (1 - expectedRate))
+      const zScore = stdDev > 0 ? (hyperfoilCount - expected) / stdDev : 0
+
+      console.log(`\x1b[36m   Hyperfoil rate: ${hyperfoilCount}/${total} = ${(hyperfoilCount/total*100).toFixed(1)}% (expected ${(expectedRate*100).toFixed(1)}%, z=${zScore.toFixed(2)})\x1b[0m`)
+
+      // Use z=3.5 threshold since hyperfoil is rare and has high variance
+      if (Math.abs(zScore) > 3.5) {
+        throw new Error(
+          `Hyperfoil rate z-score ${zScore.toFixed(2)} exceeds threshold 3.5. ` +
+          `Got ${hyperfoilCount}/${total} = ${(hyperfoilCount/total*100).toFixed(1)}%, expected ${(expectedRate*100).toFixed(1)}%`
+        )
+      }
+    })
+
+    // Showcase leader rate (leader slot, index 0, with variantType containing Showcase)
+    test(`${setCode}: showcase leader rate is plausible (~0.35%)`, () => {
+      const leaders = allPacks.map(p => p.cards[0])
+      const showcaseCount = leaders.filter(c =>
+        c.variantType === 'Showcase' || (c as any).isShowcase
+      ).length
+      const total = leaders.length
+
+      const expectedRate = 1 / 288
+      const expected = total * expectedRate
+
+      console.log(`\x1b[36m   Showcase leader rate: ${showcaseCount}/${total} = ${(showcaseCount/total*100).toFixed(2)}% (expected ${(expectedRate*100).toFixed(2)}%)\x1b[0m`)
+
+      // With 600 packs, expected ~2 showcases. Too rare for z-test.
+      // Just verify it's not wildly off (< 3% of packs)
+      const maxReasonable = Math.max(total * 0.03, 15)
+      if (showcaseCount > maxReasonable) {
+        throw new Error(
+          `Showcase leader count ${showcaseCount} is unreasonably high (expected ~${expected.toFixed(1)}, max reasonable ${maxReasonable})`
+        )
+      }
+    })
+
     // Card variety tests
     test(`${setCode}: good card variety across all packs`, () => {
       const cardFrequency = new Map<string, number>()

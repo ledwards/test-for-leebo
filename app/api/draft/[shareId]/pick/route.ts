@@ -6,7 +6,6 @@ import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/ut
 import { checkAndAdvanceLeaderDraft, checkAndAdvancePackDraft } from '@/src/utils/draftAdvance'
 import { processBotTurns } from '@/src/utils/botLogic'
 import { broadcastDraftState } from '@/src/lib/socketBroadcast'
-import { trackCardGeneration } from '@/src/utils/trackGeneration'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {
@@ -98,18 +97,6 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
       // Add to drafted leaders
       draftedLeaders.push(pickedLeader)
 
-      // Track leader pick with correct attribution
-      trackCardGeneration(pickedLeader, {
-        packType: 'leader',
-        sourceType: 'draft',
-        sourceId: pod.id,
-        sourceShareId: shareId,
-        slotType: 'leader',
-        userId: session.id
-      }).catch(err => {
-        console.error('Failed to track leader pick:', err)
-      })
-
       // Update player
       await query(
         `UPDATE draft_pod_players
@@ -152,18 +139,6 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
       // Add to drafted cards
       draftedCards.push(pickedCard)
-
-      // Track card pick with correct attribution
-      trackCardGeneration(pickedCard, {
-        packType: 'booster',
-        sourceType: 'draft',
-        sourceId: pod.id,
-        sourceShareId: shareId,
-        slotType: pickedCard.isLeader ? 'leader' : (pickedCard.isBase ? 'base' : 'card'),
-        userId: session.id
-      }).catch(err => {
-        console.error('Failed to track card pick:', err)
-      })
 
       // Update player
       await query(

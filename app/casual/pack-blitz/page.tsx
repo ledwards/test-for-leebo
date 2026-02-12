@@ -88,9 +88,6 @@ export default function PackBlitzPage() {
   return (
     <div className="pack-blitz-page">
       <div className="pack-blitz-container">
-        <Button variant="back" onClick={() => router.push('/casual')}>
-          Back to Casual Formats
-        </Button>
         <h1>Pack Blitz</h1>
         <p className="pack-blitz-subtitle">Open 1 pack, shuffle it up, and play!</p>
 
@@ -141,6 +138,13 @@ export default function PackBlitzPage() {
         {error && <div className="error-message">{error}</div>}
 
         <div className="pack-blitz-actions">
+          <Button
+            variant="danger"
+            size="lg"
+            onClick={() => router.push('/casual')}
+          >
+            Cancel
+          </Button>
           <Button
             variant="primary"
             size="lg"

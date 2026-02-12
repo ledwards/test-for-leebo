@@ -1,8 +1,8 @@
 {
-  "runAt": "2026-02-12T08:52:10.736Z",
+  "runAt": "2026-02-12T17:52:04.906Z",
   "summary": {
-    "total": 108,
-    "passed": 108,
+    "total": 126,
+    "passed": 126,
     "failed": 0
   },
   "tests": [
@@ -28,19 +28,19 @@
       "suite": "pack_generation",
       "name": "SOR: all packs have exactly 1 foil",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
       "name": "SOR: no duplicate base treatment cards within any pack",
       "status": "passed",
-      "executionTime": 2
+      "executionTime": 3
     },
     {
       "suite": "pack_generation",
       "name": "SOR: all packs have exactly 9 commons (non-foil)",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -88,19 +88,37 @@
       "suite": "pack_generation",
       "name": "SOR: card+foil pairs within single packs should be rare (ideal < 5%)",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
       "name": "SOR: card+foil pairs within sealed pods should be uncommon (acceptable < 100%)",
       "status": "passed",
-      "executionTime": 3
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
       "name": "SOR: average card+foil pairs per pod should be reasonable (< 5)",
       "status": "passed",
-      "executionTime": 2
+      "executionTime": 3
+    },
+    {
+      "suite": "pack_generation",
+      "name": "SOR: legendary rate in R/L slot matches expected",
+      "status": "passed",
+      "executionTime": 1
+    },
+    {
+      "suite": "pack_generation",
+      "name": "SOR: hyperfoil rate matches expected (~2%)",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
+      "name": "SOR: showcase leader rate is plausible (~0.35%)",
+      "status": "passed",
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -112,7 +130,7 @@
       "suite": "pack_generation",
       "name": "SOR: leaders show good variety",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -154,13 +172,13 @@
       "suite": "pack_generation",
       "name": "SHD: packs have 2 or 3 uncommons (non-foil, depending on upgrade)",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
       "name": "SHD: packs have 1 or 2 rare/legendary/special in non-foil slots",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -196,13 +214,13 @@
       "suite": "pack_generation",
       "name": "SHD: card+foil pairs within single packs should be rare (ideal < 5%)",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
       "name": "SHD: card+foil pairs within sealed pods should be uncommon (acceptable < 100%)",
       "status": "passed",
-      "executionTime": 2
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -212,9 +230,27 @@
     },
     {
       "suite": "pack_generation",
+      "name": "SHD: legendary rate in R/L slot matches expected",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
+      "name": "SHD: hyperfoil rate matches expected (~2%)",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
+      "name": "SHD: showcase leader rate is plausible (~0.35%)",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
       "name": "SHD: good card variety across all packs",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
@@ -232,7 +268,7 @@
       "suite": "pack_generation",
       "name": "TWI: all packs have exactly 1 leader",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -262,7 +298,7 @@
       "suite": "pack_generation",
       "name": "TWI: packs have 2 or 3 uncommons (non-foil, depending on upgrade)",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -317,6 +353,24 @@
       "name": "TWI: average card+foil pairs per pod should be reasonable (< 5)",
       "status": "passed",
       "executionTime": 2
+    },
+    {
+      "suite": "pack_generation",
+      "name": "TWI: legendary rate in R/L slot matches expected",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
+      "name": "TWI: hyperfoil rate matches expected (~2%)",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
+      "name": "TWI: showcase leader rate is plausible (~0.35%)",
+      "status": "passed",
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -376,13 +430,13 @@
       "suite": "pack_generation",
       "name": "JTL: packs have 1 or 2 rare/legendary/special in non-foil slots",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
       "name": "JTL: when UC slot upgrades, counts are consistent",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -400,7 +454,7 @@
       "suite": "pack_generation",
       "name": "JTL: number of 2σ outliers is statistically reasonable",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -412,19 +466,37 @@
       "suite": "pack_generation",
       "name": "JTL: card+foil pairs within single packs should be rare (ideal < 5%)",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
       "name": "JTL: card+foil pairs within sealed pods should be uncommon (acceptable < 100%)",
       "status": "passed",
-      "executionTime": 2
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
       "name": "JTL: average card+foil pairs per pod should be reasonable (< 5)",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
+    },
+    {
+      "suite": "pack_generation",
+      "name": "JTL: legendary rate in R/L slot matches expected",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
+      "name": "JTL: hyperfoil rate matches expected (~2%)",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
+      "name": "JTL: showcase leader rate is plausible (~0.35%)",
+      "status": "passed",
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -448,7 +520,7 @@
       "suite": "pack_generation",
       "name": "LOF: all packs have exactly 1 leader",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -466,13 +538,13 @@
       "suite": "pack_generation",
       "name": "LOF: no duplicate base treatment cards within any pack",
       "status": "passed",
-      "executionTime": 2
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
       "name": "LOF: all packs have exactly 9 commons (non-foil)",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -484,7 +556,7 @@
       "suite": "pack_generation",
       "name": "LOF: packs have 1 or 2 rare/legendary/special in non-foil slots",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -514,7 +586,7 @@
       "suite": "pack_generation",
       "name": "LOF: HS+Normal same-leader rate should be within expected range",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
@@ -536,9 +608,27 @@
     },
     {
       "suite": "pack_generation",
+      "name": "LOF: legendary rate in R/L slot matches expected",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
+      "name": "LOF: hyperfoil rate matches expected (~2%)",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
+      "name": "LOF: showcase leader rate is plausible (~0.35%)",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
       "name": "LOF: good card variety across all packs",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
@@ -592,7 +682,7 @@
       "suite": "pack_generation",
       "name": "SEC: packs have 1 or 2 rare/legendary/special in non-foil slots",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -622,13 +712,13 @@
       "suite": "pack_generation",
       "name": "SEC: HS+Normal same-leader rate should be within expected range",
       "status": "passed",
-      "executionTime": 0
+      "executionTime": 1
     },
     {
       "suite": "pack_generation",
       "name": "SEC: card+foil pairs within single packs should be rare (ideal < 5%)",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     },
     {
       "suite": "pack_generation",
@@ -644,15 +734,33 @@
     },
     {
       "suite": "pack_generation",
+      "name": "SEC: legendary rate in R/L slot matches expected",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
+      "name": "SEC: hyperfoil rate matches expected (~2%)",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
+      "name": "SEC: showcase leader rate is plausible (~0.35%)",
+      "status": "passed",
+      "executionTime": 0
+    },
+    {
+      "suite": "pack_generation",
       "name": "SEC: good card variety across all packs",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 2
     },
     {
       "suite": "pack_generation",
       "name": "SEC: leaders show good variety",
       "status": "passed",
-      "executionTime": 1
+      "executionTime": 0
     }
   ]
 }

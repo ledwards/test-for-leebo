@@ -34,6 +34,8 @@ export default function RotisseriePage() {
         setLoading(true)
         const setsData = await fetchSets({ includeBeta: hasBetaAccess })
         setSets(setsData)
+        // Select all sets by default
+        setSelectedSets(setsData.map(s => s.code))
       } catch (err) {
         setError('Failed to load sets')
       } finally {
@@ -97,9 +99,6 @@ export default function RotisseriePage() {
   return (
     <div className="rotisserie-page">
       <div className="rotisserie-container">
-        <Button variant="back" onClick={() => router.push('/casual')}>
-          Back to Casual Formats
-        </Button>
         <h1>Rotisserie Draft</h1>
         <p className="rotisserie-subtitle">Snake draft from the entire card pool, face-up!</p>
 
@@ -159,6 +158,13 @@ export default function RotisseriePage() {
         {error && <div className="error-message">{error}</div>}
 
         <div className="rotisserie-actions">
+          <Button
+            variant="danger"
+            size="lg"
+            onClick={() => router.push('/casual')}
+          >
+            Cancel
+          </Button>
           <Button
             variant="primary"
             size="lg"
