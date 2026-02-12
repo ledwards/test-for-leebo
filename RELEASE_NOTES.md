@@ -2,6 +2,10 @@
 
 ## 02.11.2026
 
+### 🎁 Patreon
+- Some of you have asked about how to support Protect the Pod and I want be clear that the site is free to use. That being said, it does cost me a bit of money every month to host, as well as tokens to develop, so I certainly won't say no to help offsetting the cost! You can support Protect the Pod via [Patreon](https://patreon.com/ProtectthePod) with my thanks!
+- We also have an about page now with shoutouts to my teammates.
+
 ### 🐞 Bug Fixes
 - **Arena view filters**: Fixed a bug where filters were not being applied correctly
 

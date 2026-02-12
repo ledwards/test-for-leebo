@@ -125,7 +125,6 @@ function LandingPage({ onSealedClick, onDraftClick }: LandingPageProps) {
               </svg>
               Join the Discord
             </a>
-            <p>For games, strategy, and feedback</p>
           </div>
         )}
       </div>
@@ -133,6 +132,10 @@ function LandingPage({ onSealedClick, onDraftClick }: LandingPageProps) {
         <p>Protect the Pod is in no way affiliated with Disney or Fantasy Flight Games. Star Wars characters, cards, logos, and art are property of Disney and/or Fantasy Flight Games.</p>
         <div className="landing-footer-links">
           <a href="https://github.com/ledwards/swupod" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <span className="footer-separator">·</span>
+          <a href="https://patreon.com/ProtectthePod" target="_blank" rel="noopener noreferrer">Patreon</a>
+          <span className="footer-separator">·</span>
+          <a href="/about" onClick={(e) => { e.preventDefault(); router.push('/about') }}>About</a>
           <span className="footer-separator">·</span>
           <a href="/terms-of-service" onClick={(e) => { e.preventDefault(); router.push('/terms-of-service') }}>Terms</a>
           <span className="footer-separator">·</span>
