@@ -19,6 +19,12 @@ const CASUAL_MODES: CasualMode[] = [
     comingSoon: false,
   },
   {
+    id: 'chaos-sealed',
+    name: 'Chaos Sealed',
+    description: 'Open 6 packs from 3 different sets',
+    comingSoon: false,
+  },
+  {
     id: 'rotisserie',
     name: 'Rotisserie Draft',
     description: 'Snake draft from entire card pool, face-up',

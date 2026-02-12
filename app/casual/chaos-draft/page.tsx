@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { fetchSets } from '@/src/utils/api'
+import { createDraft } from '@/src/utils/draftApi'
 import Button from '@/src/components/Button'
 import './page.css'
 
@@ -65,30 +66,17 @@ export default function ChaosDraftPage() {
       setError(null)
 
       // Create a draft pod with chaos settings
-      const response = await fetch('/api/draft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          setCode: selectedSets[0], // Primary set code
-          maxPlayers,
-          timerEnabled,
-          timerSeconds,
-          // Store chaos settings
-          settings: {
-            draftMode: 'chaos',
-            chaosSets: selectedSets
-          }
-        })
+      const result = await createDraft(selectedSets[0], {
+        maxPlayers,
+        timerEnabled,
+        timerSeconds,
+        settings: {
+          draftMode: 'chaos',
+          chaosSets: selectedSets
+        }
       })
 
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to create draft')
-      }
-
-      const data = await response.json()
-      router.push(`/draft/${data.shareId}`)
+      router.push(`/draft/${result.shareId}`)
     } catch (err) {
       setError(err.message || 'Failed to create draft')
     } finally {
@@ -109,6 +97,9 @@ export default function ChaosDraftPage() {
   return (
     <div className="chaos-draft-page">
       <div className="chaos-draft-container">
+        <Button variant="back" onClick={() => router.push('/casual')}>
+          Back to Casual Formats
+        </Button>
         <h1>Chaos Draft</h1>
         <p className="chaos-draft-subtitle">Select 3 sets - each pack round uses a different set!</p>
 

@@ -72,11 +72,11 @@ export default function RotisseriePage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to create draft')
+        throw new Error(data.message || data.error || 'Failed to create draft')
       }
 
-      const data = await response.json()
-      router.push(`/casual/rotisserie/${data.shareId}`)
+      const result = await response.json()
+      router.push(`/casual/rotisserie/${result.data.shareId}`)
     } catch (err) {
       setError(err.message || 'Failed to create draft')
     } finally {
@@ -97,6 +97,9 @@ export default function RotisseriePage() {
   return (
     <div className="rotisserie-page">
       <div className="rotisserie-container">
+        <Button variant="back" onClick={() => router.push('/casual')}>
+          Back to Casual Formats
+        </Button>
         <h1>Rotisserie Draft</h1>
         <p className="rotisserie-subtitle">Snake draft from the entire card pool, face-up!</p>
 
