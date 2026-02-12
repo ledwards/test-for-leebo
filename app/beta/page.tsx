@@ -48,6 +48,7 @@ export default function BetaPage() {
             <ul>
               <li><strong>A Lawless Time (LAW)</strong> - Set 7</li>
               <li>New pack generation rules</li>
+              <li><strong>Casual Formats</strong> - Alternative limited formats</li>
             </ul>
           </div>
         </div>
