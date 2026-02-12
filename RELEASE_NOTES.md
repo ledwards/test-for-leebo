@@ -1,10 +1,11 @@
 # Release Notes
 
-## 02.12.2026.
+## 02.12.2026
 
 ### 🦾 Testing
 - If this works we should see this posted to the test channel for release notes on push
 - trying again
+- and again
 - and again
 
 ## 02.01.2026
