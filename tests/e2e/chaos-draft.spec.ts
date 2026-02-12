@@ -5,6 +5,10 @@ import { createTestUser, cleanupTestUsers, closeDb } from './test-utils.ts'
 /**
  * Chaos Draft E2E test
  * Tests: navigate to chaos draft → select 3 packs → create draft → land on draft lobby
+ *
+ * Note: Run separately from chaos-sealed (not in parallel) to avoid ECONNRESET
+ * from dev server under concurrent pack generation load.
+ * e.g.: npx playwright test tests/e2e/chaos-draft.spec.ts --workers=1
  */
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000'
@@ -79,7 +83,7 @@ test.describe('Chaos Draft', () => {
     console.log(`✓ Found ${setCount} sets`)
 
     // Counter shows 0/3
-    await expect(page.locator('h3')).toContainText('0/3')
+    await expect(page.locator('h3').first()).toContainText('0/3')
 
     // Create button is disabled
     const createButton = page.locator('button:has-text("Create Chaos Draft")')

@@ -65,13 +65,15 @@ export async function createTestUser(username: string, testId: string, options?:
 
   const user = result.rows[0]
 
-  // Create JWT token
+  // Create JWT token (must include is_beta_tester for requireBetaAccess)
   const token = jwt.sign(
     {
       id: user.id,
       email: user.email,
       username: user.username,
       avatar_url: user.avatar_url,
+      is_beta_tester: user.is_beta_tester || false,
+      is_admin: user.is_admin || false,
     },
     JWT_SECRET,
     { expiresIn: '1d' }

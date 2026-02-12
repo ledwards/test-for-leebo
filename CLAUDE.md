@@ -297,7 +297,7 @@ Tests use Node's built-in test runner (no Jest). Run individual test files direc
 - `src/utils/setConfigs/*.test.js` - Set config tests
 - `lib/*.test.js` - Server-side utility tests
 - `app/api/**/*.test.js` - API route tests
-- `e2e/*.spec.js` - Playwright E2E tests
+- `tests/e2e/*.spec.ts` - Playwright E2E tests (run casual format tests with --workers=1)
 
 ## Bug Fixing Process (MANDATORY)
 
