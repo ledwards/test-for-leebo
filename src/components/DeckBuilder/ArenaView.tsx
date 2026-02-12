@@ -120,8 +120,8 @@ export function ArenaView({
     <div className="arena-view">
       {/* Small screen message */}
       <div className="arena-small-screen-message">
-        <h3>Arena mode requires a larger screen</h3>
-        <p>Maximize your browser window to use Arena mode.</p>
+        <h3>Arena mode works best in landscape</h3>
+        <p>Turn your phone sideways.<br />Or try Playmat or Table mode.</p>
       </div>
 
       {/* Leader/Base Selector at top */}
