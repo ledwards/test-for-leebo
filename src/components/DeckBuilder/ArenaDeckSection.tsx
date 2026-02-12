@@ -130,6 +130,28 @@ export function ArenaDeckSection({
       }
     })
 
+    // Aspect color sort order
+    const ASPECT_SORT_ORDER: Record<string, number> = {
+      'Vigilance': 0,
+      'Command': 1,
+      'Aggression': 2,
+      'Cunning': 3,
+      'Villainy': 4,
+      'Heroism': 5,
+    }
+
+    const getAspectSortValue = (card: CardData): number => {
+      const aspects = card.aspects || []
+      if (aspects.length === 0) return 999 // Neutral goes last
+      // Use the lowest-ordered aspect
+      let best = 999
+      for (const a of aspects) {
+        const val = ASPECT_SORT_ORDER[a]
+        if (val !== undefined && val < best) best = val
+      }
+      return best
+    }
+
     // Group by card name and create grouped entries
     const groupByName = (cards: CardEntry[]): GroupedCardEntry[] => {
       const grouped = new Map<string, CardEntry[]>()
@@ -151,10 +173,24 @@ export function ArenaDeckSection({
         })
       })
 
-      // Sort by name
-      result.sort((a, b) =>
-        (a.position.card.name || '').localeCompare(b.position.card.name || '')
-      )
+      // Sort by: cost ASC, then aspect color order, then name
+      result.sort((a, b) => {
+        const cardA = a.position.card
+        const cardB = b.position.card
+
+        // Cost ASC
+        const costA = cardA.cost ?? 0
+        const costB = cardB.cost ?? 0
+        if (costA !== costB) return costA - costB
+
+        // Aspect color order
+        const aspectA = getAspectSortValue(cardA)
+        const aspectB = getAspectSortValue(cardB)
+        if (aspectA !== aspectB) return aspectA - aspectB
+
+        // Alphabetical
+        return (cardA.name || '').localeCompare(cardB.name || '')
+      })
 
       return result
     }
