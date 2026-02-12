@@ -20,12 +20,13 @@ export default function NotFound() {
         marginBottom: '2rem',
       }}>
         <img
-          src="/notfoundpurrgil.png"
+          src="/failpurrgil.png"
           alt="Not Found"
           style={{
             maxWidth: '600px',
             width: '100%',
             display: 'block',
+            boxShadow: '0 0 80px 40px rgb(9, 9, 9)',
           }}
         />
         <div style={{
