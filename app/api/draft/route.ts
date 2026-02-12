@@ -17,7 +17,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       setCode,
       maxPlayers = 8,
       timerEnabled = true,
-      timerSeconds = 30
+      timerSeconds = 30,
+      settings = {}
     } = body
 
     // Get set name from config
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             1, // Host counts as first player
             timerEnabled,
             timerSeconds,
-            JSON.stringify({}),
+            JSON.stringify(settings),
             JSON.stringify({ phase: 'lobby' }),
             1
           ]
