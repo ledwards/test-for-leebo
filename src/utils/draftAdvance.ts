@@ -8,7 +8,6 @@
 
 import { query, queryRow, queryRows } from '@/lib/db'
 import { getPassDirection, getLeaderPassDirection, getNextSeat } from './draftLogic'
-import { trackCardGeneration } from './trackGeneration'
 import type { RawCard } from './cardData'
 
 interface DraftState {
@@ -115,21 +114,6 @@ export async function processAllStagedPicks(
 
         draftedLeaders.push(pickedLeader)
 
-        // Track leader pick with correct attribution
-        // Skip bots (no user_id) - only track for real users
-        if (player.user_id) {
-          trackCardGeneration(pickedLeader, {
-            packType: 'leader',
-            sourceType: 'draft',
-            sourceId: podId,
-            sourceShareId: pod.share_id as string,
-            slotType: 'leader',
-            userId: player.user_id
-          }).catch(err => {
-            console.error('Failed to track leader pick:', err)
-          })
-        }
-
         await query(
           `UPDATE draft_pod_players
            SET drafted_leaders = $1,
@@ -177,21 +161,6 @@ export async function processAllStagedPicks(
         pickedCard.pickInPack = pickInPack
 
         draftedCards.push(pickedCard)
-
-        // Track card pick with correct attribution
-        // Skip bots (no user_id) - only track for real users
-        if (player.user_id) {
-          trackCardGeneration(pickedCard, {
-            packType: 'booster',
-            sourceType: 'draft',
-            sourceId: podId,
-            sourceShareId: pod.share_id as string,
-            slotType: pickedCard.isLeader ? 'leader' : (pickedCard.isBase ? 'base' : null),
-            userId: player.user_id
-          }).catch(err => {
-            console.error('Failed to track card pick:', err)
-          })
-        }
 
         await query(
           `UPDATE draft_pod_players

@@ -144,6 +144,9 @@
 
 .pack-blitz-actions {
   margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .loading {
@@ -164,5 +167,9 @@
 
   .set-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pack-blitz-actions {
+    flex-direction: column;
   }
 }

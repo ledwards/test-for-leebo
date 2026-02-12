@@ -5,7 +5,7 @@ import { requireBetaAccess } from '@/lib/auth'
 import { generateShareId } from '@/lib/utils'
 import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
-import { getCachedCards } from '@/src/utils/cardCache'
+import { initializeCardCache, getCachedCards } from '@/src/utils/cardCache'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -31,13 +31,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     }
 
+    // Initialize card cache (needed for server-side operations)
+    await initializeCardCache()
+
     // Get all cards from selected sets
-    const allCards = await getCachedCards()
-    const cardPool = allCards.filter(card =>
-      setCodes.includes(card.set) &&
-      !card.isToken && // Exclude tokens
-      card.type !== 'Token'
-    )
+    const cardPool = setCodes.flatMap(setCode => getCachedCards(setCode))
+      .filter(card =>
+        !card.isToken && // Exclude tokens
+        card.type !== 'Token'
+      )
 
     // Separate leaders and bases
     const leaders = cardPool.filter(c => c.type === 'Leader' || c.isLeader)
@@ -65,6 +67,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate unique share ID
     const shareId = generateShareId(8)
 
+    // Generate default name with format: Rotisserie Draft (SETS) MM/DD/YYYY
+    const now = new Date()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const year = now.getFullYear()
+    const defaultName = `Rotisserie Draft (${setCodes.join(', ')}) ${month}/${day}/${year}`
+
     // Calculate total picks needed: 50 cards per player
     const picksPerPlayer = 50
     const totalPicks = picksPerPlayer * maxPlayers
@@ -88,8 +97,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Insert into card_pools table (reusing for storage)
     const result = await query(
-      `INSERT INTO card_pools (user_id, share_id, set_code, set_name, pool_type, cards, is_public)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO card_pools (user_id, share_id, set_code, set_name, pool_type, name, cards, is_public)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id, share_id, created_at`,
       [
         userId,
@@ -97,6 +106,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         setCodes.join(','),
         'Rotisserie Draft',
         'rotisserie',
+        defaultName,
         JSON.stringify(rotisserieData),
         true
       ]

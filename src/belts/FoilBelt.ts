@@ -62,11 +62,6 @@ export class FoilBelt {
     const includeSpecial = config?.packRules?.specialInFoilSlot ?? false
     const setNumber = config?.setNumber || 1
 
-    // In sets 4-6, Special uses same rate as Rare (6x)
-    if (setNumber >= 4) {
-      this.rarityQuantities['Special'] = 6
-    }
-
     // Filter to normal variant non-leader, non-base cards
     // Exclude Special rarity if not allowed for this set
     this.fillingPool = cards.filter(c =>
@@ -75,6 +70,19 @@ export class FoilBelt {
       !c.isBase &&
       (includeSpecial || c.rarity !== 'Special')
     )
+
+    // In sets where Special appears in foil slot, scale the Special multiplier
+    // so that the total Special output matches total Rare output.
+    // e.g. 45 unique Rares × 6 = 270 slots → 8 unique Specials need 270/8 ≈ 34 each
+    if (includeSpecial) {
+      const rareCount = this.fillingPool.filter(c => c.rarity === 'Rare').length
+      const specialCount = this.fillingPool.filter(c => c.rarity === 'Special').length
+      if (specialCount > 0 && rareCount > 0) {
+        this.rarityQuantities['Special'] = Math.round(
+          (rareCount * this.rarityQuantities['Rare']) / specialCount
+        )
+      }
+    }
 
     // Initial fill
     this._fillIfNeeded()

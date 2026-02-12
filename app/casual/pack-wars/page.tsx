@@ -88,9 +88,6 @@ export default function PackWarsPage() {
   return (
     <div className="pack-wars-page">
       <div className="pack-wars-container">
-        <Button variant="back" onClick={() => router.push('/casual')}>
-          Back to Casual Formats
-        </Button>
         <h1>Pack Wars</h1>
         <p className="pack-wars-subtitle">Open 2 packs, choose your leader, and battle!</p>
 
@@ -141,6 +138,13 @@ export default function PackWarsPage() {
         {error && <div className="error-message">{error}</div>}
 
         <div className="pack-wars-actions">
+          <Button
+            variant="danger"
+            size="lg"
+            onClick={() => router.push('/casual')}
+          >
+            Cancel
+          </Button>
           <Button
             variant="primary"
             size="lg"

@@ -209,9 +209,16 @@ async function runTests(): Promise<void> {
     }
   })
 
-  test('sets 4-6 use Rare rate (6x) for Special rarity', () => {
+  test('sets 4-6 scale Special so total output equals Rare total output', () => {
     const belt = new FoilBelt('JTL')
-    assertEqual(belt.rarityQuantities.Special, 6, 'Special should use 6x rate in sets 4-6')
+    const rareCount = belt.fillingPool.filter(c => c.rarity === 'Rare').length
+    const specialCount = belt.fillingPool.filter(c => c.rarity === 'Special').length
+    const expectedMultiplier = Math.round((rareCount * belt.rarityQuantities.Rare) / specialCount)
+    assertEqual(belt.rarityQuantities.Special, expectedMultiplier, 'Special multiplier should scale so total Special output = total Rare output')
+    // Total output should be approximately equal
+    const totalRare = rareCount * belt.rarityQuantities.Rare
+    const totalSpecial = specialCount * belt.rarityQuantities.Special
+    assert(Math.abs(totalRare - totalSpecial) <= specialCount, `Total Rare (${totalRare}) should approximately equal total Special (${totalSpecial})`)
   })
 
   test('sets 1-3 use Legendary rate (1x) for Special rarity', () => {

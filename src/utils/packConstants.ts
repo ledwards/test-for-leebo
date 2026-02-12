@@ -91,13 +91,15 @@ export interface PackConstants {
 export const SETS_1_3_CONSTANTS: PackConstants = {
   // ---------------------------------------------------------------------------
   // Foil Slot Rarity Weights (Question 1)
-  // 70% C / 20% U / 8% R / 2% L
+  // FoilBelt uses RARITY_QUANTITIES (54/18/6/1) per unique card.
+  // Actual distribution depends on card count per rarity in each set.
+  // These weights approximate the effective distribution for stats comparison.
   // ---------------------------------------------------------------------------
   foilSlotWeights: {
-    Common: 70,
-    Uncommon: 20,
-    Rare: 8,
-    Legendary: 2,
+    Common: 78,
+    Uncommon: 17,
+    Rare: 5,
+    Legendary: 0.3,
     Special: 0,  // No Special in foil slot for sets 1-3
   },
 
@@ -174,13 +176,13 @@ export const SETS_1_3_CONSTANTS: PackConstants = {
 
   // ---------------------------------------------------------------------------
   // Hyperfoil Rarity Weights (Question 13)
-  // Mirrors standard foil (mostly Common)
+  // Mirrors foil slot distribution
   // ---------------------------------------------------------------------------
   hyperfoilWeights: {
-    Common: 70,
-    Uncommon: 20,
-    Rare: 8,
-    Legendary: 2,
+    Common: 78,
+    Uncommon: 17,
+    Rare: 5,
+    Legendary: 0.3,
     Special: 0,
   },
 
@@ -205,14 +207,17 @@ export const SETS_1_3_CONSTANTS: PackConstants = {
 export const SETS_4_6_CONSTANTS: PackConstants = {
   // ---------------------------------------------------------------------------
   // Foil Slot Rarity Weights (Questions 1, 11)
-  // 65% C / 20% U / 8% R / 4% S / 3% L
+  // FoilBelt uses RARITY_QUANTITIES per unique card. Special multiplier is
+  // dynamically scaled so total Special output = total Rare output.
+  // Actual distribution depends on card count per rarity in each set.
+  // These weights approximate the effective distribution for stats comparison.
   // ---------------------------------------------------------------------------
   foilSlotWeights: {
-    Common: 65,
-    Uncommon: 20,
-    Rare: 8,
+    Common: 75,
+    Uncommon: 17,
+    Rare: 4,
     Special: 4,
-    Legendary: 3,
+    Legendary: 0.3,
   },
 
   // ---------------------------------------------------------------------------
@@ -288,14 +293,15 @@ export const SETS_4_6_CONSTANTS: PackConstants = {
 
   // ---------------------------------------------------------------------------
   // Hyperfoil Rarity Weights (Question 13)
-  // Mirrors standard foil (mostly Common)
+  // Mirrors foil slot distribution for sets 4-6
+  // Special = Rare (dynamic multiplier in HyperfoilBelt)
   // ---------------------------------------------------------------------------
   hyperfoilWeights: {
-    Common: 65,
-    Uncommon: 20,
-    Rare: 8,
+    Common: 75,
+    Uncommon: 17,
+    Rare: 4,
     Special: 4,
-    Legendary: 3,
+    Legendary: 0.3,
   },
 
   // ---------------------------------------------------------------------------

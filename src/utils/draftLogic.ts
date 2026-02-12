@@ -27,6 +27,8 @@ export interface DraftPacksResult {
   packs: DraftPack[][];
   /** All leaders for all players: [playerIndex][leaderIndex] */
   leaders: DraftCard[][];
+  /** Original 16-card packs before leader/base extraction, for tracking: [playerIndex][packIndex] */
+  originalPacks: RawCard[][];
 }
 
 /** Player with pick status */
@@ -76,6 +78,7 @@ export function generateDraftPacks(
   const packsPerPlayer = 3;
   const allPlayerPacks: DraftPack[][] = [];
   const allPlayerLeaders: DraftCard[][] = [];
+  const allOriginalPacks: RawCard[][] = [];
 
   // Global counter for unique instance IDs across the entire draft
   let instanceCounter = 0;
@@ -83,6 +86,7 @@ export function generateDraftPacks(
   for (let player = 0; player < playerCount; player++) {
     const playerPacks: DraftPack[] = [];
     const playerLeaders: DraftCard[] = [];
+    const playerOriginalPacks: RawCard[] = [];
 
     for (let packNum = 0; packNum < packsPerPlayer; packNum++) {
       // For Chaos Draft, use a different set for each pack
@@ -93,6 +97,9 @@ export function generateDraftPacks(
 
       // Generate a pack
       const pack: Pack = generateBoosterPack([], packSetCode);
+
+      // Save original 16-card pack for stat tracking (before leader/base extraction)
+      playerOriginalPacks.push(pack.cards);
 
       // Add unique instance IDs to all cards in the pack
       // This prevents race conditions where the same base card ID exists in multiple packs
@@ -126,11 +133,13 @@ export function generateDraftPacks(
 
     allPlayerPacks.push(playerPacks);
     allPlayerLeaders.push(playerLeaders);
+    allOriginalPacks.push(playerOriginalPacks);
   }
 
   return {
     packs: allPlayerPacks,  // [player][packNumber][cards]
-    leaders: allPlayerLeaders  // [player][leaders] - 3 leaders per player
+    leaders: allPlayerLeaders,  // [player][leaders] - 3 leaders per player
+    originalPacks: allOriginalPacks,  // [player][packNumber] - original 16-card packs for tracking
   };
 }
 

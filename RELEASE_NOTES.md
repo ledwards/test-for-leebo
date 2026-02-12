@@ -3,16 +3,13 @@
 ## 02.12.2026
 
 ### 🎉 New Features
-- **Multi-primary aspect filters**: Arena view now supports LAW set cards with multiple primary aspects (e.g., Aggression+Command). These appear as compact filter buttons below the standard combos in each aspect group.
+- **Multi-primary aspect filters**: Arena view now supports LAW set cards with multiple primary aspects (e.g., Aggression+Command). These appear as compact filter buttons below the standard combos in each aspect group. Iterating on this design tog et it right before the release of A Lawless Time.
 
 ### 🎨 UI Improvements
-- **Arena view layout**: Aspect filter groups now use a vertical layout with standard combos on top and multi-primary combos below. Search and filters split into separate rows for better organization.
-- **Arena deck sorting**: Cards in cost columns now sort by cost, then aspect color order, then alphabetically (instead of just alphabetical).
-- **Mobile portrait**: Nav bar is now translucent with blur, matching desktop. View mode toggle and action buttons share a single row. Nav icon buttons downsized 25%.
 - **Mobile landscape**: Arena mode now works on phones turned sideways! Cost columns wrap into two rows of four. Nav bar compresses to a single row.
-- **Clone button icon**: Now uses a copy (two papers) icon instead of person-with-plus.
-- **Error pages**: Updated to use failpurrgil.png with outward glow effect.
-- **Card preview**: Disabled on all touch devices (including iPad), not just small screens.
+- **Arena deck sorting**: Cards in cost columns now sort by cost, then aspect color order, then alphabetically (instead of just alphabetical).
+- **Mobile portrait mode**: Mobile is simply not wide enough to support the full arena view layout. Instead, we are disabling Arena mode in portrait and encouraging you to use your phone in landscape mode for Arena, or use the deckbuilder's other modes in portrait.
+- **Error pages**: Nice little easter egg in the error pages for anyone old enough to remember Twitter's failwhale.
 
 ### 🔧 Maintenance
 - Documentation cleanup: organized plans vs. completed docs, removed stale files, updated indexes

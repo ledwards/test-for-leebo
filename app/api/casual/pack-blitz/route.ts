@@ -6,7 +6,7 @@ import { generateShareId } from '@/lib/utils'
 import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
 import { generateBoosterPack } from '@/src/utils/boosterPack'
-import { getCachedCards } from '@/src/utils/cardCache'
+import { initializeCardCache } from '@/src/utils/cardCache'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -30,9 +30,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return jsonResponse({ error: 'Invalid set code' }, 400)
     }
 
+    // Initialize card cache (needed for server-side pack generation)
+    await initializeCardCache()
+
     // Generate 1 booster pack
-    const cards = await getCachedCards()
-    const pack = generateBoosterPack(cards, setCode)
+    const pack = generateBoosterPack([], setCode)
 
     // Extract leader and base from pack
     const leader = pack.cards.find(c => c.type === 'Leader')
@@ -41,6 +43,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Generate unique share ID
     const shareId = generateShareId(8)
+
+    // Generate default name with format: Pack Blitz (SET) MM/DD/YYYY
+    const now = new Date()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const year = now.getFullYear()
+    const defaultName = `Pack Blitz (${setCode}) ${month}/${day}/${year}`
 
     // Store pool metadata including pack blitz options
     const poolData = {
@@ -59,8 +68,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Insert into card_pools table
     const result = await query(
-      `INSERT INTO card_pools (user_id, share_id, set_code, set_name, pool_type, cards, packs, is_public)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO card_pools (user_id, share_id, set_code, set_name, pool_type, name, cards, packs, is_public)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id, share_id, created_at`,
       [
         userId,
@@ -68,6 +77,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         setCode,
         setConfig.setName,
         'pack_blitz',
+        defaultName,
         JSON.stringify(poolData),
         JSON.stringify([pack]),
         true

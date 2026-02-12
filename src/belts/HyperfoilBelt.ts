@@ -4,7 +4,7 @@
  *
  * Provides Hyperspace Foil cards for the foil slot upgrade.
  * Uses cards with variantType === 'Hyperspace Foil'.
- * In Sets 4-6, Special rarity uses same rate as Rare (6x).
+ * In Sets 4+, Special multiplier is dynamically scaled so total output = Rare total output.
  */
 
 import { getCachedCards } from '../utils/cardCache'
@@ -58,11 +58,7 @@ export class HyperfoilBelt {
     const config = getSetConfig(this.setCode) as any
     const setNumber = config?.setNumber || 1
 
-    // In sets 4-6, Special uses same rate as Rare (6x)
     const includeSpecial = setNumber >= 4
-    if (includeSpecial) {
-      this.rarityQuantities['Special'] = 6
-    }
 
     // Filter to Hyperspace Foil variant non-leader, non-base cards
     this.fillingPool = cards.filter(c =>
@@ -81,6 +77,18 @@ export class HyperfoilBelt {
         !c.isBase &&
         (includeSpecial || c.rarity !== 'Special')
       )
+    }
+
+    // In sets where Special appears, scale the Special multiplier
+    // so that the total Special output matches total Rare output.
+    if (includeSpecial) {
+      const rareCount = this.fillingPool.filter(c => c.rarity === 'Rare').length
+      const specialCount = this.fillingPool.filter(c => c.rarity === 'Special').length
+      if (specialCount > 0 && rareCount > 0) {
+        this.rarityQuantities['Special'] = Math.round(
+          (rareCount * this.rarityQuantities['Rare']) / specialCount
+        )
+      }
     }
 
     // Initial fill
