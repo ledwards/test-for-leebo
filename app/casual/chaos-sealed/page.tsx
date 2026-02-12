@@ -235,18 +235,19 @@ export default function ChaosSealedPage() {
             </div>
           )}
 
-          {selectedSets.length > 0 && (
-            <div className="selected-sets-order">
-              <p>Your Chaos Sealed ({selectedSets.length}/6):</p>
-              <div className="selected-packs-row">
-                {selectedSets.map((setCode, index) => {
+          <div className="selected-sets-order">
+            <p>Your Chaos Sealed ({selectedSets.length}/6):</p>
+            <div className="selected-packs-row">
+              {[0, 1, 2, 3, 4, 5].map((slotIndex) => {
+                const setCode = selectedSets[slotIndex]
+                if (setCode) {
                   const packImageUrl = getPackImageUrl(setCode)
                   return (
                     <div
-                      key={index}
+                      key={slotIndex}
                       className="selected-pack"
                       onClick={() => {
-                        setSelectedSets(prev => [...prev.slice(0, index), ...prev.slice(index + 1)])
+                        setSelectedSets(prev => [...prev.slice(0, slotIndex), ...prev.slice(slotIndex + 1)])
                       }}
                     >
                       <div className="selected-pack-image">
@@ -254,10 +255,15 @@ export default function ChaosSealedPage() {
                       </div>
                     </div>
                   )
-                })}
-              </div>
+                }
+                return (
+                  <div key={slotIndex} className="selected-pack skeleton">
+                    <div className="selected-pack-image"></div>
+                  </div>
+                )
+              })}
             </div>
-          )}
+          </div>
         </div>
 
         {error && <div className="error-message">{error}</div>}
