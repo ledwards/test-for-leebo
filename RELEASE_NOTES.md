@@ -19,6 +19,10 @@
 - **Hyperfoil tracking**: Fixed hyperfoil cards being tracked as regular foils instead of hyperspace foils.
 - **Slot type accuracy**: Sealed packs now use position-based slot types for tracking, so uncommon-to-rare upgrades don't inflate rare slot statistics.
 
+### 📊 Stats & Quality
+- **Slot composition test**: New structural metric validates each pack has exactly 1 Leader, 1 Base, 9 Commons, 3 Uncommons, 1 Rare/Legendary, 1 Foil
+- **Stats date filter**: Fixed stats to exclude data before position-based tracking was deployed, ensuring accurate structural metrics
+
 ### 🔧 Maintenance
 - Stats page: Removed Code Quality tab, renamed QA tab to Overall
 - Added QA tests for legendary rate, hyperfoil rate, and showcase leader rate (185 total QA tests)
