@@ -16,10 +16,12 @@ interface ActiveDraft {
 interface LandingPageProps {
   onSealedClick: () => void
   onDraftClick: () => void
+  onCasualModeClick?: () => void
 }
 
-function LandingPage({ onSealedClick, onDraftClick }: LandingPageProps) {
+function LandingPage({ onSealedClick, onDraftClick, onCasualModeClick }: LandingPageProps) {
   const { user, loading, signIn } = useAuth()
+  const hasBetaAccess = user?.is_beta_tester || user?.is_admin
   const router = useRouter()
   const [activeDraft, setActiveDraft] = useState<ActiveDraft | null>(null)
 
@@ -83,6 +85,11 @@ function LandingPage({ onSealedClick, onDraftClick }: LandingPageProps) {
           <button className="mode-button draft-button" onClick={onDraftClick}>
             Draft
           </button>
+          {hasBetaAccess && onCasualModeClick && (
+            <button className="mode-button casual-mode-button" onClick={onCasualModeClick}>
+              Casual Formats
+            </button>
+          )}
         </div>
         {!loading && !user && (
           <div className="landing-login">

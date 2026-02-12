@@ -88,6 +88,10 @@ export default function Home() {
     window.location.href = '/draft'
   }
 
+  const handleCasualModeClick = () => {
+    window.location.href = '/casual'
+  }
+
   const handleSetSelect = (setCode: string) => {
     // Navigate to create a new pool for this set
     window.location.href = `/pools/new?set=${setCode}`
@@ -162,7 +166,11 @@ export default function Home() {
         </div>
       )}
       {view === 'landing' && (
-        <LandingPage onSealedClick={handleSealedClick} onDraftClick={handleDraftClick} />
+        <LandingPage
+          onSealedClick={handleSealedClick}
+          onDraftClick={handleDraftClick}
+          onCasualModeClick={handleCasualModeClick}
+        />
       )}
       {view === 'set-selection' && (
         <SetSelection onSetSelect={handleSetSelect} onBack={handleBack} />
