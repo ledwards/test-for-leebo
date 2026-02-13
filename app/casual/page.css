@@ -29,6 +29,20 @@
   color: white;
 }
 
+.casual-container h1 .beta-badge {
+  display: inline-block;
+  background: rgba(255, 165, 0, 0.2);
+  border: 1px solid rgba(255, 165, 0, 0.5);
+  color: #ffa500;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+}
+
 .casual-subtitle {
   color: rgba(255, 255, 255, 0.7);
   font-size: 1.1rem;
@@ -42,6 +56,10 @@
   margin-bottom: 2rem;
 }
 
+.casual-mode-card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 .casual-mode-card {
   background: rgba(0, 0, 0, 0.7);
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -52,13 +70,88 @@
   text-align: left;
   position: relative;
   font-family: 'Barlow', sans-serif;
+  overflow: hidden;
 }
 
+/* Card art container - hidden by default, shown on hover */
+.casual-mode-card-art {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 30%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* For events: show art region, let bottom 20% of card bleed off */
+.casual-mode-card.art-event .casual-mode-card-art {
+  background-size: auto 250%;
+  background-position: right 86%;
+}
+
+/* For units: art is from 10% top to 60% down (middle region) */
+.casual-mode-card.art-unit .casual-mode-card-art {
+  background-size: auto 250%;
+  background-position: right 25%;
+}
+
+/* Fade overlay from right to left - solid black on left, fading to transparent */
+.casual-mode-card-art::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 20%, rgba(0, 0, 0, 0.7) 50%, rgba(0, 0, 0, 0.2) 80%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+}
+
+/* For full-width buttons: push art all the way right and add stronger gradient */
+.casual-mode-card:last-child:nth-child(odd) .casual-mode-card-art {
+  left: 65%;
+  right: 0;
+}
+
+.casual-mode-card:last-child:nth-child(odd) .casual-mode-card-art::after {
+  background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 0.7) 45%, rgba(0, 0, 0, 0.2) 70%, rgba(0, 0, 0, 0) 90%);
+}
+
+/* Card content stays above the art */
+.casual-mode-card-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Default hover glow (green) for pack-wars, pack-blitz */
 .casual-mode-card:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.85);
   border-color: rgba(0, 255, 0, 0.8);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+}
+
+/* Red glow for chaos formats */
+.casual-mode-card.glow-red:hover:not(:disabled) {
+  border-color: rgba(255, 60, 60, 0.8);
+  box-shadow: 0 6px 16px rgba(255, 60, 60, 0.6);
+}
+
+/* Purple glow for rotisserie */
+.casual-mode-card.glow-purple:hover:not(:disabled) {
+  border-color: rgba(180, 100, 255, 0.8);
+  box-shadow: 0 6px 16px rgba(180, 100, 255, 0.6);
+}
+
+/* Show card art on hover */
+.casual-mode-card:hover:not(:disabled) .casual-mode-card-art {
+  opacity: 1;
 }
 
 .casual-mode-card:disabled {
@@ -150,6 +243,7 @@
 .history-item-main {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 0.25rem;
 }
@@ -165,13 +259,29 @@
 }
 
 .history-type {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 0.75rem;
   font-weight: 600;
   padding: 3px 8px;
   border-radius: 4px;
   text-transform: uppercase;
+}
+
+/* Color-coded history pills */
+.history-type.type-chaos {
+  background: rgba(255, 60, 60, 0.25);
+  color: rgba(255, 120, 120, 0.9);
+}
+
+.history-type.type-rotisserie {
+  background: rgba(180, 100, 255, 0.25);
+  color: rgba(200, 150, 255, 0.9);
+}
+
+.history-type.type-default {
+  background: rgba(0, 255, 0, 0.15);
+  color: rgba(100, 255, 100, 0.9);
 }
 
 .history-item-meta {
@@ -204,5 +314,10 @@
 
   .casual-mode-card {
     padding: 1.5rem;
+  }
+
+  /* Hide card art on mobile - no hover anyway */
+  .casual-mode-card-art {
+    display: none;
   }
 }
