@@ -165,3 +165,63 @@ test.describe('Chaos Draft', () => {
     console.log('✓ Cancel navigated to /casual')
   })
 })
+
+test.describe('Casual Beta Gate', () => {
+  let browser: Browser
+  let context: BrowserContext
+  let page: Page
+  let user: any
+
+  test.beforeAll(async () => {
+    browser = await chromium.launch({ headless: false, slowMo: 50 })
+
+    // Create a non-beta user
+    user = await createTestUser('NonBetaUser', TEST_ID, { isBetaTester: false })
+
+    context = await browser.newContext({
+      viewport: { width: 1280, height: 720 },
+    })
+
+    const urlObj = new URL(BASE_URL)
+    const cookieConfig: any = {
+      name: user.cookieName,
+      value: user.token,
+      httpOnly: true,
+      sameSite: 'Lax',
+    }
+    if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
+      cookieConfig.url = BASE_URL
+    } else {
+      cookieConfig.domain = urlObj.hostname
+      cookieConfig.path = '/'
+    }
+    await context.addCookies([cookieConfig])
+
+    page = await context.newPage()
+    console.log(`✓ Created non-beta test user: ${user.user.username}`)
+  })
+
+  test.afterAll(async () => {
+    try { await cleanupTestUsers(TEST_ID) } catch (e: any) { console.error('Cleanup error:', e.message) }
+    await closeDb()
+    if (context) await context.close()
+    if (browser) await browser.close()
+  })
+
+  test('non-beta user sees 404 on /casual/chaos-draft', async () => {
+    await page.goto(`${BASE_URL}/casual/chaos-draft`)
+    await page.waitForLoadState('networkidle')
+
+    // Should see the 404 page, not the chaos draft UI
+    await expect(page.locator('h1')).toHaveText('Page Not Found', { timeout: 10000 })
+    console.log('✓ Non-beta user sees 404')
+  })
+
+  test('non-beta user sees 404 on /casual', async () => {
+    await page.goto(`${BASE_URL}/casual`)
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.locator('h1')).toHaveText('Page Not Found', { timeout: 10000 })
+    console.log('✓ Non-beta user sees 404 on /casual')
+  })
+})

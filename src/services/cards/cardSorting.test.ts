@@ -50,27 +50,62 @@ describe('cardSorting', () => {
     describe('dual aspect cards', () => {
       it('returns correct key for Vigilance/Villainy', () => {
         const card = { aspects: ['Vigilance', 'Villainy'] }
-        assert.strictEqual(getAspectSortKey(card), '1_01_Vigilance_Villainy')
+        assert.strictEqual(getAspectSortKey(card), '1_01_01_05')
       })
 
       it('returns correct key for Vigilance/Heroism', () => {
         const card = { aspects: ['Vigilance', 'Heroism'] }
-        assert.strictEqual(getAspectSortKey(card), '1_02_Vigilance_Heroism')
+        assert.strictEqual(getAspectSortKey(card), '1_02_01_06')
       })
 
       it('returns correct key for Command/Villainy', () => {
         const card = { aspects: ['Command', 'Villainy'] }
-        assert.strictEqual(getAspectSortKey(card), '2_01_Command_Villainy')
+        assert.strictEqual(getAspectSortKey(card), '2_01_02_05')
       })
 
       it('returns correct key for Aggression/Heroism', () => {
         const card = { aspects: ['Aggression', 'Heroism'] }
-        assert.strictEqual(getAspectSortKey(card), '3_02_Aggression_Heroism')
+        assert.strictEqual(getAspectSortKey(card), '3_02_03_06')
       })
 
       it('returns correct key for Villainy/Heroism (no primary)', () => {
         const card = { aspects: ['Villainy', 'Heroism'] }
         assert.strictEqual(getAspectSortKey(card), 'E_01_Villainy_Heroism')
+      })
+    })
+
+    describe('multi-primary aspect cards', () => {
+      it('sorts multi-primary before standard combos within same primary', () => {
+        const multiPrimary = getAspectSortKey({ aspects: ['Vigilance', 'Command'] })
+        const withVillainy = getAspectSortKey({ aspects: ['Vigilance', 'Villainy'] })
+        const mono = getAspectSortKey({ aspects: ['Vigilance'] })
+        assert.strictEqual(multiPrimary.localeCompare(withVillainy) < 0, true,
+          'Vigilance+Command should sort before Vigilance+Villainy')
+        assert.strictEqual(multiPrimary.localeCompare(mono) < 0, true,
+          'Vigilance+Command should sort before mono Vigilance')
+      })
+
+      it('sorts Vigilance+Command before Vigilance+Aggression', () => {
+        const vigCmd = getAspectSortKey({ aspects: ['Vigilance', 'Command'] })
+        const vigAgg = getAspectSortKey({ aspects: ['Vigilance', 'Aggression'] })
+        assert.strictEqual(vigCmd.localeCompare(vigAgg) < 0, true,
+          'Vigilance+Command should sort before Vigilance+Aggression')
+      })
+
+      it('sorts multi-primary+Villainy before multi-primary+Heroism', () => {
+        const vigAggVil = getAspectSortKey({ aspects: ['Vigilance', 'Aggression', 'Villainy'] })
+        const vigAggHer = getAspectSortKey({ aspects: ['Vigilance', 'Aggression', 'Heroism'] })
+        assert.strictEqual(vigAggVil.localeCompare(vigAggHer) < 0, true,
+          'Vig+Agg+Villainy should sort before Vig+Agg+Heroism')
+      })
+    })
+
+    describe('multi-primary type ordering with compareByAspectTypeCostName', () => {
+      it('FIXED: sorts multi-primary Units before multi-primary Events', () => {
+        const unit = { aspects: ['Vigilance', 'Command'], type: 'Unit', cost: 3, name: 'Cinta Kaz' }
+        const event = { aspects: ['Vigilance', 'Command'], type: 'Event', cost: 1, name: 'You Hold This' }
+        assert.strictEqual(compareByAspectTypeCostName(unit, event) < 0, true,
+          'Unit should sort before Event within same multi-primary aspects')
       })
     })
 
