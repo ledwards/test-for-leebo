@@ -36,7 +36,6 @@ export default function RotisseriePage() {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [maxPlayers, setMaxPlayers] = useState(8)
   const [imageFallbacks, setImageFallbacks] = useState<Record<string, number>>({})
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
@@ -48,8 +47,8 @@ export default function RotisseriePage() {
         setLoading(true)
         const setsData = await fetchSets({ includeBeta: hasBetaAccess })
         setSets(sortSetsChronologically(setsData))
-        // Select all sets by default
-        setSelectedSets(setsData.map(s => s.code))
+        // Select all non-beta sets by default
+        setSelectedSets(setsData.filter(s => !s.beta).map(s => s.code))
       } catch (err) {
         setError('Failed to load sets')
       } finally {
@@ -100,7 +99,6 @@ export default function RotisseriePage() {
         credentials: 'include',
         body: JSON.stringify({
           setCodes: selectedSets,
-          maxPlayers,
         })
       })
 
@@ -165,18 +163,6 @@ export default function RotisseriePage() {
               </div>
             )
           })}
-        </div>
-
-        <div className="max-players-field">
-          <label htmlFor="maxPlayers">Max Players</label>
-          <input
-            id="maxPlayers"
-            type="number"
-            min={2}
-            max={16}
-            value={maxPlayers}
-            onChange={(e) => setMaxPlayers(Math.max(2, Math.min(16, parseInt(e.target.value) || 2)))}
-          />
         </div>
 
         {error && <div className="error-message">{error}</div>}
