@@ -170,10 +170,11 @@ export default function RotisseriePlayPage() {
     )
   }
 
-  const currentPicker = data.players[data.currentPickerIndex]
+  const players = data.players || []
+  const currentPicker = players[data.currentPickerIndex]
   const isMyTurn = user && currentPicker?.id === user.id
-  const hasJoined = user && data.players.some(p => p.id === user.id)
-  const isHost = user && data.players[0]?.id === user.id
+  const hasJoined = user && players.some(p => p.id === user.id)
+  const isHost = user && players[0]?.id === user.id
   const myPicks = getMyPicks()
   const filteredCards = getFilteredCards()
 
@@ -190,8 +191,8 @@ export default function RotisseriePlayPage() {
       <div className="rotisserie-layout">
         <div className="sidebar">
           <div className="players-section">
-            <h3>Players ({data.players.length}/{data.maxPlayers})</h3>
-            {data.players.map((player, index) => (
+            <h3>Players ({players.length}/{data.maxPlayers})</h3>
+            {players.map((player, index) => (
               <div
                 key={player.id}
                 className={`player-item ${index === data.currentPickerIndex && data.status === 'active' ? 'current' : ''}`}
@@ -214,12 +215,12 @@ export default function RotisseriePlayPage() {
                     Join Draft
                   </Button>
                 )}
-                {isHost && data.players.length >= 2 && (
+                {isHost && players.length >= 2 && (
                   <Button variant="primary" onClick={() => handleAction('start')}>
                     Start Draft
                   </Button>
                 )}
-                {data.players.length < 2 && (
+                {players.length < 2 && (
                   <p className="waiting-text">Waiting for players...</p>
                 )}
               </div>
