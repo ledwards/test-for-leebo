@@ -7,8 +7,8 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { fetchSets } from '@/src/utils/api'
 import { createDraft } from '@/src/utils/draftApi'
 import { getPackImageUrl } from '@/src/utils/packArt'
-import { getSetConfig } from '@/src/utils/setConfigs'
 import Button from '@/src/components/Button'
+import PackSelector from '@/src/components/PackSelector'
 import './page.css'
 
 interface SetData {
@@ -16,47 +16,6 @@ interface SetData {
   name: string
   imageUrl?: string
   beta?: boolean
-}
-
-// Get set color from config
-function getSetColor(setCode: string): string {
-  const config = getSetConfig(setCode)
-  return config?.color || '#ffffff'
-}
-
-// Get set number for ordering (1-3, 4-6, 7+)
-function getSetNumber(setCode: string): number {
-  const setCodeMap: Record<string, number> = {
-    'SOR': 1, 'SHD': 2, 'TWI': 3,
-    'JTL': 4, 'LOF': 5, 'SEC': 6,
-    'LAW': 7,
-  }
-  return setCodeMap[setCode] || 999
-}
-
-// Sort sets for display: 1-3 top, 4-6 middle, 7-9 bottom
-function sortSetsForDisplay(sets: SetData[]): { top: SetData[], middle: SetData[], bottom: SetData[] } {
-  const top: SetData[] = []
-  const middle: SetData[] = []
-  const bottom: SetData[] = []
-
-  for (const set of sets) {
-    const num = getSetNumber(set.code)
-    if (num >= 7) {
-      bottom.push(set)
-    } else if (num >= 4 && num <= 6) {
-      middle.push(set)
-    } else {
-      top.push(set)
-    }
-  }
-
-  // Sort each group by set number
-  top.sort((a, b) => getSetNumber(a.code) - getSetNumber(b.code))
-  middle.sort((a, b) => getSetNumber(a.code) - getSetNumber(b.code))
-  bottom.sort((a, b) => getSetNumber(a.code) - getSetNumber(b.code))
-
-  return { top, middle, bottom }
 }
 
 export default function ChaosDraftPage() {
@@ -85,40 +44,6 @@ export default function ChaosDraftPage() {
     loadSets()
   }, [hasBetaAccess])
 
-  // Count how many times each set is selected
-  const getSetCount = (setCode: string) => {
-    return selectedSets.filter(s => s === setCode).length
-  }
-
-  const handleSetClick = (setCode: string) => {
-    const count = getSetCount(setCode)
-    if (count === 0) {
-      // First click: add the set
-      if (selectedSets.length < 3) {
-        setSelectedSets(prev => [...prev, setCode])
-      }
-    } else {
-      // Already selected: remove all instances
-      setSelectedSets(prev => prev.filter(s => s !== setCode))
-    }
-  }
-
-  const handleAddOne = (setCode: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (selectedSets.length < 3) {
-      setSelectedSets(prev => [...prev, setCode])
-    }
-  }
-
-  const handleRemoveOne = (setCode: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    // Remove one instance of this set
-    const index = selectedSets.indexOf(setCode)
-    if (index > -1) {
-      setSelectedSets(prev => [...prev.slice(0, index), ...prev.slice(index + 1)])
-    }
-  }
-
   const handleCreate = async () => {
     if (selectedSets.length !== 3) return
 
@@ -145,52 +70,6 @@ export default function ChaosDraftPage() {
     }
   }
 
-  const sortedSets = sortSetsForDisplay(sets)
-
-  const renderSetButton = (set: SetData) => {
-    const count = getSetCount(set.code)
-    const isSelected = count > 0
-    const canAddMore = selectedSets.length < 3
-    const setColor = getSetColor(set.code)
-    const packImageUrl = getPackImageUrl(set.code)
-
-    return (
-      <button
-        key={set.code}
-        className={`set-button ${isSelected ? 'selected' : ''}`}
-        onClick={() => handleSetClick(set.code)}
-        style={{
-          '--set-color': setColor,
-        } as React.CSSProperties}
-      >
-        <div className="set-button-image">
-          <img src={packImageUrl} alt={set.name} />
-          {isSelected && (
-            <div className="selection-badge">
-              <span
-                className="selection-button"
-                onClick={(e) => handleRemoveOne(set.code, e)}
-              >
-                −
-              </span>
-              <span className="selection-number">{count}</span>
-              <span
-                className={`selection-button ${!canAddMore ? 'hidden' : ''}`}
-                onClick={(e) => canAddMore && handleAddOne(set.code, e)}
-              >
-                +
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="set-button-content">
-          <span className="set-name">{set.name}</span>
-        </div>
-        {set.beta && <span className="beta-badge">Beta</span>}
-      </button>
-    )
-  }
-
   if (loading) {
     return (
       <div className="chaos-draft-page">
@@ -207,30 +86,14 @@ export default function ChaosDraftPage() {
         <h1>Chaos Draft</h1>
         <p className="chaos-draft-subtitle">Select 3 packs from any combination of sets!</p>
 
-        <div className="chaos-draft-section">
-          <h3>Select 3 Packs ({selectedSets.length}/3)</h3>
-
-          {/* Top row (1-3) */}
-          {sortedSets.top.length > 0 && (
-            <div className="set-grid">
-              {sortedSets.top.map(renderSetButton)}
-            </div>
-          )}
-
-          {/* Middle row (4-6) */}
-          {sortedSets.middle.length > 0 && (
-            <div className="set-grid">
-              {sortedSets.middle.map(renderSetButton)}
-            </div>
-          )}
-
-          {/* Bottom row (7+) */}
-          {sortedSets.bottom.length > 0 && (
-            <div className="set-grid">
-              {sortedSets.bottom.map(renderSetButton)}
-            </div>
-          )}
-        </div>
+        <PackSelector
+          sets={sets}
+          selectedSets={selectedSets}
+          onSelectSets={setSelectedSets}
+          maxSelections={3}
+          showQuantityControls={true}
+          title={`Select 3 Packs (${selectedSets.length}/3)`}
+        />
 
         <div className="chaos-draft-section selected-sets-order">
           <h3>Your Chaos Draft ({selectedSets.length}/3)</h3>

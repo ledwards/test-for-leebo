@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { fetchSets } from '@/src/utils/api'
 import Button from '@/src/components/Button'
+import PackSelector from '@/src/components/PackSelector'
 import './page.css'
 
 interface SetData {
@@ -20,8 +21,6 @@ export default function PackBlitzPage() {
   const { user } = useAuth()
   const [sets, setSets] = useState<SetData[]>([])
   const [selectedSet, setSelectedSet] = useState<string | null>(null)
-  const [ignoreAspectPenalties, setIgnoreAspectPenalties] = useState(true)
-  const [resourceBufferCount, setResourceBufferCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,9 +54,7 @@ export default function PackBlitzPage() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          setCode: selectedSet,
-          ignoreAspectPenalties,
-          resourceBufferCount
+          setCode: selectedSet
         })
       })
 
@@ -89,51 +86,24 @@ export default function PackBlitzPage() {
     <div className="pack-blitz-page">
       <div className="pack-blitz-container">
         <h1>Pack Blitz</h1>
-        <p className="pack-blitz-subtitle">Open 1 pack, shuffle it up, and play!</p>
+        <p className="pack-blitz-subtitle">Open 1 pack, choose your leader, and battle!</p>
 
-        <div className="pack-blitz-section">
-          <h3>Select a Set</h3>
-          <div className="set-grid">
-            {sets.map((set) => (
-              <button
-                key={set.code}
-                className={`set-button ${selectedSet === set.code ? 'selected' : ''}`}
-                onClick={() => setSelectedSet(set.code)}
-              >
-                {set.name}
-                {set.beta && <span className="beta-badge">Beta</span>}
-              </button>
-            ))}
-          </div>
+        <div className="pack-blitz-rules">
+          <h3>How to Play</h3>
+          <ul>
+            <li>Each player opens 1 pack from the same set</li>
+            <li>Choose 1 leader and 1 base per game</li>
+            <li>Shuffle all other cards as your deck</li>
+            <li>Aspect penalties are ignored</li>
+          </ul>
         </div>
 
-        <div className="pack-blitz-section">
-          <h3>Options</h3>
-          <div className="options-list">
-            <label className="option-item">
-              <input
-                type="checkbox"
-                checked={ignoreAspectPenalties}
-                onChange={(e) => setIgnoreAspectPenalties(e.target.checked)}
-              />
-              <span>Ignore Aspect Penalties</span>
-            </label>
-
-            <div className="option-item">
-              <label>
-                <span>Resource Buffer Cards: {resourceBufferCount}</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  value={resourceBufferCount}
-                  onChange={(e) => setResourceBufferCount(parseInt(e.target.value))}
-                />
-              </label>
-              <p className="option-hint">Add blank cards as guaranteed resources</p>
-            </div>
-          </div>
-        </div>
+        <PackSelector
+          sets={sets}
+          selectedSet={selectedSet}
+          onSelectSet={setSelectedSet}
+          title="Select a Set"
+        />
 
         {error && <div className="error-message">{error}</div>}
 
@@ -143,7 +113,7 @@ export default function PackBlitzPage() {
             size="lg"
             onClick={() => router.push('/casual')}
           >
-            Cancel
+            Peace
           </Button>
           <Button
             variant="primary"
@@ -151,7 +121,7 @@ export default function PackBlitzPage() {
             disabled={!selectedSet || generating}
             onClick={handleGenerate}
           >
-            {generating ? 'Generating...' : 'Generate Pack'}
+            {generating ? 'Opening...' : 'WAR!'}
           </Button>
         </div>
       </div>

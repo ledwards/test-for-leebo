@@ -1,7 +1,7 @@
 .pack-wars-page {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   background-color: rgb(76, 77, 81);
   background-image:
@@ -14,12 +14,12 @@
   background-position: center center, center center, center center, center center;
   color: white;
   font-family: 'Barlow', sans-serif;
-  padding: 2rem;
+  padding: 4rem 2rem 2rem 2rem;
 }
 
 .pack-wars-container {
   text-align: center;
-  max-width: 700px;
+  max-width: 900px;
   width: 100%;
 }
 
@@ -35,6 +35,37 @@
   margin-bottom: 2rem;
 }
 
+.pack-wars-rules {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.pack-wars-rules h3 {
+  font-size: 1.1rem;
+  margin: 0 0 1rem 0;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+}
+
+.pack-wars-rules ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.pack-wars-rules li {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.pack-wars-rules li:last-child {
+  margin-bottom: 0;
+}
+
 .pack-wars-section {
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -46,39 +77,73 @@
 
 .pack-wars-section h3 {
   font-size: 1.1rem;
-  margin: 0 0 1rem 0;
+  margin: 0 0 1.5rem 0;
   color: rgba(255, 255, 255, 0.9);
+  text-align: center;
 }
 
 .set-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin: 0 auto 1rem auto;
+  width: calc(3 * 120px + 2 * 1rem);
 }
 
 .set-button {
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
-  padding: 1rem;
+  padding: 0;
   color: white;
   font-family: 'Barlow', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  width: 120px;
+  overflow: hidden;
 }
 
 .set-button:hover {
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(0, 0, 0, 0.7);
+  border-color: var(--set-color, rgba(255, 255, 255, 0.5));
+  background: color-mix(in srgb, var(--set-color, #ffffff) 20%, rgba(0, 0, 0, 0.8));
+  transform: translateY(-2px);
 }
 
 .set-button.selected {
-  border-color: rgba(0, 255, 0, 0.8);
-  background: rgba(0, 255, 0, 0.1);
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+  border-color: var(--set-color, rgba(0, 255, 0, 0.8));
+  background: rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--set-color, #00ff00) 50%, transparent);
+}
+
+.set-button-image {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.set-button-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.set-button-content {
+  padding: 0.5rem;
+  position: relative;
+}
+
+.set-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: block;
+  text-align: center;
 }
 
 .set-button .beta-badge {
@@ -88,49 +153,12 @@
   background: rgba(255, 165, 0, 0.2);
   border: 1px solid rgba(255, 165, 0, 0.5);
   color: #ffa500;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 600;
   padding: 2px 4px;
   border-radius: 3px;
   text-transform: uppercase;
-}
-
-.options-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.option-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.option-item label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.option-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #00ff00;
-}
-
-.option-item input[type="range"] {
-  flex: 1;
-  margin-left: 1rem;
-  accent-color: #00ff00;
-}
-
-.option-hint {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin: 0;
-  margin-left: 1.5rem;
+  z-index: 10;
 }
 
 .error-message {
@@ -166,7 +194,15 @@
   }
 
   .set-grid {
-    grid-template-columns: repeat(2, 1fr);
+    flex-wrap: wrap;
+  }
+
+  .set-button {
+    width: 100px;
+  }
+
+  .set-button-image {
+    height: 130px;
   }
 
   .pack-wars-actions {
