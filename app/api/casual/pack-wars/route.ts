@@ -18,11 +18,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await parseBody(request)
     validateRequired(body, ['setCode'])
 
-    const {
-      setCode,
-      ignoreAspectPenalties = true,
-      resourceBufferCount = 0
-    } = body
+    const { setCode } = body
 
     // Validate set exists
     const setConfig = getSetConfig(setCode)
@@ -64,7 +60,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const year = now.getFullYear()
     const defaultName = `Pack Wars (${setCode}) ${month}/${day}/${year}`
 
-    // Store pool metadata including pack wars options
+    // Store pool metadata
     const poolData = {
       setCode,
       setName: setConfig.setName,
@@ -72,11 +68,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       leaders,
       bases,
       deckCards,
-      packs: [pack1.cards, pack2.cards],
-      options: {
-        ignoreAspectPenalties,
-        resourceBufferCount
-      }
+      packs: [pack1.cards, pack2.cards]
     }
 
     // Insert into card_pools table
@@ -108,11 +100,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       createdAt: pool.created_at,
       leaders,
       bases,
-      deckCards,
-      options: {
-        ignoreAspectPenalties,
-        resourceBufferCount
-      }
+      deckCards
     }, 201)
   } catch (error) {
     return handleApiError(error)

@@ -68,9 +68,9 @@ export default function DraftRoomPage({ params }: PageProps) {
   // Redirect if draft was deleted
   useEffect(() => {
     if (deleted) {
-      router.push('/draft')
+      router.push(backPath)
     }
-  }, [deleted, router])
+  }, [deleted, router, backPath])
 
   // Redirect to deck builder when draft completes
   useEffect(() => {
@@ -220,8 +220,11 @@ export default function DraftRoomPage({ params }: PageProps) {
     }
   }
 
+  const isCasualDraft = draft?.settings?.draftMode === 'chaos'
+  const backPath = isCasualDraft ? '/casual' : '/draft'
+
   const handleBack = () => {
-    router.push('/draft')
+    router.push(backPath)
   }
 
   const handleCancelDraft = async () => {
@@ -233,7 +236,7 @@ export default function DraftRoomPage({ params }: PageProps) {
         credentials: 'include',
       })
       if (response.ok) {
-        router.push('/draft')
+        router.push(backPath)
       } else {
         console.error('Failed to cancel draft')
         setIsCancelling(false)

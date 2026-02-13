@@ -38,7 +38,10 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
           updated_at,
           is_public,
           deck_builder_state,
-          jsonb_array_length(cards) as card_count
+          CASE
+            WHEN jsonb_typeof(cards) = 'array' THEN jsonb_array_length(cards)
+            ELSE 0
+          END as card_count
          FROM card_pools
          WHERE user_id = $1
          ORDER BY created_at DESC
@@ -60,7 +63,10 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
               created_at,
               updated_at,
               is_public,
-              jsonb_array_length(cards) as card_count
+              CASE
+                WHEN jsonb_typeof(cards) = 'array' THEN jsonb_array_length(cards)
+                ELSE 0
+              END as card_count
              FROM card_pools
              WHERE user_id = $1
              ORDER BY created_at DESC
@@ -85,7 +91,10 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
                 created_at,
                 updated_at,
                 is_public,
-                jsonb_array_length(cards) as card_count
+                CASE
+                  WHEN jsonb_typeof(cards) = 'array' THEN jsonb_array_length(cards)
+                  ELSE 0
+                END as card_count
                FROM card_pools
                WHERE user_id = $1
                ORDER BY created_at DESC
