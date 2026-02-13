@@ -40,9 +40,9 @@
 /* Set cards grid */
 .sets-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
-  max-width: 1400px;
+  max-width: 900px;
   margin: 0 auto;
   grid-auto-flow: row;
 }
@@ -217,34 +217,8 @@
   margin-bottom: 1rem;
 }
 
-.max-players-field {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-}
-
-.max-players-field label {
-  font-size: 1rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.max-players-field input {
-  width: 4rem;
-  padding: 0.4rem 0.5rem;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  color: white;
-  font-size: 1rem;
-  font-family: 'Barlow', sans-serif;
-  text-align: center;
-}
-
 .rotisserie-actions {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
   display: flex;
   justify-content: center;
   gap: 1rem;
@@ -258,7 +232,7 @@
 /* Tablet */
 @media (max-width: 900px) {
   .sets-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
