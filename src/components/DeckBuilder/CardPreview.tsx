@@ -21,8 +21,10 @@ export interface CardPreviewProps {
   card: PreviewCard | null
   x: number
   y: number
+  isMobile?: boolean
   onMouseEnter?: () => void
   onMouseLeave?: () => void
+  onDismiss?: () => void
 }
 
 // Helper to get rarity color for placeholder cards
@@ -40,8 +42,10 @@ export function CardPreview({
   card,
   x,
   y,
+  isMobile = false,
   onMouseEnter,
   onMouseLeave,
+  onDismiss,
 }: CardPreviewProps) {
   if (!card) return null
 
@@ -64,6 +68,83 @@ export function CardPreview({
 
   const isFoilOrShowcase = (card.isFoil && !card.isLeader) || card.isShowcase
 
+  // Mobile: fullscreen overlay with card scaled to fit viewport
+  if (isMobile) {
+    const vpW = typeof window !== 'undefined' ? window.innerWidth : 400
+    const vpH = typeof window !== 'undefined' ? window.innerHeight : 700
+    const padding = 20
+    const availW = vpW - padding * 2
+    const availH = vpH - padding * 2
+    // For mobile, don't show back image side-by-side — just show front
+    const mobileW = isHorizontal ? 504 : 360
+    const mobileH = isHorizontal ? 360 : 504
+    const scale = Math.min(availW / mobileW, availH / mobileH, 1)
+    const finalW = mobileW * scale
+    const finalH = mobileH * scale
+
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999,
+          background: 'rgba(0, 0, 0, 0.75)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        onClick={onDismiss}
+        onTouchEnd={onDismiss}
+      >
+        <div
+          style={{
+            width: `${finalW}px`,
+            height: `${finalH}px`,
+            borderRadius: borderRadius,
+            overflow: 'hidden',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+          }}
+          onClick={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+        >
+          {card.imageUrl ? (
+            <img
+              src={card.imageUrl}
+              alt={card.name || 'Card'}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          ) : (
+            <div style={{
+              width: '100%',
+              height: '100%',
+              background: 'rgba(26, 26, 46, 0.95)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '1rem',
+              color: 'white',
+            }}>
+              <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+                {card.name || 'Card'}
+              </div>
+              <div style={{ color: getRarityColor(card.rarity) }}>
+                {card.rarity}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Desktop: positioned preview
   return (
     <div
       className="card-preview-enlarged"

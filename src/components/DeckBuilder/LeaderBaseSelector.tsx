@@ -66,9 +66,12 @@ export interface LeaderBaseSelectorProps {
   setBasesExpanded?: (expanded: boolean) => void
   onCardMouseEnter?: (card: CardPosition['card'], e: MouseEvent) => void
   onCardMouseLeave?: () => void
+  onCardTouchStart?: (card: CardPosition['card']) => void
+  onCardTouchEnd?: () => void
   poolSortOption?: SortOption
   deckSortOption?: SortOption
   setShowAspectPenalties?: (show: boolean) => void
+  isLoading?: boolean
 }
 
 export function LeaderBaseSelector({
@@ -86,9 +89,12 @@ export function LeaderBaseSelector({
   setBasesExpanded,
   onCardMouseEnter,
   onCardMouseLeave,
+  onCardTouchStart,
+  onCardTouchEnd,
   poolSortOption,
   deckSortOption,
   setShowAspectPenalties,
+  isLoading = false,
 }: LeaderBaseSelectorProps) {
   // Try to get values from context
   let contextValue: ReturnType<typeof useDeckBuilder> | null = null
@@ -165,8 +171,75 @@ export function LeaderBaseSelector({
     onCardMouseLeave?.()
   }, [setHoveredCard, onCardMouseLeave])
 
-  if (leadersCards.length === 0 && basesCards.length === 0) {
-    return null
+  const handleTouchStart = useCallback((card: CardPosition['card']) => {
+    onCardTouchStart?.(card)
+  }, [onCardTouchStart])
+
+  const handleTouchEnd = useCallback(() => {
+    onCardTouchEnd?.()
+  }, [onCardTouchEnd])
+
+  // Show skeleton placeholders while loading
+  if (isLoading || (leadersCards.length === 0 && basesCards.length === 0)) {
+    return (
+      <>
+        {/* Leaders Skeleton */}
+        <div className="blocks-leaders-row">
+          <div className={`card-block ${!leadersExpanded ? 'collapsed' : ''}`}>
+            <h3
+              className="card-block-header"
+              onClick={(e) => {
+                e.stopPropagation()
+                setLeadersExpanded?.(!leadersExpanded)
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              <span style={{ marginRight: '0.5rem', fontSize: '0.8rem' }}>
+                {leadersExpanded ? '▼' : '▶'}
+              </span>
+              <span>Leaders</span>
+            </h3>
+            {leadersExpanded && (
+              <div className="card-block-content">
+                <div className="leaders-bases-container">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="skeleton-card skeleton-card-landscape" />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bases Skeleton */}
+        <div className="blocks-bases-row">
+          <div className={`card-block ${!basesExpanded ? 'collapsed' : ''}`}>
+            <h3
+              className="card-block-header"
+              onClick={(e) => {
+                e.stopPropagation()
+                setBasesExpanded?.(!basesExpanded)
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              <span style={{ marginRight: '0.5rem', fontSize: '0.8rem' }}>
+                {basesExpanded ? '▼' : '▶'}
+              </span>
+              <span>Bases</span>
+            </h3>
+            {basesExpanded && (
+              <div className="card-block-content">
+                <div className="leaders-bases-container bases-only">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="skeleton-card skeleton-card-landscape" />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </>
+    )
   }
 
   return (

@@ -363,6 +363,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     handleCardMouseLeave,
     handlePreviewMouseEnter,
     handlePreviewMouseLeave,
+    handleCardTouchStart,
+    handleCardTouchEnd,
+    dismissPreview,
   } = useCardPreview()
 
   // Tooltip handling
@@ -628,8 +631,14 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     onMouseLeave: () => {
       setHoveredCard(null)
       handleCardMouseLeave()
-    }
-  }), [toggleCardSection, handleCardMouseEnter, handleCardMouseLeave])
+    },
+    onTouchStart: () => {
+      handleCardTouchStart(card)
+    },
+    onTouchEnd: () => {
+      handleCardTouchEnd()
+    },
+  }), [toggleCardSection, handleCardMouseEnter, handleCardMouseLeave, handleCardTouchStart, handleCardTouchEnd])
 
   // Factory for card render callbacks used in renderCardStack
   const createCardRenderer = useCallback((leaderCardRef: CardType | null, baseCardRef: CardType | null, { showDisabled = false } = {}) => {
@@ -1820,6 +1829,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     backgroundPosition: 'center center',
   } : {}
 
+  // Loading state - show skeletons while view mode initializes or cards load
+  const isLoading = !viewModeInitialized || cards.length === 0
+
   // Context value for child components
   const contextValue = useMemo(() => ({
     // Core state
@@ -1916,6 +1928,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         setSideboardExpanded={setSideboardExpanded}
         onCardMouseEnter={handleCardMouseEnter}
         onCardMouseLeave={handleCardMouseLeave}
+        onCardTouchStart={handleCardTouchStart}
+        onCardTouchEnd={handleCardTouchEnd}
         isDraftMode={isDraftMode}
         isOwner={isOwner}
         isAuthenticated={isAuthenticated}
@@ -1962,48 +1976,99 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               setBasesExpanded={setBasesExpanded}
               onCardMouseEnter={handleCardMouseEnter}
               onCardMouseLeave={handleCardMouseLeave}
+              onCardTouchStart={handleCardTouchStart}
+              onCardTouchEnd={handleCardTouchEnd}
+              isLoading={isLoading}
             />
           )}
 
           {/* Deck and Pool sections wrapper - allows reordering via CSS */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <DeckSection
-              getDeckCards={getDeckCards}
-              getPoolCards={getPoolCards}
-              groupCardsByName={groupCardsByName}
-              renderCardStack={renderCardStack}
-              createCardRenderer={createCardRenderer}
-              getAspectSymbol={getAspectSymbol}
-              getDefaultAspectSortKey={getDefaultAspectSortKey}
-              getAspectKey={getAspectKey}
-              deckExpanded={deckExpanded}
-              setDeckExpanded={setDeckExpanded}
-              deckGroupsExpanded={deckGroupsExpanded}
-              setDeckGroupsExpanded={setDeckGroupsExpanded}
-              deckFilterOpen={deckFilterOpen}
-              setDeckFilterOpen={setDeckFilterOpen}
-              setPoolFilterOpen={setPoolFilterOpen}
-              setFilterAspectsExpanded={setFilterAspectsExpanded}
-              deckBlocksRowRef={deckBlocksRowRef}
-            />
-            <PoolSection
-              getPoolCards={getPoolCards}
-              getDeckCards={getDeckCards}
-              groupCardsByName={groupCardsByName}
-              renderCardStack={renderCardStack}
-              createCardRenderer={createCardRenderer}
-              getAspectSymbol={getAspectSymbol}
-              getDefaultAspectSortKey={getDefaultAspectSortKey}
-              getAspectKey={getAspectKey}
-              sideboardExpanded={sideboardExpanded}
-              setSideboardExpanded={setSideboardExpanded}
-              poolGroupsExpanded={poolGroupsExpanded}
-              setPoolGroupsExpanded={setPoolGroupsExpanded}
-              poolFilterOpen={poolFilterOpen}
-              setPoolFilterOpen={setPoolFilterOpen}
-              setDeckFilterOpen={setDeckFilterOpen}
-              setFilterAspectsExpanded={setFilterAspectsExpanded}
-            />
+            {isLoading ? (
+              <>
+                {/* Deck Skeleton */}
+                <div className="blocks-section deck-section">
+                  <SectionHeader
+                    title="Deck"
+                    count={0}
+                    expanded={deckExpanded}
+                    onToggle={() => setDeckExpanded(!deckExpanded)}
+                  />
+                  {deckExpanded && (
+                    <div className="card-block">
+                      <div className="card-block-content">
+                        <div className="skeleton-cards-row">
+                          {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="skeleton-card skeleton-card-portrait" />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pool Skeleton */}
+                <div className="blocks-section pool-section">
+                  <SectionHeader
+                    title="Pool"
+                    count={0}
+                    expanded={sideboardExpanded}
+                    onToggle={() => setSideboardExpanded(!sideboardExpanded)}
+                  />
+                  {sideboardExpanded && (
+                    <div className="card-block">
+                      <div className="card-block-content">
+                        <div className="skeleton-cards-row">
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
+                            <div key={i} className="skeleton-card skeleton-card-portrait" />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <DeckSection
+                  getDeckCards={getDeckCards}
+                  getPoolCards={getPoolCards}
+                  groupCardsByName={groupCardsByName}
+                  renderCardStack={renderCardStack}
+                  createCardRenderer={createCardRenderer}
+                  getAspectSymbol={getAspectSymbol}
+                  getDefaultAspectSortKey={getDefaultAspectSortKey}
+                  getAspectKey={getAspectKey}
+                  deckExpanded={deckExpanded}
+                  setDeckExpanded={setDeckExpanded}
+                  deckGroupsExpanded={deckGroupsExpanded}
+                  setDeckGroupsExpanded={setDeckGroupsExpanded}
+                  deckFilterOpen={deckFilterOpen}
+                  setDeckFilterOpen={setDeckFilterOpen}
+                  setPoolFilterOpen={setPoolFilterOpen}
+                  setFilterAspectsExpanded={setFilterAspectsExpanded}
+                  deckBlocksRowRef={deckBlocksRowRef}
+                />
+                <PoolSection
+                  getPoolCards={getPoolCards}
+                  getDeckCards={getDeckCards}
+                  groupCardsByName={groupCardsByName}
+                  renderCardStack={renderCardStack}
+                  createCardRenderer={createCardRenderer}
+                  getAspectSymbol={getAspectSymbol}
+                  getDefaultAspectSortKey={getDefaultAspectSortKey}
+                  getAspectKey={getAspectKey}
+                  sideboardExpanded={sideboardExpanded}
+                  setSideboardExpanded={setSideboardExpanded}
+                  poolGroupsExpanded={poolGroupsExpanded}
+                  setPoolGroupsExpanded={setPoolGroupsExpanded}
+                  poolFilterOpen={poolFilterOpen}
+                  setPoolFilterOpen={setPoolFilterOpen}
+                  setDeckFilterOpen={setDeckFilterOpen}
+                  setFilterAspectsExpanded={setFilterAspectsExpanded}
+                />
+              </>
+            )}
           </div>
         </div>
       )}
@@ -2011,37 +2076,82 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       {/* List View */}
       {viewMode === 'list' && (
         <div className="list-view" style={{ minHeight: '200px' }}>
-          {/* Leaders Section */}
-          <SelectionListSection
-            title="Leaders"
-            sectionId="leaders"
-            radioName="leader-selection"
-            positions={Object.entries(cardPositions)
-              .filter(([_, pos]) => pos.section === 'leaders-bases' && pos.visible && pos.card.isLeader)
-              .map(([cardId, pos]) => ({ cardId, card: pos.card }))}
-            selectedId={activeLeader}
-            onSelect={(cardId) => {
-              setActiveLeader(cardId)
-              if (cardId && (poolSortOption === 'cost' || deckSortOption === 'cost')) {
-                setShowAspectPenalties(true)
-              }
-            }}
-            tableSort={tableSort}
-            onSort={handleTableSort}
-            defaultSort={defaultSort}
-            sortTableData={sortTableData}
-            expanded={leadersExpanded}
-            onToggleExpanded={() => setLeadersExpanded(!leadersExpanded)}
-            getAspectIcons={getAspectIcons}
-            onCardHover={(cardId, card, e) => {
-              setHoveredCard(cardId)
-              handleCardMouseEnter(card, e)
-            }}
-            onCardLeave={() => {
-              setHoveredCard(null)
-              handleCardMouseLeave()
-            }}
-          />
+          {isLoading ? (
+            <>
+              {/* Leaders Skeleton */}
+              <div className="list-section">
+                <h3 className="list-section-header" style={{ cursor: 'pointer' }}>
+                  <span style={{ marginRight: '0.5rem' }}>{leadersExpanded ? '▼' : '▶'}</span>
+                  Leaders
+                </h3>
+                {leadersExpanded && (
+                  <div className="skeleton-section">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="skeleton-card" style={{ height: '40px', marginBottom: '8px', borderRadius: '4px' }} />
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Bases Skeleton */}
+              <div className="list-section">
+                <h3 className="list-section-header" style={{ cursor: 'pointer' }}>
+                  <span style={{ marginRight: '0.5rem' }}>{basesExpanded ? '▼' : '▶'}</span>
+                  Bases
+                </h3>
+                {basesExpanded && (
+                  <div className="skeleton-section">
+                    {[1, 2, 3, 4, 5, 6].map(i => (
+                      <div key={i} className="skeleton-card" style={{ height: '40px', marginBottom: '8px', borderRadius: '4px' }} />
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Pool/Deck Skeleton */}
+              <div className="list-section">
+                <h3 className="list-section-header" style={{ cursor: 'pointer' }}>
+                  <span style={{ marginRight: '0.5rem' }}>▼</span>
+                  Pool
+                </h3>
+                <div className="skeleton-section">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
+                    <div key={i} className="skeleton-card" style={{ height: '40px', marginBottom: '8px', borderRadius: '4px' }} />
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Leaders Section */}
+              <SelectionListSection
+                title="Leaders"
+                sectionId="leaders"
+                radioName="leader-selection"
+                positions={Object.entries(cardPositions)
+                  .filter(([_, pos]) => pos.section === 'leaders-bases' && pos.visible && pos.card.isLeader)
+                  .map(([cardId, pos]) => ({ cardId, card: pos.card }))}
+                selectedId={activeLeader}
+                onSelect={(cardId) => {
+                  setActiveLeader(cardId)
+                  if (cardId && (poolSortOption === 'cost' || deckSortOption === 'cost')) {
+                    setShowAspectPenalties(true)
+                  }
+                }}
+                tableSort={tableSort}
+                onSort={handleTableSort}
+                defaultSort={defaultSort}
+                sortTableData={sortTableData}
+                expanded={leadersExpanded}
+                onToggleExpanded={() => setLeadersExpanded(!leadersExpanded)}
+                getAspectIcons={getAspectIcons}
+                onCardHover={(cardId, card, e) => {
+                  setHoveredCard(cardId)
+                  handleCardMouseEnter(card, e)
+                }}
+                onCardLeave={() => {
+                  setHoveredCard(null)
+                  handleCardMouseLeave()
+                }}
+              />
 
           {/* Bases Section */}
           <SelectionListSection
@@ -2099,6 +2209,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               handleCardMouseLeave()
             }}
           />
+            </>
+          )}
         </div>
       )}
 
@@ -2107,6 +2219,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         <ArenaView
           onCardMouseEnter={handleCardMouseEnter}
           onCardMouseLeave={handleCardMouseLeave}
+          onCardTouchStart={handleCardTouchStart}
+          onCardTouchEnd={handleCardTouchEnd}
+          isLoading={isLoading}
         />
       )}
 
@@ -2116,8 +2231,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           card={hoveredCardPreview.card}
           x={hoveredCardPreview.x}
           y={hoveredCardPreview.y}
+          isMobile={hoveredCardPreview.isMobile}
           onMouseEnter={handlePreviewMouseEnter}
           onMouseLeave={handlePreviewMouseLeave}
+          onDismiss={dismissPreview}
         />
       )}
 
