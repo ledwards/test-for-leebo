@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { fetchSets } from '@/src/utils/api'
 import Button from '@/src/components/Button'
+import PackSelector from '@/src/components/PackSelector'
 import './page.css'
 
 interface SetData {
@@ -20,8 +21,6 @@ export default function PackWarsPage() {
   const { user } = useAuth()
   const [sets, setSets] = useState<SetData[]>([])
   const [selectedSet, setSelectedSet] = useState<string | null>(null)
-  const [ignoreAspectPenalties, setIgnoreAspectPenalties] = useState(true)
-  const [resourceBufferCount, setResourceBufferCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,9 +54,7 @@ export default function PackWarsPage() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          setCode: selectedSet,
-          ignoreAspectPenalties,
-          resourceBufferCount
+          setCode: selectedSet
         })
       })
 
@@ -91,49 +88,23 @@ export default function PackWarsPage() {
         <h1>Pack Wars</h1>
         <p className="pack-wars-subtitle">Open 2 packs, choose your leader, and battle!</p>
 
-        <div className="pack-wars-section">
-          <h3>Select a Set</h3>
-          <div className="set-grid">
-            {sets.map((set) => (
-              <button
-                key={set.code}
-                className={`set-button ${selectedSet === set.code ? 'selected' : ''}`}
-                onClick={() => setSelectedSet(set.code)}
-              >
-                {set.name}
-                {set.beta && <span className="beta-badge">Beta</span>}
-              </button>
-            ))}
-          </div>
+        <div className="pack-wars-rules">
+          <h3>How to Play</h3>
+          <ul>
+            <li>Each player opens 2 packs from the same set</li>
+            <li>Choose 1 leader and 1 base per game</li>
+            <li>Shuffle all other cards as your deck</li>
+            <li>Aspect penalties are ignored</li>
+            <li>Best of 3 — you can switch leaders between games!</li>
+          </ul>
         </div>
 
-        <div className="pack-wars-section">
-          <h3>Options</h3>
-          <div className="options-list">
-            <label className="option-item">
-              <input
-                type="checkbox"
-                checked={ignoreAspectPenalties}
-                onChange={(e) => setIgnoreAspectPenalties(e.target.checked)}
-              />
-              <span>Ignore Aspect Penalties</span>
-            </label>
-
-            <div className="option-item">
-              <label>
-                <span>Resource Buffer Cards: {resourceBufferCount}</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  value={resourceBufferCount}
-                  onChange={(e) => setResourceBufferCount(parseInt(e.target.value))}
-                />
-              </label>
-              <p className="option-hint">Add blank cards as guaranteed resources</p>
-            </div>
-          </div>
-        </div>
+        <PackSelector
+          sets={sets}
+          selectedSet={selectedSet}
+          onSelectSet={setSelectedSet}
+          title="Select a Set"
+        />
 
         {error && <div className="error-message">{error}</div>}
 
@@ -143,7 +114,7 @@ export default function PackWarsPage() {
             size="lg"
             onClick={() => router.push('/casual')}
           >
-            Cancel
+            Peace
           </Button>
           <Button
             variant="primary"
@@ -151,7 +122,7 @@ export default function PackWarsPage() {
             disabled={!selectedSet || generating}
             onClick={handleGenerate}
           >
-            {generating ? 'Generating...' : 'Generate Packs'}
+            {generating ? 'Opening...' : 'WAR!'}
           </Button>
         </div>
       </div>

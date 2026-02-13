@@ -2,9 +2,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Card from '@/src/components/Card'
 import Button from '@/src/components/Button'
+import CardPreview from '@/src/components/DeckBuilder/CardPreview'
+import { useCardPreview } from '@/src/hooks/useCardPreview'
+import { getPackArtUrl } from '@/src/utils/packArt'
 import './page.css'
 
 interface CardData {
@@ -14,6 +17,13 @@ interface CardData {
   cost?: number
   aspects?: string[]
   frontArt?: string
+  imageUrl?: string
+  backImageUrl?: string
+  isLeader?: boolean
+  isBase?: boolean
+  isFoil?: boolean
+  isShowcase?: boolean
+  rarity?: string
 }
 
 interface PoolData {
@@ -22,23 +32,25 @@ interface PoolData {
   leaders: CardData[]
   bases: CardData[]
   deckCards: CardData[]
-  options: {
-    ignoreAspectPenalties: boolean
-    resourceBufferCount: number
-  }
+  packs?: CardData[][]
 }
 
-export default function PackWarsPlayPage() {
+export default function PackWarsPoolPage() {
   const params = useParams()
+  const router = useRouter()
   const shareId = params.shareId as string
 
   const [poolData, setPoolData] = useState<PoolData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedLeader, setSelectedLeader] = useState<CardData | null>(null)
-  const [hand, setHand] = useState<CardData[]>([])
-  const [deck, setDeck] = useState<CardData[]>([])
-  const [hasDrawn, setHasDrawn] = useState(false)
+
+  const {
+    hoveredCardPreview,
+    handleCardMouseEnter,
+    handleCardMouseLeave,
+    handlePreviewMouseEnter,
+    handlePreviewMouseLeave,
+  } = useCardPreview()
 
   useEffect(() => {
     const loadPool = async () => {
@@ -55,29 +67,9 @@ export default function PackWarsPlayPage() {
         const response_data = await response.json()
         const data = response_data.data
 
-        // Parse the cards JSON which contains pool data
         const poolInfo = typeof data.cards === 'string' ? JSON.parse(data.cards) : data.cards
 
         setPoolData(poolInfo)
-
-        // Initialize deck with shuffled cards
-        const shuffled = [...poolInfo.deckCards].sort(() => Math.random() - 0.5)
-
-        // Add resource buffer cards if configured
-        if (poolInfo.options?.resourceBufferCount > 0) {
-          for (let i = 0; i < poolInfo.options.resourceBufferCount; i++) {
-            shuffled.push({
-              id: `buffer-${i}`,
-              name: 'Resource Buffer',
-              type: 'Resource',
-              isBuffer: true
-            })
-          }
-          // Shuffle again with buffer cards
-          shuffled.sort(() => Math.random() - 0.5)
-        }
-
-        setDeck(shuffled)
       } catch (err) {
         setError(err.message || 'Failed to load pool')
       } finally {
@@ -88,156 +80,109 @@ export default function PackWarsPlayPage() {
     loadPool()
   }, [shareId])
 
-  const drawHand = () => {
-    if (hasDrawn) return
-
-    // Draw 4 cards
-    const newHand = deck.slice(0, 4)
-    const remainingDeck = deck.slice(4)
-
-    setHand(newHand)
-    setDeck(remainingDeck)
-    setHasDrawn(true)
-  }
-
-  const reshuffleAndDraw = () => {
-    if (!poolData) return
-
-    // Reshuffle all cards
-    const allCards = [...poolData.deckCards]
-
-    // Add resource buffer cards if configured
-    if (poolData.options?.resourceBufferCount > 0) {
-      for (let i = 0; i < poolData.options.resourceBufferCount; i++) {
-        allCards.push({
-          id: `buffer-${i}`,
-          name: 'Resource Buffer',
-          type: 'Resource',
-          isBuffer: true
-        })
-      }
-    }
-
-    const shuffled = allCards.sort(() => Math.random() - 0.5)
-
-    // Draw new hand
-    const newHand = shuffled.slice(0, 4)
-    const remainingDeck = shuffled.slice(4)
-
-    setHand(newHand)
-    setDeck(remainingDeck)
-    setHasDrawn(true)
-  }
+  const packArtUrl = poolData?.setCode ? getPackArtUrl(poolData.setCode) : null
 
   if (loading) {
     return (
-      <div className="pack-wars-play-page">
-        <div className="loading">Loading pool...</div>
+      <div className="pack-wars-pool-page">
+        <div className="loading"></div>
       </div>
     )
   }
 
   if (error || !poolData) {
     return (
-      <div className="pack-wars-play-page">
-        <div className="error">{error || 'Pool not found'}</div>
+      <div className="pack-wars-pool-page">
+        <div className="pack-wars-pool-content">
+          <div className="error-message">{error || 'Pool not found'}</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="pack-wars-play-page">
-      <div className="pack-wars-play-container">
+    <div className="pack-wars-pool-page">
+      {packArtUrl && (
+        <div className="set-art-header" style={{
+          backgroundImage: `url("${packArtUrl}")`,
+        }}></div>
+      )}
+
+      <div className="pack-wars-pool-content">
         <div className="pack-wars-header">
           <h1>Pack Wars</h1>
-          <p className="set-name">{poolData.setName}</p>
-          {poolData.options?.ignoreAspectPenalties && (
-            <span className="option-badge">Aspect Penalties Ignored</span>
-          )}
-          {poolData.options?.resourceBufferCount > 0 && (
-            <span className="option-badge">{poolData.options.resourceBufferCount} Buffer Cards</span>
-          )}
+          <p className="pool-type">{poolData.setName}</p>
+
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={() => router.push(`/casual/pack-wars/${shareId}/play`)}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            Play
+          </Button>
         </div>
 
-        <div className="pack-wars-leaders-bases">
-          <div className="leaders-section">
-            <h3>Leaders (choose one per game)</h3>
-            <div className="leaders-grid">
+        {/* Leaders & Bases - pack-details style containers, side by side */}
+        <div className="leaders-bases-row">
+          <div className="pack-details">
+            <h2>Leaders</h2>
+            <div className="cards-grid">
               {poolData.leaders.map((leader, index) => (
-                <div
-                  key={leader.id || index}
-                  className={`leader-card ${selectedLeader?.id === leader.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedLeader(leader)}
-                >
-                  <Card card={leader} />
-                  {selectedLeader?.id === leader.id && (
-                    <div className="selected-indicator">Active</div>
-                  )}
-                </div>
+                <Card
+                  key={`leader-${index}`}
+                  card={{ ...leader, isLeader: true }}
+                  onMouseEnter={(e) => handleCardMouseEnter(leader, e)}
+                  onMouseLeave={handleCardMouseLeave}
+                />
               ))}
             </div>
           </div>
 
-          <div className="bases-section">
-            <h3>Bases</h3>
-            <div className="bases-grid">
+          <div className="pack-details">
+            <h2>Bases</h2>
+            <div className="cards-grid">
               {poolData.bases.map((base, index) => (
-                <div key={base.id || index} className="base-card">
-                  <Card card={base} />
-                </div>
+                <Card
+                  key={`base-${index}`}
+                  card={{ ...base, isBase: true }}
+                  onMouseEnter={(e) => handleCardMouseEnter(base, e)}
+                  onMouseLeave={handleCardMouseLeave}
+                />
               ))}
             </div>
           </div>
         </div>
 
-        <div className="pack-wars-deck-section">
-          <h3>Deck ({deck.length} cards remaining)</h3>
-
-          {!hasDrawn ? (
-            <div className="draw-section">
-              <Button variant="primary" size="lg" onClick={drawHand}>
-                Draw Starting Hand (4 cards)
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="hand-section">
-                <h4>Your Hand</h4>
-                <div className="hand-cards">
-                  {hand.map((card, index) => (
-                    <div key={card.id || index} className="hand-card">
-                      {card.isBuffer ? (
-                        <div className="buffer-card">
-                          <span>Resource</span>
-                          <span>Buffer</span>
-                        </div>
-                      ) : (
-                        <Card card={card} />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="reshuffle-section">
-                <Button variant="secondary" onClick={reshuffleAndDraw}>
-                  Reshuffle & Draw New Hand
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="pack-wars-all-cards">
-          <h3>All Cards in Pool ({poolData.deckCards.length} cards)</h3>
-          <div className="all-cards-grid">
-            {poolData.deckCards.map((card, index) => (
-              <div key={card.id || index} className="pool-card">
-                <Card card={card} />
-              </div>
-            ))}
+        {/* Hidden deck cards - pack-details style container */}
+        <div className="pack-details">
+          <h2>Your Deck ({poolData.packs?.reduce((total, pack) =>
+            total + pack.filter(c => c.type !== 'Leader' && c.type !== 'Base').length
+          , 0) || 0} Hidden Cards)</h2>
+          <div className="cards-grid">
+            {poolData.packs?.flatMap((pack, packIndex) =>
+              pack.filter(c => c.type !== 'Leader' && c.type !== 'Base')
+                .map((_, cardIndex) => (
+                  <div key={`hidden-${packIndex}-${cardIndex}`} className="card-item">
+                    <img src="/card-images/card-back.png" alt="Card back" className="card-back" />
+                  </div>
+                ))
+            )}
           </div>
         </div>
       </div>
+
+      {hoveredCardPreview && (
+        <CardPreview
+          card={hoveredCardPreview.card}
+          x={hoveredCardPreview.x}
+          y={hoveredCardPreview.y}
+          onMouseEnter={handlePreviewMouseEnter}
+          onMouseLeave={handlePreviewMouseLeave}
+        />
+      )}
     </div>
   )
 }
