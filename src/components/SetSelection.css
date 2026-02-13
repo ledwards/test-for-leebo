@@ -77,6 +77,15 @@
   box-shadow: 0 2px 8px rgba(255, 140, 0, 0.4);
 }
 
+.beta-card-label {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffa500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 @media (max-width: 900px) {
   .set-card--beta {
     width: 100%;

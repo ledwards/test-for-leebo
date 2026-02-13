@@ -164,10 +164,11 @@ function SetSelection({ onSetSelect, onBack }: SetSelectionProps) {
               className="set-card set-card--beta"
               onClick={() => onSetSelect(set.code)}
             >
-              <div className="beta-badge">Pre-Release</div>
+              <div className="beta-badge">Beta</div>
               <div className="beta-card-content">
                 <div className="placeholder-text">{set.name}</div>
                 <div className="placeholder-code">{set.code}</div>
+                <div className="beta-card-label">Pre-Release</div>
               </div>
             </div>
           ))}

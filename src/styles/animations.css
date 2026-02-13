@@ -46,3 +46,13 @@
     background-position: 100% 100%;
   }
 }
+
+/* Skeleton loading shimmer animation */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
