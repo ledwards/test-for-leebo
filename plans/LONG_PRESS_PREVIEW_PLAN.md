@@ -3,9 +3,9 @@
 ## Goal
 On mobile (including Safari dev tools simulator), long press (~500ms) shows enlarged card preview that fits on the viewport without scrolling. Desktop hover behavior unchanged. Long press must NOT trigger the normal onClick (e.g. moving cards between pool/deck in deckbuilder).
 
-## Status: 2 edits remain
+## Status: COMPLETE
 
-Most of the work is already done. The hook, CardPreview mobile mode, and prop threading through DeckBuilder → ArenaView → ArenaPoolSection/ArenaDeckSection → ArenaCardStack → ResizableCard are all complete.
+All edits implemented and build verified.
 
 ## What's Already Done (DO NOT REDO)
 
