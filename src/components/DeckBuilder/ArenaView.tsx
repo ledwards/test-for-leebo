@@ -4,106 +4,69 @@
  *
  * Main arena view mode for the deckbuilder.
  * Split screen layout:
- * - Top: Leader/Base selector (sideways cards, 100% width rows)
+ * - Top: Leader/Base selector with collapsible sections
  * - Middle: Pool section with filters and grid
  * - Bottom: Deck section with cost columns
  */
 
-import { useCallback, useMemo, type MouseEvent } from 'react'
+import { useState, useCallback, useMemo, type MouseEvent } from 'react'
 import './ArenaView.css'
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
-import { ResizableCard } from './ResizableCard'
 import { ArenaPoolSection } from './ArenaPoolSection'
 import { ArenaDeckSection } from './ArenaDeckSection'
-import { compareByAspectTypeCostName } from '../../services/cards/cardSorting'
+import { CollapsibleSectionHeader } from './CollapsibleSectionHeader'
+import { LeaderBaseSelector } from './LeaderBaseSelector'
 import type { CardData } from '../Card'
-
-interface CardPosition {
-  card: CardData
-  section: string
-  visible: boolean
-  [key: string]: unknown
-}
-
-interface CardEntry {
-  cardId: string
-  position: CardPosition
-}
 
 export interface ArenaViewProps {
   onCardMouseEnter?: (card: CardData, e: MouseEvent) => void
   onCardMouseLeave?: () => void
+  onCardTouchStart?: (card: CardData) => void
+  onCardTouchEnd?: () => void
+  isLoading?: boolean
 }
 
 export function ArenaView({
   onCardMouseEnter,
   onCardMouseLeave,
+  onCardTouchStart,
+  onCardTouchEnd,
+  isLoading = false,
 }: ArenaViewProps) {
   const {
     cardPositions,
-    activeLeader,
-    setActiveLeader,
-    activeBase,
-    setActiveBase,
-    selectedCards,
-    hoveredCard,
     setHoveredCard,
-    setShowAspectPenalties,
     poolSortOption,
     deckSortOption,
+    setShowAspectPenalties,
   } = useDeckBuilder()
 
-  // Get leaders sorted by default sort
-  const leaders = useMemo((): CardEntry[] => {
-    return Object.entries(cardPositions)
-      .filter(([_, pos]) =>
-        pos.section === 'leaders-bases' &&
-        pos.visible &&
-        pos.card.isLeader
-      )
-      .map(([cardId, position]) => ({ cardId, position }))
-      .sort((a, b) => compareByAspectTypeCostName(a.position.card, b.position.card))
+  // Calculate pool and deck card counts for section headers
+  const poolCardCount = useMemo(() => {
+    return Object.values(cardPositions).filter(pos =>
+      (pos.section === 'sideboard' || pos.enabled === false) &&
+      pos.visible &&
+      !pos.card.isBase &&
+      !pos.card.isLeader
+    ).length
   }, [cardPositions])
 
-  // Get bases sorted by default sort
-  const bases = useMemo((): CardEntry[] => {
-    return Object.entries(cardPositions)
-      .filter(([_, pos]) =>
-        pos.section === 'leaders-bases' &&
-        pos.visible &&
-        pos.card.isBase
-      )
-      .map(([cardId, position]) => ({ cardId, position }))
-      .sort((a, b) => compareByAspectTypeCostName(a.position.card, b.position.card))
+  const deckCardCount = useMemo(() => {
+    return Object.values(cardPositions).filter(pos =>
+      pos.section === 'deck' &&
+      pos.visible &&
+      !pos.card.isBase &&
+      !pos.card.isLeader &&
+      pos.enabled !== false
+    ).length
   }, [cardPositions])
 
-  // Handle leader click
-  const handleLeaderClick = useCallback((cardId: string) => {
-    const newActiveLeader = activeLeader === cardId ? null : cardId
-    setActiveLeader(newActiveLeader)
-    // Show aspect penalties when selecting leader in cost mode
-    if (newActiveLeader && (poolSortOption === 'cost' || deckSortOption === 'cost')) {
-      setShowAspectPenalties(true)
-    }
-  }, [activeLeader, setActiveLeader, poolSortOption, deckSortOption, setShowAspectPenalties])
-
-  // Handle base click
-  const handleBaseClick = useCallback((cardId: string) => {
-    const newActiveBase = activeBase === cardId ? null : cardId
-    setActiveBase(newActiveBase)
-  }, [activeBase, setActiveBase])
-
-  // Handle hover enter for leader/base
-  const handleMouseEnter = useCallback((cardId: string, card: CardData, e: MouseEvent) => {
-    setHoveredCard(cardId)
-    onCardMouseEnter?.(card, e)
-  }, [setHoveredCard, onCardMouseEnter])
-
-  // Handle hover leave
-  const handleMouseLeave = useCallback(() => {
-    setHoveredCard(null)
-    onCardMouseLeave?.()
-  }, [setHoveredCard, onCardMouseLeave])
+  // Collapse state for all sections
+  const [leadersBasesExpanded, setLeadersBasesExpanded] = useState(true)
+  const [leadersExpanded, setLeadersExpanded] = useState(true)
+  const [basesExpanded, setBasesExpanded] = useState(true)
+  const [poolExpanded, setPoolExpanded] = useState(true)
+  const [deckExpanded, setDeckExpanded] = useState(true)
 
   // Handle card click in pool/deck sections
   const handleCardClick = useCallback((cardId: string, e: MouseEvent) => {
@@ -116,6 +79,21 @@ export function ArenaView({
     onCardMouseEnter?.(card, e)
   }, [setHoveredCard, onCardMouseEnter])
 
+  // Handle hover leave
+  const handleMouseLeave = useCallback(() => {
+    setHoveredCard(null)
+    onCardMouseLeave?.()
+  }, [setHoveredCard, onCardMouseLeave])
+
+  // Handle card touch (long press) in pool/deck sections
+  const handleCardTouchStart = useCallback((cardId: string, card: CardData) => {
+    onCardTouchStart?.(card)
+  }, [onCardTouchStart])
+
+  const handleCardTouchEnd = useCallback(() => {
+    onCardTouchEnd?.()
+  }, [onCardTouchEnd])
+
   return (
     <div className="arena-view">
       {/* Small screen message */}
@@ -124,84 +102,87 @@ export function ArenaView({
         <p>Turn your phone sideways.<br />Or try Playmat or Table mode.</p>
       </div>
 
-      {/* Leader/Base Selector at top */}
-      <div className="arena-leader-base-section">
-        {/* Leaders row */}
-        {leaders.length > 0 && (
-          <>
-            <div className="arena-leader-base-label">Leaders</div>
-            <div className="arena-leader-base-row">
-              {leaders.map(({ cardId, position }) => {
-                const card = position.card
-                const isHovered = hoveredCard === cardId
-                const isActiveLeader = activeLeader === cardId
-                // In arena mode: show grayscale on non-active leaders when one is selected
-                const isInactive = activeLeader !== null && !isActiveLeader
+      {/* Leaders & Bases Section - collapsible */}
+      <div className="blocks-container arena-blocks-container">
+        <CollapsibleSectionHeader
+          title="Leaders & Bases"
+          expanded={leadersBasesExpanded}
+          onToggle={() => setLeadersBasesExpanded(!leadersBasesExpanded)}
+        />
 
-                return (
-                  <ResizableCard
-                    key={cardId}
-                    card={card}
-                    selected={false}
-                    hovered={isHovered}
-                    active={isActiveLeader}
-                    inactive={isInactive}
-                    noRainbowBorder={true}
-                    onClick={() => handleLeaderClick(cardId)}
-                    onMouseEnter={(e) => handleMouseEnter(cardId, card, e)}
-                    onMouseLeave={handleMouseLeave}
-                  />
-                )
-              })}
-            </div>
-          </>
-        )}
-
-        {/* Bases row */}
-        {bases.length > 0 && (
-          <>
-            <div className="arena-leader-base-label">Bases</div>
-            <div className="arena-leader-base-row">
-              {bases.map(({ cardId, position }) => {
-                const card = position.card
-                const isHovered = hoveredCard === cardId
-                const isActiveBase = activeBase === cardId
-                // In arena mode: show grayscale on non-active bases when one is selected
-                const isInactive = activeBase !== null && !isActiveBase
-
-                return (
-                  <ResizableCard
-                    key={cardId}
-                    card={card}
-                    selected={false}
-                    hovered={isHovered}
-                    active={isActiveBase}
-                    inactive={isInactive}
-                    noRainbowBorder={true}
-                    onClick={() => handleBaseClick(cardId)}
-                    onMouseEnter={(e) => handleMouseEnter(cardId, card, e)}
-                    onMouseLeave={handleMouseLeave}
-                  />
-                )
-              })}
-            </div>
-          </>
+        {leadersBasesExpanded && (
+          <LeaderBaseSelector
+            leadersExpanded={leadersExpanded}
+            setLeadersExpanded={setLeadersExpanded}
+            basesExpanded={basesExpanded}
+            setBasesExpanded={setBasesExpanded}
+            onCardMouseEnter={onCardMouseEnter}
+            onCardMouseLeave={onCardMouseLeave}
+            onCardTouchStart={onCardTouchStart}
+            onCardTouchEnd={onCardTouchEnd}
+            poolSortOption={poolSortOption}
+            deckSortOption={deckSortOption}
+            setShowAspectPenalties={setShowAspectPenalties}
+            isLoading={isLoading}
+          />
         )}
       </div>
 
-      {/* Pool Section (top half) */}
-      <ArenaPoolSection
-        onCardClick={handleCardClick}
-        onCardMouseEnter={handleCardMouseEnter}
-        onCardMouseLeave={handleMouseLeave}
+      {/* Pool Section - collapsible, wrapped in card-block */}
+      <CollapsibleSectionHeader
+        title={isLoading ? 'Pool' : `Pool (${poolCardCount})`}
+        expanded={poolExpanded}
+        onToggle={() => setPoolExpanded(!poolExpanded)}
       />
+      {poolExpanded && (
+        <div className="card-block arena-pool-block">
+          <div className="card-block-content">
+            {isLoading ? (
+              <div className="skeleton-cards-row">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
+                  <div key={i} className="skeleton-card skeleton-card-portrait" />
+                ))}
+              </div>
+            ) : (
+              <ArenaPoolSection
+                onCardClick={handleCardClick}
+                onCardMouseEnter={handleCardMouseEnter}
+                onCardMouseLeave={handleMouseLeave}
+                onCardTouchStart={handleCardTouchStart}
+                onCardTouchEnd={handleCardTouchEnd}
+              />
+            )}
+          </div>
+        </div>
+      )}
 
-      {/* Deck Section (bottom half) */}
-      <ArenaDeckSection
-        onCardClick={handleCardClick}
-        onCardMouseEnter={handleCardMouseEnter}
-        onCardMouseLeave={handleMouseLeave}
+      {/* Deck Section - collapsible, wrapped in card-block */}
+      <CollapsibleSectionHeader
+        title={isLoading ? 'Deck' : `Deck (${deckCardCount})`}
+        expanded={deckExpanded}
+        onToggle={() => setDeckExpanded(!deckExpanded)}
       />
+      {deckExpanded && (
+        <div className="card-block arena-deck-block">
+          <div className="card-block-content">
+            {isLoading ? (
+              <div className="skeleton-cards-row">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="skeleton-card skeleton-card-portrait" />
+                ))}
+              </div>
+            ) : (
+              <ArenaDeckSection
+                onCardClick={handleCardClick}
+                onCardMouseEnter={handleCardMouseEnter}
+                onCardMouseLeave={handleMouseLeave}
+                onCardTouchStart={handleCardTouchStart}
+                onCardTouchEnd={handleCardTouchEnd}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

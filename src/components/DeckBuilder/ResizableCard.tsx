@@ -7,7 +7,7 @@
  * Used in Arena view where cards resize based on available space.
  */
 
-import { useRef, useEffect, useState, type MouseEvent, type CSSProperties } from 'react'
+import { useRef, useEffect, useState, type MouseEvent, type TouchEvent, type CSSProperties } from 'react'
 import type { CardData } from '../Card'
 
 // Base card dimensions and radius ratio
@@ -30,6 +30,8 @@ export interface ResizableCardProps {
   onClick?: (e: MouseEvent<HTMLDivElement>) => void
   onMouseEnter?: (e: MouseEvent<HTMLDivElement>) => void
   onMouseLeave?: (e: MouseEvent<HTMLDivElement>) => void
+  onTouchStart?: (e: TouchEvent<HTMLDivElement>) => void
+  onTouchEnd?: (e: TouchEvent<HTMLDivElement>) => void
   className?: string
   style?: CSSProperties
   // Arena-specific: don't scale on hover
@@ -50,6 +52,8 @@ export function ResizableCard({
   onClick,
   onMouseEnter,
   onMouseLeave,
+  onTouchStart,
+  onTouchEnd,
   className = '',
   style = {},
   noHoverScale = false,
@@ -121,6 +125,8 @@ export function ResizableCard({
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
       data-card-id={card.id}
     >
       {card.imageUrl ? (

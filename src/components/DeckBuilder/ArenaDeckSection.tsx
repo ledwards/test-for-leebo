@@ -49,6 +49,8 @@ export interface ArenaDeckSectionProps {
   onCardClick?: (cardId: string, e: MouseEvent) => void
   onCardMouseEnter?: (cardId: string, card: CardData, e: MouseEvent) => void
   onCardMouseLeave?: () => void
+  onCardTouchStart?: (cardId: string, card: CardData) => void
+  onCardTouchEnd?: () => void
 }
 
 // Cost columns: 1-7 and 8+
@@ -58,6 +60,8 @@ export function ArenaDeckSection({
   onCardClick,
   onCardMouseEnter,
   onCardMouseLeave,
+  onCardTouchStart,
+  onCardTouchEnd,
 }: ArenaDeckSectionProps) {
   const {
     cardPositions,
@@ -400,10 +404,19 @@ export function ArenaDeckSection({
           const unitsQty = units.reduce((sum, entry) => sum + (entry.quantity || 1), 0)
           const nonUnitsQty = nonUnits.reduce((sum, entry) => sum + (entry.quantity || 1), 0)
           const totalCount = unitsQty + nonUnitsQty
+          const hasZeroCostCards = bucket === '1' && [...units, ...nonUnits].some(e => (e.position.card.cost ?? 0) === 0)
           return (
             <div key={bucket} className="arena-cost-column">
               <div className="arena-cost-header">
-                <CostIcon cost={bucket} size={28} />
+                {bucket === '1' && hasZeroCostCards ? (
+                  <>
+                    <CostIcon cost="0" size={28} />
+                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>—</span>
+                    <CostIcon cost="1" size={28} />
+                  </>
+                ) : (
+                  <CostIcon cost={bucket} size={28} />
+                )}
                 {totalCount > 0 && (
                   <span className="cost-count">({totalCount})</span>
                 )}
@@ -421,6 +434,8 @@ export function ArenaDeckSection({
                     onCardClick={handleCardClick}
                     onCardMouseEnter={onCardMouseEnter}
                     onCardMouseLeave={onCardMouseLeave}
+                    onCardTouchStart={onCardTouchStart}
+                    onCardTouchEnd={onCardTouchEnd}
                     hoveredCard={hoveredCard}
                     selectedCards={selectedCards}
                   />
@@ -439,6 +454,8 @@ export function ArenaDeckSection({
                     onCardClick={handleCardClick}
                     onCardMouseEnter={onCardMouseEnter}
                     onCardMouseLeave={onCardMouseLeave}
+                    onCardTouchStart={onCardTouchStart}
+                    onCardTouchEnd={onCardTouchEnd}
                     hoveredCard={hoveredCard}
                     selectedCards={selectedCards}
                   />

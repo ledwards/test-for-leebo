@@ -10,6 +10,7 @@ import { useMemo, useCallback, type MouseEvent, type ChangeEvent } from 'react'
 import { useDeckBuilder } from '../../contexts/DeckBuilderContext'
 import { ResizableCard } from './ResizableCard'
 import { calculateAspectPenalty } from '../../services/cards/aspectPenalties'
+import { getAspectSortKey, getTypeOrder } from '../../services/cards/cardSorting'
 import type { CardData } from '../Card'
 
 interface CardPosition {
@@ -29,6 +30,8 @@ export interface ArenaPoolSectionProps {
   onCardClick?: (cardId: string, e: MouseEvent) => void
   onCardMouseEnter?: (cardId: string, card: CardData, e: MouseEvent) => void
   onCardMouseLeave?: () => void
+  onCardTouchStart?: (cardId: string, card: CardData) => void
+  onCardTouchEnd?: () => void
 }
 
 // Primary aspects (have their own groups with combos)
@@ -37,12 +40,21 @@ const PRIMARY_ASPECTS = ['Vigilance', 'Command', 'Aggression', 'Cunning']
 // Secondary aspects
 const SECONDARY_ASPECTS = ['Villainy', 'Heroism']
 
-// Get aspect combo key for a card (sorted for consistency)
+// Canonical aspect order for consistent key generation
+const ASPECT_ORDER = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Villainy', 'Heroism']
+function sortAspects(aspects: string[]): string[] {
+  return [...aspects].sort((a, b) => {
+    const ai = ASPECT_ORDER.indexOf(a)
+    const bi = ASPECT_ORDER.indexOf(b)
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+  })
+}
+
+// Get aspect combo key for a card (sorted by game priority order)
 function getAspectComboKey(card: CardData): string {
   const aspects = card.aspects || []
   if (aspects.length === 0) return 'neutral'
-  const sorted = [...aspects].sort()
-  return sorted.join('+')
+  return sortAspects(aspects).join('+')
 }
 
 // Check if a combo key has 2+ distinct primary aspects (e.g., "Aggression+Command")
@@ -75,8 +87,7 @@ function getStandardCombosForPrimary(primary: string): string[] {
     `${primary}+${primary}`, // double
   ]
   SECONDARY_ASPECTS.forEach(secondary => {
-    const sorted = [primary, secondary].sort()
-    combos.push(sorted.join('+'))
+    combos.push(sortAspects([primary, secondary]).join('+'))
   })
   return combos
 }
@@ -95,6 +106,8 @@ export function ArenaPoolSection({
   onCardClick,
   onCardMouseEnter,
   onCardMouseLeave,
+  onCardTouchStart,
+  onCardTouchEnd,
 }: ArenaPoolSectionProps) {
   const {
     cardPositions,
@@ -155,8 +168,7 @@ export function ArenaPoolSection({
       defaults[primary] = true
       defaults[`${primary}+${primary}`] = true
       SECONDARY_ASPECTS.forEach(secondary => {
-        const sorted = [primary, secondary].sort()
-        defaults[sorted.join('+')] = true
+        defaults[sortAspects([primary, secondary]).join('+')] = true
       })
     })
     SECONDARY_ASPECTS.forEach(secondary => {
@@ -214,16 +226,16 @@ export function ArenaPoolSection({
       const cardA = a.position.card
       const cardB = b.position.card
 
-      // Sort by aspect combo (sorted aspects joined)
-      const aspectComboA = [...(cardA.aspects || [])].sort().join('+') || 'ZZZ'
-      const aspectComboB = [...(cardB.aspects || [])].sort().join('+') || 'ZZZ'
-      const aspectCompare = aspectComboA.localeCompare(aspectComboB)
+      // Sort by aspect sort key (multi-primary first, then standard order)
+      const aspectKeyA = getAspectSortKey(cardA)
+      const aspectKeyB = getAspectSortKey(cardB)
+      const aspectCompare = aspectKeyA.localeCompare(aspectKeyB)
       if (aspectCompare !== 0) return aspectCompare
 
-      // Then by type
-      const typeA = cardA.type || ''
-      const typeB = cardB.type || ''
-      if (typeA !== typeB) return typeA.localeCompare(typeB)
+      // Then by type (Unit < Space Unit < Upgrade < Event)
+      const typeOrderA = getTypeOrder(cardA.type || '')
+      const typeOrderB = getTypeOrder(cardB.type || '')
+      if (typeOrderA !== typeOrderB) return typeOrderA - typeOrderB
 
       // Then by cost
       const costA = cardA.cost ?? 0
@@ -291,8 +303,7 @@ export function ArenaPoolSection({
       const combosWithSecondary = [
         secondary,
         ...PRIMARY_ASPECTS.map(p => {
-          const sorted = [p, secondary].sort()
-          return sorted.join('+')
+          return sortAspects([p, secondary]).join('+')
         }),
         ...getMultiPrimaryCombosForSecondary(secondary, presentCombos)
       ]
@@ -317,14 +328,44 @@ export function ArenaPoolSection({
   const isSecondaryAspectActive = useCallback((secondary: string) => {
     const combosWithSecondary = [
       secondary,
-      ...PRIMARY_ASPECTS.map(p => {
-        const sorted = [p, secondary].sort()
-        return sorted.join('+')
-      }),
+      ...PRIMARY_ASPECTS.map(p => sortAspects([p, secondary]).join('+')),
       ...getMultiPrimaryCombosForSecondary(secondary, presentCombos)
     ]
     return combosWithSecondary.some(k => presentCombos.has(k) && activeFilters[k])
   }, [activeFilters, presentCombos])
+
+  // Get all multi-primary combo keys present in the pool, sorted by aspect priority
+  const allMultiPrimaryCombos = useMemo(() => {
+    const aspectRank = (a: string) => { const i = ASPECT_ORDER.indexOf(a); return i === -1 ? 99 : i }
+    return [...presentCombos].filter(isMultiPrimaryCombo).sort((a, b) => {
+      const aAspects = a.split('+')
+      const bAspects = b.split('+')
+      const maxLen = Math.max(aAspects.length, bAspects.length)
+      for (let i = 0; i < maxLen; i++) {
+        const ar = aspectRank(aAspects[i] ?? '')
+        const br = aspectRank(bAspects[i] ?? '')
+        if (ar !== br) return ar - br
+      }
+      return 0
+    })
+  }, [presentCombos])
+
+  // Check if any multi-primary combo is active
+  const isAnyMultiPrimaryActive = useMemo(() => {
+    return allMultiPrimaryCombos.some(k => activeFilters[k])
+  }, [allMultiPrimaryCombos, activeFilters])
+
+  // Toggle all multi-primary combos on/off
+  const toggleAllMultiPrimary = useCallback(() => {
+    setActiveFilters(prev => {
+      const newState = { ...prev }
+      const turnOn = !isAnyMultiPrimaryActive
+      allMultiPrimaryCombos.forEach(k => {
+        newState[k] = turnOn
+      })
+      return newState
+    })
+  }, [allMultiPrimaryCombos, isAnyMultiPrimaryActive])
 
   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
@@ -447,9 +488,7 @@ export function ArenaPoolSection({
             {/* Primary aspect groups (vertical layout) */}
             {PRIMARY_ASPECTS.map(primary => {
               const standardCombos = getStandardCombosForPrimary(primary)
-              const multiPrimaryCombos = getMultiPrimaryCombosForPrimary(primary, presentCombos)
-              const allCombos = [...standardCombos, ...multiPrimaryCombos]
-              const hasAnyCombos = allCombos.some(k => presentCombos.has(k))
+              const hasAnyCombos = standardCombos.some(k => presentCombos.has(k))
               if (!hasAnyCombos) return null
 
               const isGroupActive = isPrimaryAspectActive(primary)
@@ -469,11 +508,6 @@ export function ArenaPoolSection({
                       {standardCombos.map(comboKey => renderComboFilter(comboKey))}
                     </div>
                   </div>
-                  {multiPrimaryCombos.some(k => presentCombos.has(k)) && (
-                    <div className="arena-aspect-group-multi-combos">
-                      {multiPrimaryCombos.map(comboKey => renderMultiPrimaryComboFilter(comboKey))}
-                    </div>
-                  )}
                 </div>
               )
             })}
@@ -483,10 +517,7 @@ export function ArenaPoolSection({
               {SECONDARY_ASPECTS.map(secondary => {
                 const isActive = isSecondaryAspectActive(secondary)
                 const hasCards = presentCombos.has(secondary) ||
-                  PRIMARY_ASPECTS.some(p => {
-                    const sorted = [p, secondary].sort()
-                    return presentCombos.has(sorted.join('+'))
-                  }) ||
+                  PRIMARY_ASPECTS.some(p => presentCombos.has(sortAspects([p, secondary]).join('+'))) ||
                   getMultiPrimaryCombosForSecondary(secondary, presentCombos).length > 0
                 if (!hasCards) return null
 
@@ -516,6 +547,33 @@ export function ArenaPoolSection({
             </div>
           </div>
         </div>
+
+        {/* Row 3: Multi-aspect diamond group (only if multi-primary combos exist) */}
+        {allMultiPrimaryCombos.length > 0 && (
+          <div className="arena-controls-row arena-filters-row">
+            <div className="arena-aspect-filters">
+              <div className="arena-multi-aspect-group">
+                <button
+                  className={`arena-multi-aspect-diamond ${isAnyMultiPrimaryActive ? 'active' : 'inactive'}`}
+                  onClick={toggleAllMultiPrimary}
+                  title="Toggle all multi-aspect cards"
+                >
+                  {/* Diamond icon: 4 primary aspects arranged in diamond shape */}
+                  <div className="arena-diamond-icon">
+                    <img src="/icons/vigilance.png" alt="Vigilance" />
+                    <img src="/icons/command.png" alt="Command" />
+                    <img src="/icons/aggression.png" alt="Aggression" />
+                    <img src="/icons/cunning.png" alt="Cunning" />
+                  </div>
+                </button>
+                <div className="arena-aspect-group-separator" />
+                <div className="arena-aspect-group-standard-combos">
+                  {allMultiPrimaryCombos.map(comboKey => renderMultiPrimaryComboFilter(comboKey))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="arena-content-area">
@@ -540,6 +598,8 @@ export function ArenaPoolSection({
                 onClick={(e) => handleCardClick(cardId, e)}
                 onMouseEnter={(e) => onCardMouseEnter?.(cardId, card, e)}
                 onMouseLeave={onCardMouseLeave}
+                onTouchStart={() => onCardTouchStart?.(cardId, card)}
+                onTouchEnd={() => onCardTouchEnd?.()}
               />
             )
           })}
