@@ -88,6 +88,7 @@ function LandingPage({ onSealedClick, onDraftClick, onCasualModeClick }: Landing
           {hasBetaAccess && onCasualModeClick && (
             <button className="mode-button casual-mode-button" onClick={onCasualModeClick}>
               Casual Formats
+              <span className="beta-badge">Beta</span>
             </button>
           )}
         </div>
