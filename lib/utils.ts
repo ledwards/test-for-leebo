@@ -113,3 +113,40 @@ export function validateRequired(obj: Record<string, unknown>, requiredFields: s
     throw new Error(`Missing required fields: ${missing.join(', ')}`)
   }
 }
+
+// Set order for determining consecutive sets
+const SET_ORDER: Record<string, number> = {
+  'SOR': 1, 'SHD': 2, 'TWI': 3,
+  'JTL': 4, 'LOF': 5, 'SEC': 6,
+  'LAW': 7,
+}
+
+/**
+ * Format set codes as range if all consecutive, otherwise as list
+ * e.g., ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC'] → "SOR-SEC" (all consecutive)
+ * e.g., ['SOR', 'SHD', 'JTL', 'LOF'] → "SOR, SHD, JTL, LOF" (not all consecutive)
+ */
+export function formatSetCodeRange(setCodes: string[]): string {
+  if (setCodes.length === 0) return ''
+  if (setCodes.length === 1) return setCodes[0]
+
+  // Sort by set order
+  const sorted = [...setCodes].sort((a, b) => (SET_ORDER[a] || 99) - (SET_ORDER[b] || 99))
+
+  // Check if all consecutive
+  let allConsecutive = true
+  for (let i = 1; i < sorted.length; i++) {
+    const prevOrder = SET_ORDER[sorted[i - 1]] || 99
+    const currOrder = SET_ORDER[sorted[i]] || 99
+    if (currOrder !== prevOrder + 1) {
+      allConsecutive = false
+      break
+    }
+  }
+
+  if (allConsecutive) {
+    return `${sorted[0]}-${sorted[sorted.length - 1]}`
+  } else {
+    return sorted.join(', ')
+  }
+}
