@@ -279,7 +279,8 @@ export function StickyInfoBar({
           }}
           style={{ cursor: 'pointer' }}
         >
-          Deck (<span style={{ color: getDeckCountColor() }}>{deckCardCount}</span>/30)
+          <span className="section-link-label">Deck</span>{' '}
+          <span className="section-link-count">(<span style={{ color: getDeckCountColor() }}>{deckCardCount}</span>/30)</span>
         </span>
 
         <span className="separator"></span>
@@ -294,7 +295,8 @@ export function StickyInfoBar({
           }}
           style={{ cursor: 'pointer' }}
         >
-          {isDraftMode ? 'Card Pool' : 'Sideboard'} ({poolCardCount})
+          <span className="section-link-label">{isDraftMode ? 'Card Pool' : 'Sideboard'}</span>{' '}
+          <span className="section-link-count">({poolCardCount})</span>
         </span>
 
         {/* View mode toggle between Sideboard and action buttons (desktop) */}
