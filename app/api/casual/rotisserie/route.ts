@@ -2,7 +2,7 @@
 // POST /api/casual/rotisserie - Create a Rotisserie Draft
 import { query } from '@/lib/db'
 import { requireBetaAccess } from '@/lib/auth'
-import { generateShareId } from '@/lib/utils'
+import { generateShareId, formatSetCodeRange } from '@/lib/utils'
 import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
 import { initializeCardCache, getCachedCards } from '@/src/utils/cardCache'
@@ -72,7 +72,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const month = String(now.getMonth() + 1).padStart(2, '0')
     const day = String(now.getDate()).padStart(2, '0')
     const year = now.getFullYear()
-    const defaultName = `Rotisserie Draft (${setCodes.join(', ')}) ${month}/${day}/${year}`
+    const setRange = formatSetCodeRange(setCodes)
+    const defaultName = `Rotisserie Draft (${setRange}) ${month}/${day}/${year}`
 
     // Calculate total picks needed: 50 cards per player
     const picksPerPlayer = 50

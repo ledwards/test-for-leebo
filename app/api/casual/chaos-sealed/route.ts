@@ -2,7 +2,7 @@
 // POST /api/casual/chaos-sealed - Generate a Chaos Sealed pool (6 packs from 6 different sets)
 import { query } from '@/lib/db'
 import { requireBetaAccess } from '@/lib/auth'
-import { generateShareId } from '@/lib/utils'
+import { generateShareId, formatSetCodeRange } from '@/lib/utils'
 import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
 import { generateBoosterPack } from '@/src/utils/boosterPack'
@@ -61,7 +61,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const month = String(now.getMonth() + 1).padStart(2, '0')
     const day = String(now.getDate()).padStart(2, '0')
     const year = now.getFullYear()
-    const defaultName = `Chaos Sealed (${setCodes.join(', ')}) ${month}/${day}/${year}`
+    const setRange = formatSetCodeRange(setCodes)
+    const defaultName = `Chaos Sealed (${setRange}) ${month}/${day}/${year}`
 
     // Insert into card_pools table
     // cards column = flat array of all cards
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         userId,
         shareId,
         setCodes.join(','),
-        `Chaos Sealed (${setCodes.join(', ')})`,
+        `Chaos Sealed (${setRange})`,
         'chaos_sealed',
         defaultName,
         JSON.stringify(allCards),
