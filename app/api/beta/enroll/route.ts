@@ -3,11 +3,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, setSession } from '@/lib/auth'
 import { queryRow } from '@/lib/db'
+import { isPatron } from '@/lib/discord'
 import { handleApiError } from '@/lib/utils'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const session = requireAuth(request)
+
+    // Admins bypass patron check
+    if (!session.is_admin) {
+      const userRow = await queryRow(
+        'SELECT discord_id FROM users WHERE id = $1',
+        [session.id]
+      )
+
+      const patron = userRow?.discord_id
+        ? await isPatron(userRow.discord_id as string)
+        : false
+
+      if (!patron) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Patreon subscription required. Visit our Patreon to subscribe and get beta access.',
+          },
+          { status: 403 }
+        )
+      }
+    }
 
     // Update user to be a beta tester
     const user = await queryRow(

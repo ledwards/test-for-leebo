@@ -100,6 +100,28 @@ export async function refreshSession(): Promise<User | null> {
 }
 
 /**
+ * Check if current user is a Patreon patron (has Discord role)
+ * @returns True if patron
+ */
+export async function checkPatronStatus(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/auth/patron-status`, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      return false
+    }
+
+    const data = await response.json()
+    return data.data?.isPatron === true
+  } catch (error) {
+    console.error('Failed to check patron status:', error)
+    return false
+  }
+}
+
+/**
  * Enroll current user as beta tester
  * Returns the updated user object (session cookie is also updated)
  * @returns Updated user object or null on failure

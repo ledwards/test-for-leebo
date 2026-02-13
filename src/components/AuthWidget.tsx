@@ -6,6 +6,7 @@ import type { MouseEvent } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { fetchUserPools } from '../utils/poolApi'
 import { useRouter, usePathname } from 'next/navigation'
+import UserAvatar from './UserAvatar'
 import './AuthWidget.css'
 
 interface SealedPool {
@@ -24,7 +25,7 @@ interface DraftPod {
 }
 
 export default function AuthWidget() {
-  const { user, loading, signOut } = useAuth()
+  const { user, loading, signOut, isPatron } = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [mostRecentSealed, setMostRecentSealed] = useState<SealedPool | null>(null)
   const [currentDraft, setCurrentDraft] = useState<DraftPod | null>(null)
@@ -162,17 +163,14 @@ export default function AuthWidget() {
         onClick={() => setDrawerOpen(!drawerOpen)}
         aria-label="User menu"
       >
-        {user.avatar_url ? (
-          <img
-            src={user.avatar_url}
-            alt={user.username || 'User'}
-            className="auth-widget-avatar"
-          />
-        ) : (
-          <div className="auth-widget-avatar-placeholder">
-            {user.username?.[0]?.toUpperCase() || 'U'}
-          </div>
-        )}
+        <UserAvatar
+          src={user.avatar_url}
+          alt={user.username || 'User'}
+          className="auth-widget-avatar"
+          isPatron={isPatron}
+          fallback={user.username?.[0]?.toUpperCase() || 'U'}
+          placeholderClassName="auth-widget-avatar-placeholder"
+        />
       </button>
 
       {drawerOpen && (
@@ -183,17 +181,14 @@ export default function AuthWidget() {
           />
           <div className="auth-widget-drawer">
             <div className="auth-widget-drawer-header">
-              {user.avatar_url ? (
-                <img
-                  src={user.avatar_url}
-                  alt={user.username || 'User'}
-                  className="auth-widget-drawer-avatar"
-                />
-              ) : (
-                <div className="auth-widget-drawer-avatar-placeholder">
-                  {user.username?.[0]?.toUpperCase() || 'U'}
-                </div>
-              )}
+              <UserAvatar
+                src={user.avatar_url}
+                alt={user.username || 'User'}
+                className="auth-widget-drawer-avatar"
+                isPatron={isPatron}
+                fallback={user.username?.[0]?.toUpperCase() || 'U'}
+                placeholderClassName="auth-widget-drawer-avatar-placeholder"
+              />
               <div className="auth-widget-drawer-user-info">
                 <div className="auth-widget-drawer-username">
                   {user.username || 'User'}
@@ -252,9 +247,11 @@ export default function AuthWidget() {
                     setDrawerOpen(false)
                   }}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M8 12h8M12 8v8" strokeLinecap="round"></path>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                    <line x1="9" y1="9" x2="9.01" y2="9" />
+                    <line x1="15" y1="9" x2="15.01" y2="9" />
                   </svg>
                   Casual Formats
                   <span className="auth-widget-beta-badge">Beta</span>
