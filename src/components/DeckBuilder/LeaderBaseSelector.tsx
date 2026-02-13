@@ -280,6 +280,8 @@ export function LeaderBaseSelector({
                         onClick={() => handleLeaderClick(cardId)}
                         onMouseEnter={(e) => handleMouseEnter(cardId, card, e)}
                         onMouseLeave={handleMouseLeave}
+                        onTouchStart={() => handleTouchStart(card)}
+                        onTouchEnd={handleTouchEnd}
                       />
                     )
                   })}
@@ -326,6 +328,8 @@ export function LeaderBaseSelector({
                         onClick={() => handleBaseClick(cardId)}
                         onMouseEnter={(e) => handleMouseEnter(cardId, card, e)}
                         onMouseLeave={handleMouseLeave}
+                        onTouchStart={() => handleTouchStart(card)}
+                        onTouchEnd={handleTouchEnd}
                       />
                     )
                   })}
