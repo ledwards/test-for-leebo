@@ -18,11 +18,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await parseBody(request)
     validateRequired(body, ['setCode'])
 
-    const {
-      setCode,
-      ignoreAspectPenalties = true,
-      resourceBufferCount = 0
-    } = body
+    const { setCode } = body
 
     // Validate set exists
     const setConfig = getSetConfig(setCode)
@@ -36,9 +32,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate 1 booster pack
     const pack = generateBoosterPack([], setCode)
 
-    // Extract leader and base from pack
-    const leader = pack.cards.find(c => c.type === 'Leader')
-    const base = pack.cards.find(c => c.type === 'Base')
+    // Extract leaders and bases from pack (same format as pack wars)
+    const leaders = pack.cards.filter(c => c.type === 'Leader')
+    const bases = pack.cards.filter(c => c.type === 'Base')
     const deckCards = pack.cards.filter(c => c.type !== 'Leader' && c.type !== 'Base')
 
     // Generate unique share ID
@@ -51,19 +47,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const year = now.getFullYear()
     const defaultName = `Pack Blitz (${setCode}) ${month}/${day}/${year}`
 
-    // Store pool metadata including pack blitz options
+    // Store pool metadata (same format as pack wars)
     const poolData = {
       setCode,
       setName: setConfig.setName,
       poolType: 'pack_blitz',
-      leader,
-      base,
+      leaders,
+      bases,
       deckCards,
-      pack: pack.cards,
-      options: {
-        ignoreAspectPenalties,
-        resourceBufferCount
-      }
+      packs: [pack.cards]
     }
 
     // Insert into card_pools table
@@ -93,13 +85,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       shareId: pool.share_id,
       shareUrl,
       createdAt: pool.created_at,
-      leader,
-      base,
-      deckCards,
-      options: {
-        ignoreAspectPenalties,
-        resourceBufferCount
-      }
+      leaders,
+      bases,
+      deckCards
     }, 201)
   } catch (error) {
     return handleApiError(error)

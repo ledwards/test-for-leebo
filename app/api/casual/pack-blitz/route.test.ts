@@ -15,30 +15,6 @@ describe('POST /api/casual/pack-blitz', () => {
       const isValid = !!body.setCode
       assert.strictEqual(isValid, true)
     })
-
-    it('should accept optional ignoreAspectPenalties parameter', () => {
-      const body = { setCode: 'SEC', ignoreAspectPenalties: true }
-      const ignoreAspectPenalties = body.ignoreAspectPenalties ?? true
-      assert.strictEqual(ignoreAspectPenalties, true)
-    })
-
-    it('should default ignoreAspectPenalties to true', () => {
-      const body = { setCode: 'SEC' }
-      const ignoreAspectPenalties = body.ignoreAspectPenalties ?? true
-      assert.strictEqual(ignoreAspectPenalties, true)
-    })
-
-    it('should accept optional resourceBufferCount parameter', () => {
-      const body = { setCode: 'SEC', resourceBufferCount: 3 }
-      const resourceBufferCount = body.resourceBufferCount ?? 0
-      assert.strictEqual(resourceBufferCount, 3)
-    })
-
-    it('should default resourceBufferCount to 0', () => {
-      const body = { setCode: 'SEC' }
-      const resourceBufferCount = body.resourceBufferCount ?? 0
-      assert.strictEqual(resourceBufferCount, 0)
-    })
   })
 
   describe('Pool generation logic', () => {
@@ -53,22 +29,28 @@ describe('POST /api/casual/pack-blitz', () => {
       ]
     }
 
-    it('should extract leader from pack', () => {
-      const leader = mockPack.cards.find(c => c.type === 'Leader')
-      assert.ok(leader)
-      assert.strictEqual(leader.name, 'Test Leader')
+    it('should extract leaders array from pack', () => {
+      const leaders = mockPack.cards.filter(c => c.type === 'Leader')
+      assert.strictEqual(leaders.length, 1)
+      assert.strictEqual(leaders[0].name, 'Test Leader')
     })
 
-    it('should extract base from pack', () => {
-      const base = mockPack.cards.find(c => c.type === 'Base')
-      assert.ok(base)
-      assert.strictEqual(base.name, 'Test Base')
+    it('should extract bases array from pack', () => {
+      const bases = mockPack.cards.filter(c => c.type === 'Base')
+      assert.strictEqual(bases.length, 1)
+      assert.strictEqual(bases[0].name, 'Test Base')
     })
 
     it('should create deck from non-leader, non-base cards', () => {
       const deckCards = mockPack.cards.filter(c => c.type !== 'Leader' && c.type !== 'Base')
       assert.strictEqual(deckCards.length, 3)
       assert.ok(deckCards.every(c => c.type !== 'Leader' && c.type !== 'Base'))
+    })
+
+    it('should store packs array with 1 pack', () => {
+      const packs = [mockPack.cards]
+      assert.strictEqual(packs.length, 1)
+      assert.strictEqual(packs[0].length, 5)
     })
   })
 
@@ -83,6 +65,17 @@ describe('POST /api/casual/pack-blitz', () => {
       const response = { shareId: 'abc123', shareUrl: '/casual/pack-blitz/abc123' }
       assert.ok(response.shareUrl)
       assert.ok(response.shareUrl.includes('/casual/pack-blitz/'))
+    })
+
+    it('should return leaders and bases arrays', () => {
+      const response = {
+        leaders: [{ id: 'l1', type: 'Leader' }],
+        bases: [{ id: 'b1', type: 'Base' }],
+        deckCards: [{ id: 'u1', type: 'Unit' }]
+      }
+      assert.ok(Array.isArray(response.leaders))
+      assert.ok(Array.isArray(response.bases))
+      assert.ok(Array.isArray(response.deckCards))
     })
   })
 })
