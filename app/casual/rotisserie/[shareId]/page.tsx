@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
 import Card from '@/src/components/Card'
 import Button from '@/src/components/Button'
@@ -47,8 +47,39 @@ interface RotisserieData {
   players: Player[]
 }
 
+const CopyIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+  </svg>
+)
+
+function getUpcomingPicks(
+  currentPickerIndex: number,
+  pickDirection: number,
+  players: Player[],
+  count: number
+): Player[] {
+  const picks: Player[] = []
+  let idx = currentPickerIndex
+  let dir = pickDirection
+  for (let i = 0; i < count; i++) {
+    picks.push(players[idx])
+    const next = idx + dir
+    if (next >= players.length) {
+      dir = -1
+    } else if (next < 0) {
+      dir = 1
+    } else {
+      idx = next
+    }
+  }
+  return picks
+}
+
 export default function RotisseriePlayPage() {
   const params = useParams()
+  const router = useRouter()
   const shareId = params.shareId as string
   const { user } = useAuth()
 
@@ -58,6 +89,7 @@ export default function RotisseriePlayPage() {
   const [filter, setFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [picking, setPicking] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
@@ -70,7 +102,7 @@ export default function RotisseriePlayPage() {
       }
 
       const result = await response.json()
-      setData(result)
+      setData(result.data)
     } catch (err) {
       setError(err.message || 'Failed to load draft')
     } finally {
@@ -81,24 +113,21 @@ export default function RotisseriePlayPage() {
   useEffect(() => {
     fetchData()
 
-    // Poll for updates every 3 seconds when draft is active
     const interval = setInterval(() => {
-      if (data?.status === 'active') {
-        fetchData()
-      }
+      fetchData()
     }, 3000)
 
     return () => clearInterval(interval)
-  }, [fetchData, data?.status])
+  }, [fetchData])
 
-  const handleAction = async (action: string, cardInstanceId?: string) => {
+  const handleAction = async (action: string, extraBody?: Record<string, unknown>) => {
     try {
       setPicking(true)
       const response = await fetch(`/api/casual/rotisserie/${shareId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ action, cardInstanceId })
+        body: JSON.stringify({ action, ...extraBody })
       })
 
       if (!response.ok) {
@@ -107,7 +136,7 @@ export default function RotisseriePlayPage() {
       }
 
       const result = await response.json()
-      setData(result)
+      setData(result.data)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -115,18 +144,29 @@ export default function RotisseriePlayPage() {
     }
   }
 
+  const handleCopyShareUrl = async () => {
+    const url = `${window.location.origin}/casual/rotisserie/${shareId}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
   const isCardPicked = (instanceId: string) => {
-    return data?.pickedCards.some(p => p.cardInstanceId === instanceId)
+    return (data?.pickedCards || []).some(p => p.cardInstanceId === instanceId)
   }
 
   const getMyPicks = () => {
     if (!data || !user) return []
-    return data.pickedCards
+    return (data.pickedCards || [])
       .filter(p => p.playerId === user.id)
       .map(p => {
-        return data.cardPool.find(c => c.instanceId === p.cardInstanceId) ||
-          data.leaders.find(c => c.instanceId === p.cardInstanceId) ||
-          data.bases.find(c => c.instanceId === p.cardInstanceId)
+        return (data.cardPool || []).find(c => c.instanceId === p.cardInstanceId) ||
+          (data.leaders || []).find(c => c.instanceId === p.cardInstanceId) ||
+          (data.bases || []).find(c => c.instanceId === p.cardInstanceId)
       })
       .filter(Boolean)
   }
@@ -134,12 +174,12 @@ export default function RotisseriePlayPage() {
   const getFilteredCards = () => {
     if (!data) return []
 
-    let cards = [...data.cardPool]
+    let cards = [...(data.cardPool || [])]
 
     if (typeFilter === 'leaders') {
-      cards = data.leaders
+      cards = data.leaders || []
     } else if (typeFilter === 'bases') {
-      cards = data.bases
+      cards = data.bases || []
     } else if (typeFilter !== 'all') {
       cards = cards.filter(c => c.type === typeFilter)
     }
@@ -152,6 +192,15 @@ export default function RotisseriePlayPage() {
     }
 
     return cards
+  }
+
+  const getSetCardCounts = () => {
+    if (!data) return []
+    const allCards = [...(data.cardPool || []), ...(data.leaders || []), ...(data.bases || [])]
+    return (data.setCodes || []).map(setCode => {
+      const count = allCards.filter(c => c.set === setCode).length
+      return { setCode, count }
+    })
   }
 
   if (loading) {
@@ -175,6 +224,148 @@ export default function RotisseriePlayPage() {
   const isMyTurn = user && currentPicker?.id === user.id
   const hasJoined = user && players.some(p => p.id === user.id)
   const isHost = user && players[0]?.id === user.id
+
+  const upcomingCount = Math.min(players.length * 2 + 1, 10)
+  const upcomingPicks = data.status === 'active'
+    ? getUpcomingPicks(data.currentPickerIndex, data.pickDirection, players, upcomingCount)
+    : []
+  const turnsAway = upcomingPicks.length > 1 && user
+    ? upcomingPicks.findIndex((p, i) => i > 0 && p.id === user.id)
+    : -1
+
+  // Lobby view when waiting
+  if (data.status === 'waiting') {
+    const setCardCounts = getSetCardCounts()
+    const totalCards = (data.cardPool || []).length + (data.leaders || []).length + (data.bases || []).length
+
+    return (
+      <div className="rotisserie-play-page">
+        <div className="rotisserie-header">
+          <h1>Rotisserie Draft</h1>
+          <span className="status-badge waiting">waiting</span>
+        </div>
+
+        <div className="rotisserie-lobby">
+          <div className="share-section">
+            <span className="share-label">Share Link:</span>
+            <Button variant="secondary" size="sm" className="copy-url-button" onClick={handleCopyShareUrl}>
+              <CopyIcon />
+              <span>{copied ? 'Copied!' : 'Copy Link'}</span>
+            </Button>
+          </div>
+
+          {!hasJoined && user && (
+            <div className="join-section">
+              <Button variant="primary" onClick={() => handleAction('join')}>
+                Join Draft
+              </Button>
+            </div>
+          )}
+
+          <div className="lobby-columns">
+            <div className="lobby-left">
+              <div className="players-section">
+                <h3>Players ({players.length}/{data.maxPlayers})</h3>
+                {players.map((player) => (
+                  <div key={player.id} className="player-item">
+                    <span className="player-seat">{player.seat}</span>
+                    <span className="player-name">
+                      {player.name}
+                      {player.id === user?.id && ' (You)'}
+                    </span>
+                  </div>
+                ))}
+
+                {isHost && players.length < data.maxPlayers && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="add-bot-button"
+                    onClick={() => handleAction('add-bot')}
+                    disabled={picking}
+                  >
+                    + Add Bot
+                  </Button>
+                )}
+
+                {isHost && (
+                  <div className="max-players-row">
+                    <label htmlFor="max-players">Max Players:</label>
+                    <input
+                      id="max-players"
+                      type="number"
+                      min={Math.max(2, players.length)}
+                      max={16}
+                      value={data.maxPlayers}
+                      className="max-players-input"
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10)
+                        if (!isNaN(val)) {
+                          handleAction('update-settings', { maxPlayers: val })
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="lobby-right">
+              <div className="set-info-section">
+                <h3>Draft Info</h3>
+                {setCardCounts.map(({ setCode, count }) => (
+                  <div key={setCode} className="set-info-row">
+                    <span className="set-code">{setCode}</span>
+                    <span className="set-count">{count} cards</span>
+                  </div>
+                ))}
+                <div className="set-info-row total">
+                  <span>Total</span>
+                  <span>{totalCards} cards</span>
+                </div>
+                <div className="set-info-row">
+                  <span>Cards per player</span>
+                  <span>50</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rules-section">
+            <h3>How Rotisserie Works</h3>
+            <p>
+              All cards from the selected sets are laid out face-up.
+              Players take turns picking one card at a time in
+              snake draft order (1&rarr;2&rarr;3&rarr;3&rarr;2&rarr;1&rarr;...).
+              Each player picks 50 cards, then builds a 30-card
+              deck from their picks.
+            </p>
+            <p className="rules-link">
+              <a href="https://starwarsunlimited.com/articles/behind-unlimited-a-rotisserie-draft" target="_blank" rel="noopener noreferrer">
+                Read more on the official blog &rarr;
+              </a>
+            </p>
+          </div>
+
+          <div className="lobby-actions">
+            {isHost && players.length >= 2 && (
+              <Button variant="primary" onClick={() => handleAction('start')}>
+                Start Draft
+              </Button>
+            )}
+            {isHost && players.length < 2 && (
+              <p className="waiting-text">Need at least 2 players to start</p>
+            )}
+            <Button variant="back" onClick={() => router.push('/casual/rotisserie')}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Active / Completed draft view
   const myPicks = getMyPicks()
   const filteredCards = getFilteredCards()
 
@@ -203,28 +394,10 @@ export default function RotisseriePlayPage() {
                   {player.id === user?.id && ' (You)'}
                 </span>
                 <span className="player-picks">
-                  {data.pickedCards.filter(p => p.playerId === player.id).length} picks
+                  {(data.pickedCards || []).filter(p => p.playerId === player.id).length} picks
                 </span>
               </div>
             ))}
-
-            {data.status === 'waiting' && (
-              <div className="lobby-actions">
-                {!hasJoined && user && (
-                  <Button variant="primary" onClick={() => handleAction('join')}>
-                    Join Draft
-                  </Button>
-                )}
-                {isHost && players.length >= 2 && (
-                  <Button variant="primary" onClick={() => handleAction('start')}>
-                    Start Draft
-                  </Button>
-                )}
-                {players.length < 2 && (
-                  <p className="waiting-text">Waiting for players...</p>
-                )}
-              </div>
-            )}
           </div>
 
           {myPicks.length > 0 && (
@@ -243,9 +416,32 @@ export default function RotisseriePlayPage() {
 
         <div className="main-content">
           {data.status === 'active' && (
-            <div className={`turn-indicator ${isMyTurn ? 'my-turn' : ''}`}>
-              {isMyTurn ? "It's your turn to pick!" : `Waiting for ${currentPicker?.name}...`}
-            </div>
+            <>
+              <div className={`turn-indicator ${isMyTurn ? 'my-turn' : ''}`}>
+                <div>{isMyTurn ? "It's your turn to pick!" : `Waiting for ${currentPicker?.name}...`}</div>
+                {!isMyTurn && turnsAway > 0 && (
+                  <div className="turns-away">You pick in {turnsAway} {turnsAway === 1 ? 'turn' : 'turns'}</div>
+                )}
+              </div>
+              <div className="pick-order-strip">
+                <span className="pick-order-label">UPCOMING</span>
+                {upcomingPicks.map((player, i) => {
+                  const isCurrentPick = i === 0
+                  const isYou = user && player.id === user.id
+                  let chipClass = 'pick-chip'
+                  if (isCurrentPick) chipClass += ' current'
+                  else if (isYou) chipClass += ' you'
+                  return (
+                    <span key={i}>
+                      {i > 0 && <span className="pick-separator">&rsaquo;</span>}
+                      <span className={chipClass}>
+                        {isYou ? 'You' : player.name}
+                      </span>
+                    </span>
+                  )
+                })}
+              </div>
+            </>
           )}
 
           <div className="filter-bar">
@@ -279,7 +475,7 @@ export default function RotisseriePlayPage() {
                   className={`pool-card ${picked ? 'picked' : ''} ${isMyTurn && !picked ? 'pickable' : ''}`}
                   onClick={() => {
                     if (isMyTurn && !picked && !picking) {
-                      handleAction('pick', card.instanceId)
+                      handleAction('pick', { cardInstanceId: card.instanceId })
                     }
                   }}
                 >
