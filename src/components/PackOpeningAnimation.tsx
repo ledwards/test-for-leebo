@@ -46,6 +46,7 @@ interface HoveredCardPosition {
 interface PackOpeningAnimationProps {
   packCount?: number
   packImageUrl?: string
+  packImageUrls?: string[] // Array of pack images for multi-set pools (chaos sealed)
   cardBackUrl?: string
   onComplete?: () => void
   packs?: Pack[] | null
@@ -54,10 +55,18 @@ interface PackOpeningAnimationProps {
 export default function PackOpeningAnimation({
   packCount = 6,
   packImageUrl = '/pack-images/default-pack.png',
+  packImageUrls,
   cardBackUrl = '/card-images/card-back.png',
   onComplete,
   packs = null,
 }: PackOpeningAnimationProps) {
+  // Get pack image for a specific pack index
+  const getPackImage = (index: number) => {
+    if (packImageUrls && packImageUrls[index]) {
+      return packImageUrls[index]
+    }
+    return packImageUrl
+  }
   const [openedPacks, setOpenedPacks] = useState<number[]>([])
   const [flyingCards, setFlyingCards] = useState<FlyingCard[]>([])
   const [phase, setPhase] = useState('entering')
@@ -464,7 +473,7 @@ export default function PackOpeningAnimation({
               >
                 <div className="pack-wrapper-mobile">
                   <div className="pack-image-container">
-                    <img src={packImageUrl} alt={`Pack ${i + 1}`} className="pack-image"
+                    <img src={getPackImage(i)} alt={`Pack ${i + 1}`} className="pack-image"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('pack-fallback') }}
                     />
                   </div>
@@ -488,7 +497,7 @@ export default function PackOpeningAnimation({
               >
                 <div className="pack-wrapper">
                   <div className="pack-image-container">
-                    <img src={packImageUrl} alt={`Pack ${i + 1}`} className="pack-image"
+                    <img src={getPackImage(i)} alt={`Pack ${i + 1}`} className="pack-image"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.classList.add('pack-fallback') }}
                     />
                   </div>
