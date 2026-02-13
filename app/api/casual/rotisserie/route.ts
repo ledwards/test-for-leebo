@@ -15,11 +15,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const userId = session.id
 
     const body = await parseBody(request)
-    validateRequired(body, ['setCodes', 'maxPlayers'])
+    validateRequired(body, ['setCodes'])
 
     const {
       setCodes,
-      maxPlayers,
+      maxPlayers = 8,
       pickTimerSeconds = 60
     } = body
 
