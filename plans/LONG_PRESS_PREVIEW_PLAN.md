@@ -1,43 +1,96 @@
 # Plan: Long Press Card Preview on Mobile
 
 ## Goal
-On mobile (including Safari dev tools simulator), long press shows enlarged card preview. Desktop hover unchanged. Long press must NOT trigger the normal onClick (e.g. moving cards between pool/deck).
+On mobile (including Safari dev tools simulator), long press (~500ms) shows enlarged card preview that fits on the viewport without scrolling. Desktop hover behavior unchanged. Long press must NOT trigger the normal onClick (e.g. moving cards between pool/deck in deckbuilder).
 
-## What's Already Done
-- `useCardPreview.ts` — exports `handleCardTouchStart`, `handleCardTouchEnd`, `dismissPreview`; has `longPressTriggeredRef` to track if long press fired; `handleCardTouchEnd` calls `e.preventDefault()` when long press was triggered to block synthetic click
-- `CardPreview.tsx` — accepts `isMobile` and `onDismiss`; when `isMobile`, renders fullscreen overlay with card scaled to fit viewport; tap overlay to dismiss
-- `Card.tsx` — `onTouchStart`/`onTouchEnd` in interface (passed via `...rest`)
-- `ResizableCard.tsx` — `onTouchStart`/`onTouchEnd` in interface AND on the div
-- `DeckBuilder.tsx` — destructures all touch handlers, passes to ArenaView, LeaderBaseSelector, StickyInfoBar; CardPreview gets `isMobile`/`onDismiss`
-- `ArenaView.tsx` — accepts and passes touch props to LeaderBaseSelector, ArenaPoolSection, ArenaDeckSection
-- `ArenaPoolSection.tsx` — passes touch to ResizableCard
-- `ArenaDeckSection.tsx` — passes touch to ArenaCardStack
-- `ArenaCardStack.tsx` — passes touch to ResizableCard
+## Status: 2 edits remain
 
-## Remaining Steps (3 edits)
+Most of the work is already done. The hook, CardPreview mobile mode, and prop threading through DeckBuilder → ArenaView → ArenaPoolSection/ArenaDeckSection → ArenaCardStack → ResizableCard are all complete.
 
-### Step 1: Card.tsx — pass touch events to div
-Card.tsx has `onTouchStart`/`onTouchEnd` in its interface but does NOT pass them to the rendered `<div>`. The `...rest` spread should handle it, but we should verify `onTouchStart`/`onTouchEnd` are included in `...rest` destructuring (they are — anything not explicitly destructured goes into `...rest`). **Actually this is already working** because `...rest` catches them and `{...rest}` spreads them onto the div. No change needed.
+## What's Already Done (DO NOT REDO)
 
-### Step 2: LeaderBaseSelector.tsx — pass touch handlers to Card renders
-Lines ~280 and ~326 render `<Card>` components but only pass `onMouseEnter`/`onMouseLeave`. Need to add `onTouchStart`/`onTouchEnd` using the existing `handleTouchStart`/`handleTouchEnd` wrappers.
+| File | Status |
+|------|--------|
+| `src/hooks/useCardPreview.ts` | DONE — exports `handleCardTouchStart`, `handleCardTouchEnd`, `dismissPreview`; has `longPressTriggeredRef`; `handleCardTouchEnd(e?)` calls `e.preventDefault()` when long press fired to block synthetic click |
+| `src/components/DeckBuilder/CardPreview.tsx` | DONE — accepts `isMobile` and `onDismiss` props; when `isMobile`, renders fullscreen semi-transparent overlay with card centered and scaled to fit viewport; tap overlay calls `onDismiss` |
+| `src/components/Card.tsx` | DONE — `onTouchStart`/`onTouchEnd` in `CardProps` interface; passed to div via `{...rest}` spread |
+| `src/components/DeckBuilder/ResizableCard.tsx` | DONE — `onTouchStart`/`onTouchEnd` in interface AND explicitly on the div element |
+| `src/components/DeckBuilder.tsx` | DONE — destructures `handleCardTouchStart`/`handleCardTouchEnd`/`dismissPreview` from hook; passes touch handlers to ArenaView, LeaderBaseSelector, StickyInfoBar; CardPreview gets `isMobile={hoveredCardPreview.isMobile}` and `onDismiss={dismissPreview}` |
+| `src/components/DeckBuilder/ArenaView.tsx` | DONE — accepts `onCardTouchStart`/`onCardTouchEnd`; passes to LeaderBaseSelector, ArenaPoolSection, ArenaDeckSection |
+| `src/components/DeckBuilder/ArenaPoolSection.tsx` | DONE — accepts touch props; passes `onTouchStart`/`onTouchEnd` to ResizableCard |
+| `src/components/DeckBuilder/ArenaDeckSection.tsx` | DONE — accepts touch props; passes to ArenaCardStack |
+| `src/components/DeckBuilder/ArenaCardStack.tsx` | DONE — accepts touch props; passes `onTouchStart`/`onTouchEnd` to ResizableCard |
 
-Two spots:
-```tsx
-// Leaders card (~line 280)
-<Card ... onTouchStart={() => handleTouchStart(card)} onTouchEnd={handleTouchEnd} />
+## Remaining Step 1: LeaderBaseSelector.tsx — add touch to Card renders
 
-// Bases card (~line 326)
-<Card ... onTouchStart={() => handleTouchStart(card)} onTouchEnd={handleTouchEnd} />
+**File:** `src/components/DeckBuilder/LeaderBaseSelector.tsx`
+
+The component already accepts `onCardTouchStart`/`onCardTouchEnd` props and has `handleTouchStart`/`handleTouchEnd` wrapper functions. But it does NOT pass them to the `<Card>` components it renders.
+
+**Find the two Card renders** (leaders ~line 280, bases ~line 326). They currently have `onMouseEnter` and `onMouseLeave`. Add touch handlers after them:
+
+```
+// Leaders Card (around line 280-282):
+  onMouseEnter={(e) => handleMouseEnter(cardId, card, e)}
+  onMouseLeave={handleMouseLeave}
++ onTouchStart={() => handleTouchStart(card)}
++ onTouchEnd={handleTouchEnd}
+
+// Bases Card (around line 326-328):
+  onMouseEnter={(e) => handleMouseEnter(cardId, card, e)}
+  onMouseLeave={handleMouseLeave}
++ onTouchStart={() => handleTouchStart(card)}
++ onTouchEnd={handleTouchEnd}
 ```
 
-### Step 3: pack-wars page — wire up all touch handlers
-`app/casual/pack-wars/[shareId]/page.tsx`:
-1. Destructure `handleCardTouchStart`, `handleCardTouchEnd`, `dismissPreview` from `useCardPreview()`
-2. Add `onTouchStart`/`onTouchEnd` to leader Card renders (~line 137)
-3. Add `onTouchStart`/`onTouchEnd` to base Card renders (~line 151)
-4. Add `isMobile`/`onDismiss` to CardPreview render (~line 178)
+## Remaining Step 2: pack-wars page — wire up all touch handlers
+
+**File:** `app/casual/pack-wars/[shareId]/page.tsx`
+
+**2a.** Add `handleCardTouchStart`, `handleCardTouchEnd`, `dismissPreview` to the useCardPreview destructure (~line 47-53):
+
+```tsx
+const {
+  hoveredCardPreview,
+  handleCardMouseEnter,
+  handleCardMouseLeave,
+  handlePreviewMouseEnter,
+  handlePreviewMouseLeave,
++ handleCardTouchStart,
++ handleCardTouchEnd,
++ dismissPreview,
+} = useCardPreview()
+```
+
+**2b.** Add touch handlers to leader Card renders (~line 137-138):
+```
+  onMouseEnter={(e) => handleCardMouseEnter(leader, e)}
+  onMouseLeave={handleCardMouseLeave}
++ onTouchStart={() => handleCardTouchStart(leader)}
++ onTouchEnd={(e) => handleCardTouchEnd(e)}
+```
+
+**2c.** Add touch handlers to base Card renders (~line 151-152):
+```
+  onMouseEnter={(e) => handleCardMouseEnter(base, e)}
+  onMouseLeave={handleCardMouseLeave}
++ onTouchStart={() => handleCardTouchStart(base)}
++ onTouchEnd={(e) => handleCardTouchEnd(e)}
+```
+
+**2d.** Add `isMobile` and `onDismiss` to CardPreview render (~line 178-184):
+```tsx
+<CardPreview
+  card={hoveredCardPreview.card}
+  x={hoveredCardPreview.x}
+  y={hoveredCardPreview.y}
++ isMobile={hoveredCardPreview.isMobile}
+  onMouseEnter={handlePreviewMouseEnter}
+  onMouseLeave={handlePreviewMouseLeave}
++ onDismiss={dismissPreview}
+/>
+```
 
 ## Verification
-- `npm run build` to check no TypeScript/build errors
-- Manual test in Safari mobile simulator: long press shows preview, tap overlay dismisses, short tap moves card normally
+1. `npm run build` — no build errors
+2. Manual test in Safari mobile simulator: long press shows preview, tap overlay dismisses, short tap moves card normally (no double-action)
