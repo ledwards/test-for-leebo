@@ -90,6 +90,29 @@
   color: white;
 }
 
+.swag-cta {
+  display: inline-block;
+  margin-top: 0.75rem;
+  margin-left: 1rem;
+  padding: 0.75rem 2rem;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.swag-cta:hover {
+  border-color: rgba(0, 200, 255, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 200, 255, 0.6);
+  color: white;
+}
+
 .teammates-section {
   margin-top: auto;
   padding-bottom: 1rem;

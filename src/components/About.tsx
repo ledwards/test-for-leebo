@@ -37,6 +37,14 @@ function About({ onBack }: AboutProps) {
           >
             Become a Friend of the Pod
           </a>
+          <a
+            href="https://swag.protectthepod.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="swag-cta"
+          >
+            Shop the Merch
+          </a>
         </section>
 
         <section className="teammates-section">
