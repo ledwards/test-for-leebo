@@ -110,6 +110,65 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
         return jsonResponse({ message: 'Draft started', ...data })
       }
 
+      case 'add-bot': {
+        // Host only
+        if (data.players[0]?.id !== session.id) {
+          return errorResponse('Only the host can add bots', 403)
+        }
+        if (data.status !== 'waiting') {
+          return errorResponse('Cannot add bots after draft has started', 400)
+        }
+        if (data.players.length >= data.maxPlayers) {
+          return errorResponse('Draft is full', 400)
+        }
+
+        const botNames = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta',
+          'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi']
+        const existingBotCount = data.players.filter(p => p.id.startsWith('bot_')).length
+        const botName = `Bot ${botNames[existingBotCount] || existingBotCount + 1}`
+        const botId = `bot_${Date.now()}_${existingBotCount}`
+
+        data.players.push({
+          id: botId,
+          name: botName,
+          seat: data.players.length + 1
+        })
+
+        await query(
+          'UPDATE card_pools SET cards = $1 WHERE share_id = $2',
+          [JSON.stringify(data), shareId]
+        )
+
+        return jsonResponse({ message: 'Bot added', ...data })
+      }
+
+      case 'update-settings': {
+        // Host only, waiting only
+        if (data.players[0]?.id !== session.id) {
+          return errorResponse('Only the host can update settings', 403)
+        }
+        if (data.status !== 'waiting') {
+          return errorResponse('Cannot change settings after draft has started', 400)
+        }
+
+        const { maxPlayers } = body
+        if (maxPlayers !== undefined) {
+          const clamped = Math.max(2, Math.min(16, Number(maxPlayers)))
+          if (clamped < data.players.length) {
+            return errorResponse(`Cannot set max players below current player count (${data.players.length})`, 400)
+          }
+          data.maxPlayers = clamped
+          data.totalPicks = 50 * clamped
+        }
+
+        await query(
+          'UPDATE card_pools SET cards = $1 WHERE share_id = $2',
+          [JSON.stringify(data), shareId]
+        )
+
+        return jsonResponse({ message: 'Settings updated', ...data })
+      }
+
       case 'pick': {
         if (data.status !== 'active') {
           return errorResponse('Draft is not active', 400)
