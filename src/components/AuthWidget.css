@@ -60,7 +60,7 @@
   background: transparent;
   cursor: pointer;
   transition: all 0.2s ease;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -75,7 +75,6 @@
 .auth-widget-avatar {
   width: 100%;
   height: 100%;
-  object-fit: cover;
   border-radius: 50%;
 }
 
@@ -150,7 +149,6 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -233,7 +231,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 12px 12px;
   background: transparent;
   border: none;
   border-radius: 8px;
@@ -244,6 +242,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  text-decoration: none;
 }
 
 .auth-widget-drawer-pool-item {
@@ -332,15 +331,18 @@
 
 /* Beta badge in menu items */
 .auth-widget-beta-badge {
+  display: inline-block;
   margin-left: auto;
-  background: rgba(255, 165, 0, 0.2);
-  border: 1px solid rgba(255, 165, 0, 0.5);
-  color: #ffa500;
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 2px 6px;
+  margin-right: 30px;
+  background: #ffa500;
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
   border-radius: 3px;
   text-transform: uppercase;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 /* Mobile responsiveness */

@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import './page.css'
 
 export default function BetaPage() {
-  const { user, loading, signIn, enrollBeta } = useAuth()
+  const { user, loading, signIn, enrollBeta, isPatron } = useAuth()
   const router = useRouter()
 
   const hasBetaAccess = user?.is_beta_tester || user?.is_admin
@@ -54,17 +54,36 @@ export default function BetaPage() {
         </div>
 
         <div className="beta-actions">
-          {!hasBetaAccess && (
-            <Button variant="primary" size="lg" onClick={handleJoinBeta}>
-              Join the Beta
-            </Button>
-          )}
-
           {hasBetaAccess && (
             <div className="beta-success">
               <span className="checkmark">✓</span>
               <span>You have beta access</span>
             </div>
+          )}
+
+          {!hasBetaAccess && (user?.is_admin || isPatron === true) && (
+            <Button variant="primary" size="lg" onClick={handleJoinBeta}>
+              Join the Beta
+            </Button>
+          )}
+
+          {!hasBetaAccess && !user?.is_admin && isPatron === false && (
+            <div className="beta-patron-required">
+              <p>Beta access is available to Patreon supporters.</p>
+              <a
+                href="https://www.patreon.com/protectthepod"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="primary" size="lg">
+                  Subscribe on Patreon
+                </Button>
+              </a>
+            </div>
+          )}
+
+          {!hasBetaAccess && !user?.is_admin && isPatron === null && (
+            <div className="loading">Checking eligibility...</div>
           )}
         </div>
       </div>

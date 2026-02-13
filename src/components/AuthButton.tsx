@@ -1,11 +1,12 @@
 // @ts-nocheck
 // Authentication button component
 import { useAuth } from '../contexts/AuthContext'
+import UserAvatar from './UserAvatar'
 import './AuthButton.css'
 import Button from './Button'
 
 export default function AuthButton() {
-  const { user, loading, signIn, signOut } = useAuth()
+  const { user, loading, signIn, signOut, isPatron } = useAuth()
 
   if (loading) {
     return (
@@ -20,7 +21,12 @@ export default function AuthButton() {
       <div className="auth-button authenticated">
         <span className="user-info">
           {user.avatar_url && (
-            <img src={user.avatar_url} alt={user.username} className="user-avatar" />
+            <UserAvatar
+              src={user.avatar_url}
+              alt={user.username}
+              className="user-avatar"
+              isPatron={isPatron}
+            />
           )}
           <span className="username">{user.username || user.email}</span>
         </span>

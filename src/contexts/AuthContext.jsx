@@ -2,13 +2,14 @@
 
 // Authentication context for React
 import { createContext, useContext, useState, useEffect } from 'react'
-import { getSession, signInWithDiscord, signOut as apiSignOut, enrollBeta as apiEnrollBeta, refreshSession as apiRefreshSession } from '../utils/auth'
+import { getSession, signInWithDiscord, signOut as apiSignOut, enrollBeta as apiEnrollBeta, refreshSession as apiRefreshSession, checkPatronStatus as apiCheckPatronStatus } from '../utils/auth'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isPatron, setIsPatron] = useState(null) // null = loading, true/false = resolved
 
   useEffect(() => {
     // Load session on mount
@@ -32,9 +33,15 @@ export function AuthProvider({ children }) {
     try {
       const session = await getSession()
       setUser(session)
+      if (session) {
+        apiCheckPatronStatus().then(setIsPatron)
+      } else {
+        setIsPatron(false)
+      }
     } catch (error) {
       console.error('Failed to load session:', error)
       setUser(null)
+      setIsPatron(null)
     } finally {
       setLoading(false)
     }
@@ -77,6 +84,7 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     loading,
+    isPatron,
     signIn,
     signOut,
     enrollBeta,
