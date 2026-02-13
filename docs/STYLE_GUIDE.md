@@ -329,6 +329,125 @@ Content area has flat top corners (where tabs connect) and rounded bottom corner
 - `.stats-tab.active` - Active tab state
 - `.stats-content` - Content container with folder bottom
 
+## PackSelector Component
+
+Shared pack selection UI for casual modes (Pack Wars, Pack Blitz, Chaos Draft, Chaos Sealed).
+
+### Import
+
+```tsx
+import PackSelector from '@/src/components/PackSelector'
+// or
+import { PackSelector } from '@/src/components/PackSelector'
+```
+
+### Props
+
+```tsx
+interface PackSelectorProps {
+  sets: SetData[]                    // Available sets to display
+  // Single select mode:
+  selectedSet?: string | null        // Currently selected set code
+  onSelectSet?: (setCode: string) => void
+  // Multi-select mode:
+  selectedSets?: string[]            // Array of selected set codes (can repeat)
+  onSelectSets?: (setCodes: string[]) => void
+  maxSelections?: number             // Max selections (default 1)
+  showQuantityControls?: boolean     // Show +/- buttons (default false)
+  title?: string                     // Section header (default "Select a Set")
+}
+```
+
+### Single Select Mode (Pack Wars, Pack Blitz)
+
+```tsx
+<PackSelector
+  sets={availableSets}
+  selectedSet={selectedSet}
+  onSelectSet={setSelectedSet}
+  title="Choose a Pack"
+/>
+```
+
+### Multi-Select Mode (Chaos Draft, Chaos Sealed)
+
+```tsx
+<PackSelector
+  sets={availableSets}
+  selectedSets={selectedSets}
+  onSelectSets={setSelectedSets}
+  maxSelections={6}
+  showQuantityControls={true}
+  title="Select Packs (6)"
+/>
+```
+
+### Features
+
+- Grid layout: 6 packs per row (desktop), 3 per row (mobile)
+- Per-set color theming via `--set-color` CSS variable
+- Grayscale effect on unselected packs (single-select mode)
+- Quantity controls (+/-) for multi-select with duplicate selection
+- Beta badges for sets marked as beta
+- Sets grouped by release: 1-3 (top), 4-6 (middle), 7+ (bottom with separator)
+
+## PackOpeningAnimation Component
+
+Full-screen pack opening animation with card reveal.
+
+### Import
+
+```tsx
+import PackOpeningAnimation from '@/src/components/PackOpeningAnimation'
+```
+
+### Props
+
+```tsx
+interface PackOpeningAnimationProps {
+  packs: Pack[]                      // Packs to open
+  packImageUrl: string               // Default pack image URL
+  packImageUrls?: string[]           // Per-pack images (for chaos sealed)
+  onComplete: () => void             // Called when animation finishes
+  onSkip: () => void                 // Called when user skips
+}
+```
+
+### Basic Usage (Same Pack)
+
+```tsx
+<PackOpeningAnimation
+  packs={generatedPacks}
+  packImageUrl={getPackImageUrl('SOR')}
+  onComplete={handleComplete}
+  onSkip={handleSkip}
+/>
+```
+
+### Per-Pack Images (Chaos Sealed)
+
+For chaos sealed where each pack is from a different set:
+
+```tsx
+<PackOpeningAnimation
+  packs={generatedPacks}
+  packImageUrl={getPackImageUrl('SOR')}  // Fallback
+  packImageUrls={selectedSets.map(code => getPackImageUrl(code))}
+  onComplete={handleComplete}
+  onSkip={handleSkip}
+/>
+```
+
+### Features
+
+- Desktop: Row of packs with hover preview
+- Mobile: Carousel with swipe navigation
+- Click/tap pack to open and reveal cards
+- "Open All" button for quick reveal
+- Skip button to bypass animation entirely
+- Foil shimmer effect on foil/showcase cards
+- Card flip animation with back → front reveal
+
 ## File Organization
 
 ```
@@ -338,5 +457,9 @@ src/components/
 ├── TimerButton.jsx     # Timer pause/play button
 ├── TimerButton.css     # Timer button styles
 ├── Modal.jsx           # Modal/dialog component
-└── Modal.css           # Modal styles
+├── Modal.css           # Modal styles
+├── PackSelector.tsx    # Pack selection grid
+├── PackSelector.css    # Pack selector styles
+├── PackOpeningAnimation.tsx  # Pack opening animation
+└── PackOpeningAnimation.css  # Animation styles
 ```
