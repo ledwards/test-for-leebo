@@ -279,8 +279,7 @@ export default function PackWarsPlayPage() {
             <span>Fill empty slots with Porgs</span>
           </label>
           <p className="porg-explanation">
-            Pack Wars decks typically have ~26 cards. If you want to reach 30 cards,
-            enable this to add 0-cost Porgs as filler.
+            Your deck has exactly {deckCardCount} cards (not counting leader and base). Enable this to add 0-cost Porgs to reach 30.
           </p>
         </div>
 
