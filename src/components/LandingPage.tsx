@@ -143,6 +143,8 @@ function LandingPage({ onSealedClick, onDraftClick, onCasualModeClick }: Landing
           <span className="footer-separator">·</span>
           <a href="https://patreon.com/ProtectthePod" target="_blank" rel="noopener noreferrer">Patreon</a>
           <span className="footer-separator">·</span>
+          <a href="https://swag.protectthepod.com" target="_blank" rel="noopener noreferrer">Swag</a>
+          <span className="footer-separator">·</span>
           <a href="/about" onClick={(e) => { e.preventDefault(); router.push('/about') }}>About</a>
           <span className="footer-separator">·</span>
           <a href="/terms-of-service" onClick={(e) => { e.preventDefault(); router.push('/terms-of-service') }}>Terms</a>
