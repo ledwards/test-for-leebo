@@ -21,6 +21,8 @@ const ASPECT_PRIORITY: Record<string, number> = {
   'Command': 2,
   'Aggression': 3,
   'Cunning': 4,
+  'Villainy': 5,
+  'Heroism': 6,
 }
 
 const PRIMARY_ASPECTS = ['Vigilance', 'Command', 'Aggression', 'Cunning']
@@ -49,7 +51,22 @@ export function getAspectSortKey(card: RawCard): string {
 
   const hasVillainy = aspects.includes('Villainy')
   const hasHeroism = aspects.includes('Heroism')
-  const primaryAspect = aspects.find(a => PRIMARY_ASPECTS.includes(a))
+  const primaries = aspects.filter(a => PRIMARY_ASPECTS.includes(a))
+  const uniquePrimaries = [...new Set(primaries)]
+  const primaryAspect = uniquePrimaries[0]
+
+  // Sort aspects by game priority order for key suffix
+  const sortedAspects = [...aspects].sort((a, b) =>
+    (ASPECT_PRIORITY[a] || 99) - (ASPECT_PRIORITY[b] || 99)
+  )
+  // Use numeric priorities for suffix so sort is by priority, not alphabetical
+  const aspectSuffix = sortedAspects.map(a => String(ASPECT_PRIORITY[a] || 99).padStart(2, '0')).join('_')
+
+  // Multi-primary (2+ distinct primary aspects) — comes FIRST within the lowest primary
+  if (uniquePrimaries.length >= 2) {
+    const prefix = ASPECT_PRIORITY[primaryAspect] || '9'
+    return `${prefix}_00_${aspectSuffix}`
+  }
 
   // Single aspect
   if (aspects.length === 1) {
@@ -60,37 +77,31 @@ export function getAspectSortKey(card: RawCard): string {
     return `${ASPECT_PRIORITY[aspect] || '9'}_04_${aspect}`
   }
 
-  // Two aspects
-  if (aspects.length === 2) {
-    if (primaryAspect) {
-      const prefix = ASPECT_PRIORITY[primaryAspect] || '9'
-      const primaryCount = aspects.filter(a => a === primaryAspect).length
-      if (hasVillainy) {
-        return `${prefix}_01_${primaryAspect}_Villainy`
-      } else if (hasHeroism) {
-        return `${prefix}_02_${primaryAspect}_Heroism`
-      } else if (primaryCount === 2) {
-        return `${prefix}_03_${primaryAspect}_${primaryAspect}`
-      }
-    } else {
-      return 'E_01_Villainy_Heroism'
+  // Two aspects with one primary
+  if (aspects.length === 2 && primaryAspect) {
+    const prefix = ASPECT_PRIORITY[primaryAspect] || '9'
+    const primaryCount = aspects.filter(a => a === primaryAspect).length
+    if (hasVillainy) {
+      return `${prefix}_01_${aspectSuffix}`
+    } else if (hasHeroism) {
+      return `${prefix}_02_${aspectSuffix}`
+    } else if (primaryCount === 2) {
+      return `${prefix}_03_${aspectSuffix}`
     }
   }
 
-  // More than 2 aspects
+  // Two non-primary aspects
+  if (aspects.length === 2 && !primaryAspect) {
+    return 'E_01_Villainy_Heroism'
+  }
+
+  // 3+ aspects with one primary (e.g., Vigilance+Villainy+Heroism)
   if (primaryAspect) {
     const prefix = ASPECT_PRIORITY[primaryAspect] || '9'
-    const sortedAspects = [...aspects].sort((a, b) => {
-      if (a === 'Villainy') return -1
-      if (b === 'Villainy') return 1
-      if (a === 'Heroism') return -1
-      if (b === 'Heroism') return 1
-      return a.localeCompare(b)
-    })
     let subOrder = '05'
     if (hasVillainy) subOrder = '01'
     else if (hasHeroism) subOrder = '02'
-    return `${prefix}_${subOrder}_${sortedAspects.join('_')}`
+    return `${prefix}_${subOrder}_${aspectSuffix}`
   }
 
   if (hasVillainy) return 'E_01_Villainy_Multi'
