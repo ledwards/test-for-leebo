@@ -2,6 +2,7 @@
 'use client'
 
 import { memo } from 'react'
+import UserAvatar from './UserAvatar'
 import './PlayerSeat.css'
 
 interface Player {
@@ -17,6 +18,7 @@ export interface PlayerSeatProps {
   isEmpty?: boolean
   showStatus?: boolean
   statusColor?: string | null
+  isPatron?: boolean
 }
 
 function PlayerSeat({
@@ -25,7 +27,8 @@ function PlayerSeat({
   isCurrentUser,
   isEmpty,
   showStatus = false,
-  statusColor = null
+  statusColor = null,
+  isPatron = false,
 }: PlayerSeatProps) {
   // Status colors
   const getStatusColor = (status?: string): string => {
@@ -63,11 +66,12 @@ function PlayerSeat({
         className="seat-avatar"
         style={{ borderColor }}
       >
-        {player?.avatarUrl ? (
-          <img src={player.avatarUrl} alt={player.username} />
-        ) : (
-          <span>{player?.username?.[0]?.toUpperCase() || '?'}</span>
-        )}
+        <UserAvatar
+          src={player?.avatarUrl}
+          alt={player?.username}
+          isPatron={isPatron}
+          fallback={player?.username?.[0]?.toUpperCase() || '?'}
+        />
         {showStatus && player?.pickStatus === 'picked' && (
           <div className="status-check">✓</div>
         )}

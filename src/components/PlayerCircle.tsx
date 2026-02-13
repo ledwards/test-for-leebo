@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect, memo } from 'react'
 import { createPortal } from 'react-dom'
+import { useAuth } from '../contexts/AuthContext'
 import PlayerSeat from './PlayerSeat'
 import './PlayerCircle.css'
 
@@ -56,6 +57,7 @@ export interface PlayerCircleProps {
  * Other players arranged clockwise from bottom-left
  */
 function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = false, draft, hideEmptySeats = false, showLeaderInfo = false, passDirection = null, leaderRound = 1 }: PlayerCircleProps) {
+  const { isPatron } = useAuth()
   const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState<Leader | null>(null)
   const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -451,6 +453,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
                 isCurrentUser={seat.isCurrentUser}
                 isEmpty={!seat.player}
                 showStatus={false}
+                isPatron={seat.isCurrentUser && isPatron}
               />
             </div>
           )
