@@ -1,5 +1,10 @@
 # Release Notes
 
+## 02.13.2026
+
+### 🎉 New Features
+- **Swag store**: Added "Shop the Merch" link on the About page — check out the official Protect the Pod merch at swag.protectthepod.com!
+
 ## 02.12.2026
 
 ### 🎉 New Features
