@@ -2,7 +2,9 @@
 /**
  * useCardPreview Hook
  *
- * Handles the enlarged card preview that appears on hover.
+ * Handles the enlarged card preview.
+ * Desktop: shows on hover after 400ms delay.
+ * Mobile/small screens: shows on long press (~500ms).
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -24,6 +26,7 @@ interface CardPreviewState {
   card: PreviewCard;
   x: number;
   y: number;
+  isMobile: boolean;
 }
 
 /** Event with currentTarget that has getBoundingClientRect */
@@ -40,6 +43,15 @@ export interface UseCardPreviewReturn {
   handleCardMouseLeave: () => void;
   handlePreviewMouseEnter: () => void;
   handlePreviewMouseLeave: () => void;
+  handleCardTouchStart: (card: PreviewCard) => void;
+  handleCardTouchEnd: () => void;
+  dismissPreview: () => void;
+}
+
+// === HELPERS ===
+
+function isSmallViewport(): boolean {
+  return window.innerHeight <= 500 || window.innerWidth <= 768;
 }
 
 // === HOOK ===
@@ -48,6 +60,8 @@ export function useCardPreview(): UseCardPreviewReturn {
   const [hoveredCardPreview, setHoveredCardPreview] = useState<CardPreviewState | null>(null);
   const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previewHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggeredRef = useRef<boolean>(false);
 
   // Clear preview on visibility change (tab switch) or scroll
   useEffect(() => {
@@ -78,73 +92,55 @@ export function useCardPreview(): UseCardPreviewReturn {
     };
   }, []);
 
+  // === DESKTOP: hover ===
+
   const handleCardMouseEnter = useCallback((card: PreviewCard, event: PreviewEvent | null) => {
     if (!event) return;
 
-    // DISABLE enlarged preview on all touch devices (mobile, iPad, etc.)
-    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-      return;
-    }
+    // On small viewports, don't show on hover — use long press instead
+    if (isSmallViewport()) return;
 
-    // Clear any existing show timeout
     if (previewTimeoutRef.current) {
       clearTimeout(previewTimeoutRef.current);
     }
-    // Cancel any pending hide timeout
     if (previewHideTimeoutRef.current) {
       clearTimeout(previewHideTimeoutRef.current);
       previewHideTimeoutRef.current = null;
     }
 
-    // Capture the rect immediately (before timeout)
     const rect = event.currentTarget.getBoundingClientRect();
 
-    // Set timeout to show preview after hovering
     previewTimeoutRef.current = setTimeout(() => {
-      // Position the preview near the card (to the right, or left if too close to right edge)
       let previewX = rect.right + 20;
       const previewY = rect.top;
 
-      // Calculate preview dimensions based on card type
       const isHorizontal = card.isLeader || card.isBase;
       const hasBackImage = card.backImageUrl && card.isLeader;
       let previewWidth: number;
       let previewHeight: number;
 
       if (hasBackImage) {
-        previewWidth = 504 + 360 + 20; // 504px front + 360px back + 20px gap
+        previewWidth = 504 + 360 + 20;
         previewHeight = 504;
       } else {
         previewWidth = isHorizontal ? 504 : 360;
         previewHeight = isHorizontal ? 360 : 504;
       }
 
-      // Ensure preview stays within viewport bounds
       if (previewX + previewWidth > window.innerWidth) {
         previewX = rect.left - previewWidth - 20;
-        if (previewX < 0) {
-          previewX = 10;
-        }
+        if (previewX < 0) previewX = 10;
       }
+      if (previewX < 0) previewX = 10;
 
-      if (previewX < 0) {
-        previewX = 10;
-      }
-
-      // Adjust vertical position to keep preview within viewport
       const previewTop = previewY - previewHeight / 2;
       const previewBottom = previewY + previewHeight / 2;
       let adjustedY = previewY;
 
-      if (previewTop < 0) {
-        adjustedY = previewHeight / 2 + 10;
-      }
+      if (previewTop < 0) adjustedY = previewHeight / 2 + 10;
+      if (previewBottom > window.innerHeight) adjustedY = window.innerHeight - previewHeight / 2 - 10;
 
-      if (previewBottom > window.innerHeight) {
-        adjustedY = window.innerHeight - previewHeight / 2 - 10;
-      }
-
-      setHoveredCardPreview({ card, x: previewX, y: adjustedY });
+      setHoveredCardPreview({ card, x: previewX, y: adjustedY, isMobile: false });
     }, 400);
   }, []);
 
@@ -171,12 +167,55 @@ export function useCardPreview(): UseCardPreviewReturn {
     setHoveredCardPreview(null);
   }, []);
 
+  // === MOBILE: long press ===
+
+  const handleCardTouchStart = useCallback((card: PreviewCard) => {
+    longPressTriggeredRef.current = false;
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+    }
+
+    longPressTimeoutRef.current = setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      // Center the preview on screen — CardPreview handles mobile sizing
+      setHoveredCardPreview({
+        card,
+        x: 0,
+        y: 0,
+        isMobile: true,
+      });
+    }, 500);
+  }, []);
+
+  const handleCardTouchEnd = useCallback((e?: { preventDefault?: () => void }) => {
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+    // If long press fired, prevent the synthetic click event
+    if (longPressTriggeredRef.current) {
+      e?.preventDefault?.();
+      longPressTriggeredRef.current = false;
+    }
+  }, []);
+
+  const dismissPreview = useCallback(() => {
+    setHoveredCardPreview(null);
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+  }, []);
+
   return {
     hoveredCardPreview,
     handleCardMouseEnter,
     handleCardMouseLeave,
     handlePreviewMouseEnter,
     handlePreviewMouseLeave,
+    handleCardTouchStart,
+    handleCardTouchEnd,
+    dismissPreview,
   };
 }
 

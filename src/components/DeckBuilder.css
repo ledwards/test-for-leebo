@@ -100,7 +100,8 @@
 }
 
 .deck-builder-pool-type {
-  font-size: 0.9rem;
+  font-size: 1.3rem;
+  font-weight: 700;
   color: rgba(255, 255, 255, 0.6);
   margin: 0 0 2rem 0;
   letter-spacing: 0.05em;
@@ -1744,7 +1745,7 @@
     flex-wrap: nowrap;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.35rem 0.5rem;
+    padding: 0.35rem calc(0.5rem + 30px) 0.35rem calc(0.5rem + 20px);
   }
 
   .deck-info-bar .deck-counts-info {
@@ -2228,5 +2229,75 @@
     width: 24px;
     height: 24px;
     padding: 2px;
+  }
+}
+
+/* ==========================================================================
+   Skeleton Loading States
+   ========================================================================== */
+
+.skeleton-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 11px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Portrait card skeleton (standard cards) */
+.skeleton-card-portrait {
+  width: 120px;
+  aspect-ratio: 2.5 / 3.5;
+}
+
+/* Landscape card skeleton (leaders/bases) */
+.skeleton-card-landscape {
+  width: 168px;
+  aspect-ratio: 3.5 / 2.5;
+}
+
+/* Skeleton row for leaders/bases */
+.skeleton-cards-row {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+/* Skeleton container matching card-block style */
+.skeleton-section {
+  background: rgb(0, 0, 0);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Mobile adjustments for skeleton */
+@media (max-width: 768px) {
+  .skeleton-card-portrait {
+    width: 48%;
+    max-width: 48%;
+  }
+
+  .skeleton-card-landscape {
+    width: calc(50% - 0.2rem);
+    max-width: calc(50% - 0.2rem);
   }
 }

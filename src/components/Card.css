@@ -59,38 +59,37 @@
 .canvas-card.base {
   width: 168px;
   aspect-ratio: 3.5 / 2.5;
+  border-radius: 8px;  /* Reduced from 11px - looks better on landscape cards */
 }
 
-/* Rainbow border pseudo-element */
+.canvas-card.leader > *,
+.canvas-card.base > * {
+  border-radius: 8px;
+}
+
+/* Selection border pseudo-element - static Y G B gradient */
 .canvas-card::before {
   content: '';
   position: absolute;
-  inset: -1px;
+  inset: -2px;
   border-radius: 12px;
   background: linear-gradient(
-    45deg,
-    #ff0000,
-    #ff7f00,
+    135deg,
     #ffff00,
     #00ff00,
-    #0000ff,
-    #4b0082,
-    #9400d3,
-    #ff0000
+    #0000ff
   );
-  background-size: 400% 400%;
   z-index: -1;
   opacity: 0;
   transition: opacity 0.3s ease;
-  animation: rainbow-border 3s linear infinite;
   pointer-events: none;
 }
 
-/* Leaders and bases use same border width as other cards on hover */
+/* Leaders and bases use reduced border-radius matching their card */
 .canvas-card.leader::before,
 .canvas-card.base::before {
   inset: -1px;
-  border-radius: 12px;
+  border-radius: 9px;  /* Reduced to match 8px card radius + 1px inset */
 }
 
 .canvas-card > * {
@@ -102,12 +101,11 @@
    Card state variants
    ========================================================================== */
 
-/* Rainbow border only shows on selected cards (not on hover) */
+/* Selection border only shows on selected cards (not on hover) */
 .canvas-card.selected::before,
 .canvas-card.active-leader::before,
 .canvas-card.active-base::before {
   opacity: 1;
-  animation: rainbow-border 3s linear infinite;
 }
 
 .canvas-card:hover {

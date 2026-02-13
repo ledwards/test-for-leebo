@@ -8,7 +8,7 @@
  */
 
 import './Card.css'
-import type { CSSProperties, ReactNode, MouseEvent } from 'react'
+import type { CSSProperties, ReactNode, MouseEvent, TouchEvent } from 'react'
 
 export interface CardData {
   id: string
@@ -35,6 +35,8 @@ export interface CardProps {
   onClick?: (e: MouseEvent<HTMLDivElement>) => void
   onMouseEnter?: (e: MouseEvent<HTMLDivElement>) => void
   onMouseLeave?: (e: MouseEvent<HTMLDivElement>) => void
+  onTouchStart?: (e: TouchEvent<HTMLDivElement>) => void
+  onTouchEnd?: (e: TouchEvent<HTMLDivElement>) => void
   className?: string
   style?: CSSProperties
   children?: ReactNode
