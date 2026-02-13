@@ -32,6 +32,8 @@ export interface ArenaCardStackProps {
   onCardClick?: (cardId: string, e: MouseEvent) => void
   onCardMouseEnter?: (cardId: string, card: CardData, e: MouseEvent) => void
   onCardMouseLeave?: () => void
+  onCardTouchStart?: (cardId: string, card: CardData) => void
+  onCardTouchEnd?: () => void
   hoveredCard?: string | null
   selectedCards?: Set<string>
 }
@@ -43,6 +45,8 @@ export function ArenaCardStack({
   onCardClick,
   onCardMouseEnter,
   onCardMouseLeave,
+  onCardTouchStart,
+  onCardTouchEnd,
   hoveredCard,
   selectedCards = new Set(),
 }: ArenaCardStackProps) {
@@ -79,6 +83,8 @@ export function ArenaCardStack({
                 onClick={(e) => onCardClick?.(cardId, e)}
                 onMouseEnter={(e) => onCardMouseEnter?.(cardId, card, e)}
                 onMouseLeave={onCardMouseLeave}
+                onTouchStart={() => onCardTouchStart?.(cardId, card)}
+                onTouchEnd={() => onCardTouchEnd?.()}
               />
               {hasQuantity && (
                 <div className="arena-quantity-badge">
