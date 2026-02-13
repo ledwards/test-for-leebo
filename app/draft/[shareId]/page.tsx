@@ -65,6 +65,9 @@ export default function DraftRoomPage({ params }: PageProps) {
     status,
   } = useDraftSocket(shareId, { enabled: !!shareId && isAuthenticated })
 
+  const isCasualDraft = draft?.settings?.draftMode === 'chaos'
+  const backPath = isCasualDraft ? '/casual' : '/draft'
+
   // Redirect if draft was deleted
   useEffect(() => {
     if (deleted) {
@@ -219,9 +222,6 @@ export default function DraftRoomPage({ params }: PageProps) {
       setSelecting(false)
     }
   }
-
-  const isCasualDraft = draft?.settings?.draftMode === 'chaos'
-  const backPath = isCasualDraft ? '/casual' : '/draft'
 
   const handleBack = () => {
     router.push(backPath)
