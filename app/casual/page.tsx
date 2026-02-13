@@ -13,6 +13,9 @@ interface CasualMode {
   name: string
   description: string
   comingSoon: boolean
+  cardArt?: string
+  artType?: 'event' | 'unit' // event = bottom 50%, unit = 10% from top
+  glowColor?: 'red' | 'purple' // default is green
 }
 
 interface CasualPool {
@@ -30,36 +33,58 @@ interface DeleteConfirmState {
   name: string
 }
 
+// Card art URLs for hover effect (all Hyperspace variants, not foil)
+const CARD_ART = {
+  misterBones: 'https://cdn.starwarsunlimited.com//card_0302421_EN_Mister_Bones_dcd95db084.png',
+  chaosOfWar: 'https://cdn.starwarsunlimited.com//card_0202428_EN_The_Chaos_of_War_248678061a.png',
+  letsCallItWar: 'https://cdn.starwarsunlimited.com//card_06020444_EN_Let_s_Call_It_War_45a2c83395.png',
+  toppleTheSummit: 'https://cdn.starwarsunlimited.com//card_06020447_EN_Topple_the_Summit_d82f3cefcb.png',
+  atst: 'https://cdn.starwarsunlimited.com//card_SWH_01_493_AT_ST_HYP_ff73b562a5.png',
+}
+
 const CASUAL_MODES: CasualMode[] = [
-  {
-    id: 'chaos-draft',
-    name: 'Chaos Draft',
-    description: 'Draft with packs from 3 different sets',
-    comingSoon: false,
-  },
   {
     id: 'chaos-sealed',
     name: 'Chaos Sealed',
     description: 'Open 6 packs from 6 different sets',
     comingSoon: false,
+    cardArt: CARD_ART.chaosOfWar,
+    artType: 'event',
+    glowColor: 'red',
+  },
+  {
+    id: 'chaos-draft',
+    name: 'Chaos Draft',
+    description: 'Draft with packs from 3 different sets',
+    comingSoon: false,
+    cardArt: CARD_ART.misterBones,
+    artType: 'unit',
+    glowColor: 'red',
   },
   {
     id: 'pack-wars',
     name: 'Pack Wars',
     description: 'Build deck from 2 packs',
     comingSoon: false,
+    cardArt: CARD_ART.letsCallItWar,
+    artType: 'event',
   },
   {
     id: 'pack-blitz',
     name: 'Pack Blitz',
     description: 'Build deck from 1 pack',
     comingSoon: false,
+    cardArt: CARD_ART.toppleTheSummit,
+    artType: 'event',
   },
   {
     id: 'rotisserie',
     name: 'Rotisserie Draft',
     description: 'Snake draft from entire card pool, face-up',
     comingSoon: false,
+    cardArt: CARD_ART.atst,
+    artType: 'unit',
+    glowColor: 'purple',
   },
 ]
 
@@ -84,6 +109,7 @@ const POOL_TYPE_NAMES: Record<string, string> = {
 export default function CasualModePage() {
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
+  const hasBetaAccess = user?.is_beta_tester || user?.is_admin
   const [history, setHistory] = useState<CasualPool[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState | null>(null)
@@ -155,22 +181,36 @@ export default function CasualModePage() {
     return `${baseRoute}/${pool.shareId}`
   }
 
+  const getPoolTypeClass = (poolType: string) => {
+    if (poolType === 'chaos_sealed' || poolType === 'chaos_draft') return 'type-chaos'
+    if (poolType === 'rotisserie') return 'type-rotisserie'
+    return 'type-default'
+  }
+
   return (
     <div className="casual-page">
       <div className="casual-container">
-        <h1>Casual Formats</h1>
+        <h1>Casual Formats {hasBetaAccess && <span className="beta-badge">Beta</span>}</h1>
         <p className="casual-subtitle">Alternative limited formats for casual play</p>
 
         <div className="casual-modes-grid">
           {CASUAL_MODES.map((mode) => (
             <button
               key={mode.id}
-              className={`casual-mode-card ${mode.comingSoon ? 'coming-soon' : ''}`}
+              className={`casual-mode-card ${mode.comingSoon ? 'coming-soon' : ''} ${mode.artType ? `art-${mode.artType}` : ''} ${mode.glowColor ? `glow-${mode.glowColor}` : ''}`}
               onClick={() => handleModeSelect(mode)}
               disabled={mode.comingSoon}
             >
-              <h3>{mode.name}</h3>
-              <p>{mode.description}</p>
+              {mode.cardArt && (
+                <div
+                  className="casual-mode-card-art"
+                  style={{ backgroundImage: `url("${mode.cardArt}")` }}
+                />
+              )}
+              <div className="casual-mode-card-content">
+                <h3>{mode.name}</h3>
+                <p>{mode.description}</p>
+              </div>
               {mode.comingSoon && (
                 <span className="coming-soon-badge">Coming Soon</span>
               )}
@@ -180,7 +220,7 @@ export default function CasualModePage() {
 
         {isAuthenticated && (
           <div className="draft-history">
-            <h2>My Casual Pools</h2>
+            <h2>My Casual Format Pools</h2>
             {historyLoading ? (
               <p className="history-loading">Loading...</p>
             ) : history.length === 0 ? (
@@ -199,7 +239,7 @@ export default function CasualModePage() {
                     >
                       <div className="history-item-main">
                         <span className="history-set">{pool.name || pool.setName || pool.setCode}</span>
-                        <span className="history-status complete">
+                        <span className={`history-type ${getPoolTypeClass(pool.poolType)}`}>
                           {POOL_TYPE_NAMES[pool.poolType] || pool.poolType}
                         </span>
                       </div>
