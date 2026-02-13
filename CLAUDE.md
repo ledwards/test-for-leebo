@@ -226,6 +226,15 @@ These have unique designs - do NOT replace with Button:
 - Auth widget avatar
 - Showcase share icon
 
+## Mobile Rules
+
+### Mouseover Does Not Work on Mobile
+- Hover/mouseover does not exist on touch devices. An 8-year-old knows this.
+- `CardPreview` and `useCardPreview` are fine on any page — the hook has a touch device guard that disables them on mobile.
+- **NEVER** add any feature that depends on hover/mouseover as its ONLY interaction method. Mobile users cannot hover.
+- Mobile landscape is a primary use case. Always test mental model: "does this work with just taps?"
+- If the `useCardPreview` touch guard ever breaks, fix it in the hook — don't remove CardPreview from pages.
+
 ## Key Patterns
 
 ### Card Variant Types
