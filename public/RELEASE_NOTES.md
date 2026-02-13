@@ -1,5 +1,12 @@
 # Release Notes
 
+## 02.12.2026
+
+### 🦾 Testing
+- This works now, I think!
+- Let's try.
+- One more time.
+
 ## 02.01.2026
 
 ### 📦 Pack Generation
