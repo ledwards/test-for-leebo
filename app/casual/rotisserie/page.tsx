@@ -2,9 +2,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import type { SyntheticEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { fetchSets } from '@/src/utils/api'
+import { getPackArtUrl } from '@/src/utils/packArt'
 import Button from '@/src/components/Button'
 import './page.css'
 
@@ -15,16 +17,28 @@ interface SetData {
   beta?: boolean
 }
 
+// Sort sets chronologically: SOR, SHD, TWI, JTL, LOF, SEC, LAW
+const SET_ORDER: Record<string, number> = {
+  'SOR': 1, 'SHD': 2, 'TWI': 3, 'JTL': 4, 'LOF': 5, 'SEC': 6, 'LAW': 7,
+}
+
+const sortSetsChronologically = (sets: SetData[]): SetData[] => {
+  return [...sets].sort((a, b) =>
+    (SET_ORDER[a.code] || 999) - (SET_ORDER[b.code] || 999)
+  )
+}
+
 export default function RotisseriePage() {
   const router = useRouter()
   const { user } = useAuth()
   const [sets, setSets] = useState<SetData[]>([])
   const [selectedSets, setSelectedSets] = useState<string[]>([])
-  const [maxPlayers, setMaxPlayers] = useState(4)
-  const [pickTimerSeconds, setPickTimerSeconds] = useState(60)
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [maxPlayers, setMaxPlayers] = useState(8)
+  const [imageFallbacks, setImageFallbacks] = useState<Record<string, number>>({})
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
   const hasBetaAccess = user?.is_beta_tester || user?.is_admin
 
@@ -33,7 +47,7 @@ export default function RotisseriePage() {
       try {
         setLoading(true)
         const setsData = await fetchSets({ includeBeta: hasBetaAccess })
-        setSets(setsData)
+        setSets(sortSetsChronologically(setsData))
         // Select all sets by default
         setSelectedSets(setsData.map(s => s.code))
       } catch (err) {
@@ -54,6 +68,25 @@ export default function RotisseriePage() {
     })
   }
 
+  const handleImageError = (setCode: string, e: SyntheticEvent<HTMLImageElement>) => {
+    const target = e.target as HTMLImageElement
+    const fallbacks = [
+      `https://swudb.com/images/packs/${setCode.toLowerCase()}.jpg`,
+      `https://swudb.com/images/booster/${setCode}.jpg`,
+      `https://swudb.com/images/sets/${setCode}.jpg`,
+    ]
+
+    const currentAttempt = imageFallbacks[setCode] || 0
+
+    if (currentAttempt < fallbacks.length) {
+      target.src = fallbacks[currentAttempt]
+      setImageFallbacks(prev => ({ ...prev, [setCode]: currentAttempt + 1 }))
+    } else {
+      setFailedImages(prev => new Set([...prev, setCode]))
+      target.style.display = 'none'
+    }
+  }
+
   const handleCreate = async () => {
     if (selectedSets.length === 0) return
 
@@ -68,7 +101,6 @@ export default function RotisseriePage() {
         body: JSON.stringify({
           setCodes: selectedSets,
           maxPlayers,
-          pickTimerSeconds
         })
       })
 
@@ -102,57 +134,49 @@ export default function RotisseriePage() {
         <h1>Rotisserie Draft</h1>
         <p className="rotisserie-subtitle">Snake draft from the entire card pool, face-up!</p>
 
-        <div className="rotisserie-section">
-          <h3>Select Sets for Card Pool ({selectedSets.length} selected)</h3>
-          <p className="section-hint">Select one or more sets to build the card pool</p>
-          <div className="set-grid">
-            {sets.map((set) => {
-              const isSelected = selectedSets.includes(set.code)
-              return (
-                <button
-                  key={set.code}
-                  className={`set-button ${isSelected ? 'selected' : ''}`}
-                  onClick={() => toggleSetSelection(set.code)}
-                >
-                  {set.name}
-                  {set.beta && <span className="beta-badge">Beta</span>}
-                </button>
-              )
-            })}
-          </div>
+        <div className="sets-grid">
+          {sets.map((set) => {
+            const isSelected = selectedSets.includes(set.code)
+            const packArtUrl = set.imageUrl || getPackArtUrl(set.code)
+            return (
+              <div
+                key={set.code}
+                className={`set-card ${isSelected ? 'selected' : 'unselected'}`}
+                onClick={() => toggleSetSelection(set.code)}
+              >
+                {set.beta && <div className="beta-badge">Beta</div>}
+                <div className="set-image-container">
+                  {packArtUrl && !failedImages.has(set.code) && (
+                    <img
+                      src={packArtUrl}
+                      alt={`${set.name} booster pack`}
+                      className="set-image"
+                      onError={(e) => handleImageError(set.code, e)}
+                    />
+                  )}
+                  <div className="set-image-placeholder" style={{ display: (!packArtUrl || failedImages.has(set.code)) ? 'flex' : 'none' }}>
+                    <div className="placeholder-text">{set.name}</div>
+                    <div className="placeholder-code">{set.code}</div>
+                  </div>
+                </div>
+                <div className="set-info">
+                  <h3>{set.name}</h3>
+                </div>
+              </div>
+            )
+          })}
         </div>
 
-        <div className="rotisserie-section">
-          <h3>Draft Settings</h3>
-          <div className="options-list">
-            <div className="option-item">
-              <label>
-                <span>Players: {maxPlayers}</span>
-                <input
-                  type="range"
-                  min="2"
-                  max="8"
-                  value={maxPlayers}
-                  onChange={(e) => setMaxPlayers(parseInt(e.target.value))}
-                />
-              </label>
-              <p className="option-hint">Each player drafts 50 cards</p>
-            </div>
-
-            <div className="option-item">
-              <label>
-                <span>Pick Timer: {pickTimerSeconds} seconds</span>
-                <input
-                  type="range"
-                  min="30"
-                  max="180"
-                  step="30"
-                  value={pickTimerSeconds}
-                  onChange={(e) => setPickTimerSeconds(parseInt(e.target.value))}
-                />
-              </label>
-            </div>
-          </div>
+        <div className="max-players-field">
+          <label htmlFor="maxPlayers">Max Players</label>
+          <input
+            id="maxPlayers"
+            type="number"
+            min={2}
+            max={16}
+            value={maxPlayers}
+            onChange={(e) => setMaxPlayers(Math.max(2, Math.min(16, parseInt(e.target.value) || 2)))}
+          />
         </div>
 
         {error && <div className="error-message">{error}</div>}

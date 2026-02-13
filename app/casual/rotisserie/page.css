@@ -1,3 +1,5 @@
+@import '@/src/styles/animations.css';
+
 .rotisserie-page {
   min-height: 100vh;
   display: flex;
@@ -19,7 +21,7 @@
 
 .rotisserie-container {
   text-align: center;
-  max-width: 800px;
+  max-width: 1400px;
   width: 100%;
 }
 
@@ -35,114 +37,214 @@
   margin-bottom: 2rem;
 }
 
-.rotisserie-section {
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  text-align: left;
-}
-
-.rotisserie-section h3 {
-  font-size: 1.1rem;
-  margin: 0 0 0.5rem 0;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.section-hint {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.9rem;
-  margin: 0 0 1rem 0;
-}
-
-.set-grid {
+/* Set cards grid */
+.sets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(6, 1fr);
   gap: 0.75rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  grid-auto-flow: row;
 }
 
-.set-button {
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+.set-card {
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
   border-radius: 8px;
-  padding: 1rem;
-  color: white;
-  font-family: 'Barlow', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
   position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  isolation: isolate;
 }
 
-.set-button:hover {
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(0, 0, 0, 0.7);
-}
-
-.set-button.selected {
-  border-color: rgba(0, 255, 0, 0.8);
-  background: rgba(0, 255, 0, 0.1);
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-}
-
-.set-button .beta-badge {
+.set-card::before {
+  content: '';
   position: absolute;
-  top: 4px;
-  right: 4px;
-  background: rgba(255, 165, 0, 0.2);
-  border: 1px solid rgba(255, 165, 0, 0.5);
-  color: #ffa500;
-  font-size: 0.65rem;
+  inset: -1px;
+  border-radius: 8px;
+  background: linear-gradient(
+    45deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #0000ff,
+    #4b0082,
+    #9400d3,
+    #ff0000
+  );
+  background-size: 400% 400%;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: rainbow-border 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Selected state: rainbow border + full color */
+.set-card.selected::before {
+  opacity: 1;
+}
+
+.set-card.selected:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Unselected state: grayscale + dimmed */
+.set-card.unselected .set-image {
+  filter: grayscale(100%);
+}
+
+.set-card.unselected .set-image-container {
+  opacity: 0.5;
+}
+
+.set-card.unselected .set-info {
+  opacity: 0.5;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .set-card.unselected:hover::before {
+    opacity: 0.5;
+  }
+
+  .set-card.unselected:hover {
+    transform: translateY(-2px);
+  }
+
+  .set-card.unselected:hover .set-image-container,
+  .set-card.unselected:hover .set-info {
+    opacity: 0.75;
+  }
+}
+
+.set-image-container {
+  width: 100%;
+  position: relative;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.set-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  transition: filter 0.3s ease;
+}
+
+.set-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.placeholder-text {
+  font-size: 1.2rem;
+  color: white;
   font-weight: 600;
-  padding: 2px 4px;
-  border-radius: 3px;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+.placeholder-code {
+  font-size: 0.9rem;
+  color: #999;
   text-transform: uppercase;
 }
 
-.options-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.option-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.option-item label {
+.set-info {
+  padding: 0.35rem 0.5rem;
+  background: #2a2a2a;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
+  justify-content: center;
+  border-radius: 0 0 8px 8px;
+  flex-shrink: 0;
+  transition: opacity 0.3s ease;
 }
 
-.option-item input[type="range"] {
-  flex: 1;
-  margin-left: 1rem;
-  accent-color: #00ff00;
-}
-
-.option-hint {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
+.set-info h3 {
   margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
 }
 
+/* Beta badge */
+.beta-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: linear-gradient(135deg, #ff8c00 0%, #ffa500 100%);
+  color: #000;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  z-index: 10;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 6px rgba(255, 140, 0, 0.4);
+}
+
+/* Error, loading, actions */
 .error-message {
   background: rgba(255, 0, 0, 0.2);
   border: 1px solid rgba(255, 0, 0, 0.5);
   color: #ff6b6b;
   padding: 1rem;
   border-radius: 8px;
+  margin-top: 1.5rem;
   margin-bottom: 1rem;
 }
 
+.max-players-field {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.max-players-field label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.max-players-field input {
+  width: 4rem;
+  padding: 0.4rem 0.5rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: white;
+  font-size: 1rem;
+  font-family: 'Barlow', sans-serif;
+  text-align: center;
+}
+
 .rotisserie-actions {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   display: flex;
   justify-content: center;
   gap: 1rem;
@@ -153,7 +255,14 @@
   font-size: 1.1rem;
 }
 
-/* Mobile styles */
+/* Tablet */
+@media (max-width: 900px) {
+  .sets-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
   .rotisserie-page {
     padding: 1rem;
@@ -164,8 +273,9 @@
     font-size: 2rem;
   }
 
-  .set-grid {
+  .sets-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
   }
 
   .rotisserie-actions {
