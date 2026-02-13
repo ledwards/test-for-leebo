@@ -27,6 +27,20 @@
   background-repeat: no-repeat;
 }
 
+.set-art-header.skeleton {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.set-art-header.skeleton::after {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    transparent 100%);
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  bottom: 0;
+  height: 100%;
+}
+
 .set-art-header::before {
   content: '';
   position: absolute;

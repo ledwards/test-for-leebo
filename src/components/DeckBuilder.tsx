@@ -1885,9 +1885,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
   return (
     <DeckBuilderContext.Provider value={contextValue}>
     <div className="deck-builder" ref={containerRef}>
-      {packArtUrl && (
-        <div className="set-art-header" style={setArtStyle}></div>
-      )}
+      <div className={`set-art-header${packArtUrl ? '' : ' skeleton'}`} style={setArtStyle}></div>
       <div className="deck-builder-content">
         <DeckBuilderHeader
           currentPoolName={currentPoolName}
