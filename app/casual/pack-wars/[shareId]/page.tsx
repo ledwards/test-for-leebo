@@ -50,6 +50,9 @@ export default function PackWarsPoolPage() {
     handleCardMouseLeave,
     handlePreviewMouseEnter,
     handlePreviewMouseLeave,
+    handleCardTouchStart,
+    handleCardTouchEnd,
+    dismissPreview,
   } = useCardPreview()
 
   useEffect(() => {
@@ -136,6 +139,8 @@ export default function PackWarsPoolPage() {
                   card={{ ...leader, isLeader: true }}
                   onMouseEnter={(e) => handleCardMouseEnter(leader, e)}
                   onMouseLeave={handleCardMouseLeave}
+                  onTouchStart={() => handleCardTouchStart(leader)}
+                  onTouchEnd={(e) => handleCardTouchEnd(e)}
                 />
               ))}
             </div>
@@ -150,6 +155,8 @@ export default function PackWarsPoolPage() {
                   card={{ ...base, isBase: true }}
                   onMouseEnter={(e) => handleCardMouseEnter(base, e)}
                   onMouseLeave={handleCardMouseLeave}
+                  onTouchStart={() => handleCardTouchStart(base)}
+                  onTouchEnd={(e) => handleCardTouchEnd(e)}
                 />
               ))}
             </div>
@@ -179,8 +186,10 @@ export default function PackWarsPoolPage() {
           card={hoveredCardPreview.card}
           x={hoveredCardPreview.x}
           y={hoveredCardPreview.y}
+          isMobile={hoveredCardPreview.isMobile}
           onMouseEnter={handlePreviewMouseEnter}
           onMouseLeave={handlePreviewMouseLeave}
+          onDismiss={dismissPreview}
         />
       )}
     </div>
