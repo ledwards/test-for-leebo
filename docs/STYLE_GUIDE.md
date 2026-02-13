@@ -198,6 +198,43 @@ background-size: 400% 400%;
 animation: rainbow-border 3s linear infinite;
 ```
 
+## Section Headers (Card Boxes)
+
+Headers inside card boxes (e.g., "Leaders", "Bases", "Your Deck") use a consistent style:
+
+### Style
+
+```css
+h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.75rem 0;
+}
+```
+
+### Box Container
+
+Card boxes have reduced top padding to minimize space between header and box edge:
+
+```css
+.card-box {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.5rem 1.5rem;  /* Less top padding */
+  text-align: center;
+}
+```
+
+### Guidelines
+
+- **Title case**: "Leaders", "Bases", "Your Deck" (NOT "LEADERS")
+- **White text**: Pure white, not gray
+- **Counts in parens**: "Your Deck (28 cards)"
+- **No top margin**: Header sits close to box top edge
+
 ## Component Patterns
 
 ### Keep Custom (Do Not Replace)
