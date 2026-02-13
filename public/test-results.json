@@ -1,6 +1,6 @@
 {
-  "runAt": "2026-02-13T07:27:06.883Z",
-  "executionTime": 13059,
+  "runAt": "2026-02-13T07:34:45.238Z",
+  "executionTime": 12640,
   "summary": {
     "totalSuites": 22,
     "passedSuites": 22,
@@ -15,7 +15,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 865,
+      "executionTime": 964,
       "tests": [
         {
           "suite": "utils",
@@ -215,7 +215,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 626,
+      "executionTime": 630,
       "tests": [
         {
           "suite": "utils",
@@ -295,7 +295,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 448,
+      "executionTime": 496,
       "tests": [
         {
           "suite": "utils",
@@ -310,7 +310,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 519,
+      "executionTime": 467,
       "tests": [
         {
           "suite": "utils",
@@ -325,7 +325,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 602,
+      "executionTime": 632,
       "tests": [
         {
           "suite": "belts",
@@ -395,7 +395,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 624,
+      "executionTime": 669,
       "tests": [
         {
           "suite": "belts",
@@ -495,7 +495,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 675,
+      "executionTime": 633,
       "tests": [
         {
           "suite": "belts",
@@ -590,7 +590,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 627,
+      "executionTime": 610,
       "tests": [
         {
           "suite": "belts",
@@ -670,7 +670,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 639,
+      "executionTime": 605,
       "tests": [
         {
           "suite": "belts",
@@ -685,7 +685,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 617,
+      "executionTime": 607,
       "tests": [
         {
           "suite": "belts",
@@ -760,7 +760,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 624,
+      "executionTime": 611,
       "tests": [
         {
           "suite": "belts",
@@ -845,7 +845,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 649,
+      "executionTime": 619,
       "tests": [
         {
           "suite": "belts",
@@ -900,7 +900,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 673,
+      "executionTime": 632,
       "tests": [
         {
           "suite": "belts",
@@ -975,7 +975,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 427,
+      "executionTime": 431,
       "tests": [
         {
           "suite": "fixes",
@@ -990,7 +990,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 652,
+      "executionTime": 641,
       "tests": [
         {
           "suite": "draft",
@@ -1005,7 +1005,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 423,
+      "executionTime": 420,
       "tests": [
         {
           "suite": "bots",
@@ -1150,7 +1150,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 620,
+      "executionTime": 611,
       "tests": [
         {
           "suite": "data",
@@ -1585,7 +1585,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 651,
+      "executionTime": 609,
       "tests": [
         {
           "suite": "data",
@@ -2620,7 +2620,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 479,
+      "executionTime": 437,
       "tests": [
         {
           "suite": "hooks",
@@ -2635,7 +2635,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 504,
+      "executionTime": 429,
       "tests": [
         {
           "suite": "hooks",
@@ -2650,7 +2650,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 554,
+      "executionTime": 431,
       "tests": [
         {
           "suite": "hooks",
@@ -2665,7 +2665,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 556,
+      "executionTime": 452,
       "tests": [
         {
           "suite": "hooks",
