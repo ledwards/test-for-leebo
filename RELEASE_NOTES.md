@@ -9,6 +9,10 @@ Stats page is doing its job, alerting me to anomalies in pack generation so I ca
 - **Hyperspace R/L rate fixed**: Same bug existed on hyperspace belts - now produces correct hyperspace legendary rates.
 - **Deduplication improved**: Added full-segment deduplication to prevent same base treatment cards from appearing within 6 slots of each other in rare cases.
 
+### 📊 Stats & Quality
+- **Duplicate/triplicate analysis**: Stats page now shows duplicate and triplicate distribution metrics per set. Tracks both "base treatment" (Normal variants only) and "any treatment" (exact card matches). Values are compared against expected statistical baselines using z-score validation.
+- **QA tests expanded**: Added statistical tests for duplicate/triplicate rates with per-set expected values derived from baseline analysis of 500 pods per set.
+
 ## 02.13.2026
 
 ### 🎉 New Features
