@@ -198,3 +198,39 @@ export function broadcastEvent(shareId: string, eventType: string, data: Record<
     ...data,
   })
 }
+
+/**
+ * Broadcast rotisserie draft state to all connected clients.
+ * @param shareId - Rotisserie draft share ID
+ */
+export async function broadcastRotisserieState(shareId: string): Promise<void> {
+  const io = global.io
+  if (!io) {
+    console.warn('[Broadcast] Socket.io not initialized - rotisserie broadcast skipped')
+    return
+  }
+
+  try {
+    const pool = await queryRow(
+      'SELECT * FROM card_pools WHERE share_id = $1 AND pool_type = $2',
+      [shareId, 'rotisserie']
+    )
+
+    if (!pool) {
+      io.to(`rotisserie:${shareId}`).emit('deleted')
+      return
+    }
+
+    const data = jsonParse(pool.cards, {})
+
+    // Broadcast full state to all clients in the room
+    io.to(`rotisserie:${shareId}`).emit('state', {
+      shareId: pool.share_id,
+      createdAt: pool.created_at,
+      timestamp: Date.now(),
+      ...data
+    })
+  } catch (err) {
+    console.error('Error broadcasting rotisserie state:', err)
+  }
+}
