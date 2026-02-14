@@ -741,6 +741,128 @@ async function runQA(silentMode: boolean = false): Promise<TestResult[]> {
       }
     })
 
+    // ===== DUPLICATE/TRIPLICATE ANALYSIS =====
+    console.log('')
+    console.log('\x1b[36m🔄 Testing Duplicate/Triplicate Distribution...\x1b[0m')
+
+    // Expected values from baseline analysis (500 pods per set using generateSealedPod)
+    // Per-set values because sets have different card counts affecting duplicate rates
+    const EXPECTED_BY_SET: Record<string, {
+      dupBase: { mean: number; stdDev: number };
+      dupAny: { mean: number; stdDev: number };
+      tripBase: { mean: number; stdDev: number };
+      tripAny: { mean: number; stdDev: number };
+    }> = {
+      SOR: { dupBase: { mean: 1.14, stdDev: 0.82 }, dupAny: { mean: 4.14, stdDev: 1.46 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.13, stdDev: 0.35 } },
+      SHD: { dupBase: { mean: 0.70, stdDev: 0.67 }, dupAny: { mean: 3.68, stdDev: 1.26 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.09, stdDev: 0.29 } },
+      TWI: { dupBase: { mean: 1.11, stdDev: 0.82 }, dupAny: { mean: 4.07, stdDev: 1.41 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.12, stdDev: 0.35 } },
+      JTL: { dupBase: { mean: 0.67, stdDev: 0.69 }, dupAny: { mean: 3.36, stdDev: 1.30 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.07, stdDev: 0.25 } },
+      LOF: { dupBase: { mean: 1.08, stdDev: 0.83 }, dupAny: { mean: 3.72, stdDev: 1.43 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.07, stdDev: 0.26 } },
+      SEC: { dupBase: { mean: 1.06, stdDev: 0.83 }, dupAny: { mean: 3.64, stdDev: 1.44 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.11, stdDev: 0.33 } },
+    }
+    const EXPECTED = EXPECTED_BY_SET[setCode] || EXPECTED_BY_SET.SOR
+
+    // Calculate duplicate/triplicate stats for each pod
+    const podDupBaseStats: number[] = []
+    const podDupAnyStats: number[] = []
+    const podTripBaseStats: number[] = []
+    const podTripAnyStats: number[] = []
+
+    pods.forEach(pod => {
+      // Flatten all cards, excluding leaders and bases
+      const allCards = pod.flatMap(pack => pack.cards.filter(c => !c.isLeader && !c.isBase))
+
+      // Base treatment: Only Normal variant cards (no foil, no HS, no showcase)
+      const normalCards = allCards.filter(c =>
+        (c.variantType === 'Normal' || !c.variantType) && !c.isFoil && !c.isHyperspace
+      )
+      const baseNameCounts: Record<string, number> = {}
+      normalCards.forEach(c => {
+        baseNameCounts[c.name] = (baseNameCounts[c.name] || 0) + 1
+      })
+      const baseDupes = Object.values(baseNameCounts).filter(n => n > 1).reduce((sum, n) => sum + (n - 1), 0)
+      const baseTrips = Object.values(baseNameCounts).filter(n => n > 2).reduce((sum, n) => sum + (n - 2), 0)
+
+      // Any treatment: exact card id
+      const exactIdCounts: Record<string, number> = {}
+      allCards.forEach(c => {
+        exactIdCounts[c.id] = (exactIdCounts[c.id] || 0) + 1
+      })
+      const anyDupes = Object.values(exactIdCounts).filter(n => n > 1).reduce((sum, n) => sum + (n - 1), 0)
+      const anyTrips = Object.values(exactIdCounts).filter(n => n > 2).reduce((sum, n) => sum + (n - 2), 0)
+
+      podDupBaseStats.push(baseDupes)
+      podDupAnyStats.push(anyDupes)
+      podTripBaseStats.push(baseTrips)
+      podTripAnyStats.push(anyTrips)
+    })
+
+    // Calculate observed statistics
+    const calcObservedStats = (arr: number[]) => {
+      const mean = arr.reduce((a, b) => a + b, 0) / arr.length
+      const variance = arr.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / arr.length
+      const stdDev = Math.sqrt(variance)
+      return { mean, stdDev }
+    }
+
+    const dupBaseObs = calcObservedStats(podDupBaseStats)
+    const dupAnyObs = calcObservedStats(podDupAnyStats)
+    const tripBaseObs = calcObservedStats(podTripBaseStats)
+    const tripAnyObs = calcObservedStats(podTripAnyStats)
+
+    // Z-score for comparing observed mean to expected mean
+    // Standard error of mean = σ / √n
+    const calcZScore = (observed: number, expected: number, stdDev: number, n: number) => {
+      const se = stdDev / Math.sqrt(n)
+      return se > 0 ? (observed - expected) / se : 0
+    }
+
+    const dupBaseZ = calcZScore(dupBaseObs.mean, EXPECTED.dupBase.mean, EXPECTED.dupBase.stdDev, pods.length)
+    const dupAnyZ = calcZScore(dupAnyObs.mean, EXPECTED.dupAny.mean, EXPECTED.dupAny.stdDev, pods.length)
+    const tripBaseZ = calcZScore(tripBaseObs.mean, EXPECTED.tripBase.mean, EXPECTED.tripBase.stdDev, pods.length)
+    const tripAnyZ = calcZScore(tripAnyObs.mean, EXPECTED.tripAny.mean, EXPECTED.tripAny.stdDev, pods.length)
+
+    console.log(`\x1b[36m   Duplicates (base): ${dupBaseObs.mean.toFixed(2)}±${dupBaseObs.stdDev.toFixed(2)} (expected ${EXPECTED.dupBase.mean.toFixed(2)}±${EXPECTED.dupBase.stdDev.toFixed(2)}, z=${dupBaseZ.toFixed(2)})\x1b[0m`)
+    console.log(`\x1b[36m   Duplicates (any): ${dupAnyObs.mean.toFixed(2)}±${dupAnyObs.stdDev.toFixed(2)} (expected ${EXPECTED.dupAny.mean.toFixed(2)}±${EXPECTED.dupAny.stdDev.toFixed(2)}, z=${dupAnyZ.toFixed(2)})\x1b[0m`)
+    console.log(`\x1b[36m   Triplicates (base): ${tripBaseObs.mean.toFixed(3)}±${tripBaseObs.stdDev.toFixed(3)} (expected ${EXPECTED.tripBase.mean.toFixed(3)}±${EXPECTED.tripBase.stdDev.toFixed(3)}, z=${tripBaseZ.toFixed(2)})\x1b[0m`)
+    console.log(`\x1b[36m   Triplicates (any): ${tripAnyObs.mean.toFixed(3)}±${tripAnyObs.stdDev.toFixed(3)} (expected ${EXPECTED.tripAny.mean.toFixed(3)}±${EXPECTED.tripAny.stdDev.toFixed(3)}, z=${tripAnyZ.toFixed(2)})\x1b[0m`)
+
+    // Tests: z-score should be within ±3.5 (99.95% confidence interval)
+    // Using 3.5 instead of 3.0 to reduce false positives with 100-sample test runs
+    const Z_THRESHOLD = 3.5
+
+    test(`${setCode}: duplicate rate (base treatment) statistically matches expected`, () => {
+      assert(
+        Math.abs(dupBaseZ) <= Z_THRESHOLD,
+        `Duplicates (base) z-score ${dupBaseZ.toFixed(2)} exceeds ±${Z_THRESHOLD}. ` +
+        `Observed ${dupBaseObs.mean.toFixed(2)}, expected ${EXPECTED.dupBase.mean.toFixed(2)}`
+      )
+    })
+
+    test(`${setCode}: duplicate rate (any treatment) statistically matches expected`, () => {
+      assert(
+        Math.abs(dupAnyZ) <= Z_THRESHOLD,
+        `Duplicates (any) z-score ${dupAnyZ.toFixed(2)} exceeds ±${Z_THRESHOLD}. ` +
+        `Observed ${dupAnyObs.mean.toFixed(2)}, expected ${EXPECTED.dupAny.mean.toFixed(2)}`
+      )
+    })
+
+    test(`${setCode}: triplicate rate (base treatment) statistically matches expected`, () => {
+      assert(
+        Math.abs(tripBaseZ) <= Z_THRESHOLD,
+        `Triplicates (base) z-score ${tripBaseZ.toFixed(2)} exceeds ±${Z_THRESHOLD}. ` +
+        `Observed ${tripBaseObs.mean.toFixed(3)}, expected ${EXPECTED.tripBase.mean.toFixed(3)}`
+      )
+    })
+
+    test(`${setCode}: triplicate rate (any treatment) statistically matches expected`, () => {
+      assert(
+        Math.abs(tripAnyZ) <= Z_THRESHOLD,
+        `Triplicates (any) z-score ${tripAnyZ.toFixed(2)} exceeds ±${Z_THRESHOLD}. ` +
+        `Observed ${tripAnyObs.mean.toFixed(3)}, expected ${EXPECTED.tripAny.mean.toFixed(3)}`
+      )
+    })
+
     // ===== RATE TESTS (matching stats quality tab) =====
     console.log('')
     console.log('\x1b[36m📈 Testing Rate Metrics (Stats Quality Tab)...\x1b[0m')
