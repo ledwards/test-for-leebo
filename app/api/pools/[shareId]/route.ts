@@ -4,7 +4,7 @@
 // DELETE /api/pools/:shareId - Delete a card pool
 import { queryRow, query } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
-import { jsonResponse, errorResponse, parseBody, handleApiError } from '@/lib/utils'
+import { jsonResponse, errorResponse, parseBody, handleApiError, formatSetCodeRange } from '@/lib/utils'
 import { jsonParse } from '@/src/utils/json'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -112,16 +112,64 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
     // For GET, allow access to any pool by shareId
 
     // Parse JSON fields from database
-    const cards = jsonParse(pool.cards)
+    let cards = jsonParse(pool.cards)
     const packs = jsonParse(pool.packs)
-    const deckBuilderState = jsonParse(pool.deck_builder_state)
+    let deckBuilderState = jsonParse(pool.deck_builder_state)
+
+    // Handle rotisserie pools - extract user's picked cards
+    if (pool.pool_type === 'rotisserie' && cards && typeof cards === 'object' && cards.status) {
+      const rotisserieData = cards
+      const session = (() => {
+        try {
+          // Try to get user session for filtering their picks
+          const { requireAuth } = require('@/lib/auth')
+          return requireAuth(request)
+        } catch {
+          return null
+        }
+      })()
+
+      // If user is authenticated, get their picks
+      if (session?.id && rotisserieData.pickedCards && rotisserieData.players) {
+        const pickedCardIds = new Set(
+          rotisserieData.pickedCards
+            .filter((p: { playerId: string }) => p.playerId === session.id)
+            .map((p: { cardInstanceId: string }) => p.cardInstanceId)
+        )
+
+        // Combine all card pools and filter to user's picks
+        const allCards = [
+          ...(rotisserieData.cardPool || []),
+          ...(rotisserieData.leaders || []),
+          ...(rotisserieData.bases || [])
+        ]
+
+        cards = allCards.filter((c: { instanceId: string }) => pickedCardIds.has(c.instanceId))
+
+        // Initialize deck builder state if not present
+        if (!deckBuilderState) {
+          deckBuilderState = { deck: [], pool: cards }
+        }
+      } else {
+        // No session - return empty cards (need to be authenticated)
+        cards = []
+      }
+    }
 
     // Generate name: prefer deckBuilderState.poolName, then pool.name column, then generate default
     let name = deckBuilderState?.poolName || pool.name
     if (!name) {
-      const formatType = (pool.pool_type || 'sealed') === 'draft' ? 'Draft' : 'Sealed'
+      const poolType = pool.pool_type || 'sealed'
+      const formatType = poolType === 'draft' ? 'Draft' :
+        poolType === 'rotisserie' ? 'Rotisserie Draft' : 'Sealed'
       const setCode = pool.set_code || ''
-      name = `${setCode} ${formatType}`
+      const setCodes = setCode.includes(',') ? setCode.split(',').map((s: string) => s.trim()) : [setCode]
+      const setCodeDisplay = formatSetCodeRange(setCodes)
+      const createdAt = pool.created_at ? new Date(pool.created_at) : new Date()
+      const month = String(createdAt.getMonth() + 1).padStart(2, '0')
+      const day = String(createdAt.getDate()).padStart(2, '0')
+      const year = createdAt.getFullYear()
+      name = `${setCodeDisplay} ${formatType} ${month}/${day}/${year}`
     }
 
     return jsonResponse({

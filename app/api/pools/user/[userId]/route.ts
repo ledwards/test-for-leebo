@@ -2,7 +2,7 @@
 // GET /api/pools/user/:userId - Get all pools for a user
 import { queryRows, queryRow } from '@/lib/db'
 import { getSession } from '@/lib/auth'
-import { jsonResponse, handleApiError } from '@/lib/utils'
+import { jsonResponse, handleApiError, formatSetCodeRange } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {
@@ -167,9 +167,17 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         // Generate name: prefer deckBuilderState.poolName, then pool.name column, then generate default
         let name = poolNameFromState || pool.name
         if (!name) {
-          const formatType = (pool.pool_type || 'sealed') === 'draft' ? 'Draft' : 'Sealed'
+          const poolType = pool.pool_type || 'sealed'
+          const formatType = poolType === 'draft' ? 'Draft' :
+            poolType === 'rotisserie' ? 'Rotisserie Draft' : 'Sealed'
           const setCode = pool.set_code || ''
-          name = `${setCode} ${formatType}`
+          const setCodes = setCode.includes(',') ? setCode.split(',').map((s: string) => s.trim()) : [setCode]
+          const setCodeDisplay = formatSetCodeRange(setCodes)
+          const createdAt = pool.created_at ? new Date(pool.created_at) : new Date()
+          const month = String(createdAt.getMonth() + 1).padStart(2, '0')
+          const day = String(createdAt.getDate()).padStart(2, '0')
+          const year = createdAt.getFullYear()
+          name = `${setCodeDisplay} ${formatType} ${month}/${day}/${year}`
         }
 
         return {

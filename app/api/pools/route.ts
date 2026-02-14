@@ -2,7 +2,7 @@
 // POST /api/pools - Create a new card pool
 import { query } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
-import { generateShareId } from '@/lib/utils'
+import { generateShareId, formatSetCodeRange } from '@/lib/utils'
 import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
 import { trackBulkGenerations, PACK_SLOT_TYPES } from '@/src/utils/trackGeneration'
@@ -39,13 +39,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Helper function to generate default pool name with date
-    const generatePoolName = (shareId, poolType, setCode) => {
-      const formatType = poolType === 'draft' ? 'Draft' : 'Sealed'
+    const generatePoolName = (poolType: string, setCode: string) => {
+      const formatType = poolType === 'draft' ? 'Draft' :
+        poolType === 'rotisserie' ? 'Rotisserie Draft' : 'Sealed'
       const now = new Date()
       const month = String(now.getMonth() + 1).padStart(2, '0')
       const day = String(now.getDate()).padStart(2, '0')
-      const year = String(now.getFullYear()).slice(-2)
-      return `${setCode} ${formatType} ${month}/${day}/${year}`
+      const year = now.getFullYear()
+      // Handle comma-separated set codes (for multi-set pools)
+      const setCodes = setCode.includes(',') ? setCode.split(',').map(s => s.trim()) : [setCode]
+      const setCodeDisplay = formatSetCodeRange(setCodes)
+      return `${setCodeDisplay} ${formatType} ${month}/${day}/${year}`
     }
 
     // Insert pool with retry logic to handle unique constraint violations
@@ -53,8 +57,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     let result
     while (attempts < maxAttempts) {
       try {
-        // Calculate default name for this shareId
-        const defaultName = generatePoolName(shareId, poolType, setCode)
+        // Calculate default name
+        const defaultName = generatePoolName(poolType, setCode)
 
         // Try to insert with current shareId
         try {
