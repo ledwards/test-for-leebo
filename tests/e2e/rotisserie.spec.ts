@@ -68,7 +68,7 @@ test.describe('Rotisserie Draft', () => {
   })
 
   test('setup page loads and shows set selection grid', async () => {
-    await page.goto(`${BASE_URL}/casual/rotisserie`)
+    await page.goto(`${BASE_URL}/formats/rotisserie`)
     await page.waitForLoadState('networkidle')
 
     // Page title and subtitle visible
@@ -81,50 +81,59 @@ test.describe('Rotisserie Draft', () => {
     expect(setCount).toBeGreaterThanOrEqual(6) // At least 6 released sets
     console.log(`✓ Found ${setCount} sets`)
 
-    // All non-beta sets should be selected by default
+    // No sets selected by default
     const selectedSets = page.locator('.set-card.selected')
     const selectedCount = await selectedSets.count()
-    expect(selectedCount).toBeGreaterThanOrEqual(6)
-    console.log(`✓ ${selectedCount} sets selected by default`)
+    expect(selectedCount).toBe(0)
+    console.log(`✓ No sets selected by default`)
 
-    // Create button should be enabled
-    const createButton = page.locator('button:has-text("Create Rotisserie Draft")')
-    await expect(createButton).toBeEnabled()
-    console.log('✓ Create button enabled with default selection')
+    // Create button should be disabled until sets are selected
+    const createButton = page.locator('button:has-text("Get Cooking!")')
+    await expect(createButton).toBeDisabled()
+    console.log('✓ Create button disabled with no selection')
   })
 
   test('can toggle set selection', async () => {
-    // Click first set to deselect it
+    // Click first set to select it
     const setCards = page.locator('.set-card')
     await setCards.first().click()
     await page.waitForTimeout(200)
 
-    // Should now be unselected
-    await expect(setCards.first()).toHaveClass(/unselected/)
-    console.log('✓ Deselected first set')
-
-    // Click again to reselect
-    await setCards.first().click()
-    await page.waitForTimeout(200)
+    // Should now be selected
     await expect(setCards.first()).toHaveClass(/selected/)
-    console.log('✓ Reselected first set')
+    console.log('✓ Selected first set')
+
+    // Create button should now be enabled
+    const createButton = page.locator('button:has-text("Get Cooking!")')
+    await expect(createButton).toBeEnabled()
+    console.log('✓ Create button enabled after selecting a set')
+
+    // Select all sets for the rest of the tests
+    for (let i = 1; i < await setCards.count(); i++) {
+      const card = setCards.nth(i)
+      if (!(await card.getAttribute('class'))?.includes('selected')) {
+        await card.click()
+        await page.waitForTimeout(100)
+      }
+    }
+    console.log('✓ Selected all sets for draft')
   })
 
   test('create rotisserie draft and navigate to lobby', async () => {
-    const createButton = page.locator('button:has-text("Create Rotisserie Draft")')
+    const createButton = page.locator('button:has-text("Get Cooking!")')
     await expect(createButton).toBeEnabled()
     await createButton.click()
 
     // Should show "Creating..." state
     await expect(page.locator('button:has-text("Creating...")')).toBeVisible({ timeout: 5000 })
 
-    // Should navigate to /casual/rotisserie/<shareId>
-    await page.waitForURL(/\/casual\/rotisserie\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
+    // Should navigate to /formats/rotisserie/<shareId>
+    await page.waitForURL(/\/formats\/rotisserie\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
     const url = page.url()
-    expect(url).toContain('/casual/rotisserie/')
+    expect(url).toContain('/formats/rotisserie/')
 
     // Extract shareId for later tests
-    draftShareId = url.split('/casual/rotisserie/')[1]
+    draftShareId = url.split('/formats/rotisserie/')[1]
     console.log(`✓ Navigated to rotisserie lobby: ${url}`)
   })
 
@@ -134,10 +143,6 @@ test.describe('Rotisserie Draft', () => {
 
     // Should show "Rotisserie Draft" header
     await expect(page.locator('h1')).toHaveText('Rotisserie Draft')
-
-    // Should show waiting status badge
-    await expect(page.locator('.status-badge.waiting')).toBeVisible({ timeout: 10000 })
-    console.log('✓ Status badge shows "waiting"')
 
     // Should show players section with host
     const playersSection = page.locator('.players-section')
@@ -149,13 +154,12 @@ test.describe('Rotisserie Draft', () => {
     await expect(page.locator('.player-item:has-text("(You)")')).toBeVisible()
     console.log('✓ Host player shown with (You) marker')
 
-    // Share link section should be visible
-    await expect(page.locator('.share-section')).toBeVisible()
-    await expect(page.locator('button:has-text("Copy Link")')).toBeVisible()
-    console.log('✓ Share link section visible')
+    // Copy Shareable Link button should be visible in host controls
+    await expect(page.locator('button:has-text("Copy Shareable Link")')).toBeVisible()
+    console.log('✓ Copy Shareable Link button visible')
 
     // Add Bot button should be visible (host control)
-    await expect(page.locator('button:has-text("+ Add Bot")')).toBeVisible()
+    await expect(page.locator('button:has-text("Add Bot")')).toBeVisible()
     console.log('✓ Add Bot button visible')
 
     // Start Draft button should be disabled (need 2+ players)
@@ -166,7 +170,7 @@ test.describe('Rotisserie Draft', () => {
   })
 
   test('can add a bot player', async () => {
-    const addBotButton = page.locator('button:has-text("+ Add Bot")')
+    const addBotButton = page.locator('button:has-text("Add Bot")')
     await addBotButton.click()
     await page.waitForTimeout(500)
 
@@ -189,9 +193,9 @@ test.describe('Rotisserie Draft', () => {
     await startButton.click()
     await page.waitForTimeout(1000)
 
-    // Status should change to active
-    await expect(page.locator('.status-badge.active')).toBeVisible({ timeout: 10000 })
-    console.log('✓ Draft started, status is "active"')
+    // Should show "Drafting Phase" header
+    await expect(page.locator('.draft-round-info')).toBeVisible({ timeout: 10000 })
+    console.log('✓ Draft started, shows "Drafting Phase"')
 
     // Should show turn indicator
     await expect(page.locator('.turn-indicator')).toBeVisible()
@@ -231,14 +235,14 @@ test.describe('Rotisserie Draft', () => {
 
   test('cancel button from lobby navigates back', async () => {
     // Go back to setup page
-    await page.goto(`${BASE_URL}/casual/rotisserie`)
+    await page.goto(`${BASE_URL}/formats/rotisserie`)
     await page.waitForLoadState('networkidle')
     await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
 
     const cancelButton = page.locator('button:has-text("Cancel")')
     await cancelButton.click()
 
-    await page.waitForURL(/\/casual$/, { timeout: 10000 })
-    console.log('✓ Cancel navigated to /casual')
+    await page.waitForURL(/\/formats$/, { timeout: 10000 })
+    console.log('✓ Cancel navigated to /formats')
   })
 })

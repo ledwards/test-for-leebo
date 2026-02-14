@@ -88,8 +88,8 @@ export default function Home() {
     window.location.href = '/draft'
   }
 
-  const handleCasualModeClick = () => {
-    window.location.href = '/casual'
+  const handleOtherFormatsClick = () => {
+    window.location.href = '/formats'
   }
 
   const handleSetSelect = (setCode: string) => {
@@ -169,7 +169,7 @@ export default function Home() {
         <LandingPage
           onSealedClick={handleSealedClick}
           onDraftClick={handleDraftClick}
-          onCasualModeClick={handleCasualModeClick}
+          onOtherFormatsClick={handleOtherFormatsClick}
         />
       )}
       {view === 'set-selection' && (

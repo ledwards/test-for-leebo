@@ -65,8 +65,8 @@ export default function DraftRoomPage({ params }: PageProps) {
     status,
   } = useDraftSocket(shareId, { enabled: !!shareId && isAuthenticated })
 
-  const isCasualDraft = draft?.settings?.draftMode === 'chaos'
-  const backPath = isCasualDraft ? '/casual' : '/draft'
+  const isFormatsDraft = draft?.settings?.draftMode === 'chaos'
+  const backPath = isFormatsDraft ? '/formats' : '/draft'
 
   // Redirect if draft was deleted
   useEffect(() => {

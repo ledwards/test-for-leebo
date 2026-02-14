@@ -24,7 +24,7 @@ interface SealedPool {
   hidden?: boolean
 }
 
-interface CasualPool {
+interface FormatPool {
   id: string
   shareId: string
   setCode: string
@@ -61,21 +61,21 @@ function isDeckPlayable(leaderName?: string, baseName?: string, mainDeckCount?: 
 
 interface DeleteConfirmState {
   shareId: string
-  type: 'sealed' | 'draft' | 'casual'
+  type: 'sealed' | 'draft' | 'formats'
   isActiveDraft?: boolean
 }
 
-// Map pool types to route paths for casual formats
-const CASUAL_POOL_TYPE_ROUTES: Record<string, string> = {
+// Map pool types to route paths for other formats
+const FORMAT_POOL_TYPE_ROUTES: Record<string, string> = {
   'chaos_sealed': '/pool',
-  'pack_wars': '/casual/pack-wars',
-  'pack_blitz': '/casual/pack-blitz',
+  'pack_wars': '/formats/pack-wars',
+  'pack_blitz': '/formats/pack-blitz',
   'chaos_draft': '/draft',
-  'rotisserie': '/casual/rotisserie',
+  'rotisserie': '/formats/rotisserie',
 }
 
 // Map pool types to display names
-const CASUAL_POOL_TYPE_NAMES: Record<string, string> = {
+const FORMAT_POOL_TYPE_NAMES: Record<string, string> = {
   'chaos_sealed': 'Chaos Sealed',
   'pack_wars': 'Pack Wars',
   'pack_blitz': 'Pack Blitz',
@@ -89,10 +89,10 @@ interface DropConfirmState {
 
 export default function HistoryPage() {
   const { user, loading: authLoading } = useAuth()
-  const [activeTab, setActiveTab] = useState<'sealed' | 'draft' | 'casual'>('sealed')
+  const [activeTab, setActiveTab] = useState<'sealed' | 'draft' | 'formats'>('sealed')
   const [sealedPools, setSealedPools] = useState<SealedPool[]>([])
   const [draftPods, setDraftPods] = useState<DraftPod[]>([])
-  const [casualPools, setCasualPools] = useState<CasualPool[]>([])
+  const [formatPools, setFormatPools] = useState<FormatPool[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState | null>(null)
@@ -101,7 +101,7 @@ export default function HistoryPage() {
   const [isDropping, setIsDropping] = useState(false)
   const [showHiddenSealed, setShowHiddenSealed] = useState(false)
   const [showHiddenDraft, setShowHiddenDraft] = useState(false)
-  const [showHiddenCasual, setShowHiddenCasual] = useState(false)
+  const [showHiddenFormats, setShowHiddenFormats] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -113,18 +113,18 @@ export default function HistoryPage() {
     if (user) {
       setLoading(true)
 
-      // Fetch user pools, drafts, and casual pools
+      // Fetch user pools, drafts, and other format pools
       Promise.all([
         fetchUserPools(user.id),
         fetch('/api/draft/history', { credentials: 'include' }).then(r => r.json()),
-        fetch('/api/casual/history', { credentials: 'include' }).then(r => r.json())
+        fetch('/api/formats/history', { credentials: 'include' }).then(r => r.json())
       ])
-        .then(([poolsData, draftData, casualData]) => {
-          // Handle sealed pools (filter out draft pools and casual pool types)
-          const casualPoolTypes = ['chaos_sealed', 'pack_wars', 'pack_blitz', 'chaos_draft', 'rotisserie']
+        .then(([poolsData, draftData, formatsData]) => {
+          // Handle sealed pools (filter out draft pools and other format pool types)
+          const formatPoolTypes = ['chaos_sealed', 'pack_wars', 'pack_blitz', 'chaos_draft', 'rotisserie']
           if (poolsData && Array.isArray(poolsData)) {
             const sealed = poolsData
-              .filter(p => p.poolType !== 'draft' && !casualPoolTypes.includes(p.poolType))
+              .filter(p => p.poolType !== 'draft' && !formatPoolTypes.includes(p.poolType))
               .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             setSealedPools(sealed)
           } else {
@@ -140,13 +140,13 @@ export default function HistoryPage() {
             setDraftPods([])
           }
 
-          // Handle casual pools
-          if (casualData && (casualData.pools || casualData.data?.pools)) {
-            const pools = (casualData.pools || casualData.data?.pools)
+          // Handle other format pools
+          if (formatsData && (formatsData.pools || formatsData.data?.pools)) {
+            const pools = (formatsData.pools || formatsData.data?.pools)
               .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            setCasualPools(pools)
+            setFormatPools(pools)
           } else {
-            setCasualPools([])
+            setFormatPools([])
           }
         })
         .catch(err => {
@@ -216,16 +216,16 @@ export default function HistoryPage() {
     }
   }
 
-  const handleRenameCasual = async (shareId: string, newName: string) => {
+  const handleRenameFormat = async (shareId: string, newName: string) => {
     try {
       await updatePool(shareId, { poolName: newName })
-      setCasualPools(pools =>
+      setFormatPools(pools =>
         pools.map(pool =>
           pool.shareId === shareId ? { ...pool, name: newName } : pool
         )
       )
     } catch (err) {
-      console.error('Failed to rename casual pool:', err)
+      console.error('Failed to rename format pool:', err)
     }
   }
 
@@ -248,8 +248,8 @@ export default function HistoryPage() {
         // Remove from local state
         if (deleteConfirm.type === 'sealed') {
           setSealedPools(pools => pools.filter(p => p.shareId !== deleteConfirm.shareId))
-        } else if (deleteConfirm.type === 'casual') {
-          setCasualPools(pools => pools.filter(p => p.shareId !== deleteConfirm.shareId))
+        } else if (deleteConfirm.type === 'formats') {
+          setFormatPools(pools => pools.filter(p => p.shareId !== deleteConfirm.shareId))
         } else {
           setDraftPods(pods => pods.filter(p => p.poolShareId !== deleteConfirm.shareId))
         }
@@ -277,15 +277,15 @@ export default function HistoryPage() {
     }
   }
 
-  const handleToggleHidden = async (shareId: string, currentHidden: boolean | undefined, type: 'sealed' | 'draft' | 'casual') => {
+  const handleToggleHidden = async (shareId: string, currentHidden: boolean | undefined, type: 'sealed' | 'draft' | 'formats') => {
     try {
       await updatePool(shareId, { hidden: !currentHidden })
       if (type === 'sealed') {
         setSealedPools(pools => pools.map(p =>
           p.shareId === shareId ? { ...p, hidden: !currentHidden } : p
         ))
-      } else if (type === 'casual') {
-        setCasualPools(pools => pools.map(p =>
+      } else if (type === 'formats') {
+        setFormatPools(pools => pools.map(p =>
           p.shareId === shareId ? { ...p, hidden: !currentHidden } : p
         ))
       } else {
@@ -303,12 +303,12 @@ export default function HistoryPage() {
   const hiddenSealedPools = sealedPools.filter(p => p.hidden)
   const visibleDraftPods = draftPods.filter(p => !p.hidden)
   const hiddenDraftPods = draftPods.filter(p => p.hidden)
-  const visibleCasualPools = casualPools.filter(p => !p.hidden)
-  const hiddenCasualPools = casualPools.filter(p => p.hidden)
+  const visibleFormatPools = formatPools.filter(p => !p.hidden)
+  const hiddenFormatPools = formatPools.filter(p => p.hidden)
 
-  // Helper function to get URL for casual pool
-  const getCasualPoolUrl = (pool: CasualPool) => {
-    const baseRoute = CASUAL_POOL_TYPE_ROUTES[pool.poolType] || '/pool'
+  // Helper function to get URL for format pool
+  const getFormatPoolUrl = (pool: FormatPool) => {
+    const baseRoute = FORMAT_POOL_TYPE_ROUTES[pool.poolType] || '/pool'
     return `${baseRoute}/${pool.shareId}`
   }
 
@@ -360,10 +360,10 @@ export default function HistoryPage() {
             Draft
           </button>
           <button
-            className={`history-tab ${activeTab === 'casual' ? 'active' : ''}`}
-            onClick={() => setActiveTab('casual')}
+            className={`history-tab ${activeTab === 'formats' ? 'active' : ''}`}
+            onClick={() => setActiveTab('formats')}
           >
-            Casual
+            Other
           </button>
         </div>
 
@@ -848,15 +848,15 @@ export default function HistoryPage() {
           </>
         )}
 
-        {activeTab === 'casual' && (
+        {activeTab === 'formats' && (
           <>
-            {casualPools.length === 0 ? (
+            {formatPools.length === 0 ? (
               <div className="history-empty">
-                <p>No casual pools found. Try Chaos Sealed, Pack Wars, or other casual formats!</p>
+                <p>No pools found. Try Chaos Sealed, Pack Wars, or other formats!</p>
               </div>
             ) : (
               <>
-                {visibleCasualPools.length > 0 && (
+                {visibleFormatPools.length > 0 && (
                   <div className="history-table-container">
                     <table className="history-table">
                       <thead>
@@ -870,20 +870,20 @@ export default function HistoryPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {visibleCasualPools.map((pool) => (
+                        {visibleFormatPools.map((pool) => (
                           <tr key={pool.id}>
                             <td>
                               <EditableTitle
                                 value={pool.name}
-                                onSave={(newName) => handleRenameCasual(pool.shareId, newName)}
-                                onTitleClick={() => window.location.href = getCasualPoolUrl(pool) + '/deck'}
+                                onSave={(newName) => handleRenameFormat(pool.shareId, newName)}
+                                onTitleClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck'}
                                 isEditable={true}
                                 placeholder="Untitled Pool"
                                 className="history-editable-title"
                               />
                             </td>
                             <td style={{ color: 'white', fontWeight: '600' }}>
-                              {CASUAL_POOL_TYPE_NAMES[pool.poolType] || pool.poolType}
+                              {FORMAT_POOL_TYPE_NAMES[pool.poolType] || pool.poolType}
                             </td>
                             <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                               {pool.leaderName || '-'}
@@ -896,14 +896,14 @@ export default function HistoryPage() {
                               <div className="actions-wrapper">
                                 <button
                                   className="history-view-button"
-                                  onClick={() => window.location.href = getCasualPoolUrl(pool) + '/deck'}
+                                  onClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck'}
                                 >
                                   View
                                 </button>
                                 {isDeckPlayable(pool.leaderName, pool.baseName, pool.mainDeckCount) && (
                                   <button
                                     className="history-play-button"
-                                    onClick={() => window.location.href = getCasualPoolUrl(pool) + '/deck/play'}
+                                    onClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck/play'}
                                     title="Play"
                                   >
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -913,7 +913,7 @@ export default function HistoryPage() {
                                 )}
                                 <button
                                   className="history-hide-button"
-                                  onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'casual')}
+                                  onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'formats')}
                                   title="Hide"
                                 >
                                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -923,7 +923,7 @@ export default function HistoryPage() {
                                 </button>
                                 <button
                                   className="history-delete-button"
-                                  onClick={() => setDeleteConfirm({ shareId: pool.shareId, type: 'casual' })}
+                                  onClick={() => setDeleteConfirm({ shareId: pool.shareId, type: 'formats' })}
                                   title="Delete"
                                 >
                                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -940,12 +940,12 @@ export default function HistoryPage() {
                   </div>
                 )}
 
-                {/* Hidden casual pools section */}
-                {hiddenCasualPools.length > 0 && (
+                {/* Hidden format pools section */}
+                {hiddenFormatPools.length > 0 && (
                   <div className="hidden-pools-section">
                     <button
-                      className={`hidden-pools-toggle ${showHiddenCasual ? 'expanded' : ''}`}
-                      onClick={() => setShowHiddenCasual(!showHiddenCasual)}
+                      className={`hidden-pools-toggle ${showHiddenFormats ? 'expanded' : ''}`}
+                      onClick={() => setShowHiddenFormats(!showHiddenFormats)}
                     >
                       <svg
                         width="16"
@@ -954,13 +954,13 @@ export default function HistoryPage() {
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
-                        style={{ transform: showHiddenCasual ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                        style={{ transform: showHiddenFormats ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
                       >
                         <polyline points="9 18 15 12 9 6"></polyline>
                       </svg>
-                      Hidden ({hiddenCasualPools.length})
+                      Hidden ({hiddenFormatPools.length})
                     </button>
-                    {showHiddenCasual && (
+                    {showHiddenFormats && (
                       <div className="history-table-container hidden-pools-table-container">
                         <table className="history-table">
                           <thead>
@@ -974,20 +974,20 @@ export default function HistoryPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {hiddenCasualPools.map((pool) => (
+                            {hiddenFormatPools.map((pool) => (
                               <tr key={pool.id}>
                                 <td>
                                   <EditableTitle
                                     value={pool.name}
-                                    onSave={(newName) => handleRenameCasual(pool.shareId, newName)}
-                                    onTitleClick={() => window.location.href = getCasualPoolUrl(pool) + '/deck'}
+                                    onSave={(newName) => handleRenameFormat(pool.shareId, newName)}
+                                    onTitleClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck'}
                                     isEditable={true}
                                     placeholder="Untitled Pool"
                                     className="history-editable-title"
                                   />
                                 </td>
                                 <td style={{ color: 'white', fontWeight: '600' }}>
-                                  {CASUAL_POOL_TYPE_NAMES[pool.poolType] || pool.poolType}
+                                  {FORMAT_POOL_TYPE_NAMES[pool.poolType] || pool.poolType}
                                 </td>
                                 <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                                   {pool.leaderName || '-'}
@@ -1000,14 +1000,14 @@ export default function HistoryPage() {
                                   <div className="actions-wrapper">
                                     <button
                                       className="history-view-button"
-                                      onClick={() => window.location.href = getCasualPoolUrl(pool) + '/deck'}
+                                      onClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck'}
                                     >
                                       View
                                     </button>
                                     {isDeckPlayable(pool.leaderName, pool.baseName, pool.mainDeckCount) && (
                                       <button
                                         className="history-play-button"
-                                        onClick={() => window.location.href = getCasualPoolUrl(pool) + '/deck/play'}
+                                        onClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck/play'}
                                         title="Play"
                                       >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -1017,7 +1017,7 @@ export default function HistoryPage() {
                                     )}
                                     <button
                                       className="history-unhide-button"
-                                      onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'casual')}
+                                      onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'formats')}
                                       title="Show"
                                     >
                                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1027,7 +1027,7 @@ export default function HistoryPage() {
                                     </button>
                                     <button
                                       className="history-delete-button"
-                                      onClick={() => setDeleteConfirm({ shareId: pool.shareId, type: 'casual' })}
+                                      onClick={() => setDeleteConfirm({ shareId: pool.shareId, type: 'formats' })}
                                       title="Delete"
                                     >
                                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1046,9 +1046,9 @@ export default function HistoryPage() {
                   </div>
                 )}
 
-                {visibleCasualPools.length === 0 && hiddenCasualPools.length > 0 && !showHiddenCasual && (
+                {visibleFormatPools.length === 0 && hiddenFormatPools.length > 0 && !showHiddenFormats && (
                   <div className="history-empty">
-                    <p>All casual pools are hidden. Click "Hidden" above to show them.</p>
+                    <p>All pools are hidden. Click "Hidden" above to show them.</p>
                   </div>
                 )}
               </>

@@ -168,6 +168,7 @@ export default function AuthWidget() {
           alt={user.username || 'User'}
           className="auth-widget-avatar"
           isPatron={isPatron}
+          size={36}
           fallback={user.username?.[0]?.toUpperCase() || 'U'}
           placeholderClassName="auth-widget-avatar-placeholder"
         />
@@ -186,6 +187,7 @@ export default function AuthWidget() {
                 alt={user.username || 'User'}
                 className="auth-widget-drawer-avatar"
                 isPatron={isPatron}
+                size={48}
                 fallback={user.username?.[0]?.toUpperCase() || 'U'}
                 placeholderClassName="auth-widget-drawer-avatar-placeholder"
               />
@@ -237,26 +239,23 @@ export default function AuthWidget() {
                 New Draft Pod
               </a>
 
-              {(user.is_beta_tester || user.is_admin) && (
-                <a
-                  href="/casual"
-                  className="auth-widget-drawer-menu-item"
-                  onClick={(e: MouseEvent<HTMLAnchorElement>) => {
-                    e.preventDefault()
-                    router.push('/casual')
-                    setDrawerOpen(false)
-                  }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                    <line x1="9" y1="9" x2="9.01" y2="9" />
-                    <line x1="15" y1="9" x2="15.01" y2="9" />
-                  </svg>
-                  Casual Formats
-                  <span className="auth-widget-beta-badge">Beta</span>
-                </a>
-              )}
+              <a
+                href="/formats"
+                className="auth-widget-drawer-menu-item"
+                onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+                  e.preventDefault()
+                  router.push('/formats')
+                  setDrawerOpen(false)
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                  <line x1="9" y1="9" x2="9.01" y2="9" />
+                  <line x1="15" y1="9" x2="15.01" y2="9" />
+                </svg>
+                Other Formats
+              </a>
 
               {(loadingData || mostRecentSealed || currentDraft) && (
                 <div className="auth-widget-drawer-divider"></div>

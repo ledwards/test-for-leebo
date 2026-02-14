@@ -16,10 +16,10 @@ interface ActiveDraft {
 interface LandingPageProps {
   onSealedClick: () => void
   onDraftClick: () => void
-  onCasualModeClick?: () => void
+  onOtherFormatsClick?: () => void
 }
 
-function LandingPage({ onSealedClick, onDraftClick, onCasualModeClick }: LandingPageProps) {
+function LandingPage({ onSealedClick, onDraftClick, onOtherFormatsClick }: LandingPageProps) {
   const { user, loading, signIn } = useAuth()
   const hasBetaAccess = user?.is_beta_tester || user?.is_admin
   const router = useRouter()
@@ -85,10 +85,9 @@ function LandingPage({ onSealedClick, onDraftClick, onCasualModeClick }: Landing
           <button className="mode-button draft-button" onClick={onDraftClick}>
             Draft
           </button>
-          {hasBetaAccess && onCasualModeClick && (
-            <button className="mode-button casual-mode-button" onClick={onCasualModeClick}>
-              Casual Formats
-              <span className="beta-badge">Beta</span>
+          {onOtherFormatsClick && (
+            <button className="mode-button other-formats-button" onClick={onOtherFormatsClick}>
+              Other
             </button>
           )}
         </div>
@@ -137,7 +136,6 @@ function LandingPage({ onSealedClick, onDraftClick, onCasualModeClick }: Landing
         )}
       </div>
       <div className="landing-disclaimer">
-        <p>Protect the Pod is in no way affiliated with Disney or Fantasy Flight Games. Star Wars characters, cards, logos, and art are property of Disney and/or Fantasy Flight Games.</p>
         <div className="landing-footer-links">
           <a href="https://github.com/ledwards/swupod" target="_blank" rel="noopener noreferrer">GitHub</a>
           <span className="footer-separator">·</span>
@@ -145,12 +143,15 @@ function LandingPage({ onSealedClick, onDraftClick, onCasualModeClick }: Landing
           <span className="footer-separator">·</span>
           <a href="https://swag.protectthepod.com" target="_blank" rel="noopener noreferrer">Swag</a>
           <span className="footer-separator">·</span>
+          <a href="/stats" onClick={(e) => { e.preventDefault(); router.push('/stats') }}>Stats</a>
+          <span className="footer-separator">·</span>
           <a href="/about" onClick={(e) => { e.preventDefault(); router.push('/about') }}>About</a>
           <span className="footer-separator">·</span>
           <a href="/terms-of-service" onClick={(e) => { e.preventDefault(); router.push('/terms-of-service') }}>Terms</a>
           <span className="footer-separator">·</span>
           <a href="/privacy-policy" onClick={(e) => { e.preventDefault(); router.push('/privacy-policy') }}>Privacy</a>
         </div>
+        <p>Protect the Pod is in no way affiliated with Disney or Fantasy Flight Games. Star Wars characters, cards, logos, and art are property of Disney and/or Fantasy Flight Games.</p>
       </div>
     </div>
   )
