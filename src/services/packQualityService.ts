@@ -44,6 +44,23 @@ export interface ChiSquaredResult {
   interpretation: string
 }
 
+export interface DuplicateMetric {
+  observedMean: number
+  observedStdDev: number
+  expectedMean: number
+  expectedStdDev: number
+  zScore: number
+  sampleSize: number
+  status: 'expected' | 'slight_variance' | 'outlier' | 'insufficient_data'
+}
+
+export interface DuplicateMetrics {
+  baseTreatmentDuplicates: DuplicateMetric
+  anyTreatmentDuplicates: DuplicateMetric
+  baseTreatmentTriplicates: DuplicateMetric
+  anyTreatmentTriplicates: DuplicateMetric
+}
+
 export interface PackQualityData {
   setCode: string
   setName: string
@@ -83,6 +100,8 @@ export interface PackQualityData {
     hyperfoil: MetricResult
     showcaseLeader: MetricResult
   }
+
+  duplicateMetrics?: DuplicateMetrics
 
   reference: {
     packStructure: string
@@ -651,6 +670,138 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
     500 // Very rare, need lots of samples
   )
 
+  // === DUPLICATE/TRIPLICATE METRICS ===
+  // Expected values from baseline analysis (500 pods per set using generateSealedPod)
+  // These are statistical targets - observed should be within ~3σ of expected
+  const EXPECTED = {
+    dupBase: { mean: 0.95, stdDev: 0.78 },   // ~0.7-1.1 mean, ~0.67-0.83 σ across sets
+    dupAny: { mean: 3.75, stdDev: 1.38 },    // ~3.4-4.1 mean, ~1.26-1.46 σ across sets
+    tripBase: { mean: 0.0, stdDev: 0.05 },   // ~0 mean (very rare), small σ for tolerance
+    tripAny: { mean: 0.10, stdDev: 0.30 },   // ~0.07-0.13 mean, ~0.25-0.35 σ across sets
+  }
+
+  // Get pool-level data for duplicate analysis
+  // A pool is identified by source_id
+  const poolData = await queryRows(
+    `SELECT
+      source_id,
+      pack_index,
+      card_name,
+      card_id,
+      treatment,
+      slot_type
+     FROM card_generations
+     WHERE set_code = $1
+       AND source_type = 'sealed'
+       AND generated_at >= $2
+       AND slot_type NOT IN ('leader', 'base')
+     ORDER BY source_id, pack_index`,
+    [setCode, since]
+  )
+
+  // Group by source_id (pool)
+  const poolGroups: Record<string, Array<{ card_name: string; card_id: string; treatment: string }>> = {}
+  poolData.forEach(row => {
+    if (!poolGroups[row.source_id]) {
+      poolGroups[row.source_id] = []
+    }
+    poolGroups[row.source_id].push({
+      card_name: row.card_name,
+      card_id: row.card_id,
+      treatment: row.treatment,
+    })
+  })
+
+  const poolIds = Object.keys(poolGroups)
+  const poolCount = poolIds.length
+
+  // Calculate stats for each pool
+  const dupBaseValues: number[] = []
+  const dupAnyValues: number[] = []
+  const tripBaseValues: number[] = []
+  const tripAnyValues: number[] = []
+
+  poolIds.forEach(poolId => {
+    const cards = poolGroups[poolId]
+
+    // Base treatment: only 'base' treatment (Normal variant, no foil/HS/showcase)
+    const baseCards = cards.filter(c => c.treatment === 'base')
+    const baseNameCounts: Record<string, number> = {}
+    baseCards.forEach(c => {
+      baseNameCounts[c.card_name] = (baseNameCounts[c.card_name] || 0) + 1
+    })
+    const baseDupes = Object.values(baseNameCounts).filter(n => n > 1).reduce((sum, n) => sum + (n - 1), 0)
+    const baseTrips = Object.values(baseNameCounts).filter(n => n > 2).reduce((sum, n) => sum + (n - 2), 0)
+
+    // Any treatment: exact card_id
+    const exactIdCounts: Record<string, number> = {}
+    cards.forEach(c => {
+      exactIdCounts[c.card_id] = (exactIdCounts[c.card_id] || 0) + 1
+    })
+    const anyDupes = Object.values(exactIdCounts).filter(n => n > 1).reduce((sum, n) => sum + (n - 1), 0)
+    const anyTrips = Object.values(exactIdCounts).filter(n => n > 2).reduce((sum, n) => sum + (n - 2), 0)
+
+    dupBaseValues.push(baseDupes)
+    dupAnyValues.push(anyDupes)
+    tripBaseValues.push(baseTrips)
+    tripAnyValues.push(anyTrips)
+  })
+
+  // Calculate observed statistics
+  const calcObservedStats = (arr: number[]) => {
+    if (arr.length === 0) return { mean: 0, stdDev: 0 }
+    const mean = arr.reduce((a, b) => a + b, 0) / arr.length
+    const variance = arr.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / arr.length
+    const stdDev = Math.sqrt(variance)
+    return { mean, stdDev }
+  }
+
+  const dupBaseObs = calcObservedStats(dupBaseValues)
+  const dupAnyObs = calcObservedStats(dupAnyValues)
+  const tripBaseObs = calcObservedStats(tripBaseValues)
+  const tripAnyObs = calcObservedStats(tripAnyValues)
+
+  // Z-score for comparing observed mean to expected mean
+  // Standard error of mean = σ / √n
+  const calcDupZScore = (observed: number, expected: number, stdDev: number, n: number) => {
+    if (n === 0 || stdDev === 0) return 0
+    const se = stdDev / Math.sqrt(n)
+    return (observed - expected) / se
+  }
+
+  // Categorize status based on z-score
+  const categorizeDupStatus = (zScore: number, sampleSize: number): DuplicateMetric['status'] => {
+    if (sampleSize < 10) return 'insufficient_data'
+    const absZ = Math.abs(zScore)
+    if (absZ < 2.0) return 'expected'
+    if (absZ < 3.0) return 'slight_variance'
+    return 'outlier'
+  }
+
+  const buildDupMetric = (
+    observed: { mean: number; stdDev: number },
+    expected: { mean: number; stdDev: number },
+    n: number
+  ): DuplicateMetric => {
+    const zScore = calcDupZScore(observed.mean, expected.mean, expected.stdDev, n)
+    return {
+      observedMean: Math.round(observed.mean * 1000) / 1000,
+      observedStdDev: Math.round(observed.stdDev * 1000) / 1000,
+      expectedMean: expected.mean,
+      expectedStdDev: expected.stdDev,
+      zScore: Math.round(zScore * 100) / 100,
+      sampleSize: n,
+      status: categorizeDupStatus(zScore, n),
+    }
+  }
+
+  const duplicateMetrics: DuplicateMetrics = {
+    baseTreatmentDuplicates: buildDupMetric(dupBaseObs, EXPECTED.dupBase, poolCount),
+    anyTreatmentDuplicates: buildDupMetric(dupAnyObs, EXPECTED.dupAny, poolCount),
+    baseTreatmentTriplicates: buildDupMetric(tripBaseObs, EXPECTED.tripBase, poolCount),
+    anyTreatmentTriplicates: buildDupMetric(tripAnyObs, EXPECTED.tripAny, poolCount),
+  }
+
   // === OVERALL HEALTH ===
 
   // Count metrics that are "expected" or "slight_variance"
@@ -674,9 +825,19 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
   const structuralPassing = structuralMetrics.filter(m => m.status === 'pass').length
   const totalStructural = structuralMetrics.filter(m => m.status !== 'warning').length
 
+  // Count duplicate metrics within expected range
+  const dupMetricsPassing = [
+    duplicateMetrics.baseTreatmentDuplicates,
+    duplicateMetrics.anyTreatmentDuplicates,
+    duplicateMetrics.baseTreatmentTriplicates,
+    duplicateMetrics.anyTreatmentTriplicates,
+  ].filter(m => m.status === 'expected' || m.status === 'slight_variance' || m.status === 'insufficient_data').length
+  const totalDupMetrics = 4
+
   const healthScore = Math.round(
-    ((metricsWithinExpected / allMetrics.length) * 0.6 +
-     (totalStructural > 0 ? structuralPassing / totalStructural : 1) * 0.4) * 100
+    ((metricsWithinExpected / allMetrics.length) * 0.5 +
+     (totalStructural > 0 ? structuralPassing / totalStructural : 1) * 0.3 +
+     (dupMetricsPassing / totalDupMetrics) * 0.2) * 100
   )
 
   const healthStatus = healthScore >= 95 ? 'excellent' :
@@ -720,6 +881,8 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       hyperfoil: hyperfoilMetric,
       showcaseLeader: showcaseMetric,
     },
+
+    duplicateMetrics,
 
     reference: {
       packStructure: '16 cards: 1 Leader, 1 Base, 9 Commons, 3 Uncommons, 1 Rare/Legendary, 1 Foil',

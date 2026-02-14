@@ -1443,6 +1443,23 @@ interface QualityChiSquaredResult {
   interpretation: string
 }
 
+interface QualityDuplicateMetric {
+  observedMean: number
+  observedStdDev: number
+  expectedMean: number
+  expectedStdDev: number
+  zScore: number
+  sampleSize: number
+  status: 'expected' | 'slight_variance' | 'outlier' | 'insufficient_data'
+}
+
+interface QualityDuplicateMetrics {
+  baseTreatmentDuplicates: QualityDuplicateMetric
+  anyTreatmentDuplicates: QualityDuplicateMetric
+  baseTreatmentTriplicates: QualityDuplicateMetric
+  anyTreatmentTriplicates: QualityDuplicateMetric
+}
+
 interface QualityData {
   setCode: string
   setName: string
@@ -1472,6 +1489,7 @@ interface QualityData {
     hyperfoil: QualityMetricResult
     showcaseLeader: QualityMetricResult
   }
+  duplicateMetrics?: QualityDuplicateMetrics
   reference: {
     packStructure: string
     dataSource: string
@@ -1646,6 +1664,58 @@ function QualitySubTab({ data, loading }: QualitySubTabProps) {
           <span>p = {data.rarityMetrics.foilDistributionTest.pValue}</span>
         </div>
       </div>
+
+      {/* Duplicate/Triplicate Metrics */}
+      {data.duplicateMetrics && (
+        <>
+          <h3>Duplicate & Triplicate Distribution</h3>
+          <p style={{ color: '#888', fontSize: '14px', marginBottom: '16px' }}>
+            Per sealed pool (6 packs), excluding leaders and bases. Values should match expected statistical distribution.
+          </p>
+          <table className="quality-table" style={{ width: '100%', marginBottom: '30px', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #333' }}>
+                <th style={{ textAlign: 'left', padding: '8px' }}>Metric</th>
+                <th style={{ textAlign: 'right', padding: '8px' }}>Observed</th>
+                <th style={{ textAlign: 'right', padding: '8px' }}>Expected</th>
+                <th style={{ textAlign: 'right', padding: '8px' }}>Z-Score</th>
+                <th style={{ textAlign: 'right', padding: '8px' }}>Sample</th>
+                <th style={{ textAlign: 'center', padding: '8px' }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { label: 'Duplicates (Base Treatment)', metric: data.duplicateMetrics.baseTreatmentDuplicates, precision: 2 },
+                { label: 'Duplicates (Any Treatment)', metric: data.duplicateMetrics.anyTreatmentDuplicates, precision: 2 },
+                { label: 'Triplicates (Base Treatment)', metric: data.duplicateMetrics.baseTreatmentTriplicates, precision: 3 },
+                { label: 'Triplicates (Any Treatment)', metric: data.duplicateMetrics.anyTreatmentTriplicates, precision: 3 },
+              ].map(({ label, metric, precision }) => (
+                <tr key={label} style={{ borderBottom: '1px solid #222' }}>
+                  <td style={{ padding: '8px' }}>{label}</td>
+                  <td style={{ textAlign: 'right', padding: '8px' }}>
+                    {metric.observedMean.toFixed(precision)} ± {metric.observedStdDev.toFixed(precision)}
+                  </td>
+                  <td style={{ textAlign: 'right', padding: '8px' }}>
+                    {metric.expectedMean.toFixed(precision)} ± {metric.expectedStdDev.toFixed(precision)}
+                  </td>
+                  <td style={{ textAlign: 'right', padding: '8px', fontFamily: 'monospace' }}>
+                    {metric.zScore >= 0 ? '+' : ''}{metric.zScore.toFixed(2)}
+                  </td>
+                  <td style={{ textAlign: 'right', padding: '8px' }}>{fmt(metric.sampleSize)}</td>
+                  <td style={{ textAlign: 'center', padding: '8px' }}>
+                    {getStatusBadge(metric.status)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p style={{ color: '#666', fontSize: '12px', marginTop: '-20px', marginBottom: '30px' }}>
+            <strong>Base Treatment:</strong> Only Normal variant cards (no foil/hyperspace/showcase) — same base card appearing multiple times.<br/>
+            <strong>Any Treatment:</strong> Exact card ID matches — includes foil/hyperspace variants as distinct.<br/>
+            <strong>Z-Score:</strong> How many standard deviations from expected. |Z| &lt; 2 is normal, |Z| &gt; 3 indicates an issue.
+          </p>
+        </>
+      )}
 
       <p style={{ color: '#555', fontSize: '12px', marginTop: '20px' }}>
         Data generated: {new Date(data.generatedAt).toLocaleString()}
