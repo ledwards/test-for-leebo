@@ -103,8 +103,8 @@ function HostControls({
         credentials: 'include',
       })
       if (response.ok) {
-        const isCasual = draft?.settings?.draftMode === 'chaos'
-        router.push(isCasual ? '/casual' : '/draft')
+        const isFormats = draft?.settings?.draftMode === 'chaos'
+        router.push(isFormats ? '/formats' : '/draft')
       } else {
         console.error('Failed to cancel draft')
         setIsCancelling(false)

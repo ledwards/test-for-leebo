@@ -70,7 +70,7 @@ test.describe('Chaos Sealed', () => {
   })
 
   test('page loads and shows set selection grid', async () => {
-    await page.goto(`${BASE_URL}/casual/chaos-sealed`)
+    await page.goto(`${BASE_URL}/formats/chaos-sealed`)
     await page.waitForLoadState('networkidle')
 
     // Page title and subtitle visible
@@ -179,15 +179,15 @@ test.describe('Chaos Sealed', () => {
     console.log(`✓ Pool has ${cardCount} cards`)
   })
 
-  test('cancel button navigates back to casual page', async () => {
-    await page.goto(`${BASE_URL}/casual/chaos-sealed`)
+  test('cancel button navigates back to formats page', async () => {
+    await page.goto(`${BASE_URL}/formats/chaos-sealed`)
     await page.waitForLoadState('networkidle')
     await expect(page.locator('.set-button').first()).toBeVisible({ timeout: 10000 })
 
     const cancelButton = page.locator('button:has-text("Cancel")')
     await cancelButton.click()
 
-    await page.waitForURL(/\/casual$/, { timeout: 10000 })
-    console.log('✓ Cancel navigated to /casual')
+    await page.waitForURL(/\/formats$/, { timeout: 10000 })
+    console.log('✓ Cancel navigated to /formats')
   })
 })

@@ -3,67 +3,67 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 
 describe('LandingPage', () => {
-  describe('Casual Formats button visibility', () => {
-    it('should hide Casual Formats button when user is not logged in', () => {
+  describe('Other Formats button visibility', () => {
+    it('should hide Other Formats button when user is not logged in', () => {
       const user = null
       const hasBetaAccess = user?.is_beta_tester || user?.is_admin
-      const showCasualMode = !!hasBetaAccess
+      const showOtherFormats = !!hasBetaAccess
 
-      assert.strictEqual(showCasualMode, false)
+      assert.strictEqual(showOtherFormats, false)
     })
 
-    it('should hide Casual Formats button when user is logged in but not beta', () => {
+    it('should hide Other Formats button when user is logged in but not beta', () => {
       const user = { id: '123', is_beta_tester: false, is_admin: false }
       const hasBetaAccess = user?.is_beta_tester || user?.is_admin
-      const showCasualMode = !!hasBetaAccess
+      const showOtherFormats = !!hasBetaAccess
 
-      assert.strictEqual(showCasualMode, false)
+      assert.strictEqual(showOtherFormats, false)
     })
 
-    it('should show Casual Formats button when user is beta tester', () => {
+    it('should show Other Formats button when user is beta tester', () => {
       const user = { id: '123', is_beta_tester: true, is_admin: false }
       const hasBetaAccess = user?.is_beta_tester || user?.is_admin
-      const showCasualMode = !!hasBetaAccess
+      const showOtherFormats = !!hasBetaAccess
 
-      assert.strictEqual(showCasualMode, true)
+      assert.strictEqual(showOtherFormats, true)
     })
 
-    it('should show Casual Formats button when user is admin', () => {
+    it('should show Other Formats button when user is admin', () => {
       const user = { id: '123', is_beta_tester: false, is_admin: true }
       const hasBetaAccess = user?.is_beta_tester || user?.is_admin
-      const showCasualMode = !!hasBetaAccess
+      const showOtherFormats = !!hasBetaAccess
 
-      assert.strictEqual(showCasualMode, true)
+      assert.strictEqual(showOtherFormats, true)
     })
 
-    it('should show Casual Formats button when user is both beta and admin', () => {
+    it('should show Other Formats button when user is both beta and admin', () => {
       const user = { id: '123', is_beta_tester: true, is_admin: true }
       const hasBetaAccess = user?.is_beta_tester || user?.is_admin
-      const showCasualMode = !!hasBetaAccess
+      const showOtherFormats = !!hasBetaAccess
 
-      assert.strictEqual(showCasualMode, true)
+      assert.strictEqual(showOtherFormats, true)
     })
   })
 
-  describe('Casual Formats button click handler', () => {
-    it('should call onCasualModeClick when Casual Formats button is clicked', () => {
+  describe('Other Formats button click handler', () => {
+    it('should call onOtherFormatsClick when Other Formats button is clicked', () => {
       let clickHandlerCalled = false
-      const onCasualModeClick = () => {
+      const onOtherFormatsClick = () => {
         clickHandlerCalled = true
       }
 
-      onCasualModeClick()
+      onOtherFormatsClick()
       assert.strictEqual(clickHandlerCalled, true)
     })
 
-    it('should navigate to /casual when handler is invoked', () => {
+    it('should navigate to /formats when handler is invoked', () => {
       let navigatedTo: string | null = null
-      const handleCasualModeClick = () => {
-        navigatedTo = '/casual'
+      const handleOtherFormatsClick = () => {
+        navigatedTo = '/formats'
       }
 
-      handleCasualModeClick()
-      assert.strictEqual(navigatedTo, '/casual')
+      handleOtherFormatsClick()
+      assert.strictEqual(navigatedTo, '/formats')
     })
   })
 })

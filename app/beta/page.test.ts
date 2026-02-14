@@ -120,10 +120,10 @@ describe('Beta page content', () => {
     assert.strictEqual(badgeText, 'Pre-Release')
   })
 
-  it('should display Casual Formats in features list', () => {
-    const content = '<li><strong>Casual Formats</strong> - Alternative limited formats</li>'
+  it('should display Other Formats in features list', () => {
+    const content = '<li><strong>Other Formats</strong> - Alternative limited formats</li>'
 
-    assert.ok(content.includes('Casual Formats'))
+    assert.ok(content.includes('Other Formats'))
     assert.ok(content.includes('Alternative limited formats'))
   })
 })

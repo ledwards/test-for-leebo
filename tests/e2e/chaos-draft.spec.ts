@@ -69,7 +69,7 @@ test.describe('Chaos Draft', () => {
   })
 
   test('page loads and shows set selection grid', async () => {
-    await page.goto(`${BASE_URL}/casual/chaos-draft`)
+    await page.goto(`${BASE_URL}/formats/chaos-draft`)
     await page.waitForLoadState('networkidle')
 
     // Page title and subtitle visible
@@ -153,20 +153,20 @@ test.describe('Chaos Draft', () => {
     console.log(`✓ Navigated to draft: ${url}`)
   })
 
-  test('cancel button navigates back to casual page', async () => {
-    await page.goto(`${BASE_URL}/casual/chaos-draft`)
+  test('cancel button navigates back to formats page', async () => {
+    await page.goto(`${BASE_URL}/formats/chaos-draft`)
     await page.waitForLoadState('networkidle')
     await expect(page.locator('.set-button').first()).toBeVisible({ timeout: 10000 })
 
     const cancelButton = page.locator('button:has-text("Cancel")')
     await cancelButton.click()
 
-    await page.waitForURL(/\/casual$/, { timeout: 10000 })
-    console.log('✓ Cancel navigated to /casual')
+    await page.waitForURL(/\/formats$/, { timeout: 10000 })
+    console.log('✓ Cancel navigated to /formats')
   })
 })
 
-test.describe('Casual Beta Gate', () => {
+test.describe('Other Formats Beta Gate', () => {
   let browser: Browser
   let context: BrowserContext
   let page: Page
@@ -208,8 +208,8 @@ test.describe('Casual Beta Gate', () => {
     if (browser) await browser.close()
   })
 
-  test('non-beta user sees 404 on /casual/chaos-draft', async () => {
-    await page.goto(`${BASE_URL}/casual/chaos-draft`)
+  test('non-beta user sees 404 on /formats/chaos-draft', async () => {
+    await page.goto(`${BASE_URL}/formats/chaos-draft`)
     await page.waitForLoadState('networkidle')
 
     // Should see the 404 page, not the chaos draft UI
@@ -217,11 +217,11 @@ test.describe('Casual Beta Gate', () => {
     console.log('✓ Non-beta user sees 404')
   })
 
-  test('non-beta user sees 404 on /casual', async () => {
-    await page.goto(`${BASE_URL}/casual`)
+  test('non-beta user sees 404 on /formats', async () => {
+    await page.goto(`${BASE_URL}/formats`)
     await page.waitForLoadState('networkidle')
 
     await expect(page.locator('h1')).toHaveText('Page Not Found', { timeout: 10000 })
-    console.log('✓ Non-beta user sees 404 on /casual')
+    console.log('✓ Non-beta user sees 404 on /formats')
   })
 })

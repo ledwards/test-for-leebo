@@ -2,7 +2,7 @@
 /**
  * PackSelector Component
  *
- * Shared pack selection UI for casual modes:
+ * Shared pack selection UI for other format modes:
  * - Chaos Draft (multi-select, up to 3)
  * - Chaos Sealed (multi-select, up to 6)
  * - Pack Wars (single select)
