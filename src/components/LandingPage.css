@@ -74,6 +74,7 @@
   flex-wrap: wrap;
 }
 
+
 .mode-button {
   min-width: 200px;
   padding: 1.5rem 3rem;
@@ -185,12 +186,11 @@
   font-size: 0.75rem;
   color: white;
   opacity: 0.7;
-  margin: 0;
+  margin: 0.75rem 0 0 0;
   line-height: 1.4;
 }
 
 .landing-footer-links {
-  margin-top: 12px;
   font-size: 0.75rem;
 }
 
@@ -212,7 +212,7 @@
 }
 
 .landing-logo {
-  width: 400px;
+  width: 320px;
   height: auto;
   margin-bottom: 0;
 }
@@ -241,8 +241,8 @@
   }
 
   .landing-logo {
-    width: 300px;
-    height: 300px;
+    width: 240px;
+    height: 240px;
     object-fit: contain;
     margin-bottom: 1.5rem;
   }
