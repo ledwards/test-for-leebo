@@ -1,6 +1,6 @@
 {
-  "runAt": "2026-02-14T06:31:30.405Z",
-  "executionTime": 13113,
+  "runAt": "2026-02-14T16:47:34.729Z",
+  "executionTime": 13095,
   "summary": {
     "totalSuites": 22,
     "passedSuites": 22,
@@ -15,7 +15,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 969,
+      "executionTime": 1129,
       "tests": [
         {
           "suite": "utils",
@@ -215,7 +215,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 670,
+      "executionTime": 618,
       "tests": [
         {
           "suite": "utils",
@@ -295,7 +295,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 475,
+      "executionTime": 453,
       "tests": [
         {
           "suite": "utils",
@@ -310,7 +310,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 476,
+      "executionTime": 451,
       "tests": [
         {
           "suite": "utils",
@@ -325,7 +325,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 626,
+      "executionTime": 637,
       "tests": [
         {
           "suite": "belts",
@@ -395,7 +395,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 647,
+      "executionTime": 619,
       "tests": [
         {
           "suite": "belts",
@@ -495,7 +495,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 639,
+      "executionTime": 634,
       "tests": [
         {
           "suite": "belts",
@@ -534,7 +534,7 @@
         },
         {
           "suite": "belts",
-          "name": "rarity distribution roughly matches expected ratios\u001b[0m",
+          "name": "rarity distribution matches spec weights (packConstants)\u001b[0m",
           "status": "passed"
         },
         {
@@ -590,7 +590,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 659,
+      "executionTime": 621,
       "tests": [
         {
           "suite": "belts",
@@ -670,7 +670,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 650,
+      "executionTime": 644,
       "tests": [
         {
           "suite": "belts",
@@ -685,7 +685,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 650,
+      "executionTime": 612,
       "tests": [
         {
           "suite": "belts",
@@ -760,7 +760,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 634,
+      "executionTime": 703,
       "tests": [
         {
           "suite": "belts",
@@ -809,7 +809,7 @@
         },
         {
           "suite": "belts",
-          "name": "rares appear more frequently than legendaries (matching ratio)\u001b[0m",
+          "name": "rares appear more frequently than legendaries (matching spec ratio)\u001b[0m",
           "status": "passed"
         },
         {
@@ -845,7 +845,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 628,
+      "executionTime": 626,
       "tests": [
         {
           "suite": "belts",
@@ -900,7 +900,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 621,
+      "executionTime": 624,
       "tests": [
         {
           "suite": "belts",
@@ -975,7 +975,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 443,
+      "executionTime": 429,
       "tests": [
         {
           "suite": "fixes",
@@ -990,7 +990,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 649,
+      "executionTime": 682,
       "tests": [
         {
           "suite": "draft",
@@ -1005,7 +1005,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 440,
+      "executionTime": 419,
       "tests": [
         {
           "suite": "bots",
@@ -1150,7 +1150,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 621,
+      "executionTime": 661,
       "tests": [
         {
           "suite": "data",
@@ -1585,7 +1585,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 632,
+      "executionTime": 644,
       "tests": [
         {
           "suite": "data",
@@ -2620,7 +2620,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 482,
+      "executionTime": 460,
       "tests": [
         {
           "suite": "hooks",
@@ -2635,7 +2635,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 559,
+      "executionTime": 488,
       "tests": [
         {
           "suite": "hooks",
@@ -2650,7 +2650,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 454,
+      "executionTime": 444,
       "tests": [
         {
           "suite": "hooks",
@@ -2665,7 +2665,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 487,
+      "executionTime": 495,
       "tests": [
         {
           "suite": "hooks",
@@ -3134,7 +3134,7 @@
     },
     {
       "suite": "belts",
-      "name": "rarity distribution roughly matches expected ratios\u001b[0m",
+      "name": "rarity distribution matches spec weights (packConstants)\u001b[0m",
       "status": "passed"
     },
     {
@@ -3369,7 +3369,7 @@
     },
     {
       "suite": "belts",
-      "name": "rares appear more frequently than legendaries (matching ratio)\u001b[0m",
+      "name": "rares appear more frequently than legendaries (matching spec ratio)\u001b[0m",
       "status": "passed"
     },
     {

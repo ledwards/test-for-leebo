@@ -3,16 +3,11 @@
 ## 02.14.2026
 
 ### 📦 Pack Generation Quality Fix
-- **Legendary rate fixed**: Fixed a critical bug where legendary cards appeared at ~5% instead of the correct 12.5% (Sets 1-3) and 16.7% (Sets 4-6). The RareLegendaryBelt was incorrectly multiplying rares by the ratio while only including legendaries once.
-- **Hyperspace R/L rate fixed**: Same bug existed in HyperspaceRareLegendaryBelt - now produces correct legendary rates.
-- **Deduplication improved**: Added full-segment deduplication to prevent same cards appearing within 6 slots.
+Stats page is doing its job, alerting me to anomalies in pack generation so I can fix them!
 
-### 🧪 Testing Methodology
-- **Spec-first testing**: Rewrote QA and belt tests to validate against specifications (packConstants) rather than deriving expected values from implementation. This ensures tests catch actual bugs instead of validating that "wrong code produces wrong results correctly."
-- **Test documentation**: Added mandatory spec-first testing guidelines to CLAUDE.md.
-
-### 🎮 Rotisserie Draft
-- **Cancel redirect fixed**: Cancelling a draft now correctly returns to /formats instead of creating a new draft.
+- **Legendary rate fixed**: Fixed a critical collation error where legendary cards sometimes did not appear at their correct rates of 12.5% (Sets 1-3) and 16.7% (Sets 4-6).
+- **Hyperspace R/L rate fixed**: Same bug existed on hyperspace belts - now produces correct hyperspace legendary rates.
+- **Deduplication improved**: Added full-segment deduplication to prevent same base treatment cards from appearing within 6 slots of each other in rare cases.
 
 ## 02.13.2026
 
