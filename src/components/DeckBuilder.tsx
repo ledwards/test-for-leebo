@@ -135,6 +135,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     return initialPoolName
   }
   const [currentPoolName, setCurrentPoolName] = useState(getInitialPoolName)
+  const [userHasRenamedPool, setUserHasRenamedPool] = useState(false)
+  // Store the original base name (without leader/base suffix) for auto-naming
+  const [originalBaseName, setOriginalBaseName] = useState<string | null>(null)
 
   // Sync pool name from savedState when it changes (e.g., after pool data reloads)
   // This ensures we pick up changes made elsewhere (like the play page)
@@ -149,9 +152,23 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
   }, [savedState, initialPoolName])
 
+  // Extract and store the original base name (format + date part) on initial load
+  useEffect(() => {
+    if (initialPoolName && !originalBaseName) {
+      // Remove any existing leader/base suffix like "(Jabba the Hutt green)"
+      const baseNameMatch = initialPoolName.match(/^(.+?\d{4})/)
+      if (baseNameMatch) {
+        setOriginalBaseName(baseNameMatch[1])
+      } else {
+        setOriginalBaseName(initialPoolName)
+      }
+    }
+  }, [initialPoolName, originalBaseName])
+
   const handleRenamePool = (newName: string) => {
     if (!shareId) return
     setCurrentPoolName(newName)
+    setUserHasRenamedPool(true) // User manually changed the name
     // Save is triggered automatically via useEffect when currentPoolName changes
   }
   // Helper function to format card type for display
@@ -260,7 +277,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     return activeBase && cardPositions[activeBase] ? cardPositions[activeBase].card : null
   }, [activeBase, cardPositions])
 
-  const getAspectColorName = (card: CardType) => {
+  const getAspectColorName = (aspect: string): string => {
     const aspectColorMap: Record<string, string> = {
       'Vigilance': 'blue',
       'Command': 'green',
@@ -269,53 +286,47 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       'Villainy': 'purple',
       'Heroism': 'orange',
     }
-    return aspectColorMap[card.aspects?.[0] || ''] || 'gray'
+    return aspectColorMap[aspect] || ''
   }
 
   // Function to update pool name when leader or base changes
+  // Appends "(Leader BaseColor)" to the original base name
   const updatePoolName = useCallback(async (leaderCard: CardType | null, baseCard: CardType | null) => {
-    if (!shareId || !setCode) return
+    if (!shareId || !originalBaseName) return
+    if (userHasRenamedPool) return // Don't auto-update if user manually renamed
+
+    // Only proceed if we have a leader
+    if (!leaderCard) return
 
     try {
-      const formatType = poolType === 'draft' ? 'Draft' : 'Sealed'
-
-      const leaderName = leaderCard?.name || ''
+      const leaderName = leaderCard.name || ''
 
       // For base: if common, use aspect color name; if rare, use base name
-      let baseName = ''
+      // If no base, leave it blank
+      let baseDisplay = ''
       if (baseCard) {
         if (baseCard.rarity === 'Common') {
-          // Get the first aspect and convert to color name
           const aspects = baseCard.aspects || []
           if (aspects.length > 0) {
-            baseName = getAspectColorName(aspects[0] as unknown as CardType)
-          } else {
-            baseName = baseCard.name || ''
+            baseDisplay = getAspectColorName(aspects[0] as string)
           }
         } else {
           // Rare or other rarities: use the base name
-          baseName = baseCard.name || ''
+          baseDisplay = baseCard.name || ''
         }
       }
 
-      // Format: {Leader Name} {Base Name} ({Set Abbrv} {Format})
-      const leaderBaseParts: string[] = []
-      if (leaderName) leaderBaseParts.push(leaderName)
-      if (baseName) leaderBaseParts.push(baseName)
+      // Format: {Original Base Name} ({Leader} {BaseColor})
+      const suffix = baseDisplay ? `${leaderName} ${baseDisplay}` : leaderName
+      const name = `${originalBaseName} (${suffix})`
 
-      let name: string
-      if (leaderBaseParts.length > 0) {
-        name = leaderBaseParts.join(' ') + ` (${setCode} ${formatType})`
-      } else {
-        name = `${setCode} ${formatType}`
-      }
-
+      setCurrentPoolName(name)
       await updatePool(shareId, { name })
     } catch (err) {
       console.error('Failed to update pool name:', err)
       // Don't show error to user - this is a background operation
     }
-  }, [shareId, poolType, setCode])
+  }, [shareId, originalBaseName, userHasRenamedPool])
 
   // Update pool name when leader or base changes
   useEffect(() => {
