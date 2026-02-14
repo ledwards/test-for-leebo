@@ -90,6 +90,14 @@ app.prepare().then(() => {
     socket.on('leave-draft', (shareId: string) => {
       socket.leave(`draft:${shareId}`)
     })
+
+    socket.on('join-rotisserie', (shareId: string) => {
+      socket.join(`rotisserie:${shareId}`)
+    })
+
+    socket.on('leave-rotisserie', (shareId: string) => {
+      socket.leave(`rotisserie:${shareId}`)
+    })
   })
 
   server.listen(port, () => {
