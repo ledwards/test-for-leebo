@@ -8,7 +8,7 @@
  * This is a public endpoint - anyone with the shareId can access the deck.
  */
 import { queryRow } from '@/lib/db'
-import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
+import { jsonResponse, errorResponse, handleApiError, formatSetCodeRange } from '@/lib/utils'
 import { jsonParse } from '@/src/utils/json'
 import { buildBaseCardMap, getBaseCardId } from '@/src/utils/variantDowngrade'
 import { NextRequest, NextResponse } from 'next/server'
@@ -158,10 +158,20 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
 
     const setCode = pool.set_code || ''
     const poolType = pool.pool_type || 'sealed'
-    const formatType = poolType === 'draft' ? 'Draft' : 'Sealed'
+    const formatType = poolType === 'draft' ? 'Draft' :
+      poolType === 'rotisserie' ? 'Rotisserie Draft' : 'Sealed'
 
     // Generate display name
-    const poolName = deckBuilderState.poolName || pool.name || `${setCode} ${formatType}`
+    let poolName = deckBuilderState.poolName || pool.name
+    if (!poolName) {
+      const setCodes = setCode.includes(',') ? setCode.split(',').map((s: string) => s.trim()) : [setCode]
+      const setCodeDisplay = formatSetCodeRange(setCodes)
+      const createdAt = pool.created_at ? new Date(pool.created_at) : new Date()
+      const month = String(createdAt.getMonth() + 1).padStart(2, '0')
+      const day = String(createdAt.getDate()).padStart(2, '0')
+      const year = createdAt.getFullYear()
+      poolName = `${setCodeDisplay} ${formatType} ${month}/${day}/${year}`
+    }
 
     // Build deck data
     const deckData = buildDeckFromState(deckBuilderState, setCode)
