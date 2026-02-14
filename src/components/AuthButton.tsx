@@ -26,6 +26,7 @@ export default function AuthButton() {
               alt={user.username}
               className="user-avatar"
               isPatron={isPatron}
+              size={32}
             />
           )}
           <span className="username">{user.username || user.email}</span>

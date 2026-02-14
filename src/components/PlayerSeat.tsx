@@ -70,6 +70,7 @@ function PlayerSeat({
           src={player?.avatarUrl}
           alt={player?.username}
           isPatron={isPatron}
+          size={44}
           fallback={player?.username?.[0]?.toUpperCase() || '?'}
         />
         {showStatus && player?.pickStatus === 'picked' && (
