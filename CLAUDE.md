@@ -95,7 +95,8 @@ src/hooks/
 ├── useCardPreview.js       # Card preview hover state
 ├── useTooltip.js           # Tooltip positioning
 ├── useDraftSocket.js       # WebSocket for drafts
-└── useDraftSync.js         # Draft state sync
+├── useDraftSync.js         # Draft state sync
+└── useRotisserieSocket.ts  # WebSocket for rotisserie drafts
 ```
 
 ### DeckBuilder Context
@@ -147,10 +148,15 @@ src/utils/
 └── ... (20+ utility files)
 ```
 
+### Rotisserie Draft (`src/hooks/useRotisserieSocket.ts`)
+Real-time rotisserie draft with Socket.io. Bot behavior in `src/bots/behaviors/RotisserieBehavior.ts` uses shared leader rankings from `src/bots/data/leaderRankings.ts`.
+
 ### App Structure
 - `app/` - Next.js App Router pages and API routes
 - `app/api/draft/` - Draft CRUD and state management
 - `app/api/sealed/` - Sealed pool generation
+- `app/api/formats/` - Other format APIs (chaos sealed, pack wars, pack blitz, rotisserie)
+- `app/formats/` - Other format pages
 - `app/showcases/` - Showcase collection gallery
 - `src/components/` - React components
 
