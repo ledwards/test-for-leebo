@@ -1,15 +1,15 @@
-# Casual Formats Implementation Plan
+# Other Formats Implementation Plan
 
 ## Overview
 
-Add a third button "Casual Formats" to the landing page alongside Draft and Sealed. Casual Formats provides access to four alternative limited formats:
+Add a third button "Other Formats" to the landing page alongside Draft and Sealed. Other Formats provides access to four alternative limited formats:
 
 1. **Chaos Draft** - Draft with packs from 3 different sets (Beta)
 2. **Rotisserie Draft** - Snake draft from entire card pool, face-up (Beta)
 3. **Pack Wars** - Build deck from 2 packs (Beta)
 4. **Pack Blitz** - Build deck from 1 pack (Beta)
 
-**Note:** All Casual Formats features require beta access.
+**Note:** All Other Formats features require beta access.
 
 ---
 
@@ -18,15 +18,15 @@ Add a third button "Casual Formats" to the landing page alongside Draft and Seal
 ### Landing Page
 ```
 [Sealed] [Draft]                    ← Non-beta users
-[Sealed] [Draft] [Casual Formats]         ← Beta users only
+[Sealed] [Draft] [Other Formats]         ← Beta users only
 ```
 
-### Casual Formats Selection Screen
-After clicking "Casual Formats" (only visible to beta users):
+### Other Formats Selection Screen
+After clicking "Other Formats" (only visible to beta users):
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                 Casual Formats (Beta)                      │
+│                 Other Formats (Beta)                      │
 │                                                      │
 │  ┌─────────────┐  ┌─────────────┐                   │
 │  │ Chaos Draft │  │ Rotisserie  │                   │
@@ -248,7 +248,7 @@ Same as Pack Wars but with 1 pack.
 
 ## Beta Access
 
-**All Casual Formats features require beta access.**
+**All Other Formats features require beta access.**
 
 ### Beta Page Updates
 Update `/app/beta/page.tsx` feature list:
@@ -256,21 +256,21 @@ Update `/app/beta/page.tsx` feature list:
 <ul>
   <li><strong>A Lawless Time (LAW)</strong> - Set 7</li>
   <li>New pack generation rules</li>
-  <li><strong>Casual Formats</strong> - Alternative limited formats (Chaos Draft, Rotisserie, Pack Wars, Pack Blitz)</li>
+  <li><strong>Other Formats</strong> - Alternative limited formats (Chaos Draft, Rotisserie, Pack Wars, Pack Blitz)</li>
 </ul>
 ```
 
 ### Access Control
-Casual Formats button is hidden for non-beta users:
+Other Formats button is hidden for non-beta users:
 ```typescript
 // In UI (landing page)
 const { user } = useAuth()
 const hasBetaAccess = user?.is_beta_tester || user?.is_admin
 
-// Only show Casual Formats button to beta users
+// Only show Other Formats button to beta users
 {hasBetaAccess && (
-  <button className="mode-button casual-mode-button" onClick={onCasualModeClick}>
-    Casual Formats
+  <button className="mode-button other-formats-button" onClick={onOtherFormatsClick}>
+    Other Formats
   </button>
 )}
 ```
@@ -281,8 +281,8 @@ const hasBetaAccess = user?.is_beta_tester || user?.is_admin
 
 ```
 app/
-├── casual/
-│   ├── page.tsx                    # Fun mode selection screen
+├── formats/
+│   ├── page.tsx                    # Format mode selection screen
 │   ├── page.css
 │   ├── chaos/
 │   │   ├── page.tsx                # Chaos draft set picker
@@ -332,9 +332,9 @@ app/api/
 ## Implementation Order
 
 ### Phase 1: Foundation
-1. Add "Casual Formats" button to landing page (hidden for non-beta users)
-2. Create `/app/casual/page.tsx` mode selector
-3. Update beta page with "Casual Formats" in feature list
+1. Add "Other Formats" button to landing page (hidden for non-beta users)
+2. Create `/app/formats/page.tsx` mode selector
+3. Update beta page with "Other Formats" in feature list
 
 ### Phase 2: Pack Wars & Pack Blitz (Simplest)
 1. Create Pack Wars/Blitz API endpoints
@@ -369,8 +369,8 @@ app/api/
 
 ## Testing Checklist
 
-- [ ] Casual Formats button hidden for non-beta users
-- [ ] Casual Formats button visible for beta users
+- [ ] Other Formats button hidden for non-beta users
+- [ ] Other Formats button visible for beta users
 - [ ] Beta users see mode selector with all 4 modes
 - [ ] Chaos Draft allows exactly 3 set selection
 - [ ] Chaos Draft packs come from selected sets

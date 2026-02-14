@@ -331,7 +331,7 @@ Content area has flat top corners (where tabs connect) and rounded bottom corner
 
 ## PackSelector Component
 
-Shared pack selection UI for casual modes (Pack Wars, Pack Blitz, Chaos Draft, Chaos Sealed).
+Shared pack selection UI for other format modes (Pack Wars, Pack Blitz, Chaos Draft, Chaos Sealed).
 
 ### Import
 
