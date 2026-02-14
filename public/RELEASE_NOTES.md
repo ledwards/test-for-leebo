@@ -1,5 +1,14 @@
 # Release Notes
 
+## 02.14.2026
+
+### 📦 Pack Generation Quality Fix
+Stats page is doing its job, alerting me to anomalies in pack generation so I can fix them!
+
+- **Legendary rate fixed**: Fixed a critical collation error where legendary cards sometimes did not appear at their correct rates of 12.5% (Sets 1-3) and 16.7% (Sets 4-6).
+- **Hyperspace R/L rate fixed**: Same bug existed on hyperspace belts - now produces correct hyperspace legendary rates.
+- **Deduplication improved**: Added full-segment deduplication to prevent same base treatment cards from appearing within 6 slots of each other in rare cases.
+
 ## 02.13.2026
 
 ### 🎉 New Features
