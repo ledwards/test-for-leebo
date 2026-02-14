@@ -18,7 +18,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       maxPlayers = 8,
       pickTimerSeconds = 120,
       timerEnabled = false,
-      picksPerPlayer = 42
+      picksPerPlayer = 42,
+      draftMode = 'fixed'
     } = body
 
     const shareId = generateShareId(8)
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       pickTimerSeconds,
       timerEnabled,
       picksPerPlayer,
+      draftMode,
       status: 'waiting',
       players: [{
         id: userId,
