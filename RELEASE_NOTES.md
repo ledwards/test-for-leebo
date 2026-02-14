@@ -4,20 +4,16 @@
 
 ### 🎉 New Features
 - **Swag store**: Added "Shop the Merch" link on the About page — check out the official Protect the Pod merch at swag.protectthepod.com!
-
-## 02.12.2026
-
-### 🎉 New Features
 - **Multi-primary aspect filters**: Arena view now supports LAW set cards with multiple primary aspects (e.g., Aggression+Command). These appear as compact filter buttons below the standard combos in each aspect group. Iterating on this design to get it right before the release of A Lawless Time.
-- **Chaos Sealed**: New casual format — build a sealed pool from any 6 packs across any combination of sets!
-- **Casual format history**: Your casual games (Pack Wars, Pack Blitz, Chaos Draft, Chaos Sealed, Rotisserie) now appear in your history page.
+- **Other formats**: New other formats (Chaos Draft and Chaos Sealed) — build a sealed pool from any 6 packs across any combination of sets! We are urrently also testing Pack Wars and Rotisserie Draft!
+
+### 👕 Swag Store
+- **Swag store**: If you love us enough to rep us on your chest, head, back, or hands, check out the swag store at swag.protectthepod.com provided by Fourthwall!
 
 ### 🎨 UI Improvements
-- **Mobile landscape**: Arena mode now works on phones turned sideways! Cost columns wrap into two rows of four. Nav bar compresses to a single row.
+- **Mobile landscape**: Arena mode now works on phones turned sideways! Cost columns wrap into two rows of four. Nav bar compresses to a single row. Unfortuntely this just doesn't fit in portrait mode, so it won't be supported there.
 - **Arena deck sorting**: Cards in cost columns now sort by cost, then aspect color order, then alphabetically (instead of just alphabetical).
-- **Mobile portrait mode**: Mobile is simply not wide enough to support the full arena view layout. Instead, we are disabling Arena mode in portrait and encouraging you to use your phone in landscape mode for Arena, or use the deckbuilder's other modes in portrait.
 - **Error pages**: Nice little easter egg in the error pages for anyone old enough to remember Twitter's failwhale.
-- **Casual set picker**: Beta sets now appear inline with released sets. Set buttons glow in their primary color on hover.
 
 ### 📦 Pack Generation
 - **Foil rarity weights**: Fixed foil slot weights to match actual belt output. Special rarity foils in sets 4-6 now correctly appear at the same rate as Rare foils.
@@ -25,19 +21,13 @@
 - **Slot type accuracy**: Sealed packs now use position-based slot types for tracking, so uncommon-to-rare upgrades don't inflate rare slot statistics.
 
 ### 📊 Stats & Quality
-- **Slot composition test**: New structural metric validates each pack has exactly 1 Leader, 1 Base, 9 Commons, 3 Uncommons, 1 Rare/Legendary, 1 Foil
-- **Stats date filter**: Fixed stats to exclude data before position-based tracking was deployed, ensuring accurate structural metrics
-
-### 🔧 Maintenance
-- Stats page: Removed Code Quality tab, renamed QA tab to Overall
-- Added QA tests for legendary rate, hyperfoil rate, and showcase leader rate (185 total QA tests)
-- Documentation cleanup: organized plans vs. completed docs, removed stale files, updated indexes
-- Removed unused debug scripts
+- **Stats page**: www.protectthepod.com/stats shows information about the current statistical state of the pod. Quality metrics include foil rate, hyperfoil rate, and showcase leader rate, pack structure, distribution, and more. The stats page should help build confidence around the quality of pack generations.
+- Added QA tests for legendary rate, hyperfoil rate, showcase leader rate, and more (185 total QA tests)
 
 ## 02.11.2026
 
 ### 🎉 New Features
-- **Casual Formats (Beta)**: New alternative limited formats for beta testers! Includes Chaos Draft, Rotisserie Draft, Pack Wars, and Pack Blitz. More details coming as each mode is implemented.
+- **Other Formats (Beta)**: New alternative limited formats for beta testers! Includes Chaos Draft, Rotisserie Draft, Pack Wars, and Pack Blitz. More details coming as each mode is implemented.
 
 ### 🎁 Patreon
 - Some of you have asked about how to support Protect the Pod and I want be clear that the site is free to use. That being said, it does cost me a bit of money every month to host, as well as tokens to develop, so I certainly won't say no to help offsetting the cost! You can support Protect the Pod via [Patreon](https://patreon.com/ProtectthePod) with my thanks!

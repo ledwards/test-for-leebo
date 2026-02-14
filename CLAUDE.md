@@ -306,7 +306,7 @@ Tests use Node's built-in test runner (no Jest). Run individual test files direc
 - `src/utils/setConfigs/*.test.js` - Set config tests
 - `lib/*.test.js` - Server-side utility tests
 - `app/api/**/*.test.js` - API route tests
-- `tests/e2e/*.spec.ts` - Playwright E2E tests (run casual format tests with --workers=1)
+- `tests/e2e/*.spec.ts` - Playwright E2E tests (run other format tests with --workers=1)
 
 ## Bug Fixing Process (MANDATORY)
 
@@ -348,7 +348,7 @@ describe('Feature X', () => {
 
 Current plans:
 - `plans/TOURNAMENT_MODE_PLAN.md` - Swiss-format tournament system
-- `plans/CASUAL_MODE_PLAN.md` - Casual limited formats
+- `plans/CASUAL_MODE_PLAN.md` - Other limited formats
 - `plans/TYPESCRIPT_MIGRATION_PLAN.md` - Type system spec and TS migration strategy
 - `plans/REFACTORING_PLAN.md` - Large-scale architectural refactoring
 - `plans/STYLEGUIDE_PLAN.md` - Interactive style guide page

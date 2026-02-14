@@ -45,7 +45,7 @@ The component already accepts `onCardTouchStart`/`onCardTouchEnd` props and has 
 
 ## Remaining Step 2: pack-wars page — wire up all touch handlers
 
-**File:** `app/casual/pack-wars/[shareId]/page.tsx`
+**File:** `app/formats/pack-wars/[shareId]/page.tsx`
 
 **2a.** Add `handleCardTouchStart`, `handleCardTouchEnd`, `dismissPreview` to the useCardPreview destructure (~line 47-53):
 

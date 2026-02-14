@@ -14,7 +14,7 @@ The rotisserie draft page is broken:
 
 ## Files to Fix
 
-### 1. `app/casual/rotisserie/[shareId]/page.tsx`
+### 1. `app/formats/rotisserie/[shareId]/page.tsx`
 
 **Bug locations:**
 - Line 104-105: `setData(result)` should be `setData(result.data)`
@@ -34,7 +34,7 @@ The code has good lobby vs active view logic at line 237, but since `data.status
 ## E2E Test Plan
 
 Create `e2e/rotisserie.spec.js` that tests:
-1. Navigate to /casual/rotisserie
+1. Navigate to /formats/rotisserie
 2. Select sets and create draft
 3. Verify lobby view shows with:
    - Player list with host
