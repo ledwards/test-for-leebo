@@ -119,27 +119,27 @@ async function runTests(): Promise<void> {
   })
 
   test('rare leaders appear in approximately 1/6 of packs (5:1 ratio)', () => {
+    // SPEC: Rare leaders should appear 1 in 6 packs (5:1 common:rare ratio = 16.67% rare)
+    // This is defined in packConstants and set configs
     const belt = new LeaderBelt('SOR')
 
-    // Sample 600 cards (should give ~100 rares)
+    // Sample 600 cards for statistical significance
     const counts: Record<string, number> = { Common: 0, Rare: 0 }
     for (let i = 0; i < 600; i++) {
       const card = belt.next()
       counts[card.rarity] = (counts[card.rarity] || 0) + 1
     }
 
-    const commonCount = counts.Common
-    const rareCount = counts.Rare
-    const ratio = commonCount / rareCount
+    const total = counts.Common + counts.Rare
+    const rareRate = counts.Rare / total
 
-    // Expected: 5:1 ratio (1/6 rares = ~16.67%)
-    // Allow variance for statistical tests: ratio should be between 3.5:1 and 6.5:1
-    assert(ratio >= 3.5 && ratio <= 6.5, `Ratio should be ~5:1, got ${ratio.toFixed(2)}:1 (${commonCount} common, ${rareCount} rare)`)
+    // SPEC: 1/6 = 16.67% rare rate
+    const expectedRate = 1 / 6
+    const tolerance = 0.05  // Allow 5% variance for statistical noise
 
-    // Rare frequency should be approximately 1 in 6
-    // Widen tolerance for statistical variance in sampling
-    const rareFrequency = 600 / rareCount
-    assert(rareFrequency >= 4.5 && rareFrequency <= 8, `Rare frequency should be ~1 in 6, got 1 in ${rareFrequency.toFixed(1)}`)
+    assert(Math.abs(rareRate - expectedRate) < tolerance,
+      `Rare rate should be ~${(expectedRate * 100).toFixed(1)}% (1 in 6), ` +
+      `got ${(rareRate * 100).toFixed(1)}% (${counts.Rare}/${total})`)
   })
 
   test('no immediately adjacent duplicate leaders', () => {

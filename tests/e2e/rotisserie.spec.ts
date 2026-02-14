@@ -191,7 +191,7 @@ test.describe('Rotisserie Draft', () => {
     console.log('✓ Sort controls visible')
 
     // With 2 sets, should show set filter buttons
-    await expect(page.locator('.set-filter-group')).toBeVisible()
+    await expect(page.locator('.set-filter-group')).toBeVisible({ timeout: 5000 })
     console.log('✓ Set filter buttons visible (2+ sets)')
   })
 
@@ -232,7 +232,11 @@ test.describe('Rotisserie Draft', () => {
     await expect(cancelButton).toBeVisible({ timeout: 5000 })
     await cancelButton.click()
 
-    await page.waitForURL(/\/formats$/, { timeout: 10000 })
+    // Wait for navigation to /formats (the formats landing page)
+    await page.waitForURL(url => {
+      const path = new URL(url).pathname
+      return path === '/formats' || path === '/formats/'
+    }, { timeout: 10000 })
     console.log('✓ Cancel navigated to /formats')
   })
 })

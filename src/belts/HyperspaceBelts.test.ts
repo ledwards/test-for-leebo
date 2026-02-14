@@ -193,14 +193,40 @@ async function runTests(): Promise<void> {
     assert(card.rarity === 'Rare' || card.rarity === 'Legendary', 'Should be Rare or Legendary')
   })
 
-  test('HyperspaceRL: sets 1-3 use 6:1 ratio', () => {
+  test('HyperspaceRL: sets 1-3 use 6:1 ratio (~14.3% legendary)', () => {
+    // SPEC: Sets 1-3 Hyperspace R/L slot has 6:1 ratio (1 in 7 = ~14.3% legendary)
     const belt = new HyperspaceRareLegendaryBelt('SOR')
     assertEqual(belt.ratio, 6, 'SOR should use 6:1 ratio')
+
+    // Validate actual output matches spec
+    const counts: Record<string, number> = { Rare: 0, Legendary: 0 }
+    for (let i = 0; i < 700; i++) {
+      const card = belt.next()
+      counts[card.rarity] = (counts[card.rarity] || 0) + 1
+    }
+    const total = counts.Rare + counts.Legendary
+    const legendaryRate = counts.Legendary / total
+    const expectedRate = 1 / 7  // ~14.3%
+    assert(Math.abs(legendaryRate - expectedRate) < 0.05,
+      `SPEC: Legendary rate should be ~${(expectedRate * 100).toFixed(1)}%, got ${(legendaryRate * 100).toFixed(1)}%`)
   })
 
-  test('HyperspaceRL: sets 4-6 use 5:1 ratio', () => {
+  test('HyperspaceRL: sets 4-6 use 5:1 ratio (~16.7% legendary)', () => {
+    // SPEC: Sets 4+ Hyperspace R/L slot has 5:1 ratio (1 in 6 = ~16.7% legendary)
     const belt = new HyperspaceRareLegendaryBelt('JTL')
     assertEqual(belt.ratio, 5, 'JTL should use 5:1 ratio')
+
+    // Validate actual output matches spec
+    const counts: Record<string, number> = { Rare: 0, Legendary: 0 }
+    for (let i = 0; i < 600; i++) {
+      const card = belt.next()
+      counts[card.rarity] = (counts[card.rarity] || 0) + 1
+    }
+    const total = counts.Rare + counts.Legendary
+    const legendaryRate = counts.Legendary / total
+    const expectedRate = 1 / 6  // ~16.7%
+    assert(Math.abs(legendaryRate - expectedRate) < 0.05,
+      `SPEC: Legendary rate should be ~${(expectedRate * 100).toFixed(1)}%, got ${(legendaryRate * 100).toFixed(1)}%`)
   })
 
   test('HyperspaceRL: hopper refills', () => {

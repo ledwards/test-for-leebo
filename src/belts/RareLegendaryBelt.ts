@@ -109,37 +109,134 @@ export class RareLegendaryBelt {
   }
 
   /**
-   * Fill the hopper with segments of rares + legendaries
-   * Creates X segments where X is the ratio (5 or 7)
-   * Each segment has all rares + 1/X of legendaries
+   * Fill the hopper with rares and legendaries at the correct ratio
+   *
+   * Target ratios:
+   * - Sets 1-3: 7:1 (7 rares per 1 legendary = 12.5% legendary)
+   * - Sets 4+: 5:1 (5 rares per 1 legendary = 16.7% legendary)
+   *
+   * Algorithm:
+   * 1. Calculate how many times to repeat rares vs legendaries to achieve ratio
+   * 2. Add that many copies of each to the segment
+   * 3. Shuffle and add to hopper
+   *
+   * Example for SOR (48 rares, 16 legendaries, ratio=7):
+   * - Target: 7 rares per legendary = rare_copies / leg_copies = 7 * 16 / 48 = 2.33
+   * - Use rare_copies=7, leg_copies=3 (7/3 ≈ 2.33)
+   * - Hopper: 48*7=336 rares, 16*3=48 legendaries = 384 cards
+   * - Rate: 48/384 = 12.5% ✓
    */
   _fill(): void {
     const wasEmpty = this.hopper.length === 0
 
-    // Shuffle legendaries for this fill cycle
-    const shuffledLegendaries = shuffle([...this.legendaries])
-    const legendariesPerSegment = Math.floor(shuffledLegendaries.length / this.ratio)
+    // Calculate multipliers to achieve target ratio
+    // We want: (rareCount * rareMult) / (legCount * legMult) = ratio
+    // Solving: rareMult / legMult = ratio * legCount / rareCount
+    const rareCount = this.rares.length
+    const legCount = this.legendaries.length
 
-    for (let i = 0; i < this.ratio; i++) {
-      // Get legendaries for this segment
-      const segmentStart = i * legendariesPerSegment
-      const segmentEnd = i === this.ratio - 1
-        ? shuffledLegendaries.length  // Last segment gets any remainder
-        : segmentStart + legendariesPerSegment
-      const segmentLegendaries = shuffledLegendaries.slice(segmentStart, segmentEnd)
+    // Use legMult = rareCount, rareMult = ratio * legCount
+    // This gives exact ratio: (rareCount * ratio * legCount) / (legCount * rareCount) = ratio ✓
+    const legMult = rareCount
+    const rareMult = this.ratio * legCount
 
-      // Create segment with all rares + this segment's legendaries
-      const segment = shuffle([...this.rares, ...segmentLegendaries])
+    // Find GCD to reduce multipliers for smaller hopper
+    const gcd = this._gcd(rareMult, legMult)
+    const finalRareMult = Math.max(1, Math.floor(rareMult / gcd))
+    const finalLegMult = Math.max(1, Math.floor(legMult / gcd))
 
-      // Add segment to hopper
-      const hopperStart = this.hopper.length
-      this.hopper.push(...segment)
+    // Build segment with correct ratio
+    const segment: RawCard[] = []
 
-      // Run seam dedup (skip for first segment if hopper was empty)
-      if (!(i === 0 && wasEmpty)) {
-        this._seamDedup(hopperStart, segment.length)
+    // Add rares (multiple copies)
+    for (let copy = 0; copy < finalRareMult; copy++) {
+      segment.push(...this.rares)
+    }
+
+    // Add legendaries (multiple copies)
+    for (let copy = 0; copy < finalLegMult; copy++) {
+      segment.push(...this.legendaries)
+    }
+
+    // Shuffle the segment
+    shuffle(segment)
+
+    // Run full dedup on segment to remove duplicates within 6 slots
+    this._fullDedup(segment)
+
+    // Add segment to hopper
+    const hopperStart = this.hopper.length
+    this.hopper.push(...segment)
+
+    // Run seam dedup at the boundary if hopper wasn't empty
+    if (!wasEmpty) {
+      this._seamDedup(hopperStart, segment.length)
+    }
+  }
+
+  /**
+   * Full segment deduplication
+   * Scan entire segment for duplicates within 6 slots and fix them
+   */
+  _fullDedup(segment: RawCard[], maxPasses = 3): void {
+    for (let pass = 0; pass < maxPasses; pass++) {
+      let foundDuplicate = false
+
+      for (let i = 0; i < segment.length; i++) {
+        const card = segment[i]
+
+        // Check for duplicates within 6 slots ahead
+        for (let j = i + 1; j <= Math.min(i + 6, segment.length - 1); j++) {
+          if (isSameCard(card, segment[j])) {
+            foundDuplicate = true
+            // Find a swap candidate from further away (outside the 6-slot window)
+            const swapCandidates: number[] = []
+            for (let k = 0; k < segment.length; k++) {
+              // Must be outside the duplicate's 6-slot window
+              if (Math.abs(k - j) > 6 && Math.abs(k - i) > 6) {
+                // And not create a new duplicate
+                const wouldCreateDup = this._wouldCreateDuplicate(segment, k, segment[j]!)
+                if (!wouldCreateDup) {
+                  swapCandidates.push(k)
+                }
+              }
+            }
+
+            if (swapCandidates.length > 0) {
+              const swapIdx = swapCandidates[Math.floor(Math.random() * swapCandidates.length)]!
+              const temp = segment[j]
+              segment[j] = segment[swapIdx]!
+              segment[swapIdx] = temp!
+            }
+            break // Restart from this position
+          }
+        }
+      }
+
+      if (!foundDuplicate) break
+    }
+  }
+
+  /**
+   * Check if placing a card at index would create a duplicate within 6 slots
+   */
+  _wouldCreateDuplicate(segment: RawCard[], index: number, card: RawCard): boolean {
+    for (let offset = -6; offset <= 6; offset++) {
+      if (offset === 0) continue
+      const checkIdx = index + offset
+      if (checkIdx < 0 || checkIdx >= segment.length) continue
+      if (isSameCard(card, segment[checkIdx])) {
+        return true
       }
     }
+    return false
+  }
+
+  /**
+   * Calculate greatest common divisor (for reducing multipliers)
+   */
+  _gcd(a: number, b: number): number {
+    return b === 0 ? a : this._gcd(b, a % b)
   }
 
   /**
