@@ -121,7 +121,13 @@ async function runTests(): Promise<void> {
       `Rares (${counts.Rare}) should appear more than legendaries (${counts.Legendary})`)
   })
 
-  test('rarity distribution roughly matches expected ratios', () => {
+  test('rarity distribution matches spec weights (packConstants)', () => {
+    // SPEC from packConstants: Foil slot uses these multipliers per unique card:
+    // - Common: 54x
+    // - Uncommon: 18x
+    // - Rare: 6x
+    // - Legendary: 1x
+    // The resulting distribution depends on card pool size, but relative weights apply
     const belt = new FoilBelt('SOR')
 
     // Sample a large number of cards
@@ -132,26 +138,22 @@ async function runTests(): Promise<void> {
       counts[card.rarity] = (counts[card.rarity] || 0) + 1
     }
 
-    // Ratios depend on card pool composition and quantity multipliers
-    // Common (54x) should be much more than uncommon (18x)
-    // The actual ratio depends on how many unique cards of each rarity exist
+    // SPEC: With multipliers 54:18:6:1, the expected ratios are:
+    // Common should be ~3x more than Uncommon (54/18 = 3)
     const commonToUncommon = counts.Common / counts.Uncommon
-    assert(commonToUncommon > 2 && commonToUncommon < 6,
-      `Common:Uncommon ratio should be 2-6, got ${commonToUncommon.toFixed(2)}`)
+    assert(commonToUncommon > 2 && commonToUncommon < 5,
+      `Common:Uncommon should be ~3:1 (54/18), got ${commonToUncommon.toFixed(2)}:1`)
 
-    // Uncommon (18x) should be more than rare (6x)
-    // Widen tolerance for statistical variance
+    // Uncommon should be ~3x more than Rare (18/6 = 3)
     const uncommonToRare = counts.Uncommon / counts.Rare
-    assert(uncommonToRare > 1 && uncommonToRare < 6,
-      `Uncommon:Rare ratio should be 1-6, got ${uncommonToRare.toFixed(2)}`)
+    assert(uncommonToRare > 1.5 && uncommonToRare < 5,
+      `Uncommon:Rare should be ~3:1 (18/6), got ${uncommonToRare.toFixed(2)}:1`)
 
-    // Rare (6x) should be more than legendary+special (1x each)
-    // Actual ratio varies based on card pool and random sampling
-    const legendarySpecialCount = (counts.Legendary || 0) + (counts.Special || 0)
-    if (legendarySpecialCount > 0) {
-      const rareToLegendarySpecial = counts.Rare / legendarySpecialCount
-      assert(rareToLegendarySpecial > 2,
-        `Rare:Legendary+Special ratio should be > 2, got ${rareToLegendarySpecial.toFixed(2)}`)
+    // Rare should be ~6x more than Legendary (6/1 = 6)
+    if (counts.Legendary > 0) {
+      const rareToLegendary = counts.Rare / counts.Legendary
+      assert(rareToLegendary > 3,
+        `Rare:Legendary should be ~6:1 (6/1), got ${rareToLegendary.toFixed(2)}:1`)
     }
   })
 

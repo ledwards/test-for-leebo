@@ -314,6 +314,40 @@ Tests use Node's built-in test runner (no Jest). Run individual test files direc
 - `app/api/**/*.test.js` - API route tests
 - `tests/e2e/*.spec.ts` - Playwright E2E tests (run other format tests with --workers=1)
 
+## ⚠️ CRITICAL: Spec-First Testing (MANDATORY)
+
+**NEVER write tests that validate implementation. ALWAYS test against specifications.**
+
+### The Anti-Pattern (DO NOT DO THIS)
+```javascript
+// BAD: Deriving expected values from the implementation
+const numRares = cards.filter(c => c.rarity === 'Rare').length
+const numLegendaries = cards.filter(c => c.rarity === 'Legendary').length
+const expectedRate = numLegendaries / (ratio * numRares + numLegendaries)  // WRONG!
+```
+This tests that "the code produces what the code produces" - it will pass even if the code is completely wrong.
+
+### The Correct Pattern (DO THIS)
+```javascript
+// GOOD: Hardcode expected values from the SPEC
+// SPEC: Sets 1-3 should have 12.5% legendary rate (1 in 8)
+const expectedRate = 1 / 8  // 0.125 - from spec, not derived from code
+assert(Math.abs(observedRate - expectedRate) < tolerance,
+  `SPEC: Legendary rate should be 12.5%, got ${observedRate}`)
+```
+
+### Where to Find Specs
+- **Pack structure**: `src/utils/packConstants.ts` - rarity weights, upgrade rates, belt configs
+- **Set-specific**: `src/utils/setConfigs/*.ts` - per-set card counts, ratios, rules
+- **Belt ratios**: Documented in belt class comments and set configs
+
+### Write Tests FIRST
+1. Read the spec (packConstants, setConfigs, design docs)
+2. Write test with hardcoded expected values from spec
+3. Run test - it should FAIL if the implementation is wrong
+4. Fix implementation to match spec
+5. Test passes because it matches spec, not because it matches implementation
+
 ## Bug Fixing Process (MANDATORY)
 
 **Always use red-green TDD when fixing bugs:**

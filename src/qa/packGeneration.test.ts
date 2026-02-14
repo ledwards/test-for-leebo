@@ -748,18 +748,17 @@ async function runQA(silentMode: boolean = false): Promise<TestResult[]> {
     const setNum = ['SOR', 'SHD', 'TWI'].includes(setCode) ? 1 : 4
 
     // Legendary rate in R/L slot (card index 14)
-    // RareLegendaryBelt creates `ratio` segments, each with ALL rares + 1/ratio of legendaries
-    // So: total = ratio * numRares + numLegendaries, rate = numLegendaries / total
+    // RareLegendaryBelt achieves target ratio:
+    // - Sets 1-3: 7:1 (7 rares per legendary) = 1 in 8 = 12.5%
+    // - Sets 4+: 5:1 (5 rares per legendary) = 1 in 6 = 16.7%
     test(`${setCode}: legendary rate in R/L slot matches expected`, () => {
       const rlCards = allPacks.map(p => p.cards[14])
       const legendaryCount = rlCards.filter(c => c.rarity === 'Legendary').length
       const total = rlCards.length
 
       const ratio = setNum <= 3 ? 7 : 5
-      const normalCards = cards.filter(c => c.variantType === 'Normal' && !c.isLeader && !c.isBase)
-      const numRares = normalCards.filter(c => c.rarity === 'Rare').length
-      const numLegendaries = normalCards.filter(c => c.rarity === 'Legendary').length
-      const expectedRate = numLegendaries / (ratio * numRares + numLegendaries)
+      // Expected rate = 1 / (ratio + 1) because we want 1 legendary per ratio rares
+      const expectedRate = 1 / (ratio + 1)
       const expected = total * expectedRate
       const stdDev = Math.sqrt(total * expectedRate * (1 - expectedRate))
       const zScore = stdDev > 0 ? (legendaryCount - expected) / stdDev : 0

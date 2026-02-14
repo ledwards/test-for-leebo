@@ -122,26 +122,29 @@ async function runTests(): Promise<void> {
     assert(belt.size >= fillingPoolSize, `Hopper should refill. Size: ${belt.size}, threshold: ${fillingPoolSize}`)
   })
 
-  test('rares appear more frequently than legendaries (matching ratio)', () => {
+  test('rares appear more frequently than legendaries (matching spec ratio)', () => {
+    // SPEC: Sets 1-3 should have 7:1 rare:legendary ratio (1 in 8 = 12.5% legendary)
+    // SPEC: Sets 4+ should have 5:1 rare:legendary ratio (1 in 6 = 16.7% legendary)
     const belt = new RareLegendaryBelt('SOR')
 
-    // Sample many cards
+    // Sample many cards for statistical significance
     const counts: Record<string, number> = { Rare: 0, Legendary: 0 }
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 800; i++) {
       const card = belt.next()
       counts[card.rarity] = (counts[card.rarity] || 0) + 1
     }
 
-    // Rares should appear much more than legendaries
-    assert(counts.Rare > counts.Legendary,
-      `Rares (${counts.Rare}) should appear more than legendaries (${counts.Legendary})`)
+    // Calculate observed legendary rate
+    const total = counts.Rare + counts.Legendary
+    const legendaryRate = counts.Legendary / total
 
-    // The ratio in the hopper depends on card pool:
-    // SOR has 48 rares and 16 legendaries, with 7:1 ratio
-    // Each segment has 48 rares + ~2-3 legendaries = ~48:2.29 ≈ 21:1 in hopper
-    const ratio = counts.Rare / counts.Legendary
-    assert(ratio > 2 && ratio < 30,
-      `Rare:Legendary ratio should be reasonable, got ${ratio.toFixed(2)}`)
+    // SPEC: SOR (Set 1) should have ~12.5% legendary rate (1 in 8)
+    const expectedRate = 1 / 8  // 12.5%
+    const tolerance = 0.04  // Allow 4% variance for statistical noise
+
+    assert(Math.abs(legendaryRate - expectedRate) < tolerance,
+      `Legendary rate should be ~${(expectedRate * 100).toFixed(1)}% (1 in 8), ` +
+      `got ${(legendaryRate * 100).toFixed(1)}% (${counts.Legendary}/${total})`)
   })
 
   test('no duplicate cards within 6 slots of each other (seam dedup)', () => {

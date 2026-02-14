@@ -426,10 +426,10 @@ export default function RotisseriePlayPage() {
     loadSets()
   }, [hasBetaAccess])
 
-  // Redirect if deleted
+  // Redirect if deleted (host cancelled or draft was deleted)
   useEffect(() => {
     if (deleted) {
-      router.push('/formats/rotisserie')
+      router.push('/formats')
     }
   }, [deleted, router])
 
