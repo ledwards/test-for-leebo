@@ -42,6 +42,12 @@ const sortSetsChronologically = (sets: SetData[]): SetData[] => {
     (SET_ORDER[a.code] || 999) - (SET_ORDER[b.code] || 999)
   )
 }
+
+// Get set color from config
+function getSetColor(setCode: string): string {
+  const config = getSetConfig(setCode)
+  return config?.color || '#ffffff'
+}
 import './page.css'
 import '@/app/draft/draft.css'
 import '@/src/components/SealedPod.css'
@@ -323,6 +329,7 @@ export default function RotisseriePlayPage() {
   })
   const [sortOption, setSortOption] = useState<'number' | 'cost' | 'aspect' | 'rarity' | 'type'>('number')
   const [activeFilters, setActiveFilters] = useState<Record<string, boolean>>({})
+  const [setFilters, setSetFilters] = useState<Record<string, boolean>>({})
   const [picking, setPicking] = useState(false)
   const [optimisticPickId, setOptimisticPickId] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -334,6 +341,7 @@ export default function RotisseriePlayPage() {
   const [updatingSets, setUpdatingSets] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [showMyPicksModal, setShowMyPicksModal] = useState(false)
+  const [picksInputValue, setPicksInputValue] = useState<string>('')
   const [pickNotification, setPickNotification] = useState<{
     playerName: string
     cardName: string
@@ -397,6 +405,13 @@ export default function RotisseriePlayPage() {
     }
     lastPickCountRef.current = currentPickCount
   }, [data?.pickedCards, data?.players, data?.cardPool, data?.leaders, data?.bases, user])
+
+  // Sync picks input with server data
+  useEffect(() => {
+    if (data?.picksPerPlayer !== undefined) {
+      setPicksInputValue(String(data.picksPerPlayer))
+    }
+  }, [data?.picksPerPlayer])
 
   // Fetch available sets
   useEffect(() => {
@@ -594,6 +609,17 @@ export default function RotisseriePlayPage() {
     }
   }, [presentCombos])
 
+  // Initialize set filters when data loads
+  useEffect(() => {
+    if (data?.setCodes && data.setCodes.length > 0 && Object.keys(setFilters).length === 0) {
+      const defaults: Record<string, boolean> = {}
+      data.setCodes.forEach(setCode => {
+        defaults[setCode] = true
+      })
+      setSetFilters(defaults)
+    }
+  }, [data?.setCodes])
+
   // Rarity order for sorting
   const RARITY_ORDER: Record<string, number> = {
     'Legendary': 1, 'Rare': 2, 'Uncommon': 3, 'Common': 4, 'Special': 5,
@@ -644,6 +670,15 @@ export default function RotisseriePlayPage() {
         const comboKey = getAspectComboKey(card)
         return activeFilters[comboKey]
       })
+    }
+
+    // Apply set filters (only if there are 2+ sets)
+    const setCodes = data.setCodes || []
+    if (setCodes.length >= 2) {
+      const hasActiveSetFilter = Object.values(setFilters).some(v => v)
+      if (hasActiveSetFilter) {
+        cards = cards.filter(card => setFilters[card.set || ''])
+      }
     }
 
     // Sort based on selected option
@@ -932,8 +967,11 @@ export default function RotisseriePlayPage() {
     ? upcomingPicks.findIndex((p, i) => i > 0 && p.id === user.id)
     : -1
 
-  const totalCards = (data.cardPool || []).length + (data.leaders || []).length + (data.bases || []).length
-  const cardsPerPlayer = data.picksPerPlayer || (players.length > 0 ? Math.floor(totalCards / players.length) : 50)
+  // Calculate total cards - use SET_CARD_COUNTS in lobby, actual pool data when active
+  const totalCards = data.status === 'waiting'
+    ? (data.setCodes || []).reduce((sum, setCode) => sum + (SET_CARD_COUNTS[setCode] || 0), 0)
+    : (data.cardPool || []).length + (data.leaders || []).length + (data.bases || []).length
+  const cardsPerPlayer = data.picksPerPlayer || (players.length > 0 ? Math.floor(totalCards / players.length) : 42)
   const totalPicks = cardsPerPlayer * players.length
   const percentDrafted = totalCards > 0 ? Math.round((totalPicks / totalCards) * 100) : 0
 
@@ -981,11 +1019,13 @@ export default function RotisseriePlayPage() {
               {availableSets.map((set) => {
                 const isSelected = (data.setCodes || []).includes(set.code)
                 const packArtUrl = set.imageUrl || getPackArtUrl(set.code)
+                const setColor = getSetColor(set.code)
                 return (
                   <div
                     key={set.code}
                     className={`set-card ${isSelected ? 'selected' : 'unselected'} ${!isHost ? 'disabled' : ''}`}
                     onClick={() => isHost && handleToggleSet(set.code)}
+                    style={{ '--set-color': setColor } as React.CSSProperties}
                   >
                     {set.beta && <div className="beta-badge">Beta</div>}
                     <div className="set-image-container">
@@ -1080,30 +1120,76 @@ export default function RotisseriePlayPage() {
                     </div>
                   )}
                   {isHost ? (
-                    <div className="draft-info-item">
-                      <span className="draft-info-label">Picks per Player</span>
-                      <input
-                        type="text"
-                        value={data.picksPerPlayer || 42}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/[^0-9]/g, '')
-                          const value = val === '' ? 42 : parseInt(val, 10)
-                          if (value >= 1 && value <= 500) {
-                            handleAction('update-settings', { picksPerPlayer: value })
-                          }
-                        }}
-                        className="draft-info-input"
-                      />
+                    <div className="draft-info-item draft-mode-selector">
+                      <span className="draft-info-label">Draft Mode</span>
+                      <div className="draft-mode-options">
+                        <label className={`draft-mode-option ${data.draftMode === 'exhausted' ? 'active' : ''}`}>
+                          <input
+                            type="radio"
+                            name="draftMode"
+                            value="exhausted"
+                            checked={data.draftMode === 'exhausted'}
+                            onChange={() => handleAction('update-settings', { draftMode: 'exhausted' })}
+                          />
+                          Entire Pool
+                        </label>
+                        <label className={`draft-mode-option ${(data.draftMode || 'fixed') === 'fixed' ? 'active' : ''}`}>
+                          <input
+                            type="radio"
+                            name="draftMode"
+                            value="fixed"
+                            checked={(data.draftMode || 'fixed') === 'fixed'}
+                            onChange={() => handleAction('update-settings', { draftMode: 'fixed' })}
+                          />
+                          Fixed Picks
+                          <input
+                            type="text"
+                            value={picksInputValue}
+                            placeholder="42"
+                            onChange={(e) => setPicksInputValue(e.target.value.replace(/[^0-9]/g, ''))}
+                            onBlur={() => {
+                              const value = picksInputValue === '' ? 42 : parseInt(picksInputValue, 10)
+                              if (value >= 1 && value <= 500) {
+                                handleAction('update-settings', { picksPerPlayer: value })
+                              } else {
+                                setPicksInputValue(String(data.picksPerPlayer || 42))
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.currentTarget.blur()
+                              }
+                            }}
+                            className="draft-info-input inline-input"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </label>
+                      </div>
                     </div>
                   ) : (
                     <div className="draft-info-item">
-                      <span className="draft-info-label">Picks per Player</span>
-                      <span className="draft-info-value">{data.picksPerPlayer || 42}</span>
+                      <span className="draft-info-label">Draft Mode</span>
+                      <span className="draft-info-value">
+                        {data.draftMode === 'exhausted' ? 'Entire Pool' : `Fixed: ${data.picksPerPlayer || 42} picks`}
+                      </span>
                     </div>
                   )}
-                  <div className="draft-info-item">
+                  <div className="draft-info-item pool-drafted-info">
                     <span className="draft-info-label">Pool Drafted</span>
-                    <span className="draft-info-value">{percentDrafted}%</span>
+                    <span className={`draft-info-value ${percentDrafted > 100 || cardsPerPlayer < 30 ? 'warning' : ''}`}>
+                      {data.draftMode === 'exhausted' ? '100%' : `${percentDrafted}%`}
+                    </span>
+                    <p className={`pool-drafted-hint ${cardsPerPlayer < 30 ? 'warning' : ''}`}>
+                      {cardsPerPlayer < 30
+                        ? `⚠️ ${cardsPerPlayer} picks is not enough for a legal 30-card deck!`
+                        : data.draftMode === 'exhausted'
+                          ? 'All cards get drafted. Each player gets equal picks.'
+                          : percentDrafted > 100
+                            ? `⚠️ Not enough cards! Reduce picks or add more sets.`
+                            : percentDrafted < 50
+                              ? 'Lower % = more variety. Higher % = more competitive.'
+                              : 'Higher % means cards are more contested.'}
+                    </p>
                   </div>
                   {isHost ? (
                     <div className="draft-info-item timer-config">
@@ -1311,7 +1397,7 @@ export default function RotisseriePlayPage() {
                 </div>
               </div>
 
-              {/* Type + Sort row */}
+              {/* Show row (type filters + set filters) */}
               <div className="status-bar-controls-row">
                 <div className="type-filter-group">
                   <span className="type-filter-label">Show:</span>
@@ -1359,6 +1445,30 @@ export default function RotisseriePlayPage() {
                   </button>
                 </div>
 
+                {/* Set filters - only show if 2+ sets */}
+                {(data.setCodes || []).length >= 2 && (
+                  <div className="set-filter-group">
+                    {(data.setCodes || []).map(setCode => {
+                      const setColor = getSetColor(setCode)
+                      const isActive = setFilters[setCode] !== false
+                      return (
+                        <button
+                          key={setCode}
+                          className={`set-filter-btn ${isActive ? 'active' : 'inactive'}`}
+                          onClick={() => setSetFilters(prev => ({ ...prev, [setCode]: !prev[setCode] }))}
+                          style={{ '--set-color': setColor } as React.CSSProperties}
+                          title={`Toggle ${setCode}`}
+                        >
+                          {setCode}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Sort row */}
+              <div className="status-bar-sort-row">
                 <div className="sort-group">
                   <span className="sort-label">Sort:</span>
                   <button

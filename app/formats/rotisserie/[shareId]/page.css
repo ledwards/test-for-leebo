@@ -579,8 +579,8 @@
 }
 
 .set-card.selected {
-  border-color: rgba(0, 255, 0, 0.6);
-  box-shadow: 0 0 12px rgba(0, 255, 0, 0.3);
+  border-color: var(--set-color, rgba(0, 255, 0, 0.6));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--set-color) 50%, transparent);
 }
 
 .set-card.unselected {
@@ -699,6 +699,75 @@
 
 .timer-config-row .timer-input {
   width: 50px;
+}
+
+/* Draft Mode Selector */
+.draft-mode-selector {
+  grid-column: 1 / -1;
+}
+
+.draft-mode-options {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.draft-mode-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+}
+
+.draft-mode-option:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.draft-mode-option.active {
+  background: rgba(33, 150, 243, 0.2);
+  border-color: rgba(33, 150, 243, 0.6);
+  color: white;
+}
+
+.draft-mode-option input[type="radio"] {
+  width: 14px;
+  height: 14px;
+  accent-color: #64b4ff;
+  cursor: pointer;
+}
+
+.draft-mode-option .inline-input {
+  width: 45px;
+  margin-left: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.85rem;
+}
+
+/* Pool Drafted Info */
+.pool-drafted-info {
+  grid-column: 1 / -1;
+}
+
+.pool-drafted-info .draft-info-value.warning {
+  color: #ff6b6b;
+}
+
+.pool-drafted-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
+  margin-top: 0.35rem;
+}
+
+.pool-drafted-hint.warning {
+  color: #ff6b6b;
 }
 
 /* Player picks tooltip */
@@ -890,10 +959,52 @@
 }
 
 .type-filter-group,
-.sort-group {
+.sort-group,
+.set-filter-group {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.set-filter-group {
+  margin-left: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Sort row */
+.status-bar-sort-row {
+  display: flex;
+  align-items: center;
+}
+
+/* Set filter buttons */
+.set-filter-btn {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'Barlow', sans-serif;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--set-color, white);
+}
+
+.set-filter-btn.active {
+  background: color-mix(in srgb, var(--set-color) 20%, transparent);
+  border-color: var(--set-color);
+  text-shadow: 0 0 8px var(--set-color);
+}
+
+.set-filter-btn.inactive {
+  opacity: 0.4;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.set-filter-btn:hover {
+  border-color: var(--set-color);
 }
 
 .type-filter-group .type-filter-btn,
@@ -1344,7 +1455,8 @@
   object-fit: cover;
 }
 
-.card-pool .canvas-card.leader img {
+.card-pool .canvas-card.leader img,
+.card-pool .canvas-card.base img {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1355,7 +1467,8 @@
 }
 
 
-.my-picks-grid .canvas-card.leader img {
+.my-picks-grid .canvas-card.leader img,
+.my-picks-grid .canvas-card.base img {
   position: absolute;
   top: 50%;
   left: 50%;

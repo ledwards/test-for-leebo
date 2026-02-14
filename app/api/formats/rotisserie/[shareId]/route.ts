@@ -41,11 +41,11 @@ function generateCardPool(setCodes: string[]) {
     c.type !== 'Base' && !c.isBase
   )
 
-  // Add instance IDs
+  // Add instance IDs and ensure type flags
   let counter = 0
   const cardPool = draftableCards.map(c => ({ ...c, instanceId: `${c.id}_${counter++}` }))
-  const leadersWithIds = leaders.map(c => ({ ...c, instanceId: `${c.id}_${counter++}` }))
-  const basesWithIds = rareBases.map(c => ({ ...c, instanceId: `${c.id}_${counter++}` }))
+  const leadersWithIds = leaders.map(c => ({ ...c, instanceId: `${c.id}_${counter++}`, isLeader: true }))
+  const basesWithIds = rareBases.map(c => ({ ...c, instanceId: `${c.id}_${counter++}`, isBase: true }))
 
   return { cardPool, leaders: leadersWithIds, bases: basesWithIds }
 }
@@ -153,7 +153,18 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
         data.currentPickerIndex = 0
         data.pickDirection = 1
         data.pickNumber = 1
-        data.totalPicks = data.picksPerPlayer * data.players.length
+
+        // Calculate total picks based on draft mode
+        const totalCards = cardPool.length + leaders.length + bases.length
+        if (data.draftMode === 'exhausted') {
+          // In exhausted mode, draft until all cards are picked
+          // Each player gets equal picks (round down to ensure fairness)
+          data.picksPerPlayer = Math.floor(totalCards / data.players.length)
+          data.totalPicks = data.picksPerPlayer * data.players.length
+        } else {
+          // Fixed mode uses configured picksPerPlayer
+          data.totalPicks = data.picksPerPlayer * data.players.length
+        }
         data.status = 'active'
         data.lastPickTimestamp = Date.now()
 
@@ -205,8 +216,11 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
           return errorResponse('Cannot change settings after draft has started', 400)
         }
 
-        const { maxPlayers, timerEnabled, pickTimerSeconds, picksPerPlayer } = body
+        const { maxPlayers, timerEnabled, pickTimerSeconds, picksPerPlayer, draftMode } = body
 
+        if (draftMode !== undefined && (draftMode === 'fixed' || draftMode === 'exhausted')) {
+          data.draftMode = draftMode
+        }
         if (maxPlayers !== undefined) {
           const clamped = Math.max(2, Math.min(16, Number(maxPlayers)))
           if (clamped >= data.players.length) {
@@ -338,7 +352,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
           data.currentPickerIndex = nextIndex
         }
 
-        if (data.pickNumber > data.picksPerPlayer * data.players.length) {
+        if (data.pickNumber > data.totalPicks) {
           data.status = 'completed'
         }
 
@@ -397,7 +411,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
           data.currentPickerIndex = nextIndex
         }
 
-        if (data.pickNumber > data.picksPerPlayer * data.players.length) {
+        if (data.pickNumber > data.totalPicks) {
           data.status = 'completed'
         }
 
