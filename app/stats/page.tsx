@@ -423,13 +423,27 @@ interface LegendaryInfo {
   treatment: string // 'Foil', 'Hyperspace', etc. or '' for regular
 }
 
+interface AnyDuplicateInfo {
+  name: string
+  count: number
+  treatments: string[] // e.g., ['regular', 'foil']
+}
+
 interface PoolStats {
   baseDuplicates: { name: string; count: number }[]  // Normal variant only
-  anyDuplicates: { name: string; count: number }[]   // Any treatment
+  anyDuplicates: AnyDuplicateInfo[]   // Any treatment with treatment list
   legendaries: LegendaryInfo[]
   hyperspaceLeaders: number
   hyperspaceBases: number
   hyperspaceOther: number
+}
+
+function getTreatmentLabel(card: PackCard): string {
+  if (card.isShowcase) return 'showcase'
+  if (card.isHyperspace && card.isFoil) return 'hyperspace foil'
+  if (card.isHyperspace) return 'hyperspace'
+  if (card.isFoil) return 'foil'
+  return 'regular'
 }
 
 function getPoolStats(packs: Pack[]): PoolStats {
@@ -448,17 +462,20 @@ function getPoolStats(packs: Pack[]): PoolStats {
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count)
 
-  // Any treatment duplicates (exact card ID)
+  // Any treatment duplicates - group by card name, track treatments
   const nonLeaderBase = allCards.filter(c => c.type !== 'Leader' && c.type !== 'Base')
-  const idCounts = new Map<string, { name: string; count: number }>()
+  const nameGroups = new Map<string, { count: number; treatments: Set<string> }>()
   nonLeaderBase.forEach(c => {
-    if (!idCounts.has(c.cardId)) {
-      idCounts.set(c.cardId, { name: c.name, count: 0 })
+    if (!nameGroups.has(c.name)) {
+      nameGroups.set(c.name, { count: 0, treatments: new Set() })
     }
-    idCounts.get(c.cardId)!.count++
+    const group = nameGroups.get(c.name)!
+    group.count++
+    group.treatments.add(getTreatmentLabel(c))
   })
-  const anyDuplicates = Array.from(idCounts.values())
-    .filter(d => d.count > 1)
+  const anyDuplicates: AnyDuplicateInfo[] = Array.from(nameGroups.entries())
+    .filter(([, data]) => data.count > 1)
+    .map(([name, data]) => ({ name, count: data.count, treatments: Array.from(data.treatments).sort() }))
     .sort((a, b) => b.count - a.count)
 
   // Legendaries with treatment info
@@ -635,7 +652,7 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
                     {anyDupCount} {pluralize(anyDupCount, 'Duplicate', 'Duplicates')} (any treatment):
                   </span>
                   <span className="pool-stat-value">
-                    {anyDupCount === 0 ? 'None' : stats.anyDuplicates.map(d => `${d.name} x${d.count}`).join(', ')}
+                    {anyDupCount === 0 ? 'None' : stats.anyDuplicates.map(d => `${d.name} x${d.count} (${d.treatments.join(', ')})`).join(', ')}
                   </span>
                 </div>
                 <div className="pool-stat-line">
