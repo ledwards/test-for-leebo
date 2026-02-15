@@ -992,74 +992,86 @@
   font-size: 0.95rem;
 }
 
-.packs-grid {
+/* Pool grouping styles */
+.pools-grid {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
-.pack-container {
+.pool-container {
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
-.pack-header {
+.pool-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.pack-label {
-  font-weight: 600;
-  color: #fff;
-  font-size: 1rem;
-}
-
-.pack-source {
-  font-size: 0.8rem;
+.pool-type {
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.5);
   text-transform: capitalize;
-  padding: 0.2rem 0.5rem;
+  padding: 0.15rem 0.4rem;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
-.pack-pool-link {
-  font-size: 0.75rem;
+.pool-link {
+  font-size: 0.7rem;
   color: #2196F3;
   text-decoration: none;
   font-family: monospace;
-  padding: 0.2rem 0.5rem;
-  background: rgba(33, 150, 243, 0.1);
-  border: 1px solid rgba(33, 150, 243, 0.3);
-  border-radius: 4px;
-  transition: all 0.2s ease;
 }
 
-.pack-pool-link:hover {
-  background: rgba(33, 150, 243, 0.2);
-  border-color: #2196F3;
+.pool-link:hover {
   text-decoration: underline;
 }
 
-.pack-cards {
+.pool-pack-count {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-left: auto;
+}
+
+.pool-packs {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 0.5rem;
-  overflow-x: auto;
+}
+
+.pack-container-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pack-label-compact {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+.pack-cards-compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-width: 340px;
 }
 
 .pack-card {
   position: relative;
-  width: 80px;
+  width: 60px;
   flex-shrink: 0;
   aspect-ratio: 5 / 7;
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: #1a1a1a;
@@ -1109,18 +1121,24 @@
   border-color: rgba(255, 105, 180, 0.6);
 }
 
-/* Leaders and bases use same container size as regular cards */
-/* Images fill the container with object-fit: contain */
+/* Leaders and bases: same portrait container, image rotated 90deg CCW */
 .pack-card.base,
 .pack-card.leader {
-  /* Same width/height as regular cards - portrait container */
-  /* Card image will be contained within, showing padding if landscape */
+  position: relative;
+  overflow: hidden;
 }
 
 .pack-card.base .pack-card-image,
 .pack-card.leader .pack-card-image {
-  object-fit: contain;
-  background: #1a1a1a;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Scale up to fill the portrait container when rotated */
+  width: 140%;
+  height: auto;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center;
+  object-fit: cover;
 }
 
 .pack-card-image {
@@ -1194,31 +1212,40 @@
 /* Responsive pack grid */
 @media (max-width: 1200px) {
   .pack-card {
-    width: 70px;
+    width: 55px;
+  }
+
+  .pack-cards-compact {
+    max-width: 280px;
   }
 }
 
 @media (max-width: 900px) {
   .pack-card {
-    width: 60px;
+    width: 50px;
+  }
+
+  .pack-cards-compact {
+    max-width: 260px;
   }
 }
 
 @media (max-width: 600px) {
-  .pack-cards {
-    gap: 0.3rem;
+  .pack-cards-compact {
+    gap: 1px;
+    max-width: 200px;
   }
 
   .pack-card {
-    width: 50px;
+    width: 40px;
   }
 
-  .pack-container {
-    padding: 0.75rem;
+  .pool-container {
+    padding: 0.4rem;
   }
 
-  .pack-label {
-    font-size: 0.9rem;
+  .pack-label-compact {
+    font-size: 0.55rem;
   }
 }
 
