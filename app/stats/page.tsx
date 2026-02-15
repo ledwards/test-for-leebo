@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import './stats.css'
 
 interface Treatment {
@@ -409,17 +409,24 @@ interface PacksSubTabProps {
   setCode: string
 }
 
+// Group packs by sourceId (pool)
+interface PoolGroup {
+  sourceId: string
+  sourceType: string
+  packs: Pack[]
+}
+
 function PacksSubTab({ setCode }: PacksSubTabProps) {
   const [packs, setPacks] = useState<Pack[]>([])
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
   const [offset, setOffset] = useState(0)
-  const limit = 20
+  const limit = 60 // Load more at once since we're grouping
 
   useEffect(() => {
     setLoading(true)
     setOffset(0)
-    fetch(`/api/stats/packs?setCode=${setCode}&limit=${limit}&offset=0`)
+    fetch(`/api/stats/packs?setCode=${setCode}&limit=${limit}&offset=0&since=${STATS_START_DATE}`)
       .then(res => res.json())
       .then(response => {
         const data = response.data || response
@@ -436,7 +443,7 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
   const loadMore = () => {
     const newOffset = offset + limit
     setLoading(true)
-    fetch(`/api/stats/packs?setCode=${setCode}&limit=${limit}&offset=${newOffset}`)
+    fetch(`/api/stats/packs?setCode=${setCode}&limit=${limit}&offset=${newOffset}&since=${STATS_START_DATE}`)
       .then(res => res.json())
       .then(response => {
         const data = response.data || response
@@ -449,6 +456,26 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
         setLoading(false)
       })
   }
+
+  // Group packs by pool (sourceId)
+  const poolGroups: PoolGroup[] = useMemo(() => {
+    const groups = new Map<string, PoolGroup>()
+    packs.forEach(pack => {
+      if (!groups.has(pack.sourceId)) {
+        groups.set(pack.sourceId, {
+          sourceId: pack.sourceId,
+          sourceType: pack.sourceType,
+          packs: []
+        })
+      }
+      groups.get(pack.sourceId)!.packs.push(pack)
+    })
+    // Sort packs within each group by packIndex
+    groups.forEach(group => {
+      group.packs.sort((a, b) => a.packIndex - b.packIndex)
+    })
+    return Array.from(groups.values())
+  }, [packs])
 
   if (loading && packs.length === 0) {
     return <div className="stats-loading">Loading packs...</div>
@@ -466,40 +493,45 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
   return (
     <div className="packs-subtab">
       <div className="packs-summary">
-        <p>Showing {fmt(packs.length)} of {fmt(total)} packs</p>
+        <p>Showing {fmt(packs.length)} packs in {fmt(poolGroups.length)} pools (of {fmt(total)} total packs)</p>
       </div>
-      <div className="packs-grid">
-        {packs.map((pack, idx) => (
-          <div key={`${pack.sourceId}-${pack.packIndex}-${idx}`} className="pack-container">
-            <div className="pack-header">
-              <span className="pack-label">Pack {pack.packIndex + 1}</span>
-              <span className="pack-source">{pack.sourceType}</span>
-              {pack.sourceId && (
-                <a href={`/pool/${pack.sourceId}`} className="pack-pool-link" title={`View pool ${pack.sourceId}`}>
-                  {pack.sourceId.slice(0, 8)}...
-                </a>
-              )}
+      <div className="pools-grid">
+        {poolGroups.map(pool => (
+          <div key={pool.sourceId} className="pool-container">
+            <div className="pool-header">
+              <span className="pool-type">{pool.sourceType}</span>
+              <a href={`/pool/${pool.sourceId}`} className="pool-link" title={`View pool ${pool.sourceId}`}>
+                {pool.sourceId.slice(0, 8)}...
+              </a>
+              <span className="pool-pack-count">{pool.packs.length} packs</span>
             </div>
-            <div className="pack-cards">
-              {pack.cards.map((card, cardIdx) => {
-                const isBase = card.type === 'Base'
-                const isLeader = card.type === 'Leader'
-                return (
-                  <div
-                    key={`${card.cardId}-${cardIdx}`}
-                    className={`pack-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isBase ? 'base' : ''} ${isLeader ? 'leader' : ''}`}
-                    title={`${card.name}${card.subtitle ? ` - ${card.subtitle}` : ''} (${card.treatment})`}
-                  >
-                    {card.imageUrl ? (
-                      <img src={card.imageUrl} alt={card.name} className="pack-card-image" />
-                    ) : (
-                      <div className="pack-card-placeholder">
-                        <span className="placeholder-name">{card.name}</span>
-                      </div>
-                    )}
+            <div className="pool-packs">
+              {pool.packs.map((pack, idx) => (
+                <div key={`${pack.sourceId}-${pack.packIndex}-${idx}`} className="pack-container-compact">
+                  <div className="pack-label-compact">Pack {pack.packIndex + 1}</div>
+                  <div className="pack-cards-compact">
+                    {pack.cards.map((card, cardIdx) => {
+                      const isBase = card.type === 'Base'
+                      const isLeader = card.type === 'Leader'
+                      return (
+                        <div
+                          key={`${card.cardId}-${cardIdx}`}
+                          className={`pack-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isBase ? 'base' : ''} ${isLeader ? 'leader' : ''}`}
+                          title={`${card.name}${card.subtitle ? ` - ${card.subtitle}` : ''} (${card.treatment})`}
+                        >
+                          {card.imageUrl ? (
+                            <img src={card.imageUrl} alt={card.name} className="pack-card-image" />
+                          ) : (
+                            <div className="pack-card-placeholder">
+                              <span className="placeholder-name">{card.name}</span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
-                )
-              })}
+                </div>
+              ))}
             </div>
           </div>
         ))}
