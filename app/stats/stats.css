@@ -1035,52 +1035,59 @@
   text-decoration: underline;
 }
 
-.pool-stats-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.35rem;
-  font-size: 0.65rem;
-  line-height: 1.2;
-}
-
-.pool-stat {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 250px;
-}
-
-.pool-packs-row {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.35rem;
-  overflow-x: auto;
-}
-
-.pack-container-compact {
+.pool-stats-block {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  line-height: 1.3;
+}
+
+.pool-stat-line {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.pool-stat-label {
+  color: rgba(255, 255, 255, 0.6);
   flex-shrink: 0;
 }
 
-.pack-label-compact {
-  font-size: 0.55rem;
-  color: rgba(255, 255, 255, 0.4);
-  text-align: center;
+.pool-stat-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.pack-cards-compact {
+.pool-packs-column {
   display: flex;
-  flex-wrap: wrap;
-  gap: 1px;
-  width: 130px;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pack-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pack-label-inline {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.5);
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.pack-cards-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2px;
 }
 
 .pack-card {
   position: relative;
-  width: 30px;
+  width: 50px;
   flex-shrink: 0;
   aspect-ratio: 5 / 7;
   border-radius: 2px;
@@ -1224,43 +1231,32 @@
 /* Responsive pack grid */
 @media (max-width: 1200px) {
   .pack-card {
-    width: 28px;
-  }
-
-  .pack-cards-compact {
-    width: 120px;
+    width: 45px;
   }
 }
 
 @media (max-width: 900px) {
   .pack-card {
-    width: 25px;
+    width: 38px;
   }
 
-  .pack-cards-compact {
-    width: 108px;
-  }
-
-  .pool-stat {
-    max-width: 180px;
+  .pool-stats-block {
+    font-size: 0.65rem;
   }
 }
 
 @media (max-width: 600px) {
   .pack-card {
-    width: 22px;
+    width: 30px;
   }
 
-  .pack-cards-compact {
-    width: 95px;
+  .pool-stats-block {
+    font-size: 0.6rem;
   }
 
-  .pool-stats-row {
-    font-size: 0.55rem;
-  }
-
-  .pool-stat {
-    max-width: 140px;
+  .pack-label-inline {
+    font-size: 0.5rem;
+    width: 16px;
   }
 
   .pack-card {

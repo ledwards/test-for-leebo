@@ -1,20 +1,20 @@
 ## QA Test Status
 
-✅ **PASSING** - 150/150 tests passing (100.0%)
+⚠️ **MOSTLY PASSING** - 149/150 tests passing (99.3%)
 
-Last run: 2/14/2026, 5:05:19 PM
+Last run: 2/14/2026, 5:10:43 PM
 
 ### Test Summary by Set
 
 - ✅ **SOR**: 25/25 passing
 - ✅ **SHD**: 25/25 passing
-- ✅ **TWI**: 25/25 passing
+- ⚠️ **TWI**: 24/25 passing
 - ✅ **JTL**: 25/25 passing
 - ✅ **LOF**: 25/25 passing
 - ✅ **SEC**: 25/25 passing
 
 ### Quick Stats
 - Total Tests: 150
-- Passed: 150 ✅
-- Failed: 0 ❌
-- Pass Rate: 100.0%
+- Passed: 149 ✅
+- Failed: 1 ❌
+- Pass Rate: 99.3%

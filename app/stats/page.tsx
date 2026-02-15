@@ -569,25 +569,35 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
                   {pool.sourceId.slice(0, 8)}...
                 </a>
               </div>
-              <div className="pool-stats-row">
-                <span className="pool-stat" style={{ color: getStatColor(baseDupCount, expectedBaseDups, 0.8) }}>
-                  Dups: {baseDupCount === 0 ? '0' : stats.baseDuplicates.map(d => `${d.name} x${d.count}`).join(', ')}
-                </span>
-                <span className="pool-stat" style={{ color: getStatColor(anyDupCount, expectedAnyDups, 1.4) }}>
-                  All: {anyDupCount === 0 ? '0' : stats.anyDuplicates.map(d => `${d.name} x${d.count}`).join(', ')}
-                </span>
-                <span className="pool-stat" style={{ color: getStatColor(stats.legendaryCount, expectedLegendary, 0.8) }}>
-                  Leg: {stats.legendaryCount}
-                </span>
-                <span className="pool-stat" style={{ color: getStatColor(stats.hyperspaceCount, expectedHS, 1.5) }}>
-                  HS: {stats.hyperspaceCount}
-                </span>
+              <div className="pool-stats-block">
+                <div className="pool-stat-line">
+                  <span className="pool-stat-label">Duplicates (regular treatment):</span>
+                  <span className="pool-stat-value" style={{ color: getStatColor(baseDupCount, expectedBaseDups, 0.8) }}>
+                    {baseDupCount === 0 ? 'None' : stats.baseDuplicates.map(d => `${d.name} x${d.count}`).join(', ')}
+                  </span>
+                </div>
+                <div className="pool-stat-line">
+                  <span className="pool-stat-label">Duplicates (any treatment):</span>
+                  <span className="pool-stat-value" style={{ color: getStatColor(anyDupCount, expectedAnyDups, 1.4) }}>
+                    {anyDupCount === 0 ? 'None' : stats.anyDuplicates.map(d => `${d.name} x${d.count}`).join(', ')}
+                  </span>
+                </div>
+                <div className="pool-stat-line">
+                  <span className="pool-stat-label">Legendaries:</span>
+                  <span className="pool-stat-value" style={{ color: getStatColor(stats.legendaryCount, expectedLegendary, 0.8) }}>
+                    {stats.legendaryCount}
+                  </span>
+                  <span className="pool-stat-label" style={{ marginLeft: '1rem' }}>Hyperspace:</span>
+                  <span className="pool-stat-value" style={{ color: getStatColor(stats.hyperspaceCount, expectedHS, 1.5) }}>
+                    {stats.hyperspaceCount}
+                  </span>
+                </div>
               </div>
-              <div className="pool-packs-row">
+              <div className="pool-packs-column">
                 {pool.packs.map((pack, idx) => (
-                  <div key={`${pack.sourceId}-${pack.packIndex}-${idx}`} className="pack-container-compact">
-                    <div className="pack-label-compact">P{pack.packIndex + 1}</div>
-                    <div className="pack-cards-compact">
+                  <div key={`${pack.sourceId}-${pack.packIndex}-${idx}`} className="pack-row">
+                    <span className="pack-label-inline">{pack.packIndex + 1}</span>
+                    <div className="pack-cards-row">
                       {pack.cards.map((card, cardIdx) => {
                         const isBase = card.type === 'Base'
                         const isLeader = card.type === 'Leader'
