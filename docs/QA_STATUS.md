@@ -2,15 +2,15 @@
 
 ⚠️ **MOSTLY PASSING** - 149/150 tests passing (99.3%)
 
-Last run: 2/14/2026, 5:10:43 PM
+Last run: 2/14/2026, 5:13:17 PM
 
 ### Test Summary by Set
 
 - ✅ **SOR**: 25/25 passing
 - ✅ **SHD**: 25/25 passing
-- ⚠️ **TWI**: 24/25 passing
+- ✅ **TWI**: 25/25 passing
 - ✅ **JTL**: 25/25 passing
-- ✅ **LOF**: 25/25 passing
+- ⚠️ **LOF**: 24/25 passing
 - ✅ **SEC**: 25/25 passing
 
 ### Quick Stats
