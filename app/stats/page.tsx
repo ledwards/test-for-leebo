@@ -583,6 +583,8 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
           const anyDupCount = stats.anyDuplicates.reduce((sum, d) => sum + d.count - 1, 0)
           const totalHS = stats.hyperspaceLeaders + stats.hyperspaceBases + stats.hyperspaceOther
 
+          const pluralize = (count: number, singular: string, plural: string) => count === 1 ? singular : plural
+
           return (
             <div key={pool.sourceId} className="pool-container">
               <div className="pool-header">
@@ -590,32 +592,6 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
                 <a href={`/pool/${pool.sourceId}`} className="pool-link" title={`View pool ${pool.sourceId}`}>
                   {pool.sourceId.slice(0, 8)}...
                 </a>
-              </div>
-              <div className="pool-stats-block">
-                <div className="pool-stat-line">
-                  <span className="pool-stat-label">Duplicates (regular treatment):</span>
-                  <span className="pool-stat-value" style={{ color: getStatColor(baseDupCount, expectedBaseDups, 0.8) }}>
-                    {baseDupCount === 0 ? 'None' : stats.baseDuplicates.map(d => `${d.name} x${d.count}`).join(', ')}
-                  </span>
-                </div>
-                <div className="pool-stat-line">
-                  <span className="pool-stat-label">Duplicates (any treatment):</span>
-                  <span className="pool-stat-value" style={{ color: getStatColor(anyDupCount, expectedAnyDups, 1.4) }}>
-                    {anyDupCount === 0 ? 'None' : stats.anyDuplicates.map(d => `${d.name} x${d.count}`).join(', ')}
-                  </span>
-                </div>
-                <div className="pool-stat-line">
-                  <span className="pool-stat-label">Legendaries:</span>
-                  <span className="pool-stat-value" style={{ color: getStatColor(stats.legendaries.length, expectedLegendary, 0.8) }}>
-                    {stats.legendaries.length === 0 ? 'None' : stats.legendaries.map(l => l.treatment ? `${l.name} (${l.treatment})` : l.name).join(', ')}
-                  </span>
-                </div>
-                <div className="pool-stat-line">
-                  <span className="pool-stat-label">Hyperspace:</span>
-                  <span className="pool-stat-value" style={{ color: getStatColor(totalHS, expectedHS, 1.5) }}>
-                    {totalHS === 0 ? 'None' : `${stats.hyperspaceLeaders} leader, ${stats.hyperspaceBases} base, ${stats.hyperspaceOther} other`}
-                  </span>
-                </div>
               </div>
               <div className="pool-packs-column">
                 {pool.packs.map((pack, idx) => (
@@ -644,6 +620,40 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
                     </div>
                   </div>
                 ))}
+              </div>
+              <div className="pool-stats-block">
+                <div className="pool-stat-line">
+                  <span className="pool-stat-label" style={{ color: getStatColor(baseDupCount, expectedBaseDups, 0.8) }}>
+                    {baseDupCount} {pluralize(baseDupCount, 'Duplicate', 'Duplicates')} (regular treatment):
+                  </span>
+                  <span className="pool-stat-value">
+                    {baseDupCount === 0 ? 'None' : stats.baseDuplicates.map(d => `${d.name} x${d.count}`).join(', ')}
+                  </span>
+                </div>
+                <div className="pool-stat-line">
+                  <span className="pool-stat-label" style={{ color: getStatColor(anyDupCount, expectedAnyDups, 1.4) }}>
+                    {anyDupCount} {pluralize(anyDupCount, 'Duplicate', 'Duplicates')} (any treatment):
+                  </span>
+                  <span className="pool-stat-value">
+                    {anyDupCount === 0 ? 'None' : stats.anyDuplicates.map(d => `${d.name} x${d.count}`).join(', ')}
+                  </span>
+                </div>
+                <div className="pool-stat-line">
+                  <span className="pool-stat-label" style={{ color: getStatColor(stats.legendaries.length, expectedLegendary, 0.8) }}>
+                    {stats.legendaries.length} {pluralize(stats.legendaries.length, 'Legendary', 'Legendaries')}:
+                  </span>
+                  <span className="pool-stat-value">
+                    {stats.legendaries.length === 0 ? 'None' : stats.legendaries.map(l => l.treatment ? `${l.name} (${l.treatment})` : l.name).join(', ')}
+                  </span>
+                </div>
+                <div className="pool-stat-line">
+                  <span className="pool-stat-label" style={{ color: getStatColor(totalHS, expectedHS, 1.5) }}>
+                    {totalHS} Hyperspace:
+                  </span>
+                  <span className="pool-stat-value">
+                    {totalHS === 0 ? 'None' : `${stats.hyperspaceLeaders} ${pluralize(stats.hyperspaceLeaders, 'leader', 'leaders')}, ${stats.hyperspaceBases} ${pluralize(stats.hyperspaceBases, 'base', 'bases')}, ${stats.hyperspaceOther} other`}
+                  </span>
+                </div>
               </div>
             </div>
           )
