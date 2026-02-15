@@ -483,10 +483,10 @@ function getPoolStats(packs: Pack[]): PoolStats {
     .filter(c => c.rarity === 'Legendary')
     .map(c => {
       let treatment = ''
-      if (c.isShowcase) treatment = 'Showcase'
-      else if (c.isHyperspace && c.isFoil) treatment = 'Hyperspace Foil'
-      else if (c.isHyperspace) treatment = 'Hyperspace'
-      else if (c.isFoil) treatment = 'Foil'
+      if (c.isShowcase) treatment = 'showcase'
+      else if (c.isHyperspace && c.isFoil) treatment = 'hyperspace foil'
+      else if (c.isHyperspace) treatment = 'hyperspace'
+      else if (c.isFoil) treatment = 'foil'
       return { name: c.name, treatment }
     })
 
