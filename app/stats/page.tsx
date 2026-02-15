@@ -418,11 +418,18 @@ interface PoolGroup {
 }
 
 // Pool stats for display
+interface LegendaryInfo {
+  name: string
+  treatment: string // 'Foil', 'Hyperspace', etc. or '' for regular
+}
+
 interface PoolStats {
   baseDuplicates: { name: string; count: number }[]  // Normal variant only
   anyDuplicates: { name: string; count: number }[]   // Any treatment
-  legendaryCount: number
-  hyperspaceCount: number
+  legendaries: LegendaryInfo[]
+  hyperspaceLeaders: number
+  hyperspaceBases: number
+  hyperspaceOther: number
 }
 
 function getPoolStats(packs: Pack[]): PoolStats {
@@ -454,11 +461,25 @@ function getPoolStats(packs: Pack[]): PoolStats {
     .filter(d => d.count > 1)
     .sort((a, b) => b.count - a.count)
 
-  // Count legendaries and hyperspace
-  const legendaryCount = allCards.filter(c => c.rarity === 'Legendary').length
-  const hyperspaceCount = allCards.filter(c => c.isHyperspace).length
+  // Legendaries with treatment info
+  const legendaries = allCards
+    .filter(c => c.rarity === 'Legendary')
+    .map(c => {
+      let treatment = ''
+      if (c.isShowcase) treatment = 'Showcase'
+      else if (c.isHyperspace && c.isFoil) treatment = 'Hyperspace Foil'
+      else if (c.isHyperspace) treatment = 'Hyperspace'
+      else if (c.isFoil) treatment = 'Foil'
+      return { name: c.name, treatment }
+    })
 
-  return { baseDuplicates, anyDuplicates, legendaryCount, hyperspaceCount }
+  // Hyperspace breakdown
+  const hsCards = allCards.filter(c => c.isHyperspace)
+  const hyperspaceLeaders = hsCards.filter(c => c.type === 'Leader').length
+  const hyperspaceBases = hsCards.filter(c => c.type === 'Base').length
+  const hyperspaceOther = hsCards.filter(c => c.type !== 'Leader' && c.type !== 'Base').length
+
+  return { baseDuplicates, anyDuplicates, legendaries, hyperspaceLeaders, hyperspaceBases, hyperspaceOther }
 }
 
 // Determine status color based on expected values
@@ -560,6 +581,7 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
 
           const baseDupCount = stats.baseDuplicates.reduce((sum, d) => sum + d.count - 1, 0)
           const anyDupCount = stats.anyDuplicates.reduce((sum, d) => sum + d.count - 1, 0)
+          const totalHS = stats.hyperspaceLeaders + stats.hyperspaceBases + stats.hyperspaceOther
 
           return (
             <div key={pool.sourceId} className="pool-container">
@@ -584,12 +606,14 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
                 </div>
                 <div className="pool-stat-line">
                   <span className="pool-stat-label">Legendaries:</span>
-                  <span className="pool-stat-value" style={{ color: getStatColor(stats.legendaryCount, expectedLegendary, 0.8) }}>
-                    {stats.legendaryCount}
+                  <span className="pool-stat-value" style={{ color: getStatColor(stats.legendaries.length, expectedLegendary, 0.8) }}>
+                    {stats.legendaries.length === 0 ? 'None' : stats.legendaries.map(l => l.treatment ? `${l.name} (${l.treatment})` : l.name).join(', ')}
                   </span>
-                  <span className="pool-stat-label" style={{ marginLeft: '1rem' }}>Hyperspace:</span>
-                  <span className="pool-stat-value" style={{ color: getStatColor(stats.hyperspaceCount, expectedHS, 1.5) }}>
-                    {stats.hyperspaceCount}
+                </div>
+                <div className="pool-stat-line">
+                  <span className="pool-stat-label">Hyperspace:</span>
+                  <span className="pool-stat-value" style={{ color: getStatColor(totalHS, expectedHS, 1.5) }}>
+                    {totalHS === 0 ? 'None' : `${stats.hyperspaceLeaders} leader, ${stats.hyperspaceBases} base, ${stats.hyperspaceOther} other`}
                   </span>
                 </div>
               </div>
