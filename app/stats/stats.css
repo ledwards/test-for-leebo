@@ -1035,45 +1035,57 @@
   text-decoration: underline;
 }
 
-.pool-pack-count {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.4);
-  margin-left: auto;
-}
-
-.pool-packs {
+.pool-stats-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.65rem;
+  line-height: 1.2;
+}
+
+.pool-stat {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+.pool-packs-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+  overflow-x: auto;
 }
 
 .pack-container-compact {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .pack-label-compact {
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.4);
   text-align: center;
 }
 
 .pack-cards-compact {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px;
-  max-width: 340px;
+  gap: 1px;
+  width: 130px;
 }
 
 .pack-card {
   position: relative;
-  width: 60px;
+  width: 30px;
   flex-shrink: 0;
   aspect-ratio: 5 / 7;
-  border-radius: 3px;
+  border-radius: 2px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   background: #1a1a1a;
 }
 
@@ -1212,28 +1224,43 @@
 /* Responsive pack grid */
 @media (max-width: 1200px) {
   .pack-card {
-    width: 55px;
+    width: 28px;
   }
 
   .pack-cards-compact {
-    max-width: 280px;
+    width: 120px;
   }
 }
 
 @media (max-width: 900px) {
   .pack-card {
-    width: 50px;
+    width: 25px;
   }
 
   .pack-cards-compact {
-    max-width: 260px;
+    width: 108px;
+  }
+
+  .pool-stat {
+    max-width: 180px;
   }
 }
 
 @media (max-width: 600px) {
+  .pack-card {
+    width: 22px;
+  }
+
   .pack-cards-compact {
-    gap: 1px;
-    max-width: 200px;
+    width: 95px;
+  }
+
+  .pool-stats-row {
+    font-size: 0.55rem;
+  }
+
+  .pool-stat {
+    max-width: 140px;
   }
 
   .pack-card {

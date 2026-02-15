@@ -76,6 +76,7 @@ interface PackCard {
   name: string
   subtitle?: string
   type?: string
+  rarity?: string
   treatment: string
   isFoil?: boolean
   isHyperspace?: boolean
@@ -416,6 +417,58 @@ interface PoolGroup {
   packs: Pack[]
 }
 
+// Pool stats for display
+interface PoolStats {
+  baseDuplicates: { name: string; count: number }[]  // Normal variant only
+  anyDuplicates: { name: string; count: number }[]   // Any treatment
+  legendaryCount: number
+  hyperspaceCount: number
+}
+
+function getPoolStats(packs: Pack[]): PoolStats {
+  const allCards = packs.flatMap(p => p.cards)
+
+  // Base treatment duplicates (Normal only - no foil, no hyperspace, no showcase)
+  const normalCards = allCards.filter(c =>
+    !c.isFoil && !c.isHyperspace && !c.isShowcase && c.type !== 'Leader' && c.type !== 'Base'
+  )
+  const baseNameCounts = new Map<string, number>()
+  normalCards.forEach(c => {
+    baseNameCounts.set(c.name, (baseNameCounts.get(c.name) || 0) + 1)
+  })
+  const baseDuplicates = Array.from(baseNameCounts.entries())
+    .filter(([, count]) => count > 1)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+
+  // Any treatment duplicates (exact card ID)
+  const nonLeaderBase = allCards.filter(c => c.type !== 'Leader' && c.type !== 'Base')
+  const idCounts = new Map<string, { name: string; count: number }>()
+  nonLeaderBase.forEach(c => {
+    if (!idCounts.has(c.cardId)) {
+      idCounts.set(c.cardId, { name: c.name, count: 0 })
+    }
+    idCounts.get(c.cardId)!.count++
+  })
+  const anyDuplicates = Array.from(idCounts.values())
+    .filter(d => d.count > 1)
+    .sort((a, b) => b.count - a.count)
+
+  // Count legendaries and hyperspace
+  const legendaryCount = allCards.filter(c => c.rarity === 'Legendary').length
+  const hyperspaceCount = allCards.filter(c => c.isHyperspace).length
+
+  return { baseDuplicates, anyDuplicates, legendaryCount, hyperspaceCount }
+}
+
+// Determine status color based on expected values
+function getStatColor(value: number, expected: number, stdDev: number): string {
+  const z = Math.abs(value - expected) / (stdDev || 1)
+  if (z > 3) return '#ff4444' // Red - serious outlier
+  if (z > 2) return '#ffaa00' // Yellow - slight outlier
+  return '#44ff44' // Green - normal
+}
+
 function PacksSubTab({ setCode }: PacksSubTabProps) {
   const [packs, setPacks] = useState<Pack[]>([])
   const [loading, setLoading] = useState(true)
@@ -496,45 +549,71 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
         <p>Showing {fmt(packs.length)} packs in {fmt(poolGroups.length)} pools (of {fmt(total)} total packs)</p>
       </div>
       <div className="pools-grid">
-        {poolGroups.map(pool => (
-          <div key={pool.sourceId} className="pool-container">
-            <div className="pool-header">
-              <span className="pool-type">{pool.sourceType}</span>
-              <a href={`/pool/${pool.sourceId}`} className="pool-link" title={`View pool ${pool.sourceId}`}>
-                {pool.sourceId.slice(0, 8)}...
-              </a>
-              <span className="pool-pack-count">{pool.packs.length} packs</span>
-            </div>
-            <div className="pool-packs">
-              {pool.packs.map((pack, idx) => (
-                <div key={`${pack.sourceId}-${pack.packIndex}-${idx}`} className="pack-container-compact">
-                  <div className="pack-label-compact">Pack {pack.packIndex + 1}</div>
-                  <div className="pack-cards-compact">
-                    {pack.cards.map((card, cardIdx) => {
-                      const isBase = card.type === 'Base'
-                      const isLeader = card.type === 'Leader'
-                      return (
-                        <div
-                          key={`${card.cardId}-${cardIdx}`}
-                          className={`pack-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isBase ? 'base' : ''} ${isLeader ? 'leader' : ''}`}
-                          title={`${card.name}${card.subtitle ? ` - ${card.subtitle}` : ''} (${card.treatment})`}
-                        >
-                          {card.imageUrl ? (
-                            <img src={card.imageUrl} alt={card.name} className="pack-card-image" />
-                          ) : (
-                            <div className="pack-card-placeholder">
-                              <span className="placeholder-name">{card.name}</span>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
+        {poolGroups.map(pool => {
+          const stats = getPoolStats(pool.packs)
+          const numPacks = pool.packs.length
+          // Expected values scale with pack count (sealed=6, draft=3)
+          const expectedBaseDups = numPacks === 6 ? 1.0 : 0.5
+          const expectedAnyDups = numPacks === 6 ? 3.7 : 1.8
+          const expectedLegendary = numPacks * 0.125 // ~12.5% per pack
+          const expectedHS = numPacks * 0.5 // ~0.5 per pack estimate
+
+          const baseDupCount = stats.baseDuplicates.reduce((sum, d) => sum + d.count - 1, 0)
+          const anyDupCount = stats.anyDuplicates.reduce((sum, d) => sum + d.count - 1, 0)
+
+          return (
+            <div key={pool.sourceId} className="pool-container">
+              <div className="pool-header">
+                <span className="pool-type">{pool.sourceType}</span>
+                <a href={`/pool/${pool.sourceId}`} className="pool-link" title={`View pool ${pool.sourceId}`}>
+                  {pool.sourceId.slice(0, 8)}...
+                </a>
+              </div>
+              <div className="pool-stats-row">
+                <span className="pool-stat" style={{ color: getStatColor(baseDupCount, expectedBaseDups, 0.8) }}>
+                  Dups: {baseDupCount === 0 ? '0' : stats.baseDuplicates.map(d => `${d.name} x${d.count}`).join(', ')}
+                </span>
+                <span className="pool-stat" style={{ color: getStatColor(anyDupCount, expectedAnyDups, 1.4) }}>
+                  All: {anyDupCount === 0 ? '0' : stats.anyDuplicates.map(d => `${d.name} x${d.count}`).join(', ')}
+                </span>
+                <span className="pool-stat" style={{ color: getStatColor(stats.legendaryCount, expectedLegendary, 0.8) }}>
+                  Leg: {stats.legendaryCount}
+                </span>
+                <span className="pool-stat" style={{ color: getStatColor(stats.hyperspaceCount, expectedHS, 1.5) }}>
+                  HS: {stats.hyperspaceCount}
+                </span>
+              </div>
+              <div className="pool-packs-row">
+                {pool.packs.map((pack, idx) => (
+                  <div key={`${pack.sourceId}-${pack.packIndex}-${idx}`} className="pack-container-compact">
+                    <div className="pack-label-compact">P{pack.packIndex + 1}</div>
+                    <div className="pack-cards-compact">
+                      {pack.cards.map((card, cardIdx) => {
+                        const isBase = card.type === 'Base'
+                        const isLeader = card.type === 'Leader'
+                        return (
+                          <div
+                            key={`${card.cardId}-${cardIdx}`}
+                            className={`pack-card ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''} ${isBase ? 'base' : ''} ${isLeader ? 'leader' : ''}`}
+                            title={`${card.name}${card.subtitle ? ` - ${card.subtitle}` : ''} (${card.treatment})`}
+                          >
+                            {card.imageUrl ? (
+                              <img src={card.imageUrl} alt={card.name} className="pack-card-image" />
+                            ) : (
+                              <div className="pack-card-placeholder">
+                                <span className="placeholder-name">{card.name}</span>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
       {packs.length < total && (
         <div className="load-more-container">
