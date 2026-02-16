@@ -1,13 +1,13 @@
 {
-  "runAt": "2026-02-16T00:55:37.998Z",
-  "executionTime": 13891,
+  "runAt": "2026-02-16T01:07:47.354Z",
+  "executionTime": 13557,
   "summary": {
     "totalSuites": 22,
-    "passedSuites": 22,
-    "failedSuites": 0,
-    "totalTests": 489,
-    "passed": 489,
-    "failed": 0
+    "passedSuites": 21,
+    "failedSuites": 1,
+    "totalTests": 490,
+    "passed": 488,
+    "failed": 2
   },
   "suites": [
     {
@@ -15,7 +15,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1196,
+      "executionTime": 1124,
       "tests": [
         {
           "suite": "utils",
@@ -215,7 +215,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 659,
+      "executionTime": 650,
       "tests": [
         {
           "suite": "utils",
@@ -295,7 +295,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 491,
+      "executionTime": 474,
       "tests": [
         {
           "suite": "utils",
@@ -310,7 +310,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 480,
+      "executionTime": 474,
       "tests": [
         {
           "suite": "utils",
@@ -325,7 +325,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 667,
+      "executionTime": 649,
       "tests": [
         {
           "suite": "belts",
@@ -395,7 +395,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 671,
+      "executionTime": 658,
       "tests": [
         {
           "suite": "belts",
@@ -495,7 +495,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 689,
+      "executionTime": 663,
       "tests": [
         {
           "suite": "belts",
@@ -534,7 +534,7 @@
         },
         {
           "suite": "belts",
-          "name": "rarity distribution matches spec weights (packConstants)\u001b[0m",
+          "name": "rarity distribution matches target percentages from packConstants\u001b[0m",
           "status": "passed"
         },
         {
@@ -564,12 +564,12 @@
         },
         {
           "suite": "belts",
-          "name": "sets 4-6 scale Special so total output equals Rare total output\u001b[0m",
+          "name": "sets 4-6 target Special at ~4% to match packConstants\u001b[0m",
           "status": "passed"
         },
         {
           "suite": "belts",
-          "name": "sets 1-3 use Legendary rate (1x) for Special rarity\u001b[0m",
+          "name": "sets 1-3 have no Special multiplier (Special excluded from pool)\u001b[0m",
           "status": "passed"
         },
         {
@@ -588,9 +588,9 @@
     {
       "name": "Hyperfoil Belt",
       "suite": "belts",
-      "status": "passed",
-      "exitCode": 0,
-      "executionTime": 660,
+      "status": "failed",
+      "exitCode": 1,
+      "executionTime": 658,
       "tests": [
         {
           "suite": "belts",
@@ -619,7 +619,7 @@
         },
         {
           "suite": "belts",
-          "name": "sets 4-6 scale Special so total output equals Rare total output\u001b[0m",
+          "name": "sets 4-6 target Special at ~4% from packConstants\u001b[0m",
           "status": "passed"
         },
         {
@@ -650,7 +650,7 @@
         {
           "suite": "belts",
           "name": "LAW: rarity distribution follows expected weights\u001b[0m",
-          "status": "passed"
+          "status": "failed"
         },
         {
           "suite": "belts",
@@ -659,18 +659,23 @@
         },
         {
           "suite": "belts",
-          "name": "Tests passed: 13\u001b[0m",
+          "name": "Tests passed: 12\u001b[0m",
           "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "Tests failed: 1\u001b[0m",
+          "status": "failed"
         }
       ],
-      "errorMessage": null
+      "errorMessage": "\u001b[36m🔄 Initializing card cache...\u001b[0m"
     },
     {
       "name": "Hyperspace Belts",
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 691,
+      "executionTime": 667,
       "tests": [
         {
           "suite": "belts",
@@ -685,7 +690,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 666,
+      "executionTime": 652,
       "tests": [
         {
           "suite": "belts",
@@ -760,7 +765,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 753,
+      "executionTime": 745,
       "tests": [
         {
           "suite": "belts",
@@ -845,7 +850,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 680,
+      "executionTime": 657,
       "tests": [
         {
           "suite": "belts",
@@ -900,7 +905,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 663,
+      "executionTime": 652,
       "tests": [
         {
           "suite": "belts",
@@ -975,7 +980,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 469,
+      "executionTime": 444,
       "tests": [
         {
           "suite": "fixes",
@@ -990,7 +995,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 713,
+      "executionTime": 667,
       "tests": [
         {
           "suite": "draft",
@@ -1005,7 +1010,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 466,
+      "executionTime": 445,
       "tests": [
         {
           "suite": "bots",
@@ -1150,7 +1155,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 663,
+      "executionTime": 652,
       "tests": [
         {
           "suite": "data",
@@ -1585,7 +1590,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 664,
+      "executionTime": 649,
       "tests": [
         {
           "suite": "data",
@@ -2620,7 +2625,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 478,
+      "executionTime": 475,
       "tests": [
         {
           "suite": "hooks",
@@ -2635,7 +2640,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 487,
+      "executionTime": 486,
       "tests": [
         {
           "suite": "hooks",
@@ -2650,7 +2655,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 481,
+      "executionTime": 501,
       "tests": [
         {
           "suite": "hooks",
@@ -2665,7 +2670,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 499,
+      "executionTime": 510,
       "tests": [
         {
           "suite": "hooks",
@@ -3134,7 +3139,7 @@
     },
     {
       "suite": "belts",
-      "name": "rarity distribution matches spec weights (packConstants)\u001b[0m",
+      "name": "rarity distribution matches target percentages from packConstants\u001b[0m",
       "status": "passed"
     },
     {
@@ -3164,12 +3169,12 @@
     },
     {
       "suite": "belts",
-      "name": "sets 4-6 scale Special so total output equals Rare total output\u001b[0m",
+      "name": "sets 4-6 target Special at ~4% to match packConstants\u001b[0m",
       "status": "passed"
     },
     {
       "suite": "belts",
-      "name": "sets 1-3 use Legendary rate (1x) for Special rarity\u001b[0m",
+      "name": "sets 1-3 have no Special multiplier (Special excluded from pool)\u001b[0m",
       "status": "passed"
     },
     {
@@ -3209,7 +3214,7 @@
     },
     {
       "suite": "belts",
-      "name": "sets 4-6 scale Special so total output equals Rare total output\u001b[0m",
+      "name": "sets 4-6 target Special at ~4% from packConstants\u001b[0m",
       "status": "passed"
     },
     {
@@ -3240,7 +3245,7 @@
     {
       "suite": "belts",
       "name": "LAW: rarity distribution follows expected weights\u001b[0m",
-      "status": "passed"
+      "status": "failed"
     },
     {
       "suite": "belts",
@@ -3249,8 +3254,13 @@
     },
     {
       "suite": "belts",
-      "name": "Tests passed: 13\u001b[0m",
+      "name": "Tests passed: 12\u001b[0m",
       "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "Tests failed: 1\u001b[0m",
+      "status": "failed"
     },
     {
       "suite": "belts",

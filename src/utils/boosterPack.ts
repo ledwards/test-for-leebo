@@ -119,13 +119,10 @@ function findHyperspaceVariant(card: RawCard | null, setCode: SetCode | string):
     return { ...hsVariant, isHyperspace: true };
   }
 
-  // Fallback: if no Hyperspace variant exists in the data (e.g., LAW before HS data is loaded),
-  // return the original card marked as Hyperspace (placeholder treatment)
-  if (usesLawPackRules(setCode)) {
-    return { ...card, isHyperspace: true };
-  }
-
-  return null;
+  // Fallback: if no Hyperspace variant exists in the card data,
+  // return the original card marked as Hyperspace.
+  // This ensures upgrades always succeed even if card data is incomplete.
+  return { ...card, variantType: 'Hyperspace', isHyperspace: true };
 }
 
 /**
@@ -674,7 +671,41 @@ export function generateBoosterPack(_cards: RawCard[], setCode: SetCode | string
   const pack: Pack = { cards: packCards };
   const upgradedPack = applyUpgradePass(pack, setCode);
 
-  return upgradedPack;
+  // Final dedup pass - check for same-treatment duplicates after all upgrades
+  // A duplicate is same card ID + variant type + foil status
+  const getTreatmentKey = (card: RawCard): string => {
+    const variant = card.variantType || 'Normal';
+    const foilSuffix = card.isFoil ? '-Foil' : '';
+    return `${card.id}-${variant}${foilSuffix}`;
+  };
+
+  const seenTreatments = new Set<string>();
+  const cleanedCards: RawCard[] = [];
+
+  for (const card of upgradedPack.cards) {
+    const key = getTreatmentKey(card);
+    if (!seenTreatments.has(key)) {
+      seenTreatments.add(key);
+      cleanedCards.push(card);
+    }
+    // Duplicate found - skip it (pack will have fewer cards, but no duplicates)
+  }
+
+  // If we removed any duplicates, fill back to 16 cards with fresh commons
+  while (cleanedCards.length < 16) {
+    const replacement = commonBeltA.next() || commonBeltB.next();
+    if (replacement) {
+      const repKey = getTreatmentKey(replacement);
+      if (!seenTreatments.has(repKey)) {
+        seenTreatments.add(repKey);
+        cleanedCards.push(replacement);
+      }
+    } else {
+      break; // Belts exhausted
+    }
+  }
+
+  return { cards: cleanedCards };
 }
 
 /**
