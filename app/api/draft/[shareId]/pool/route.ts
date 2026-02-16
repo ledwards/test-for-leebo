@@ -2,7 +2,7 @@
 // GET/POST /api/draft/:shareId/pool - Get or create a pool from drafted cards
 import { query, queryRow } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
-import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
+import { jsonResponse, errorResponse, handleApiError, formatSetCodeRange } from '@/lib/utils'
 import { nanoid } from 'nanoid'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -88,12 +88,19 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
 
     // Create a new pool
     const poolShareId = nanoid(8)
-    const setName = pod.set_name || pod.set_code
     const now = new Date()
     const month = String(now.getMonth() + 1).padStart(2, '0')
     const day = String(now.getDate()).padStart(2, '0')
     const year = String(now.getFullYear()).slice(-2)
-    const defaultName = `${pod.set_code} Draft ${month}/${day}/${year}`
+
+    // For chaos drafts, store all sets as comma-separated set_code
+    const settings = typeof pod.settings === 'string' ? JSON.parse(pod.settings) : pod.settings || {}
+    const chaosSets = settings.draftMode === 'chaos' && settings.chaosSets
+    const poolSetCode = chaosSets ? chaosSets.join(',') : pod.set_code
+    const setName = chaosSets ? formatSetCodeRange(chaosSets) : (pod.set_name || pod.set_code)
+    const defaultName = chaosSets
+      ? `${formatSetCodeRange(chaosSets)} Chaos Draft ${month}/${day}/${year}`
+      : `${pod.set_code} Draft ${month}/${day}/${year}`
 
     await query(
       `INSERT INTO card_pools (
@@ -110,7 +117,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
       [
         session.id,
         poolShareId,
-        pod.set_code,
+        poolSetCode,
         setName,
         'draft',
         defaultName,

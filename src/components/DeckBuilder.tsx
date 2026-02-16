@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import './DeckBuilder.css'
 import DeckBuilderContext from '../contexts/DeckBuilderContext'
 import { getCachedCards, isCacheInitialized, initializeCardCache } from '../utils/cardCache'
+import { deduplicateCommonBases } from '../utils/baseDedup'
 import { buildBaseCardMap as buildBaseCardMapUtil, getBaseCardId as getBaseCardIdUtil } from '../utils/variantDowngrade'
 import { fetchSetCards } from '../utils/api'
 import { useAuth } from '../contexts/AuthContext'
@@ -438,7 +439,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
   }, [])
 
-  // Load all cards from the set - optimize for speed
+  // Load all cards from the set(s) - optimize for speed
+  // For chaos drafts, setCode may be comma-separated (e.g. "SOR,JTL,LOF")
   useEffect(() => {
     const loadSetCards = async () => {
       try {
@@ -447,16 +449,19 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           await initializeCardCache()
         }
 
-        // Get cards from cache (instant)
-        let cardsData = getCachedCards(setCode)
+        const setCodes = setCode.includes(',') ? setCode.split(',').map(s => s.trim()) : [setCode]
+        let allCards: CardType[] = []
 
-        // If cache doesn't have cards, try API as fallback
-        if (cardsData.length === 0) {
-          cardsData = await fetchSetCards(setCode)
+        for (const code of setCodes) {
+          let cardsData = getCachedCards(code)
+          if (cardsData.length === 0) {
+            cardsData = await fetchSetCards(code)
+          }
+          allCards = allCards.concat(cardsData as CardType[])
         }
 
-        if (cardsData.length > 0) {
-          setAllSetCards(cardsData)
+        if (allCards.length > 0) {
+          setAllSetCards(allCards)
         }
       } catch (error) {
         console.error('Failed to load set cards:', error)
@@ -1009,42 +1014,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       const poolCards = cards.filter(card => !card.isBase && !card.isLeader && card.type !== 'Base' && card.type !== 'Leader')
       const poolLeaders = cards.filter(card => card.isLeader || card.type === 'Leader')
 
-      // Get common bases from all set cards if available, otherwise skip (will be added later)
-      const commonBasesMap = new Map<string, CardType>()
-      if (allSetCards.length > 0) {
-        allSetCards
-          .filter(card => (card.isBase || card.type === 'Base') && card.rarity === 'Common')
-          .forEach(card => {
-            const key = card.name || ''
-            if (!commonBasesMap.has(key)) {
-              commonBasesMap.set(key, card)
-            }
-          })
-      }
-
-      // Sort bases by aspect: Vigilance, Command, Aggression, Cunning
-      const aspectOrder = ['Vigilance', 'Command', 'Aggression', 'Cunning']
-      const getAspectSortValue = (card: CardType) => {
-        const aspects = card.aspects || []
-        if (aspects.length === 0) return 999 // Neutral/no aspect goes last
-        // Get the first aspect that matches our order
-        for (let i = 0; i < aspectOrder.length; i++) {
-          if (aspects.includes(aspectOrder[i])) {
-            return i
-          }
-        }
-        return 999 // Other aspects go last
-      }
-
-      const uniqueCommonBases = Array.from(commonBasesMap.values()).sort((a, b) => {
-        const aValue = getAspectSortValue(a)
-        const bValue = getAspectSortValue(b)
-        if (aValue !== bValue) {
-          return aValue - bValue
-        }
-        // If same aspect, sort by name
-        return (a.name || '').localeCompare(b.name || '')
-      })
+      // Get deduplicated common bases from all set cards if available
+      // For chaos draft/sealed, this deduplicates across multiple sets by aspect+HP
+      const uniqueCommonBases = allSetCards.length > 0
+        ? deduplicateCommonBases(allSetCards)
+        : []
 
       const initialPositions: Record<string, CardPosition> = {}
       const labels: SectionLabel[] = []
@@ -1165,38 +1139,9 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
       // If no common bases found, add them
       if (!hasCommonBases) {
-        // Get common bases from all set cards
-        const commonBasesMap = new Map<string, CardType>()
-        allSetCards
-          .filter(card => (card.isBase || card.type === 'Base') && card.rarity === 'Common')
-          .forEach(card => {
-            const key = card.name || ''
-            if (!commonBasesMap.has(key)) {
-              commonBasesMap.set(key, card)
-            }
-          })
-
-        // Sort bases by aspect
-        const aspectOrder = ['Vigilance', 'Command', 'Aggression', 'Cunning']
-        const getAspectSortValue = (card: CardType) => {
-          const aspects = card.aspects || []
-          if (aspects.length === 0) return 999
-          for (let i = 0; i < aspectOrder.length; i++) {
-            if (aspects.includes(aspectOrder[i])) {
-              return i
-            }
-          }
-          return 999
-        }
-
-        const uniqueCommonBases = Array.from(commonBasesMap.values()).sort((a, b) => {
-          const aValue = getAspectSortValue(a)
-          const bValue = getAspectSortValue(b)
-          if (aValue !== bValue) {
-            return aValue - bValue
-          }
-          return (a.name || '').localeCompare(b.name || '')
-        })
+        // Get deduplicated common bases from all set cards
+        // For chaos draft/sealed, this deduplicates across multiple sets by aspect+HP
+        const uniqueCommonBases = deduplicateCommonBases(allSetCards)
 
         // Find the leaders-bases section bounds
         const leadersBasesBounds = sectionBounds['leaders-bases']
