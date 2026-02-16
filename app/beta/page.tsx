@@ -43,12 +43,15 @@ export default function BetaPage() {
         <h1>Beta Program</h1>
 
         <div className="beta-info">
+          <p className="beta-description">
+            Be the first to try what's next. Beta testers get early access to everything before it goes live.
+          </p>
           <div className="beta-features">
-            <h3>Early Access</h3>
+            <h3>What You Get</h3>
             <ul>
-              <li><strong>A Lawless Time (LAW)</strong> - Set 7</li>
-              <li>New pack generation rules</li>
-              <li><strong>Other Formats</strong> - Alternative limited formats</li>
+              <li><strong>New Sets</strong> — Draft and build sealed pools from upcoming sets before release</li>
+              <li><strong>New Formats</strong> — Try experimental formats like Rotisserie Draft and Pack Wars</li>
+              <li><strong>New Features</strong> — Test new tools and improvements as they're developed</li>
             </ul>
           </div>
         </div>
