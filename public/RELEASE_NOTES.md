@@ -3,9 +3,13 @@
 ## 02.15.2026
 
 ### 🌀 Chaos Mode Improvements
-- **Open access**: Chaos Sealed and Chaos Draft no longer require authentication! Jump right in without logging in.
-- **Streamlined UI**: Changed "Generate Chaos Sealed Pool" and "Create Chaos Draft" buttons to simply "Create Chaos" for a cleaner look.
-- **Better pack display**: Fixed skeleton pack slots on the setup screen to always show all 6 packs in a single row (was wrapping to 2 rows on some screen sizes).
+- **Chaos Sealed open access**: Chaos Sealed no longer requires authentication. Jump right in without logging in, select your 6 packs, and start building!
+- **Streamlined UI**: Changed CTA buttons to simply "Create Chaos" for a cleaner look.
+- **Better pack display**: Fixed skeleton pack slots to always show all 6 packs in a single row.
+
+### 🔐 Draft Authentication
+- **Friendly auth flow**: Draft modes (including Chaos Draft) now show helpful login prompts instead of dead-end errors. Click "Login with Discord" and you'll be redirected right back to continue where you left off.
+- **Why drafts need login**: Multiplayer drafts require Discord login to track players, but we've made the process seamless.
 
 ## 02.14.2026
 
@@ -215,6 +219,7 @@ Additionally, we've got a Discord now: [https://discord.gg/u6fkdDzWqF](https://d
    - 📦 Pack Changes
    - 💽 Data Changes
    - 🤖 AI Players
+   - 🎮 Game Modes/Gameplay
 4. Keep entries concise and user-friendly
 
 Run `node scripts/postbuild.js` to update the release notes on website.
