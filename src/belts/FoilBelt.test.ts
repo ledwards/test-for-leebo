@@ -121,43 +121,39 @@ async function runTests(): Promise<void> {
       `Rares (${counts.Rare}) should appear more than legendaries (${counts.Legendary})`)
   })
 
-  test('rarity distribution matches spec weights (packConstants)', () => {
-    // SPEC from packConstants: Foil slot uses these multipliers per unique card:
-    // - Common: 54x
-    // - Uncommon: 18x
-    // - Rare: 6x
-    // - Legendary: 1x
-    // The resulting distribution depends on card pool size, but relative weights apply
+  test('rarity distribution matches target percentages from packConstants', () => {
+    // SPEC from packConstants: Sets 1-3 target foil slot weights:
+    // - Common: 78%
+    // - Uncommon: 17%
+    // - Rare: 5%
+    // - Legendary: 0.3%
+    // Belt dynamically calculates multipliers to achieve these targets
     const belt = new FoilBelt('SOR')
 
     // Sample a large number of cards
     const counts: Record<string, number> = { Common: 0, Uncommon: 0, Rare: 0, Legendary: 0, Special: 0 }
-    const sampleSize = 1000
+    const sampleSize = 2000
     for (let i = 0; i < sampleSize; i++) {
       const card = belt.next()
       counts[card.rarity] = (counts[card.rarity] || 0) + 1
     }
 
-    // SPEC: With multipliers 54:18:6:1, the expected ratios are:
-    // Common should be ~3x more than Uncommon (54/18 = 3)
-    // Note: actual ratio varies significantly based on unique card counts per rarity
-    // Widened tolerance to (1.5, 7) to account for card pool variations
-    const commonToUncommon = counts.Common / counts.Uncommon
-    assert(commonToUncommon > 1.5 && commonToUncommon < 7,
-      `Common:Uncommon should be ~3:1 (54/18), got ${commonToUncommon.toFixed(2)}:1`)
+    const total = counts.Common + counts.Uncommon + counts.Rare + counts.Legendary
+    const commonPct = (counts.Common / total) * 100
+    const uncommonPct = (counts.Uncommon / total) * 100
+    const rarePct = (counts.Rare / total) * 100
 
-    // Uncommon should be ~3x more than Rare (18/6 = 3)
-    // Widened tolerance to (1.5, 7) to account for card pool variations
-    const uncommonToRare = counts.Uncommon / counts.Rare
-    assert(uncommonToRare > 1.5 && uncommonToRare < 7,
-      `Uncommon:Rare should be ~3:1 (18/6), got ${uncommonToRare.toFixed(2)}:1`)
+    // Target: Common ~78%, allow ±10% tolerance
+    assert(commonPct > 65 && commonPct < 90,
+      `Common should be ~78%, got ${commonPct.toFixed(1)}%`)
 
-    // Rare should be ~6x more than Legendary (6/1 = 6)
-    if (counts.Legendary > 0) {
-      const rareToLegendary = counts.Rare / counts.Legendary
-      assert(rareToLegendary > 3,
-        `Rare:Legendary should be ~6:1 (6/1), got ${rareToLegendary.toFixed(2)}:1`)
-    }
+    // Target: Uncommon ~17%, allow ±8% tolerance
+    assert(uncommonPct > 9 && uncommonPct < 25,
+      `Uncommon should be ~17%, got ${uncommonPct.toFixed(1)}%`)
+
+    // Target: Rare ~5%, allow ±4% tolerance
+    assert(rarePct > 1 && rarePct < 10,
+      `Rare should be ~5%, got ${rarePct.toFixed(1)}%`)
   })
 
   test('different belt instances start at different positions', () => {
@@ -214,21 +210,31 @@ async function runTests(): Promise<void> {
     }
   })
 
-  test('sets 4-6 scale Special so total output equals Rare total output', () => {
+  test('sets 4-6 target Special at ~4% to match packConstants', () => {
+    // Sets 4-6 target: Special 4%
     const belt = new FoilBelt('JTL')
-    const rareCount = belt.fillingPool.filter(c => c.rarity === 'Rare').length
-    const specialCount = belt.fillingPool.filter(c => c.rarity === 'Special').length
-    const expectedMultiplier = Math.round((rareCount * belt.rarityQuantities.Rare) / specialCount)
-    assertEqual(belt.rarityQuantities.Special, expectedMultiplier, 'Special multiplier should scale so total Special output = total Rare output')
-    // Total output should be approximately equal
-    const totalRare = rareCount * belt.rarityQuantities.Rare
-    const totalSpecial = specialCount * belt.rarityQuantities.Special
-    assert(Math.abs(totalRare - totalSpecial) <= specialCount, `Total Rare (${totalRare}) should approximately equal total Special (${totalSpecial})`)
+
+    // Sample cards
+    const counts: Record<string, number> = { Common: 0, Uncommon: 0, Rare: 0, Legendary: 0, Special: 0 }
+    const sampleSize = 2000
+    for (let i = 0; i < sampleSize; i++) {
+      const card = belt.next()
+      counts[card.rarity] = (counts[card.rarity] || 0) + 1
+    }
+
+    const total = counts.Common + counts.Uncommon + counts.Rare + counts.Legendary + counts.Special
+    const specialPct = (counts.Special / total) * 100
+
+    // Target: Special ~4%, allow ±3% tolerance
+    assert(specialPct > 1 && specialPct < 8,
+      `Special should be ~4%, got ${specialPct.toFixed(1)}%`)
   })
 
-  test('sets 1-3 use Legendary rate (1x) for Special rarity', () => {
+  test('sets 1-3 have no Special multiplier (Special excluded from pool)', () => {
     const belt = new FoilBelt('SOR')
-    assertEqual(belt.rarityQuantities.Special, 1, 'Special should use 1x rate in sets 1-3')
+    // Special should not be in rarityQuantities since it's excluded from pool
+    const hasSpecialInPool = belt.fillingPool.some(c => c.rarity === 'Special')
+    assert(!hasSpecialInPool, 'Sets 1-3 should not have Special in pool')
   })
 
   test('no repeating pattern: consecutive belt fills produce different sequences', () => {

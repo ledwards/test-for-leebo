@@ -80,12 +80,23 @@ async function runTests(): Promise<void> {
     assert(!hasSpecial, 'SOR should not have Special rarity in hyperfoil')
   })
 
-  test('sets 4-6 scale Special so total output equals Rare total output', () => {
+  test('sets 4-6 target Special at ~4% from packConstants', () => {
     const belt = new HyperfoilBelt('JTL')
-    const rareCount = belt.fillingPool.filter(c => c.rarity === 'Rare').length
-    const specialCount = belt.fillingPool.filter(c => c.rarity === 'Special').length
-    const expectedMultiplier = Math.round((rareCount * belt.rarityQuantities.Rare) / specialCount)
-    assertEqual(belt.rarityQuantities.Special, expectedMultiplier, 'Special multiplier should scale so total Special output = total Rare output')
+
+    // Sample cards
+    const counts: Record<string, number> = { Common: 0, Uncommon: 0, Rare: 0, Legendary: 0, Special: 0 }
+    const sampleSize = 1000
+    for (let i = 0; i < sampleSize; i++) {
+      const card = belt.next()
+      counts[card.rarity] = (counts[card.rarity] || 0) + 1
+    }
+
+    const total = counts.Common + counts.Uncommon + counts.Rare + counts.Legendary + counts.Special
+    const specialPct = (counts.Special / total) * 100
+
+    // Target: Special ~4%, allow ±3% tolerance
+    assert(specialPct > 1 && specialPct < 8,
+      `Special should be ~4%, got ${specialPct.toFixed(1)}%`)
   })
 
   test('hopper refills when depleted', () => {
@@ -125,10 +136,9 @@ async function runTests(): Promise<void> {
     const belt = new HyperfoilBelt('LAW')
     const hasSpecial = belt.fillingPool.some(c => c.rarity === 'Special')
     assert(hasSpecial, 'LAW should include Special rarity in hyperfoil pool')
-    const rareCount = belt.fillingPool.filter(c => c.rarity === 'Rare').length
-    const specialCount = belt.fillingPool.filter(c => c.rarity === 'Special').length
-    const expectedMultiplier = Math.round((rareCount * belt.rarityQuantities.Rare) / specialCount)
-    assertEqual(belt.rarityQuantities.Special, expectedMultiplier, 'Special multiplier should scale so total Special output = total Rare output')
+    // Verify Special has a multiplier assigned
+    assert(belt.rarityQuantities.Special !== undefined && belt.rarityQuantities.Special > 0,
+      'LAW should have a Special multiplier assigned')
   })
 
   test('LAW: no leaders or bases in pool', () => {

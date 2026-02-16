@@ -25,13 +25,22 @@ function shuffle<T>(arr: T[]): T[] {
   return arr
 }
 
-// Base quantity multipliers by rarity
-const RARITY_QUANTITIES: Record<string, number> = {
-  Legendary: 1,
-  Special: 1, // Default, overridden to 6 for sets 4-6
-  Rare: 6,
-  Uncommon: 18,
-  Common: 54
+// Target hyperfoil slot weights by rarity (percentage)
+// Same as foilSlotWeights from packConstants
+const TARGET_WEIGHTS_SETS_1_3: Record<string, number> = {
+  Common: 78,
+  Uncommon: 17,
+  Rare: 5,
+  Legendary: 0.3,
+  Special: 0,
+}
+
+const TARGET_WEIGHTS_SETS_4_6: Record<string, number> = {
+  Common: 75,
+  Uncommon: 17,
+  Rare: 4,
+  Special: 4,
+  Legendary: 0.3,
 }
 
 export class HyperfoilBelt {
@@ -44,7 +53,7 @@ export class HyperfoilBelt {
     this.setCode = setCode as SetCode
     this.hopper = []
     this.fillingPool = []
-    this.rarityQuantities = { ...RARITY_QUANTITIES }
+    this.rarityQuantities = {}
 
     this._initialize()
   }
@@ -79,16 +88,21 @@ export class HyperfoilBelt {
       )
     }
 
-    // In sets where Special appears, scale the Special multiplier
-    // so that the total Special output matches total Rare output.
-    if (includeSpecial) {
-      const rareCount = this.fillingPool.filter(c => c.rarity === 'Rare').length
-      const specialCount = this.fillingPool.filter(c => c.rarity === 'Special').length
-      if (specialCount > 0 && rareCount > 0) {
-        this.rarityQuantities['Special'] = Math.round(
-          (rareCount * this.rarityQuantities['Rare']) / specialCount
-        )
-      }
+    // Get target weights based on set number
+    const targetWeights = setNumber >= 4 ? TARGET_WEIGHTS_SETS_4_6 : TARGET_WEIGHTS_SETS_1_3
+
+    // Count unique cards per rarity
+    const rarityCounts: Record<string, number> = {}
+    for (const card of this.fillingPool) {
+      rarityCounts[card.rarity] = (rarityCounts[card.rarity] || 0) + 1
+    }
+
+    // Calculate multipliers to achieve target distribution
+    const baseScale = 1000
+    for (const rarity in rarityCounts) {
+      const targetPct = targetWeights[rarity] || 0
+      const uniqueCount = rarityCounts[rarity] || 1
+      this.rarityQuantities[rarity] = Math.max(1, Math.round((targetPct / 100) * baseScale / uniqueCount))
     }
 
     // Initial fill
