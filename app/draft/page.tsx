@@ -82,11 +82,12 @@ export default function DraftLandingPage() {
   }, [isAuthenticated, user])
 
   const handleCreateDraft = () => {
-    if (!isAuthenticated) {
-      setError('Please sign in to create a draft')
-      return
-    }
     router.push('/draft/new')
+  }
+
+  const handleLogin = () => {
+    const returnUrl = encodeURIComponent('/draft/new')
+    window.location.href = `/api/auth/signin/discord?return_to=${returnUrl}`
   }
 
   const handleJoinDraft = () => {
@@ -174,15 +175,25 @@ export default function DraftLandingPage() {
           <div className="draft-option">
             <h2>Create New Draft</h2>
             <p>Start a new draft pod and invite your friends</p>
-            <button
-              className="primary-button create-draft-button"
-              onClick={handleCreateDraft}
-              disabled={authLoading}
-            >
-              Create Draft
-            </button>
-            {!isAuthenticated && !authLoading && (
-              <p className="auth-note">Sign in required to create drafts</p>
+            {isAuthenticated ? (
+              <button
+                className="primary-button create-draft-button"
+                onClick={handleCreateDraft}
+                disabled={authLoading}
+              >
+                Create Draft
+              </button>
+            ) : (
+              <>
+                <p className="auth-note">Draft requires login to track players in multiplayer</p>
+                <button
+                  className="primary-button create-draft-button"
+                  onClick={handleLogin}
+                  disabled={authLoading}
+                >
+                  Login with Discord
+                </button>
+              </>
             )}
           </div>
 
