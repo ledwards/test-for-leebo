@@ -1,5 +1,12 @@
 # Release Notes
 
+## 02.15.2026
+
+### 🌀 Chaos Mode Improvements
+- **Open access**: Chaos Sealed and Chaos Draft no longer require authentication! Jump right in without logging in.
+- **Streamlined UI**: Changed "Generate Chaos Sealed Pool" and "Create Chaos Draft" buttons to simply "Create Chaos" for a cleaner look.
+- **Better pack display**: Fixed skeleton pack slots on the setup screen to always show all 6 packs in a single row (was wrapping to 2 rows on some screen sizes).
+
 ## 02.14.2026
 
 ### 📦 Pack Generation Quality Fix

@@ -195,7 +195,7 @@ export default function ChaosSealedPage() {
             disabled={selectedSets.length !== 6 || generating}
             onClick={handleGenerate}
           >
-            {generating ? 'Generating...' : 'Generate Chaos Sealed Pool'}
+            {generating ? 'Creating...' : 'Create Chaos'}
           </Button>
         </div>
       </div>

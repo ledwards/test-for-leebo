@@ -64,18 +64,11 @@
 
 .chaos-sealed-container .selected-packs-row {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
+  flex-wrap: nowrap;
+  justify-content: center;
   align-items: flex-start;
   gap: 1rem;
-  width: calc(3 * 120px + 2 * 1rem);
   margin: 0 auto;
-}
-
-@media (min-width: 960px) {
-  .chaos-sealed-container .selected-packs-row {
-    width: calc(6 * 120px + 5 * 1rem);
-  }
 }
 
 .selected-pack {

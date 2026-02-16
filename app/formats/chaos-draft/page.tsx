@@ -141,7 +141,7 @@ export default function ChaosDraftPage() {
             disabled={selectedSets.length !== 3 || creating}
             onClick={handleCreate}
           >
-            {creating ? 'Creating...' : 'Create Chaos Draft'}
+            {creating ? 'Creating...' : 'Create Chaos'}
           </Button>
         </div>
       </div>
