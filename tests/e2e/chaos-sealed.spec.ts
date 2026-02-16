@@ -87,7 +87,7 @@ test.describe('Chaos Sealed', () => {
     await expect(page.locator('h3').first()).toContainText('0/6')
 
     // Generate button is disabled
-    const genButton = page.locator('button:has-text("Generate Chaos Sealed Pool")')
+    const genButton = page.locator('button:has-text("Create Chaos")')
     await expect(genButton).toBeDisabled()
     console.log('✓ Generate button disabled with no selection')
   })
@@ -126,7 +126,7 @@ test.describe('Chaos Sealed', () => {
     await expect(selectedPacks).toHaveCount(6)
 
     // Generate button is now enabled
-    const genButton = page.locator('button:has-text("Generate Chaos Sealed Pool")')
+    const genButton = page.locator('button:has-text("Create Chaos")')
     await expect(genButton).toBeEnabled()
     console.log('✓ Selected 6 packs, generate button enabled')
   })
@@ -138,7 +138,7 @@ test.describe('Chaos Sealed', () => {
 
     await expect(page.locator('h3').first()).toContainText('5/6')
 
-    const genButton = page.locator('button:has-text("Generate Chaos Sealed Pool")')
+    const genButton = page.locator('button:has-text("Create Chaos")')
     await expect(genButton).toBeDisabled()
 
     // Re-add to get back to 6
@@ -156,12 +156,12 @@ test.describe('Chaos Sealed', () => {
   })
 
   test('generate chaos sealed pool and view cards', async () => {
-    const genButton = page.locator('button:has-text("Generate Chaos Sealed Pool")')
+    const genButton = page.locator('button:has-text("Create Chaos")')
     await expect(genButton).toBeEnabled()
     await genButton.click()
 
-    // Should show "Generating..." state
-    await expect(page.locator('button:has-text("Generating...")')).toBeVisible({ timeout: 5000 })
+    // Should show "Creating..." state
+    await expect(page.locator('button:has-text("Creating...")')).toBeVisible({ timeout: 5000 })
 
     // Should navigate to /pool/<shareId>
     await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })

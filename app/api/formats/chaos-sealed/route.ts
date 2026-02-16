@@ -1,7 +1,7 @@
 // @ts-nocheck
 // POST /api/formats/chaos-sealed - Generate a Chaos Sealed pool (6 packs from 6 different sets)
 import { query } from '@/lib/db'
-import { requireAuth } from '@/lib/auth'
+import { getSession } from '@/lib/auth'
 import { generateShareId, formatSetCodeRange } from '@/lib/utils'
 import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
@@ -11,8 +11,9 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = requireAuth(request)
-    const userId = session.id
+    // Auth is optional - allow anonymous users to create chaos sealed pools
+    const session = getSession(request)
+    const userId = session?.id || null
 
     const body = await parseBody(request)
     validateRequired(body, ['setCodes'])

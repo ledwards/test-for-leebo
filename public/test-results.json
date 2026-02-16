@@ -1,21 +1,21 @@
 {
-  "runAt": "2026-02-15T01:40:59.664Z",
-  "executionTime": 24417,
+  "runAt": "2026-02-16T00:45:06.572Z",
+  "executionTime": 17607,
   "summary": {
     "totalSuites": 22,
-    "passedSuites": 21,
-    "failedSuites": 1,
-    "totalTests": 490,
-    "passed": 488,
-    "failed": 2
+    "passedSuites": 22,
+    "failedSuites": 0,
+    "totalTests": 489,
+    "passed": 489,
+    "failed": 0
   },
   "suites": [
     {
       "name": "Booster Pack",
       "suite": "utils",
-      "status": "failed",
-      "exitCode": 1,
-      "executionTime": 1150,
+      "status": "passed",
+      "exitCode": 0,
+      "executionTime": 1838,
       "tests": [
         {
           "suite": "utils",
@@ -160,7 +160,7 @@
         {
           "suite": "utils",
           "name": "over many packs, some foils get upgraded to Hyperfoil\u001b[0m",
-          "status": "failed"
+          "status": "passed"
         },
         {
           "suite": "utils",
@@ -204,23 +204,18 @@
         },
         {
           "suite": "utils",
-          "name": "Tests passed: 36\u001b[0m",
+          "name": "Tests passed: 37\u001b[0m",
           "status": "passed"
-        },
-        {
-          "suite": "utils",
-          "name": "Tests failed: 1\u001b[0m",
-          "status": "failed"
         }
       ],
-      "errorMessage": "\u001b[36m🔄 Initializing card cache...\u001b[0m"
+      "errorMessage": null
     },
     {
       "name": "Variant Downgrade",
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 637,
+      "executionTime": 1109,
       "tests": [
         {
           "suite": "utils",
@@ -300,7 +295,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 10228,
+      "executionTime": 649,
       "tests": [
         {
           "suite": "utils",
@@ -315,7 +310,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 606,
+      "executionTime": 492,
       "tests": [
         {
           "suite": "utils",
@@ -330,7 +325,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 759,
+      "executionTime": 763,
       "tests": [
         {
           "suite": "belts",
@@ -400,7 +395,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 666,
+      "executionTime": 672,
       "tests": [
         {
           "suite": "belts",
@@ -500,7 +495,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 694,
+      "executionTime": 677,
       "tests": [
         {
           "suite": "belts",
@@ -595,7 +590,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 661,
+      "executionTime": 655,
       "tests": [
         {
           "suite": "belts",
@@ -675,7 +670,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 660,
+      "executionTime": 712,
       "tests": [
         {
           "suite": "belts",
@@ -690,7 +685,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 677,
+      "executionTime": 737,
       "tests": [
         {
           "suite": "belts",
@@ -765,7 +760,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 863,
+      "executionTime": 872,
       "tests": [
         {
           "suite": "belts",
@@ -850,7 +845,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 771,
+      "executionTime": 1034,
       "tests": [
         {
           "suite": "belts",
@@ -905,7 +900,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 750,
+      "executionTime": 1378,
       "tests": [
         {
           "suite": "belts",
@@ -980,7 +975,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 644,
+      "executionTime": 592,
       "tests": [
         {
           "suite": "fixes",
@@ -995,7 +990,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 861,
+      "executionTime": 740,
       "tests": [
         {
           "suite": "draft",
@@ -1010,7 +1005,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 458,
+      "executionTime": 582,
       "tests": [
         {
           "suite": "bots",
@@ -1155,7 +1150,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 647,
+      "executionTime": 738,
       "tests": [
         {
           "suite": "data",
@@ -1590,7 +1585,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 659,
+      "executionTime": 768,
       "tests": [
         {
           "suite": "data",
@@ -2625,7 +2620,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 515,
+      "executionTime": 562,
       "tests": [
         {
           "suite": "hooks",
@@ -2640,7 +2635,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 480,
+      "executionTime": 641,
       "tests": [
         {
           "suite": "hooks",
@@ -2655,7 +2650,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 467,
+      "executionTime": 549,
       "tests": [
         {
           "suite": "hooks",
@@ -2670,7 +2665,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 561,
+      "executionTime": 845,
       "tests": [
         {
           "suite": "hooks",
@@ -2825,7 +2820,7 @@
     {
       "suite": "utils",
       "name": "over many packs, some foils get upgraded to Hyperfoil\u001b[0m",
-      "status": "failed"
+      "status": "passed"
     },
     {
       "suite": "utils",
@@ -2869,13 +2864,8 @@
     },
     {
       "suite": "utils",
-      "name": "Tests passed: 36\u001b[0m",
+      "name": "Tests passed: 37\u001b[0m",
       "status": "passed"
-    },
-    {
-      "suite": "utils",
-      "name": "Tests failed: 1\u001b[0m",
-      "status": "failed"
     },
     {
       "suite": "utils",

@@ -86,7 +86,7 @@ test.describe('Chaos Draft', () => {
     await expect(page.locator('h3').first()).toContainText('0/3')
 
     // Create button is disabled
-    const createButton = page.locator('button:has-text("Create Chaos Draft")')
+    const createButton = page.locator('button:has-text("Create Chaos")')
     await expect(createButton).toBeDisabled()
     console.log('✓ Create button disabled with no selection')
   })
@@ -112,7 +112,7 @@ test.describe('Chaos Draft', () => {
     await expect(selectedPacks).toHaveCount(3)
 
     // Create button is now enabled
-    const createButton = page.locator('button:has-text("Create Chaos Draft")')
+    const createButton = page.locator('button:has-text("Create Chaos")')
     await expect(createButton).toBeEnabled()
     console.log('✓ Selected 3 packs, create button enabled')
   })
@@ -127,7 +127,7 @@ test.describe('Chaos Draft', () => {
     await expect(page.locator('h3').first()).toContainText('2/3')
 
     // Create button disabled again
-    const createButton = page.locator('button:has-text("Create Chaos Draft")')
+    const createButton = page.locator('button:has-text("Create Chaos")')
     await expect(createButton).toBeDisabled()
 
     // Re-select to get back to 3
@@ -139,7 +139,7 @@ test.describe('Chaos Draft', () => {
   })
 
   test('create chaos draft and navigate to draft lobby', async () => {
-    const createButton = page.locator('button:has-text("Create Chaos Draft")')
+    const createButton = page.locator('button:has-text("Create Chaos")')
     await expect(createButton).toBeEnabled()
     await createButton.click()
 
@@ -166,62 +166,52 @@ test.describe('Chaos Draft', () => {
   })
 })
 
-test.describe('Other Formats Beta Gate', () => {
+test.describe('Chaos Formats Open Access', () => {
   let browser: Browser
   let context: BrowserContext
   let page: Page
-  let user: any
 
   test.beforeAll(async () => {
     browser = await chromium.launch({ headless: false, slowMo: 50 })
 
-    // Create a non-beta user
-    user = await createTestUser('NonBetaUser', TEST_ID, { isBetaTester: false })
-
+    // Anonymous user - no auth cookie
     context = await browser.newContext({
       viewport: { width: 1280, height: 720 },
     })
 
-    const urlObj = new URL(BASE_URL)
-    const cookieConfig: any = {
-      name: user.cookieName,
-      value: user.token,
-      httpOnly: true,
-      sameSite: 'Lax',
-    }
-    if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
-      cookieConfig.url = BASE_URL
-    } else {
-      cookieConfig.domain = urlObj.hostname
-      cookieConfig.path = '/'
-    }
-    await context.addCookies([cookieConfig])
-
     page = await context.newPage()
-    console.log(`✓ Created non-beta test user: ${user.user.username}`)
+    console.log('✓ Created anonymous browser context (no auth)')
   })
 
   test.afterAll(async () => {
-    try { await cleanupTestUsers(TEST_ID) } catch (e: any) { console.error('Cleanup error:', e.message) }
-    await closeDb()
     if (context) await context.close()
     if (browser) await browser.close()
   })
 
-  test('non-beta user sees 404 on /formats/chaos-draft', async () => {
+  test('anonymous user can access /formats/chaos-draft', async () => {
     await page.goto(`${BASE_URL}/formats/chaos-draft`)
     await page.waitForLoadState('networkidle')
 
-    // Should see the 404 page, not the chaos draft UI
-    await expect(page.locator('h1')).toHaveText('Page Not Found', { timeout: 10000 })
-    console.log('✓ Non-beta user sees 404')
+    // Should see the chaos draft UI, not 404
+    await expect(page.locator('h1')).toHaveText('Chaos Draft', { timeout: 10000 })
+    console.log('✓ Anonymous user can access chaos draft')
   })
 
-  test('non-beta user sees 404 on /formats', async () => {
+  test('anonymous user can access /formats/chaos-sealed', async () => {
+    await page.goto(`${BASE_URL}/formats/chaos-sealed`)
+    await page.waitForLoadState('networkidle')
+
+    // Should see the chaos sealed UI, not 404
+    await expect(page.locator('h1')).toHaveText('Chaos Sealed', { timeout: 10000 })
+    console.log('✓ Anonymous user can access chaos sealed')
+  })
+
+  test('anonymous user can access /formats', async () => {
     await page.goto(`${BASE_URL}/formats`)
     await page.waitForLoadState('networkidle')
 
-    await expect(page.locator('h1')).toHaveText('Page Not Found', { timeout: 10000 })
-    console.log('✓ Non-beta user sees 404 on /formats')
+    // Should see formats page
+    await expect(page.locator('h1')).toHaveText('Other Formats', { timeout: 10000 })
+    console.log('✓ Anonymous user can access formats page')
   })
 })
