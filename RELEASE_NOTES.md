@@ -4,8 +4,7 @@
 
 ### 🌀 Chaos Mode Improvements
 - **Chaos Sealed open access**: Chaos Sealed no longer requires authentication. Jump right in without logging in, select your 6 packs, and start building!
-- **Streamlined UI**: Changed CTA buttons to simply "Create Chaos" for a cleaner look.
-- **Better pack display**: Fixed skeleton pack slots to always show all 6 packs in a single row.
+- **Full base selection**: Chaos draft and chaos sealed now show deduplicated common bases from ALL selected sets, not just the primary set. For example, a 6-set chaos pool now shows 8 common bases (4 aspects × 2 HP tiers) instead of only 4 from one set.
 
 ### 🔐 Draft Authentication
 - **Friendly auth flow**: Draft modes (including Chaos Draft) now show helpful login prompts instead of dead-end errors. Click "Login with Discord" and you'll be redirected right back to continue where you left off.
