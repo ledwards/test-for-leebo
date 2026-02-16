@@ -289,16 +289,18 @@ export default function DraftRoomPage({ params }: PageProps) {
 
   // Auth required - check before SSE loading since SSE is disabled when not authenticated
   if (!isAuthenticated) {
-    // Redirect to Discord auth with return URL
     const returnUrl = encodeURIComponent(`/draft/${shareId}`)
     return (
       <div className="draft-page-bg">
-        <div className="login-required">
-          <h2>Sign In Required</h2>
-          <p>Please sign in to join this draft</p>
-          <a href={`/api/auth/discord?returnUrl=${returnUrl}`} className="discord-login-button">
-            Sign in with Discord
+        <div className="auth-prompt-container">
+          <h2>Login Required</h2>
+          <p>Draft requires a Discord login to track players in multiplayer.</p>
+          <a href={`/api/auth/signin/discord?return_to=${returnUrl}`} className="primary-button">
+            Login with Discord
           </a>
+          <button className="secondary-button" onClick={handleBack}>
+            Go Back
+          </button>
         </div>
       </div>
     )

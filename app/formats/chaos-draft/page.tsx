@@ -20,12 +20,13 @@ interface SetData {
 
 export default function ChaosDraftPage() {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const [sets, setSets] = useState<SetData[]>([])
   const [selectedSets, setSelectedSets] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false)
 
   const hasBetaAccess = user?.is_beta_tester || user?.is_admin
 
@@ -46,6 +47,12 @@ export default function ChaosDraftPage() {
 
   const handleCreate = async () => {
     if (selectedSets.length !== 3) return
+
+    // Draft requires authentication for multiplayer tracking
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true)
+      return
+    }
 
     try {
       setCreating(true)
@@ -68,6 +75,12 @@ export default function ChaosDraftPage() {
     } finally {
       setCreating(false)
     }
+  }
+
+  const handleLogin = () => {
+    // Redirect to Discord login, then back to this page
+    const returnUrl = encodeURIComponent('/formats/chaos-draft')
+    window.location.href = `/api/auth/signin/discord?return_to=${returnUrl}`
   }
 
   if (loading) {
@@ -126,6 +139,15 @@ export default function ChaosDraftPage() {
         </div>
 
         {error && <div className="error-message">{error}</div>}
+
+        {showAuthPrompt && (
+          <div className="auth-prompt">
+            <p>Draft requires a Discord login to track players in multiplayer.</p>
+            <Button variant="primary" onClick={handleLogin}>
+              Login with Discord
+            </Button>
+          </div>
+        )}
 
         <div className="chaos-draft-actions">
           <Button

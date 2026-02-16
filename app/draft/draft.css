@@ -187,6 +187,42 @@
   margin-top: 10px;
 }
 
+.auth-prompt-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.auth-prompt-container h2 {
+  margin: 0 0 1rem 0;
+  color: white;
+}
+
+.auth-prompt-container p {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.auth-prompt-container .primary-button {
+  margin-bottom: 0.75rem;
+}
+
+.auth-prompt-container .secondary-button {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.auth-prompt-container .secondary-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
 .error-message {
   background: #f44336;
   color: white;

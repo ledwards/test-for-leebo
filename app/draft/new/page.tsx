@@ -23,12 +23,10 @@ export default function NewDraftPage() {
     })
   }, [])
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/draft')
-    }
-  }, [authLoading, isAuthenticated, router])
+  const handleLogin = () => {
+    const returnUrl = encodeURIComponent('/draft/new')
+    window.location.href = `/api/auth/signin/discord?return_to=${returnUrl}`
+  }
 
   const handleSetSelect = async (setCode: string) => {
     if (creating) return
@@ -59,7 +57,20 @@ export default function NewDraftPage() {
   }
 
   if (!isAuthenticated) {
-    return null // Will redirect
+    return (
+      <div className="draft-page-bg">
+        <div className="auth-prompt-container">
+          <h2>Login Required</h2>
+          <p>Draft requires a Discord login to track players in multiplayer.</p>
+          <button className="primary-button" onClick={handleLogin}>
+            Login with Discord
+          </button>
+          <button className="secondary-button" onClick={handleBack}>
+            Go Back
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (creating) {
