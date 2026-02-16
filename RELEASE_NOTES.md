@@ -11,6 +11,13 @@
 - **Friendly auth flow**: Draft modes (including Chaos Draft) now show helpful login prompts instead of dead-end errors. Click "Login with Discord" and you'll be redirected right back to continue where you left off.
 - **Why drafts need login**: Multiplayer drafts require Discord login to track players, but we've made the process seamless.
 
+### 📦 Pack Generation Quality Fixes
+Stats page caught three issues in production data - fixed them all:
+
+- **Same-treatment duplicates eliminated**: Added final deduplication pass after variant upgrades to catch edge cases where the same card+variant+foil appeared twice in a pack. Previously 13/876 packs had this issue, now 0.
+- **Hyperspace common rate fixed**: Hyperspace common upgrades now always succeed. Previously some upgrades failed silently when variant card data was missing (~2.3% observed vs 3.7% expected).
+- **Foil rarity distribution fixed**: Foil slot now targets correct percentages (Common ~75%, Uncommon ~17%, Rare ~5%) by dynamically calculating weights based on actual card pool sizes. Previously Uncommon was underrepresented (11.6% vs 17% expected).
+
 ## 02.14.2026
 
 ### 📦 Pack Generation Quality Fix
