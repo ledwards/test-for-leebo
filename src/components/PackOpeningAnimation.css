@@ -43,6 +43,61 @@
   }
 }
 
+/* Shuffle exit animation - arc to left and down */
+@keyframes pack-shuffle-exit {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  40% {
+    transform: translateY(-60px) translateX(-80px) rotate(-15deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(200px) translateX(-400px) rotate(-45deg);
+    opacity: 0;
+  }
+}
+
+/* Shuffle enter animation - arc from right */
+@keyframes pack-shuffle-enter {
+  0% {
+    transform: translateY(200px) translateX(400px) rotate(45deg);
+    opacity: 0;
+  }
+  40% {
+    transform: translateY(-60px) translateX(80px) rotate(15deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.pack-item.visible.shuffle-exit {
+  animation: pack-shuffle-exit 0.5s ease-in forwards !important;
+  animation-delay: var(--shuffle-delay, 0ms) !important;
+  pointer-events: none;
+}
+
+.pack-item.visible.shuffle-enter {
+  animation: pack-shuffle-enter 0.5s ease-out forwards !important;
+  animation-delay: var(--shuffle-delay, 0ms) !important;
+}
+
+/* Mobile shuffle animations */
+.pack-item-mobile.shuffle-exit {
+  animation: pack-shuffle-exit 0.5s ease-in forwards !important;
+  animation-delay: var(--shuffle-delay, 0ms) !important;
+  pointer-events: none;
+}
+
+.pack-item-mobile.shuffle-enter {
+  animation: pack-shuffle-enter 0.5s ease-out forwards !important;
+  animation-delay: var(--shuffle-delay, 0ms) !important;
+}
+
 /* Individual pack item */
 .pack-item {
   position: absolute;
@@ -59,6 +114,12 @@
 .pack-item.visible {
   animation: pack-enter 0.3s ease forwards;
   animation-delay: var(--pack-delay, 0ms);
+}
+
+/* After shuffle - packs are just visible, no animation */
+.pack-item.settled {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 @keyframes pack-enter {
@@ -355,12 +416,29 @@
   border-radius: 12px;
 }
 
-/* Open All button below packs */
+/* Info tooltip in upper left corner */
+.info-tooltip-corner {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 400;
+}
+
+/* Buttons container - side by side */
 .open-all-container {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.randomize-button {
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .open-all-button,
@@ -521,9 +599,21 @@
     padding: 8px 16px;
   }
 
+  .info-tooltip-corner {
+    top: 15px;
+    left: 15px;
+  }
+
   /* Adjust button position on mobile */
   .open-all-container {
     bottom: 60px !important;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .randomize-button {
+    padding: 10px 20px;
+    font-size: 1rem;
   }
 
   .pack-counter {

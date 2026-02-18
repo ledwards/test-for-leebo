@@ -53,6 +53,88 @@ interface DraftPacksOptions {
 }
 
 /**
+ * Process pre-generated box packs for draft
+ * Takes packs from a 24-pack box and processes them for player distribution
+ * (adds instance IDs, extracts leaders, removes bases)
+ *
+ * @param boxPacks - Pre-generated packs from the box (24 packs)
+ * @param playerCount - Number of players (each gets 3 packs)
+ * @returns { packs: playerPacks[][], leaders: playerLeaders[][], originalPacks: RawCard[][] }
+ */
+export function processBoxPacksForDraft(
+  boxPacks: Pack[],
+  playerCount: number
+): DraftPacksResult {
+  const packsPerPlayer = 3;
+  const totalPacksNeeded = playerCount * packsPerPlayer;
+
+  if (boxPacks.length < totalPacksNeeded) {
+    throw new Error(`Not enough packs in box: need ${totalPacksNeeded}, have ${boxPacks.length}`);
+  }
+
+  const allPlayerPacks: DraftPack[][] = [];
+  const allPlayerLeaders: DraftCard[][] = [];
+  const allOriginalPacks: RawCard[][] = [];
+
+  // Global counter for unique instance IDs across the entire draft
+  let instanceCounter = 0;
+
+  for (let player = 0; player < playerCount; player++) {
+    const playerPacks: DraftPack[] = [];
+    const playerLeaders: DraftCard[] = [];
+    const playerOriginalPacks: RawCard[] = [];
+
+    for (let packNum = 0; packNum < packsPerPlayer; packNum++) {
+      // Get pack from box (player 0 gets packs 0,1,2; player 1 gets 3,4,5; etc.)
+      const packIndex = player * packsPerPlayer + packNum;
+      const pack = boxPacks[packIndex];
+
+      // Get cards array from pack (handle both { cards: [...] } and raw array)
+      const packCards: RawCard[] = pack.cards || pack;
+
+      // Save original pack for stat tracking (before leader/base extraction)
+      playerOriginalPacks.push(packCards);
+
+      // Add unique instance IDs to all cards in the pack
+      const cardsWithInstanceIds = packCards.map(card => ({
+        ...card,
+        instanceId: `${card.id}_${instanceCounter++}`
+      })) as unknown as DraftCard[];
+
+      // Extract leader from pack
+      const leaderIndex = cardsWithInstanceIds.findIndex(c => c.isLeader);
+      if (leaderIndex >= 0) {
+        const leader = cardsWithInstanceIds[leaderIndex];
+        if (leader) {
+          playerLeaders.push(leader);
+          // Remove leader from pack for drafting
+          cardsWithInstanceIds.splice(leaderIndex, 1);
+        }
+      }
+
+      // Remove base from pack (bases are not drafted)
+      const baseIndex = cardsWithInstanceIds.findIndex(c => c.isBase);
+      if (baseIndex >= 0) {
+        cardsWithInstanceIds.splice(baseIndex, 1);
+      }
+
+      // Keep the pack object format { cards: [...] } for consistency with sealed pools
+      playerPacks.push({ cards: cardsWithInstanceIds });
+    }
+
+    allPlayerPacks.push(playerPacks);
+    allPlayerLeaders.push(playerLeaders);
+    allOriginalPacks.push(playerOriginalPacks);
+  }
+
+  return {
+    packs: allPlayerPacks,  // [player][packNumber][cards]
+    leaders: allPlayerLeaders,  // [player][leaders] - 3 leaders per player
+    originalPacks: allOriginalPacks,  // [player][packNumber] - original 16-card packs for tracking
+  };
+}
+
+/**
  * Generate draft packs for all players
  * Each player gets 3 packs, with leaders extracted separately
  *

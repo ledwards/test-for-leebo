@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Button from './Button'
 import './PackOpeningAnimation.css'
 
+
 interface Card {
   imageUrl?: string
   isLeader?: boolean
@@ -50,6 +51,9 @@ interface PackOpeningAnimationProps {
   cardBackUrl?: string
   onComplete?: () => void
   packs?: Pack[] | null
+  onRandomize?: () => Promise<void>
+  isRandomizing?: boolean
+  hasBox?: boolean
 }
 
 export default function PackOpeningAnimation({
@@ -59,6 +63,9 @@ export default function PackOpeningAnimation({
   cardBackUrl = '/card-images/card-back.png',
   onComplete,
   packs = null,
+  onRandomize,
+  isRandomizing = false,
+  hasBox = false,
 }: PackOpeningAnimationProps) {
   // Get pack image for a specific pack index
   const getPackImage = (index: number) => {
@@ -77,10 +84,50 @@ export default function PackOpeningAnimation({
   const [clickedPacks, setClickedPacks] = useState<number[]>([])
   const [isMobile, setIsMobile] = useState(false)
   const [currentPackIndex, setCurrentPackIndex] = useState(0)
+  const [shufflePhase, setShufflePhase] = useState<'idle' | 'exiting' | 'entering' | 'entered'>('idle')
+  const [shuffleCount, setShuffleCount] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
   const animationCompleteRef = useRef(false)
   const packsRef = useRef(packs)
   const openAllIndexRef = useRef(0)
+
+  // Handle randomize with animation
+  const handleRandomizeWithAnimation = useCallback(async () => {
+    if (!onRandomize || (shufflePhase !== 'idle' && shufflePhase !== 'entered')) return
+
+    // Phase 1: Exit animation
+    setShufflePhase('exiting')
+
+    // Play shuffling sound after exit animation completes
+    await new Promise(resolve => setTimeout(resolve, 700))
+
+    if (typeof window !== 'undefined') {
+      const sound = new Audio('/sounds/shuffling-hand.mp3')
+      sound.volume = 0.5
+      sound.play().catch(() => {})
+    }
+
+    // Wait for rest of exit animation
+    await new Promise(resolve => setTimeout(resolve, 250))
+
+    // Call the actual randomize (updates packs in parent)
+    await onRandomize()
+
+    // Wait while "shuffling"
+    await new Promise(resolve => setTimeout(resolve, 750))
+
+    // Increment shuffle count to force React to re-create pack elements
+    setShuffleCount(c => c + 1)
+
+    // Phase 2: Enter animation
+    setShufflePhase('entering')
+
+    // Wait for enter animation to complete (~0.8s with stagger)
+    await new Promise(resolve => setTimeout(resolve, 800))
+
+    // Done - use 'entered' to keep shuffle-enter class (prevents pack-enter animation)
+    setShufflePhase('entered')
+  }, [onRandomize, shufflePhase])
 
   // Keep packs ref updated
   useEffect(() => {
@@ -437,8 +484,20 @@ export default function PackOpeningAnimation({
         &gt;&gt;
       </Button>
 
-      {/* Open All / Continue button above pack counter */}
+      {/* Buttons above pack counter: Shuffle Packs (left) + Open All (right) */}
       <div className="open-all-container" style={{ bottom: '110px' }}>
+        {hasBox && clickedPacks.length === 0 && !isOpeningAll && (
+          <Button
+            variant="secondary"
+            glowColor="blue"
+            className="randomize-button"
+            onClick={handleRandomizeWithAnimation}
+            disabled={isRandomizing || (shufflePhase !== 'idle' && shufflePhase !== 'entered')}
+            title="Shuffle which 6 packs you get from a 24-pack booster box"
+          >
+            {shufflePhase === 'exiting' || shufflePhase === 'entering' ? 'Shuffling...' : 'Shuffle Packs'}
+          </Button>
+        )}
         <Button
           variant={allPacksOpened ? 'primary' : 'secondary'}
           className={allPacksOpened ? 'continue-button' : 'open-all-button'}
@@ -462,12 +521,13 @@ export default function PackOpeningAnimation({
 
             return (
               <div
-                key={i}
-                className={`pack-item-mobile ${isActive ? 'active' : ''} ${clickedPacks.includes(i) ? 'fading' : ''}`}
+                key={`${shuffleCount}-${i}`}
+                className={`pack-item-mobile ${isActive ? 'active' : ''} ${clickedPacks.includes(i) ? 'fading' : ''} ${shufflePhase === 'exiting' ? 'shuffle-exit' : ''} ${shufflePhase === 'entering' || shufflePhase === 'entered' ? 'shuffle-enter' : ''}`}
                 style={{
                   '--offset': offset,
                   '--abs-offset': Math.abs(offset),
                   '--pack-delay': `${i * 80}ms`,
+                  '--shuffle-delay': `${i * 60}ms`,
                 } as React.CSSProperties}
                 onClick={(e) => isActive && handlePackClick(e, i)}
               >
@@ -483,16 +543,16 @@ export default function PackOpeningAnimation({
           })}
         </div>
       ) : (
-        <div className="packs-row">
+        <div className={`packs-row ${shufflePhase !== 'idle' ? 'shuffling' : ''}`}>
           {Array.from({ length: packCount }).map((_, i) => {
             const isOpened = openedPacks.includes(i)
             if (isOpened) return null // Don't render opened packs
             const x = packStartX + i * (packWidth + packGap)
             return (
               <div
-                key={i}
-                className={`pack-item visible ${clickedPacks.includes(i) ? 'fading' : ''}`}
-                style={{ '--pack-x': `${x}px`, '--pack-delay': `${i * 80}ms` } as React.CSSProperties}
+                key={`${shuffleCount}-${i}`}
+                className={`pack-item visible ${clickedPacks.includes(i) ? 'fading' : ''} ${shufflePhase === 'exiting' ? 'shuffle-exit' : ''} ${shufflePhase === 'entering' || shufflePhase === 'entered' ? 'shuffle-enter' : ''}`}
+                style={{ '--pack-x': `${x}px`, '--pack-delay': `${i * 80}ms`, '--shuffle-delay': `${i * 60}ms` } as React.CSSProperties}
                 onClick={(e) => handlePackClick(e, i)}
               >
                 <div className="pack-wrapper">

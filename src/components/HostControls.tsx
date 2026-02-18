@@ -43,6 +43,12 @@ const XIcon = () => (
   </svg>
 )
 
+const PlayIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+  </svg>
+)
+
 interface Draft {
   maxPlayers?: number
   timed?: boolean
@@ -61,10 +67,12 @@ export interface HostControlsProps {
   playerCount: number
   onStart?: () => void
   onRandomize?: () => void
+  onRandomizePacks?: () => void
   onAddBot?: () => void
   onSettingsChange?: (settings: SettingsChange) => void
   startingDraft?: boolean
   randomizing?: boolean
+  randomizingPacks?: boolean
   addingBot?: boolean
   isFull?: boolean
   shareId?: string
@@ -76,10 +84,12 @@ function HostControls({
   playerCount,
   onStart,
   onRandomize,
+  onRandomizePacks,
   onAddBot,
   onSettingsChange,
   startingDraft,
   randomizing,
+  randomizingPacks,
   addingBot,
   isFull,
   shareId,
@@ -176,19 +186,43 @@ function HostControls({
             <span className="setting-label">Max Players:</span> <span className="setting-value">{draft?.maxPlayers || 8}</span>
           </span>
         </div>
+      </div>
+
+      <div className="controls-section">
+        {/* Row 1: Randomize Seats + Shuffle Packs */}
         <div className="controls-row secondary-controls">
           <Button
             variant="secondary"
+            glowColor="blue"
             className="control-button"
             onClick={onRandomize}
             disabled={randomizing || playerCount < 2}
+            title="Shuffle player seating order"
           >
             <DiceIcon />
             <span>{randomizing ? 'Randomizing...' : 'Randomize Seats'}</span>
           </Button>
 
+          {onRandomizePacks && (
+            <Button
+              variant="secondary"
+              glowColor="blue"
+              className="control-button"
+              onClick={onRandomizePacks}
+              disabled={randomizingPacks || playerCount < 2}
+              title="Shuffle which packs you get from the booster box"
+            >
+              <DiceIcon />
+              <span>{randomizingPacks ? 'Shuffling...' : 'Shuffle Packs'}</span>
+            </Button>
+          )}
+        </div>
+
+        {/* Row 2: Add Bot + Start Draft */}
+        <div className="controls-row secondary-controls">
           <Button
             variant="secondary"
+            glowColor="blue"
             className="control-button"
             onClick={onAddBot}
             disabled={addingBot || !canAddBot}
@@ -196,19 +230,15 @@ function HostControls({
             <RobotIcon />
             <span>{addingBot ? 'Adding...' : 'Add Bot'}</span>
           </Button>
-        </div>
-      </div>
 
-      <div className="controls-section">
-
-        <div className="controls-row primary-controls">
           <Button
             variant="primary"
             className="control-button"
             onClick={onStart}
             disabled={startingDraft || !canStart}
           >
-            {startingDraft ? 'Starting...' : 'Start Draft'}
+            <PlayIcon />
+            <span>{startingDraft ? 'Starting...' : 'Start Draft'}</span>
           </Button>
         </div>
 

@@ -3,11 +3,12 @@
 import { query, queryRow, queryRows } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
-import { generateDraftPacks } from '@/src/utils/draftLogic'
+import { generateDraftPacks, processBoxPacksForDraft } from '@/src/utils/draftLogic'
 import { processBotTurns } from '@/src/utils/botLogic'
 import { initializeCardCache } from '@/src/utils/cardCache'
 import { trackBulkGenerations, PACK_SLOT_TYPES } from '@/src/utils/trackGeneration'
 import { broadcastDraftState } from '@/src/lib/socketBroadcast'
+import { jsonParse } from '@/src/utils/json'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {
@@ -62,13 +63,29 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
       ? settings.chaosSets
       : undefined
 
-    // Generate packs for all players
-    // console.log('[START] Generating packs for', players.length, 'players, set:', pod.set_code)
-    const { packs, leaders, originalPacks } = generateDraftPacks(pod.set_code, {
-      playerCount: players.length,
-      chaosSets
-    })
-    // console.log('[START] Packs generated, leaders per player:', leaders[0]?.length)
+    // Use pre-generated box_packs if available, otherwise generate on the fly (backward compatibility)
+    let packs, leaders, originalPacks;
+    const boxPacks = jsonParse(pod.box_packs);
+
+    if (boxPacks && Array.isArray(boxPacks) && boxPacks.length > 0) {
+      // Use pre-generated box packs
+      // console.log('[START] Using pre-generated box packs for', players.length, 'players')
+      const result = processBoxPacksForDraft(boxPacks, players.length);
+      packs = result.packs;
+      leaders = result.leaders;
+      originalPacks = result.originalPacks;
+    } else {
+      // Legacy: generate packs on the fly
+      // console.log('[START] Generating packs for', players.length, 'players, set:', pod.set_code)
+      const result = generateDraftPacks(pod.set_code, {
+        playerCount: players.length,
+        chaosSets
+      });
+      packs = result.packs;
+      leaders = result.leaders;
+      originalPacks = result.originalPacks;
+    }
+    // console.log('[START] Packs ready, leaders per player:', leaders[0]?.length)
 
     // Track all original 16-card packs for statistics (async, non-blocking)
     // Uses originalPacks which have full pack structure before leader/base extraction

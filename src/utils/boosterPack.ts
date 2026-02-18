@@ -726,3 +726,25 @@ export function generateSealedPod(_cards: RawCard[], setCode: SetCode | string, 
   }
   return packs;
 }
+
+/**
+ * Generate a complete sealed booster box (24 packs)
+ * Used for the "Randomize Packs" feature - generates all 24 packs upfront
+ * so users can shuffle which 6 packs they receive from the box.
+ *
+ * @param cards - All cards (unused, kept for API compatibility)
+ * @param setCode - Set code
+ * @param boxSize - Number of packs in box (default 24)
+ * @returns Array of pack objects (each with cards array)
+ */
+export function generateSealedBox(_cards: RawCard[], setCode: SetCode | string, boxSize: number = 24): Pack[] {
+  // Clear belt cache for fresh box generation
+  // This ensures the box starts with fresh belts for proper collation
+  clearBeltCache();
+
+  const packs: Pack[] = [];
+  for (let i = 0; i < boxSize; i++) {
+    packs.push(generateBoosterPack(_cards, setCode));
+  }
+  return packs;
+}

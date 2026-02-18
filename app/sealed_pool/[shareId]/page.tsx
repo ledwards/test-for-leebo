@@ -34,6 +34,8 @@ interface PoolData {
   name?: string
   owner?: PoolOwner
   userId?: string
+  hasBox?: boolean
+  shuffledPacks?: boolean
 }
 
 interface PageProps {

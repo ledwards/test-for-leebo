@@ -11,6 +11,7 @@ import {
   SETS_1_3_CONSTANTS,
   SETS_4_6_CONSTANTS,
   SET_7_PLUS_CONSTANTS,
+  HS_BELT_CONFIGS,
   type PackConstants,
 } from '@/src/utils/packConstants'
 
@@ -341,6 +342,8 @@ export function buildMetricResult(
 /**
  * Get pack quality metrics for a specific set.
  *
+ * Analyzes ALL tracked packs (sealed and draft alike — a pack is a pack).
+ *
  * IMPORTANT: The `since` parameter should be set to exclude data before position-based
  * slot_type tracking was deployed (2026-02-12). Earlier data used rarity-based inference
  * which incorrectly classified upgraded slots (e.g., UC3→Rare was marked as 'rare_legendary'
@@ -362,7 +365,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       MIN(generated_at) as first_generated,
       MAX(generated_at) as last_generated
      FROM card_generations
-     WHERE set_code = $1 AND generated_at >= $2 AND source_type = 'sealed'`,
+     WHERE set_code = $1 AND generated_at >= $2`,
     [setCode, since]
   )
 
@@ -510,7 +513,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE rarity = 'Legendary') as legendary_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'rare_legendary' AND generated_at >= $2 AND source_type = 'sealed'`,
+     WHERE set_code = $1 AND slot_type = 'rare_legendary' AND generated_at >= $2`,
     [setCode, since]
   )
 
@@ -579,7 +582,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'hyperspace') as hyperspace_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'leader' AND generated_at >= $2 AND source_type = 'sealed'`,
+     WHERE set_code = $1 AND slot_type = 'leader' AND generated_at >= $2`,
     [setCode, since]
   )
 
@@ -598,7 +601,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'hyperspace') as hyperspace_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'base' AND generated_at >= $2 AND source_type = 'sealed'`,
+     WHERE set_code = $1 AND slot_type = 'base' AND generated_at >= $2`,
     [setCode, since]
   )
 
@@ -611,24 +614,31 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
     50
   )
 
-  // Hyperspace common rate
-  const commonTreatmentStats = await queryRow(
+  // Packs with at least 1 Hyperspace upgrade (any slot: leader, base, common, UC, rare)
+  // Expected rate from HS belt: 2/3 for sets 1-6, 100% for LAW+
+  const hsBeltKey = setNumber <= 3 ? '1-3' : setNumber <= 6 ? '4-6' : 'LAW'
+  const hsBeltConfig = HS_BELT_CONFIGS[hsBeltKey]
+  const expectedHsPackRate = hsBeltConfig
+    ? (hsBeltConfig.cycleSize - hsBeltConfig.budgetDistribution[0]) / hsBeltConfig.cycleSize
+    : 2 / 3
+
+  const hsPackStats = await queryRows(
     `SELECT
-      COUNT(*) as total,
-      COUNT(*) FILTER (WHERE treatment = 'hyperspace') as hyperspace_count
+      source_id,
+      pack_index,
+      COUNT(*) FILTER (WHERE treatment = 'hyperspace') as hs_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'common' AND generated_at >= $2 AND source_type = 'sealed'`,
+     WHERE set_code = $1 AND pack_index IS NOT NULL AND generated_at >= $2
+     GROUP BY source_id, pack_index`,
     [setCode, since]
   )
 
-  const commonTotal = parseInt(commonTreatmentStats?.total || 0)
-  const hsCommonCount = parseInt(commonTreatmentStats?.hyperspace_count || 0)
-  // Common HS rate is per-pack, not per-card. Adjust for 9 commons per pack.
-  const expectedHsCommonsPerPack = constants.commonHyperspaceRate
+  const totalHsPacks = hsPackStats.length
+  const packsWithHs = hsPackStats.filter(p => parseInt(p.hs_count) > 0).length
   const hsCommonMetric = buildMetricResult(
-    hsCommonCount,
-    commonTotal,
-    expectedHsCommonsPerPack / 9, // Rate per card slot
+    packsWithHs,
+    totalHsPacks,
+    expectedHsPackRate,
     100
   )
 
@@ -638,7 +648,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'hyperspace_foil') as hyperfoil_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'foil' AND generated_at >= $2 AND source_type = 'sealed'`,
+     WHERE set_code = $1 AND slot_type = 'foil' AND generated_at >= $2`,
     [setCode, since]
   )
 
@@ -657,7 +667,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       COUNT(*) as total,
       COUNT(*) FILTER (WHERE treatment = 'showcase') as showcase_count
      FROM card_generations
-     WHERE set_code = $1 AND slot_type = 'leader' AND generated_at >= $2 AND source_type = 'sealed'`,
+     WHERE set_code = $1 AND slot_type = 'leader' AND generated_at >= $2`,
     [setCode, since]
   )
 
@@ -692,8 +702,7 @@ export async function getPackQualityData(setCode: string, since: string = '2020-
       slot_type
      FROM card_generations
      WHERE set_code = $1
-       AND source_type = 'sealed'
-       AND generated_at >= $2
+             AND generated_at >= $2
        AND slot_type NOT IN ('leader', 'base')
      ORDER BY source_id, pack_index`,
     [setCode, since]

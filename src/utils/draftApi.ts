@@ -169,6 +169,20 @@ export async function randomizeSeats(shareId: string): Promise<RandomizeResult> 
 }
 
 /**
+ * Randomize pack order from the booster box (host only)
+ * @param shareId - Share ID of the draft
+ * @returns Randomize result
+ */
+export async function randomizePacks(shareId: string): Promise<RandomizeResult> {
+  try {
+    return await httpClient.post<RandomizeResult>(`/draft/${shareId}/randomize-packs`, {})
+  } catch (error) {
+    console.error('Failed to randomize packs:', error)
+    throw error
+  }
+}
+
+/**
  * Update draft settings (host only)
  * @param shareId - Share ID of the draft
  * @param settings - Settings to update
