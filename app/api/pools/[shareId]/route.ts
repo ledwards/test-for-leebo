@@ -35,6 +35,9 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
           cp.created_at,
           cp.updated_at,
           cp.draft_pod_id,
+          cp.box_packs,
+          cp.pack_indices,
+          cp.shuffled_packs,
           dp.share_id as draft_share_id,
           u.id as owner_id,
           u.username as owner_username
@@ -186,6 +189,8 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
       createdAt: pool.created_at,
       updatedAt: pool.updated_at,
       draftShareId: pool.draft_share_id || null,
+      hasBox: Boolean(pool.box_packs), // Whether randomization is available
+      shuffledPacks: pool.shuffled_packs || false,
       owner: pool.owner_id
         ? {
             id: pool.owner_id,

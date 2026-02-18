@@ -95,6 +95,12 @@
   flex-wrap: wrap;
 }
 
+.control-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .secondary-controls {
   margin-bottom: 5px;
 }

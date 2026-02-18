@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { deletePool } from '@/src/utils/poolApi'
+import Button from '@/src/components/Button'
 import '../draft/draft.css'
 import './page.css'
 
@@ -189,6 +190,9 @@ export default function OtherFormatsPage() {
   return (
     <div className="formats-page">
       <div className="formats-container">
+        <Button variant="back" onClick={() => router.push('/')}>
+          Back
+        </Button>
         <h1>Other Formats</h1>
         <p className="formats-subtitle">Alternative limited formats</p>
 

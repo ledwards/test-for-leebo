@@ -5,7 +5,7 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { useDraftSocket } from '../../../src/hooks/useDraftSocket'
-import { joinDraft, leaveDraft, startDraft, randomizeSeats, makePick, selectCard, updateSettings, togglePause, dropFromDraft } from '../../../src/utils/draftApi'
+import { joinDraft, leaveDraft, startDraft, randomizeSeats, randomizePacks, makePick, selectCard, updateSettings, togglePause, dropFromDraft } from '../../../src/utils/draftApi'
 import DraftLobby from '../../../src/components/DraftLobby'
 import LeaderDraftPhase from '../../../src/components/LeaderDraftPhase'
 import PackDraftPhase from '../../../src/components/PackDraftPhase'
@@ -34,6 +34,7 @@ export default function DraftRoomPage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null)
   const [startingDraft, setStartingDraft] = useState(false)
   const [randomizing, setRandomizing] = useState(false)
+  const [randomizingPacks, setRandomizingPacks] = useState(false)
   const [addingBot, setAddingBot] = useState(false)
   const [changingSettings, setChangingSettings] = useState(false)
   const [picking, setPicking] = useState(false)
@@ -152,6 +153,19 @@ export default function DraftRoomPage({ params }: PageProps) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setRandomizing(false)
+    }
+  }
+
+  const handleRandomizePacks = async () => {
+    if (randomizingPacks) return
+    setRandomizingPacks(true)
+    try {
+      await randomizePacks(shareId)
+      await refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
+    } finally {
+      setRandomizingPacks(false)
     }
   }
 
@@ -353,11 +367,13 @@ export default function DraftRoomPage({ params }: PageProps) {
           isPlayer={isPlayer}
           onStart={handleStart}
           onRandomize={handleRandomize}
+          onRandomizePacks={isFormatsDraft ? undefined : handleRandomizePacks}
           onAddBot={handleAddBot}
           onSettingsChange={handleSettingsChange}
           onLeave={handleLeave}
           startingDraft={startingDraft}
           randomizing={randomizing}
+          randomizingPacks={randomizingPacks}
           addingBot={addingBot}
           error={error}
           shareId={shareId}

@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/auth'
 import { generateShareId } from '@/lib/utils'
 import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
+import { generateSealedBox, clearBeltCache } from '@/src/utils/boosterPack'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -35,6 +36,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       setName = setConfig?.setName || setCode
     }
 
+    // Generate 24-pack booster box upfront
+    // For chaos drafts, generate 8 packs per set (3 sets = 24 packs)
+    let boxPacks
+    if (settings.draftMode === 'chaos' && settings.chaosSets) {
+      clearBeltCache()
+      boxPacks = []
+      for (const chaosSetCode of settings.chaosSets) {
+        // Generate 8 packs per set for chaos draft
+        const setPacks = generateSealedBox([], chaosSetCode, 8)
+        boxPacks.push(...setPacks)
+      }
+    } else {
+      // Normal draft - generate 24 packs from one set
+      boxPacks = generateSealedBox([], setCode, 24)
+    }
+
     // Generate share ID with retry logic
     let shareId = generateShareId(8)
     let attempts = 0
@@ -56,8 +73,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             timer_seconds,
             settings,
             draft_state,
-            state_version
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            state_version,
+            box_packs,
+            shuffled_packs
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
           RETURNING id, share_id, created_at`,
           [
             shareId,
@@ -71,7 +90,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             timerSeconds,
             JSON.stringify(settings),
             JSON.stringify({ phase: 'lobby' }),
-            1
+            1,
+            JSON.stringify(boxPacks),
+            false
           ]
         )
         break

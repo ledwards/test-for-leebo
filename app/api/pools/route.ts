@@ -13,7 +13,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await parseBody(request)
     validateRequired(body, ['setCode', 'cards'])
 
-    const { setCode, cards, packs, deckBuilderState, isPublic = true, shareId: clientShareId, poolType = 'sealed' } = body
+    const { setCode, cards, packs, deckBuilderState, isPublic = true, shareId: clientShareId, poolType = 'sealed', boxPacks, packIndices } = body
 
     // Get set name from config
     const setConfig = getSetConfig(setCode)
@@ -63,8 +63,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         // Try to insert with current shareId
         try {
           result = await query(
-            `INSERT INTO card_pools (user_id, share_id, set_code, set_name, pool_type, name, cards, packs, deck_builder_state, is_public)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            `INSERT INTO card_pools (user_id, share_id, set_code, set_name, pool_type, name, cards, packs, deck_builder_state, is_public, box_packs, pack_indices, shuffled_packs)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
              RETURNING id, share_id, created_at`,
             [
               userId,
@@ -77,6 +77,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               packs ? JSON.stringify(packs) : null,
               deckBuilderState ? JSON.stringify(deckBuilderState) : null,
               isPublic,
+              boxPacks ? JSON.stringify(boxPacks) : null,
+              packIndices || null,
+              false, // shuffled_packs starts as false
             ]
           )
           // Success - break out of retry loop

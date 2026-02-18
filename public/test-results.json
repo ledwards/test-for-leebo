@@ -1,13 +1,13 @@
 {
-  "runAt": "2026-02-16T01:49:32.895Z",
-  "executionTime": 19789,
+  "runAt": "2026-02-18T18:41:53.867Z",
+  "executionTime": 13532,
   "summary": {
     "totalSuites": 22,
-    "passedSuites": 22,
-    "failedSuites": 0,
-    "totalTests": 489,
-    "passed": 489,
-    "failed": 0
+    "passedSuites": 21,
+    "failedSuites": 1,
+    "totalTests": 490,
+    "passed": 488,
+    "failed": 2
   },
   "suites": [
     {
@@ -15,7 +15,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1309,
+      "executionTime": 1131,
       "tests": [
         {
           "suite": "utils",
@@ -215,7 +215,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 796,
+      "executionTime": 630,
       "tests": [
         {
           "suite": "utils",
@@ -295,7 +295,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 861,
+      "executionTime": 464,
       "tests": [
         {
           "suite": "utils",
@@ -310,7 +310,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 871,
+      "executionTime": 540,
       "tests": [
         {
           "suite": "utils",
@@ -325,7 +325,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1550,
+      "executionTime": 701,
       "tests": [
         {
           "suite": "belts",
@@ -395,7 +395,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 2385,
+      "executionTime": 700,
       "tests": [
         {
           "suite": "belts",
@@ -495,7 +495,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1307,
+      "executionTime": 715,
       "tests": [
         {
           "suite": "belts",
@@ -588,9 +588,9 @@
     {
       "name": "Hyperfoil Belt",
       "suite": "belts",
-      "status": "passed",
-      "exitCode": 0,
-      "executionTime": 707,
+      "status": "failed",
+      "exitCode": 1,
+      "executionTime": 675,
       "tests": [
         {
           "suite": "belts",
@@ -650,7 +650,7 @@
         {
           "suite": "belts",
           "name": "LAW: rarity distribution follows expected weights\u001b[0m",
-          "status": "passed"
+          "status": "failed"
         },
         {
           "suite": "belts",
@@ -659,18 +659,23 @@
         },
         {
           "suite": "belts",
-          "name": "Tests passed: 13\u001b[0m",
+          "name": "Tests passed: 12\u001b[0m",
           "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "Tests failed: 1\u001b[0m",
+          "status": "failed"
         }
       ],
-      "errorMessage": null
+      "errorMessage": "\u001b[36m🔄 Initializing card cache...\u001b[0m"
     },
     {
       "name": "Hyperspace Belts",
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 941,
+      "executionTime": 706,
       "tests": [
         {
           "suite": "belts",
@@ -685,7 +690,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1066,
+      "executionTime": 684,
       "tests": [
         {
           "suite": "belts",
@@ -760,7 +765,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 968,
+      "executionTime": 739,
       "tests": [
         {
           "suite": "belts",
@@ -845,7 +850,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1137,
+      "executionTime": 639,
       "tests": [
         {
           "suite": "belts",
@@ -900,7 +905,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 966,
+      "executionTime": 618,
       "tests": [
         {
           "suite": "belts",
@@ -975,7 +980,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 582,
+      "executionTime": 428,
       "tests": [
         {
           "suite": "fixes",
@@ -990,7 +995,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 748,
+      "executionTime": 655,
       "tests": [
         {
           "suite": "draft",
@@ -1005,7 +1010,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 451,
+      "executionTime": 427,
       "tests": [
         {
           "suite": "bots",
@@ -1150,7 +1155,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 647,
+      "executionTime": 627,
       "tests": [
         {
           "suite": "data",
@@ -1585,7 +1590,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 668,
+      "executionTime": 635,
       "tests": [
         {
           "suite": "data",
@@ -2620,7 +2625,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 451,
+      "executionTime": 454,
       "tests": [
         {
           "suite": "hooks",
@@ -2635,7 +2640,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 468,
+      "executionTime": 461,
       "tests": [
         {
           "suite": "hooks",
@@ -2650,7 +2655,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 448,
+      "executionTime": 458,
       "tests": [
         {
           "suite": "hooks",
@@ -2665,7 +2670,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 461,
+      "executionTime": 444,
       "tests": [
         {
           "suite": "hooks",
@@ -3240,7 +3245,7 @@
     {
       "suite": "belts",
       "name": "LAW: rarity distribution follows expected weights\u001b[0m",
-      "status": "passed"
+      "status": "failed"
     },
     {
       "suite": "belts",
@@ -3249,8 +3254,13 @@
     },
     {
       "suite": "belts",
-      "name": "Tests passed: 13\u001b[0m",
+      "name": "Tests passed: 12\u001b[0m",
       "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "Tests failed: 1\u001b[0m",
+      "status": "failed"
     },
     {
       "suite": "belts",

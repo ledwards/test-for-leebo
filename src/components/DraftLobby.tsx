@@ -34,11 +34,13 @@ interface DraftLobbyProps {
   isPlayer: boolean
   onStart: () => void
   onRandomize: () => void
+  onRandomizePacks?: () => void
   onAddBot: () => void
   onSettingsChange: (settings: unknown) => void
   onLeave: () => void
   startingDraft: boolean
   randomizing: boolean
+  randomizingPacks?: boolean
   addingBot: boolean
   error: string | null
   shareId: string
@@ -51,11 +53,13 @@ function DraftLobby({
   isPlayer,
   onStart,
   onRandomize,
+  onRandomizePacks,
   onAddBot,
   onSettingsChange,
   onLeave,
   startingDraft,
   randomizing,
+  randomizingPacks,
   addingBot,
   error,
   shareId,
@@ -106,10 +110,12 @@ function DraftLobby({
               playerCount={players.length}
               onStart={onStart}
               onRandomize={onRandomize}
+              onRandomizePacks={onRandomizePacks}
               onAddBot={onAddBot}
               onSettingsChange={onSettingsChange}
               startingDraft={startingDraft}
               randomizing={randomizing}
+              randomizingPacks={randomizingPacks}
               addingBot={addingBot}
               isFull={isFull}
               shareId={shareId}

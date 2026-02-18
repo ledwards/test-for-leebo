@@ -17,17 +17,33 @@ interface DeckBuilderState {
   [key: string]: unknown
 }
 
+interface Pack {
+  cards: RawCard[]
+}
+
 interface PoolData {
   setCode: SetCode | string
   cards: RawCard[]
-  packs?: RawCard[][]
+  packs?: Pack[]
   deckBuilderState?: DeckBuilderState
   isPublic?: boolean
+  shareId?: string
+  boxPacks?: Pack[]
+  packIndices?: number[]
 }
 
 interface SavedPool extends PoolData {
   shareId: string
   shareUrl: string
+  hasBox?: boolean
+  shuffledPacks?: boolean
+}
+
+interface RandomizeResult {
+  packs: Pack[]
+  cards: RawCard[]
+  packIndices: number[]
+  shuffledPacks: boolean
 }
 
 interface ClaimResult {
@@ -129,6 +145,20 @@ export async function fetchUserPools(userId: string): Promise<SavedPool[]> {
     return data?.pools || []
   } catch (error) {
     console.error('Failed to fetch user pools:', error)
+    throw error
+  }
+}
+
+/**
+ * Randomize packs from the booster box
+ * @param shareId - Share ID of the pool
+ * @returns New packs, cards, and indices
+ */
+export async function randomizePacks(shareId: string): Promise<RandomizeResult> {
+  try {
+    return await httpClient.post(`/pools/${shareId}/randomize`, {})
+  } catch (error) {
+    console.error('Failed to randomize packs:', error)
     throw error
   }
 }

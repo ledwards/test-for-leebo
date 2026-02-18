@@ -1,5 +1,14 @@
 # Release Notes
 
+## 02.18.2026
+
+### 🎉 New Features
+- **Shuffle Packs**: New button in sealed and draft lobby to shuffle which packs you receive from a simulated 24-pack booster box. Just like cracking a real box, you can now randomize your position in the box before opening!
+  - Sealed: Click "Shuffle Packs" before opening to get a random selection of 6 packs from the 24-pack box
+  - Draft: Host can shuffle packs in the lobby before starting (requires 2+ players)
+  - Animated card shuffle effect with sound
+  - Only available in standard sealed and draft modes (not chaos formats, which already mix packs from different sets)
+
 ## 02.15.2026
 
 ### 🌀 Chaos Mode Improvements
