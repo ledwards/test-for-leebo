@@ -31,7 +31,8 @@
  * - Same belt structure as Block A (50/50 split)
  * - Belt A: Vigilance, Command, Villainy - 50 cards
  * - Belt B: Aggression, Cunning, Heroism, Neutral - 50 cards
- * - Slot 5 is the GUARANTEED Hyperspace slot (always HS common)
+ * - Slot 9 (last common) is the GUARANTEED Hyperspace slot (always HS common)
+ *   TBD: Actual slot position once we know more about physical pack collation
  * - Triple-aspect cards (new in LAW) are assigned based on primary aspect priority
  *
  * TRIPLE-ASPECT CARDS:
@@ -719,12 +720,14 @@ export function getBeltConfig(block: BlockType): BeltConfig {
       targetBeltBSize: 50,
     }
   } else {
-    // Block B (LAW+) - Similar to Block A but with guaranteed HS common in slot 5
+    // Block B (LAW+) - Similar to Block A but with guaranteed HS common
+    // Using slot 9 (last common) for guaranteed HS to minimize duplicates
+    // TBD: Actual slot position once we know more about physical pack collation
     return {
       beltASlots: 4,  // Slots 1-4
       beltBSlots: 4,  // Slots 6-9
-      alternatingSlot: 5,  // Slot 5 alternates (and is guaranteed HS in LAW+)
-      hyperspaceSlot: 5,  // Slot 5 is the GUARANTEED Hyperspace slot
+      alternatingSlot: 5,  // Slot 5 alternates
+      hyperspaceSlot: 9,  // Last common slot - guaranteed Hyperspace
       targetBeltASize: 50,
       targetBeltBSize: 50,
       guaranteedHyperspace: true,  // Every pack has HS common in this slot
