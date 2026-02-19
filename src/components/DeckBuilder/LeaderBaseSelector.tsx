@@ -72,6 +72,7 @@ export interface LeaderBaseSelectorProps {
   deckSortOption?: SortOption
   setShowAspectPenalties?: (show: boolean) => void
   isLoading?: boolean
+  onAddStarterLeaders?: () => void
 }
 
 export function LeaderBaseSelector({
@@ -95,6 +96,7 @@ export function LeaderBaseSelector({
   deckSortOption,
   setShowAspectPenalties,
   isLoading = false,
+  onAddStarterLeaders,
 }: LeaderBaseSelectorProps) {
   // Try to get values from context
   let contextValue: ReturnType<typeof useDeckBuilder> | null = null
@@ -260,6 +262,18 @@ export function LeaderBaseSelector({
                 {leadersExpanded ? '▼' : '▶'}
               </span>
               <span>Leaders ({leadersCards.length})</span>
+              {onAddStarterLeaders && (
+                <button
+                  className="add-starter-leaders-button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onAddStarterLeaders()
+                  }}
+                  title="Add the Hyperspace versions of this set's starter deck leaders"
+                >
+                  + Starter Leaders
+                </button>
+              )}
             </h3>
             {leadersExpanded && (
               <div className="card-block-content">

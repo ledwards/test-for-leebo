@@ -6,6 +6,8 @@
 - **Shuffle Packs**: New button in sealed and draft lobby to shuffle which packs you receive from a simulated 24-pack booster box. Just like cracking a real box, you can now randomize your position in the box before opening your packs. This matters, becuase the way TCG packs and boxes are collated in real life invovles some amount of patterning that reduces variance. Shuffling packs increases variance, and shoudl result in more duplicates and triplicates in sealed pools. We will be collecting data as people use this feature to see how it affects statistical distributions.
   - Sealed: Click "Shuffle Packs" before opening to get a random selection of 6 packs from the 24-pack box
   - Draft: Host can shuffle packs in the lobby before starting
+- **Starter Leaders**: In the deck builder, click "+ Starter Leaders" next to the Leaders header to add the Hyperspace versions of the set's starter deck leaders to your pool. Great for practicing with the starter leaders in sealed!
+- **A Lawless Time (LAW) Now Live**: Set 7 is now available for all users! Pre-release disclaimer shown during pack opening notes that collation is our best guess until we have more real-world data.
 
 ## 02.15.2026
 
