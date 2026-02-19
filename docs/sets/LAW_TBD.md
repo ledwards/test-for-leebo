@@ -5,21 +5,21 @@ This document tracks things we don't know yet about Set 7 pack collation and nee
 ## Pack Collation TBDs
 
 ### 1. Guaranteed Hyperspace Common Slot Position
-**Current assumption:** Slot 9 (last common)
-**Why:** Minimizes duplicates by placing it at the end of common sequence
+**Current assumption:** Slot 5 (middle common, 1-indexed)
 **To verify:** Open physical packs and track which slot has the HS common
-**File:** `src/belts/data/commonBeltAssignments.ts` - Block B `hyperspaceSlot`
+**File:** `src/utils/setConfigs/LAW.ts` - `packRules.hyperspaceCommonSlot`
 
-### 2. Hyperspace Foil (HSF) Rarity Distribution
-**Current assumption:** Falls back to Normal variants with `isHyperspace: true` flag when no HSF variant data exists
-**Unknown:** Actual HSF rarity weights in the foil slot
-**To verify:** Track HSF pulls from physical packs, compare rarity distribution
+### 2. Hyperspace Foil (HSF) Slot - Using Hyperspace Variants as Placeholder
+**Current assumption:** No HSF variant data exists in the API yet. The HyperfoilBelt falls back to Hyperspace variant cards (234 non-L/B cards) with `isFoil: true` + `isHyperspace: true` flags. These display with the Hyperspace card art + foil shimmer CSS overlay.
+**Fallback chain:** `Hyperspace Foil` → `Hyperspace` → `Normal` (see `HyperfoilBelt.ts` lines 72-89)
+**Rarity weights:** Using LAW config's `hyperspaceFoilSlotWeights` (C:65%, UC:20%, R:8%, S:4%, L:3%)
+**When to update:** Run `npm run fetch-cards` when HSF card data appears on swuapi.com. The belt will automatically prefer HSF variants — no code change needed.
 **File:** `src/belts/HyperfoilBelt.ts`
 
 ### 3. Can Rare Bases Appear as Hyperspace Foil?
 **Current assumption:** Unknown - currently rare bases can appear in foil slot but unclear if HSF versions exist
 **To verify:** Check if HSF rare bases exist in card data or physical packs
-**Related:** LAW is the LAST set where rare bases go in the rare slot (per `rareBasesInRareSlot: true`)
+**Related:** LAW is the FIRST set where rare bases go in the base slot (not the rare slot), per `rareBasesInRareSlot: false`
 
 ### 4. Prestige Cards in Standard Packs
 **Current assumption:** ~1 in 18 packs, replaces rare slot
@@ -40,32 +40,31 @@ This document tracks things we don't know yet about Set 7 pack collation and nee
 **File:** `src/belts/data/commonBeltAssignments.ts` - `assignCardToBelt()`
 
 ### 7. Showcase Leader Pull Rate
-**Current assumption:** Same as previous sets (~1 in 288 packs)
+**Current assumption:** ~1 in 576 packs (double the previous 1/288)
 **FFG announcement:** "Showcase leaders are significantly rarer" in LAW
 **To verify:** Actual showcase leader rate from box openings
-**File:** `src/utils/packConstants.ts` - may need LAW-specific rate
-
-## Assets TBDs
-
-### 8. Promotional Wallpaper Art
-**Current status:** Using placeholder/standin image
-**Location:** `public/background-images/` or similar
-**Needed:** Final promotional art for LAW landing page/backgrounds
-
-### 9. Pack Art
-**Current status:** Using `public/pack-images/law-pack.png`
-**To verify:** Is this the final pack art or placeholder?
+**File:** `src/utils/packConstants.ts` - `SET_7_PLUS_CONSTANTS.showcaseLeaderRate`
 
 ## Data TBDs
 
-### 10. Card Data Completeness
-**Current status:** Card data from swuapi.com (partial/beta)
-**To verify:** Run `npm run fetch-cards` when full data is available
-**Note:** Card counts in `src/utils/setConfigs/LAW.ts` are preliminary
+### 8. Card Data Auto-Refresh
+**Current status:** `npm run fetch-cards` runs automatically at build time (prebuild). Card counts in `src/utils/setConfigs/LAW.ts` were updated to match current API data (100 C, 60 UC, 47 R, 20 L, 10 S) but may change as more cards are added.
+**Note:** The LAW config comment still says "preliminary" — update when data is finalized.
+**File:** `src/utils/setConfigs/LAW.ts`, `package.json` prebuild script
 
-### 11. Special Rarity Cards
-**Current count:** 10 Special cards (starter deck leaders/bases)
+### 9. Special Rarity Cards
+**Current count:** 10 Special cards (2 starter leaders + 1 starter base + 7 others)
 **To verify:** Final count of Special rarity cards in LAW
+
+## Assets TBDs
+
+### 10. Expansion Art
+**Current status:** Using `public/expansion-art/law.png` — appears in set picker, pool headers, draft lobbies, and all background treatments.
+**To verify:** Is this the final art or will it be updated?
+
+### 11. Pack Art
+**Current status:** Using `public/pack-images/law-pack.png` — appears in pack opening animation.
+**To verify:** Is this the final pack art or placeholder?
 
 ---
 
@@ -79,4 +78,11 @@ When a TBD is resolved:
 
 ## Resolved
 
-(None yet - add items here as they're verified)
+### Rare Bases in Rare Slot
+**Resolved:** LAW uses `rareBasesInRareSlot: false` — rare bases go in the base slot, not the rare slot. This is the FIRST set with this behavior (sets 1-6 had `rareBasesInRareSlot: true`).
+
+### Card Data Completeness
+**Resolved:** Full card data now available (264 Normal cards, 264 Hyperspace, 2 Showcase = 530 total). Auto-refreshed via `npm run fetch-cards` in prebuild.
+
+### Foil Slot Is Always Hyperspace Foil
+**Resolved:** Confirmed per FFG announcement. `foilSlotIsHyperspaceFoil: true` in LAW config. No regular foils in LAW packs. Currently using Hyperspace variants as placeholder (see TBD #2 above).
