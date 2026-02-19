@@ -190,9 +190,8 @@
 }
 
 .sponsor-logo {
-  width: 120px;
-  height: auto;
-  max-height: 100px;
+  height: 100px;
+  width: auto;
   object-fit: contain;
 }
 
@@ -220,6 +219,7 @@
   }
 
   .sponsor-logo {
-    width: 100px;
+    height: 80px;
+    width: auto;
   }
 }
