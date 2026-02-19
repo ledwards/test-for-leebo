@@ -4,6 +4,7 @@
 const BOT_TOKEN = process.env['DISCORD_BOT_TOKEN']
 const GUILD_ID = process.env['DISCORD_GUILD_ID']
 const FRIEND_ROLE_ID = process.env['DISCORD_FRIEND_OF_THE_POD_ROLE_ID']
+const BETA_TESTER_ROLE_ID = process.env['DISCORD_BETA_TESTER_ROLE_ID']
 
 /**
  * Check if a Discord user has the "Friend of the Pod" role in the server.
@@ -36,4 +37,41 @@ export async function isPatron(discordId: string): Promise<boolean> {
     // Network error, Discord API down, etc.
     return false
   }
+}
+
+/**
+ * Add a role to a Discord user in the server.
+ * Returns true if successful, false on any error.
+ */
+export async function addRole(discordId: string, roleId: string): Promise<boolean> {
+  if (!BOT_TOKEN || !GUILD_ID) {
+    return false
+  }
+
+  try {
+    const response = await fetch(
+      `https://discord.com/api/v10/guilds/${GUILD_ID}/members/${discordId}/roles/${roleId}`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bot ${BOT_TOKEN}`,
+        },
+      }
+    )
+
+    return response.ok || response.status === 204
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Add the beta tester role to a Discord user.
+ * No-op if DISCORD_BETA_TESTER_ROLE_ID is not configured.
+ */
+export async function addBetaTesterRole(discordId: string): Promise<boolean> {
+  if (!BETA_TESTER_ROLE_ID) {
+    return false
+  }
+  return addRole(discordId, BETA_TESTER_ROLE_ID)
 }
