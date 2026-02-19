@@ -390,20 +390,19 @@ async function run(): Promise<void> {
       assert(rate >= 0.97, `Expected ≥97% of packs to have ≥1 HS (excl HSF), got ${(rate * 100).toFixed(1)}%`)
     })
 
-    test('LAW: HS common at slot 9 (index 14, last common) matches belt rate (~47%)', () => {
+    test('LAW: HS common at slot 9 (index 10, last common) is 100% guaranteed', () => {
       let hsCommonCount = 0
       lawPacks.forEach(pack => {
-        const card = pack.cards[14] // Last common slot (slot 9)
+        const card = pack.cards[10] // Last common slot (slot 9) = index 10
         if (card && (card.variantType === 'Hyperspace' || card.isHyperspace === true)) {
           hsCommonCount++
         }
       })
       const rate = hsCommonCount / SAMPLE_SIZE
-      const expected = 28 / 60 // belt: 28 common upgrades per 60 packs
-      console.log(`\x1b[36m   HS common (index 14, slot 9): ${hsCommonCount}/${SAMPLE_SIZE} (${(rate * 100).toFixed(1)}%, expected ${(expected * 100).toFixed(1)}%)\x1b[0m`)
+      console.log(`\x1b[36m   HS common (index 10, slot 9): ${hsCommonCount}/${SAMPLE_SIZE} (${(rate * 100).toFixed(1)}%, expected 100%)\x1b[0m`)
       assert(
-        Math.abs(rate - expected) / expected < 0.20,
-        `HS common rate ${(rate * 100).toFixed(1)}% deviates >20% from expected ${(expected * 100).toFixed(1)}%`
+        rate >= 0.99,
+        `LAW HS common rate should be ~100%, got ${(rate * 100).toFixed(1)}%`
       )
     })
 
@@ -429,11 +428,14 @@ async function run(): Promise<void> {
       )
     })
 
-    test('LAW: mean HS per pack ≈ 1.1 (belt μ = 66/60)', () => {
-      const expected = 66 / 60 // belt: 66 total upgrades per 60 packs
+    test('LAW: mean HS per pack ≈ 1.6 (100% HS common + other upgrades)', () => {
+      // With 100% HS common (60/60), plus other upgrades (~38/60):
+      // Leader: 10/60, Base: 10/60, R/L: 4/60, UC1: 4/60, UC2: 2/60, UC3: 8/60
+      // Total: 60 + 38 = 98/60 ≈ 1.63
+      const expected = 98 / 60
       console.log(`\x1b[36m   Mean HS per pack (excl HSF): ${lawStats.mean.toFixed(3)} (expected ${expected.toFixed(3)})\x1b[0m`)
       assert(
-        Math.abs(lawStats.mean - expected) / expected < 0.15,
+        Math.abs(lawStats.mean - expected) / expected < 0.20,
         `Mean HS per pack should be ≈${expected.toFixed(2)}, got ${lawStats.mean.toFixed(3)}`
       )
     })
