@@ -32,8 +32,8 @@ test.describe('Deck Builder', () => {
     // Create a new pool and navigate to deck builder
     await page.goto('/sets')
     await waitForNetworkIdle(page)
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    await page.locator('.set-card').first().click()
+    await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+    await page.locator('.sets-grid .set-card').first().click()
     await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
 
     // Extract shareId and navigate to deck builder
@@ -58,8 +58,8 @@ test.describe('Deck Builder', () => {
     // Create a new pool
     await page.goto('/sets')
     await waitForNetworkIdle(page)
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    await page.locator('.set-card').first().click()
+    await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+    await page.locator('.sets-grid .set-card').first().click()
     await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
     const poolUrl = page.url()
     const shareId = poolUrl.split('/pool/')[1]?.split('/')[0]
@@ -84,8 +84,8 @@ test.describe('Deck Builder', () => {
     // Create a new pool
     await page.goto('/sets')
     await waitForNetworkIdle(page)
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    await page.locator('.set-card').first().click()
+    await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+    await page.locator('.sets-grid .set-card').first().click()
     await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
     const poolUrl = page.url()
     const shareId = poolUrl.split('/pool/')[1]?.split('/')[0]
@@ -117,8 +117,8 @@ test.describe('Deck Builder', () => {
     // Create a new pool
     await page.goto('/sets')
     await waitForNetworkIdle(page)
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    await page.locator('.set-card').first().click()
+    await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+    await page.locator('.sets-grid .set-card').first().click()
     await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
     const poolUrl = page.url()
     const shareId = poolUrl.split('/pool/')[1]?.split('/')[0]
@@ -141,8 +141,8 @@ test.describe('Deck Builder', () => {
     // Create a new pool
     await page.goto('/sets')
     await waitForNetworkIdle(page)
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    await page.locator('.set-card').first().click()
+    await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+    await page.locator('.sets-grid .set-card').first().click()
     await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
     const poolUrl = page.url()
     const shareId = poolUrl.split('/pool/')[1]?.split('/')[0]
@@ -222,8 +222,8 @@ test.describe('Deck Builder - Mobile', () => {
     if (!poolShareId) {
       await page.goto(`${BASE_URL}/sets`)
       await waitForNetworkIdle(page)
-      await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-      await page.locator('.set-card').first().click()
+      await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+      await page.locator('.sets-grid .set-card').first().click()
 
       // Wait for navigation to /pools/new page
       await page.waitForURL(/\/pools\/new/, { timeout: 10000 })
@@ -277,8 +277,8 @@ test.describe('Deck Builder - Mobile', () => {
     if (!poolShareId) {
       await page.goto(`${BASE_URL}/sets`)
       await waitForNetworkIdle(page)
-      await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-      await page.locator('.set-card').first().click()
+      await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+      await page.locator('.sets-grid .set-card').first().click()
 
       // Wait for navigation and animation
       await page.waitForURL(/\/pools\/new/, { timeout: 10000 })

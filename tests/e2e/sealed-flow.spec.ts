@@ -31,7 +31,7 @@ test.describe('Sealed Pool Flow', () => {
     await expect(page.locator('.sets-grid')).toBeVisible()
 
     // Should have multiple set cards
-    const setCards = page.locator('.set-card')
+    const setCards = page.locator('.sets-grid .set-card')
     await expect(setCards.first()).toBeVisible({ timeout: 10000 })
 
     const count = await setCards.count()
@@ -46,10 +46,10 @@ test.describe('Sealed Pool Flow', () => {
     await waitForNetworkIdle(page)
 
     // Wait for sets to load
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
 
     // Click on first set (usually the newest)
-    await page.locator('.set-card').first().click()
+    await page.locator('.sets-grid .set-card').first().click()
 
     // Should navigate to pool creation and then to the pool page
     // URL should eventually be /pool/[shareId]
@@ -69,8 +69,8 @@ test.describe('Sealed Pool Flow', () => {
     // Create a new sealed pool
     await page.goto('/sets')
     await waitForNetworkIdle(page)
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    await page.locator('.set-card').first().click()
+    await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+    await page.locator('.sets-grid .set-card').first().click()
     await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
 
     // Wait for cards to appear
@@ -93,8 +93,8 @@ test.describe('Sealed Pool Flow', () => {
     // Create a new sealed pool
     await page.goto('/sets')
     await waitForNetworkIdle(page)
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    await page.locator('.set-card').first().click()
+    await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+    await page.locator('.sets-grid .set-card').first().click()
     await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
     await waitForCardsToLoad(page)
 
@@ -134,8 +134,8 @@ test.describe('Sealed Pool Flow - Mobile', () => {
     expect(issues).toHaveLength(0)
 
     // Click on a set
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    await page.locator('.set-card').first().click()
+    await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+    await page.locator('.sets-grid .set-card').first().click()
 
     // Wait for pool to load
     await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })

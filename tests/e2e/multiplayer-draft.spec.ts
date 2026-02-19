@@ -100,7 +100,7 @@ test.describe('Full 8-player draft', () => {
 
     await pages[0].click('.create-draft-button, button:has-text("Create Draft")')
     await pages[0].waitForSelector('.set-selection', { timeout: 10000 })
-    await pages[0].locator('.set-card').first().click()
+    await pages[0].locator('.sets-grid .set-card').first().click()
 
     await pages[0].waitForFunction(() => {
       const url = window.location.pathname

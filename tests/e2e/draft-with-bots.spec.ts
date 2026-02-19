@@ -94,7 +94,7 @@ test.describe('Draft with bots', () => {
 
     await page.click('.create-draft-button, button:has-text("Create Draft")')
     await page.waitForSelector('.set-selection', { timeout: 10000 })
-    await page.locator('.set-card').first().click()
+    await page.locator('.sets-grid .set-card').first().click()
 
     await page.waitForFunction(() => {
       const url = window.location.pathname

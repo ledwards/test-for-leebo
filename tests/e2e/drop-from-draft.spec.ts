@@ -108,7 +108,7 @@ test.describe('Drop from Draft', () => {
 
     await organizerPage.click('.create-draft-button, button:has-text("Create Draft")')
     await organizerPage.waitForSelector('.set-selection', { timeout: 10000 })
-    await organizerPage.locator('.set-card').first().click()
+    await organizerPage.locator('.sets-grid .set-card').first().click()
 
     await organizerPage.waitForFunction(() => {
       const url = window.location.pathname
