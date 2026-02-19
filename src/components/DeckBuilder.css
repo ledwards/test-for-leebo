@@ -704,6 +704,30 @@
   user-select: none;
 }
 
+/* Add Starter Leaders button */
+.add-starter-leaders-button {
+  margin-left: auto;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: 'Barlow', sans-serif;
+  text-transform: none;
+  letter-spacing: normal;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(100, 149, 237, 0.5);
+  border-radius: 4px;
+  color: rgba(100, 149, 237, 0.9);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-starter-leaders-button:hover {
+  background: rgba(100, 149, 237, 0.15);
+  border-color: rgba(100, 149, 237, 0.8);
+  color: #6495ED;
+  box-shadow: 0 0 8px rgba(100, 149, 237, 0.4);
+}
+
 .card-block-content {
   flex: 1;
 }

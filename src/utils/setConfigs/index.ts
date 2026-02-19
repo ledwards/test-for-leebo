@@ -83,6 +83,7 @@ export interface SetConfig {
   setNumber: number
   color: string
   beta?: boolean
+  prerelease?: boolean // Pre-release set with estimated collation
   cardCounts: CardCounts
   packRules: PackRules
   rarityWeights: SetRarityWeights

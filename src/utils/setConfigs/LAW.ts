@@ -27,7 +27,7 @@ export const LAW_CONFIG: SetConfig = {
   setName: 'A Lawless Time',
   setNumber: 7,
   color: '#8B4513', // Brown/western theme
-  beta: true, // Beta-only set, requires beta access to view
+  prerelease: true, // Pre-release set with estimated collation
 
   // Card counts (Normal variants only) - from swuapi.com data
   cardCounts: {

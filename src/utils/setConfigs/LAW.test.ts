@@ -19,8 +19,8 @@ describe('LAW_CONFIG', () => {
       assert.strictEqual(LAW_CONFIG.setNumber, 7)
     })
 
-    it('should be marked as beta', () => {
-      assert.strictEqual(LAW_CONFIG.beta, true)
+    it('should be marked as prerelease', () => {
+      assert.strictEqual(LAW_CONFIG.prerelease, true)
     })
 
     it('should have a color defined', () => {

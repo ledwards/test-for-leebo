@@ -1214,6 +1214,71 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
   }, [allSetCards, cardPositions, sectionBounds, setCode])
 
+  // Check if starter leaders are available and not already in pool
+  const starterLeadersAvailable = useMemo(() => {
+    if (!allSetCards.length || !setCode) return []
+    // Find Special rarity Hyperspace leaders from the current set
+    return allSetCards.filter(c =>
+      c.rarity === 'Special' &&
+      c.type === 'Leader' &&
+      c.variantType === 'Hyperspace' &&
+      c.set === setCode
+    )
+  }, [allSetCards, setCode])
+
+  const hasStarterLeaders = useMemo(() => {
+    // Check if any starter leaders are already in cardPositions
+    return starterLeadersAvailable.some(starterLeader =>
+      Object.values(cardPositions).some(
+        pos => pos.card.type === 'Leader' &&
+               pos.card.rarity === 'Special' &&
+               pos.card.variantType === 'Hyperspace'
+      )
+    )
+  }, [starterLeadersAvailable, cardPositions])
+
+  // Function to add starter leaders to the pool
+  const addStarterLeaders = useCallback(() => {
+    if (!starterLeadersAvailable.length || hasStarterLeaders) return
+
+    const leadersBasesBounds = sectionBounds['leaders-bases']
+    if (!leadersBasesBounds) return
+
+    const updatedPositions = { ...cardPositions }
+    const leaderBaseWidth = 168
+    const leaderBaseHeight = 120
+    const spacing = 20
+    const padding = 50
+
+    // Find existing leaders to determine starting position
+    const existingLeaders = Object.values(cardPositions)
+      .filter(pos => pos.section === 'leaders-bases' && pos.card.isLeader)
+
+    const itemsPerRow = Math.floor((window.innerWidth - 100) / (leaderBaseWidth + spacing))
+
+    // Calculate where to insert new leaders (after existing leaders)
+    const leaderCount = existingLeaders.length
+    const startIndex = leaderCount
+
+    starterLeadersAvailable.forEach((card, i) => {
+      const index = startIndex + i
+      const row = Math.floor(index / itemsPerRow)
+      const col = index % itemsPerRow
+      const cardId = `leader-starter-${i}-${card.id || `${card.name}-${card.set}`}`
+
+      updatedPositions[cardId] = {
+        x: padding + col * (leaderBaseWidth + spacing),
+        y: leadersBasesBounds.minY + row * (leaderBaseHeight + spacing),
+        card: { ...card, isLeader: true },
+        section: 'leaders-bases',
+        visible: true,
+        zIndex: 1
+      }
+    })
+
+    setCardPositions(updatedPositions)
+  }, [starterLeadersAvailable, hasStarterLeaders, cardPositions, sectionBounds])
+
   // Save deck builder state to localStorage whenever it changes
   useEffect(() => {
     // Only save if we have a shareId to key the state by
@@ -1933,6 +1998,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               onCardTouchStart={handleCardTouchStart}
               onCardTouchEnd={handleCardTouchEnd}
               isLoading={isLoading}
+              onAddStarterLeaders={starterLeadersAvailable.length > 0 && !hasStarterLeaders ? addStarterLeaders : undefined}
             />
           )}
 
