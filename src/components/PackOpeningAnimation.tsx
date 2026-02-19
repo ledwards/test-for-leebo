@@ -267,7 +267,7 @@ export default function PackOpeningAnimation({
       // Row 3: 5 cards
       // Row 4: 4 cards
       const rowGap = 8
-      const cardsStartY = 60
+      const cardsStartY = 80
 
       // Row 1: Leaders/bases
       const row1Width = 2 * leaderWidth + cardGap
@@ -335,7 +335,7 @@ export default function PackOpeningAnimation({
       }
     } else {
       // DESKTOP LAYOUT: 2 rows of 8
-      const cardsStartY = 100
+      const cardsStartY = 120
       const rowGap = 15
       const cardsPerRow = 8
 
@@ -468,7 +468,7 @@ export default function PackOpeningAnimation({
   const mobilePackGap = 12
 
   // Simple fixed layout
-  const cardsStartY = mobile ? 20 : 100  // Cards land closer to top on mobile
+  const cardsStartY = mobile ? 20 : 120  // Cards land closer to top on mobile
 
   // Check if device is desktop (for hover preview)
   const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768

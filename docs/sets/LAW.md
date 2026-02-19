@@ -27,9 +27,9 @@ LAW introduces significant pack construction changes per [official FFG announcem
 | Triple-aspect cards | None | **Introduced** |
 | Rare bases | In rare slot | **In base slot (~1/6 rate)** |
 
-## Card Counts (Preliminary)
+## Card Counts
 
-> Note: Card data is preliminary from swuapi.com. Update when full data available.
+> See [LAW_TBD.md](LAW_TBD.md) for preliminary data notes.
 
 | Category | Count |
 |----------|-------|
@@ -151,7 +151,7 @@ Cards with three aspects — double primary + faction (e.g., Vigilance+Aggressio
 
 ### Belt Assignment Strategy (Common Belts Only)
 
-**First-Listed-Aspect Rule** (current assumption — see TBD):
+**First-Listed-Aspect Rule** (assumption — see [LAW_TBD.md](LAW_TBD.md)):
 - Use the **first aspect** in the card's aspects array to determine belt
 - If first aspect is Belt A (Vigilance, Command, Villainy) → Belt A
 - Otherwise → Belt B
@@ -197,14 +197,9 @@ Example: Vigilance+Cunning → first is Vigilance → Belt A
 3. HyperspaceUpgradeBelt ('LAW' config) determines which slots get HS upgrades
 4. Belt guarantees ≥1 HS per pack (budget-0 = 0)
 5. Skip foil→hyperfoil upgrade (already HS)
-6. (TODO) Handle Prestige in rare slot
+6. Handle Prestige in rare slot (see [LAW_TBD.md](LAW_TBD.md))
 
-### HSF & HS Variant Data Fallback
-LAW currently has no Hyperspace or Hyperspace Foil variant card data. Two fallback mechanisms handle this:
-- **HyperfoilBelt**: Falls back to Normal variants when no `variantType === 'Hyperspace Foil'` cards exist. Cards are marked `isFoil: true, isHyperspace: true` as placeholders.
-- **findHyperspaceVariant()**: Falls back to returning the original card with `isHyperspace: true` when no `variantType === 'Hyperspace'` variant exists (only for LAW+ sets).
-
-When real HS/HSF data is loaded (via `npm run fetch-cards`), the fallbacks are automatically bypassed.
+> **Note:** HSF/HS variant data and Prestige cards use placeholder implementations. See [LAW_TBD.md](LAW_TBD.md) for details.
 
 ### Code Checks
 ```javascript
@@ -218,34 +213,11 @@ getBeltConfig('B')     // Returns config with guaranteedHyperspace: true
 
 ## Limited/Draft Play
 
-> Note: LAW is currently in pre-release (available to beta testers). Leader rankings and powerful cards will be added after the set releases and community data is available.
+Leader rankings and powerful cards will be added post-release. See [LAW_TBD.md](LAW_TBD.md).
 
-### Leader Rankings
+## Placeholders & Unknowns
 
-_To be determined after set release._
-
-### Powerful Cards
-
-_To be determined after set release._
-
-## TBD / Unknowns
-
-Things we don't know yet or are making assumptions about:
-
-| Item | Current Assumption | Status |
-|------|-------------------|--------|
-| **Double-aspect belt assignment** | First-listed-aspect determines belt (A or B) for common cards | Assumption — no data on how FFG actually collates these |
-| **Triple-aspect belt assignment** | Same first-listed-aspect rule | Assumption — same as above |
-| **Hyperspace Foil card data** | Using Normal variants as placeholders, marked `isFoil+isHyperspace` | Waiting for swuapi.com to add HSF data |
-| **Hyperspace card data** | Using Normal variants with `isHyperspace` flag as placeholders | Waiting for swuapi.com to add HS data |
-| **Exact HS rates** | Matching Sets 1-6 (leader 1/6, base 1/6, R/L 1/15) with belt guaranteeing ≥1 | No official data; real rates TBD |
-| **HS belt budget distribution** | 90% budget-1, 10% budget-2, μ=1.1 | Tunable — real distribution unknown |
-| **Prestige card implementation** | Placeholder only (commented out) | Waiting for Prestige variant data |
-| **Prestige rate** | ~1/18 in rare slot | Estimated from FFG announcement |
-| **Showcase leader rate** | ~1/576 ("significantly rarer" than 1/288) | Estimated — exact multiplier unknown |
-| **Common belt assignments** | Auto-assigned by aspect (no static list yet) | Need to finalize static assignments from actual print data |
-| **Card counts** | Preliminary from partial swuapi.com data | Will change when full data is available |
-| **Rare base behavior** | In base slot at ~1/6 rate | First set for this rule (sets 1-6 use rare slot) |
+See **[LAW_TBD.md](LAW_TBD.md)** for all temporary placeholders, estimated rates, and assumptions.
 
 ## Sources
 
