@@ -116,9 +116,18 @@
   }
 }
 
-.teammates-section {
+/* Thanks row - side by side layout for teammates and sponsor */
+.thanks-row {
+  display: flex;
+  justify-content: center;
+  gap: 4rem;
   margin-top: auto;
   padding-bottom: 1rem;
+  width: 100%;
+}
+
+.teammates-section {
+  padding-bottom: 0;
 }
 
 .teammates-section h2 {
@@ -154,6 +163,40 @@
   object-fit: contain;
 }
 
+/* Sponsor section */
+.sponsor-section h2 {
+  color: white;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.sponsor-logos {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.sponsor-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+  transition: transform 0.2s ease;
+}
+
+.sponsor-link:hover {
+  transform: translateY(-2px);
+}
+
+.sponsor-logo {
+  width: 120px;
+  height: auto;
+  max-height: 100px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
 @media (max-width: 768px) {
   .about-page {
     background-size: 100% 100%, 100% 100%, 100% 100%, 300% auto;
@@ -163,6 +206,11 @@
     max-width: 280px;
   }
 
+  .thanks-row {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
   .teammate-logos {
     gap: 2rem;
   }
@@ -170,5 +218,9 @@
   .teammate-logo {
     width: 80px;
     height: 80px;
+  }
+
+  .sponsor-logo {
+    width: 100px;
   }
 }
