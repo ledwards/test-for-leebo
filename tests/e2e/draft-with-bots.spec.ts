@@ -193,49 +193,57 @@ test.describe('Draft with bots', () => {
           break
         }
 
-        // Remember current leader count to detect when pack changes
-        const initialLeaderCount = await page.locator('.leaders-grid .draftable-card').count().catch(() => 0)
-
-        // Try to select a leader
-        let selectedThisRound = false
-        for (let attempt = 0; attempt < 10 && !selectedThisRound; attempt++) {
-          // Poll to trigger bot processing
+        // Wait for clickable leaders to appear - MUST have cards to interact with
+        const leaderSelector = '.leaders-grid .draftable-card:not(.selected):not(.dimmed):not(.disabled)'
+        let foundLeaders = false
+        for (let wait = 0; wait < 30; wait++) { // 15 seconds max
           await pollServer()
-
-          // Check if already in pack draft
-          if (await page.locator('.pack-draft-phase').isVisible().catch(() => false)) {
-            debugLog('    (Moved to pack draft)')
-            break
-          }
-
-          // Check if we have a selection
-          const hasSelection = await page.locator('.leaders-grid .draftable-card.selected').count() > 0
-          if (hasSelection) {
-            selectedThisRound = true
-            debugLog(`    ✓ Leader selected`)
-            break
-          }
-
-          // Check for clickable cards
-          const selector = '.leaders-grid .draftable-card:not(.selected):not(.dimmed):not(.disabled)'
-          const cardCount = await page.locator(selector).count()
-
-          if (cardCount > 0) {
-            // Check if UI is ready (shows "Select")
-            const h3Text = await page.locator('.available-leaders h3').textContent({ timeout: 500 }).catch(() => '')
-            if (h3Text.includes('Select')) {
-              debugLog(`    Clicking leader (${cardCount} available)...`)
-              try {
-                await page.locator(selector).first().click({ timeout: 2000 })
-                await page.waitForTimeout(300)
-              } catch (e: any) {
-                debugLog(`    Click error: ${e.message.slice(0, 40)}`)
-              }
-            }
-          }
-
+          const inPack = await page.locator('.pack-draft-phase').isVisible().catch(() => false)
+          if (inPack) { foundLeaders = true; break }
+          if (page.url().includes('/pool/')) { foundLeaders = true; break }
+          const count = await page.locator(leaderSelector).count()
+          if (count > 0) { foundLeaders = true; break }
           await page.waitForTimeout(500)
         }
+        // If bots moved us past leaders, that's fine - but if we're still in leader phase
+        // there MUST be clickable leaders
+        const stillInLeaderPhase = await page.locator('.leader-draft-phase').isVisible().catch(() => false)
+        if (stillInLeaderPhase && !foundLeaders) {
+          throw new Error(`Round ${round}: No clickable leaders available - page is inoperable`)
+        }
+        if (!stillInLeaderPhase) {
+          debugLog('    (Advanced past leader phase)')
+          break
+        }
+
+        // Click a leader with retry (click may be missed if loading state changes mid-click)
+        const cardCount = await page.locator(leaderSelector).count()
+        debugLog(`    Clicking leader (${cardCount} available)...`)
+        let leaderSelected = false
+        for (let clickAttempt = 0; clickAttempt < 5 && !leaderSelected; clickAttempt++) {
+          // Check if bots advanced us past this phase
+          if (await page.locator('.pack-draft-phase').isVisible().catch(() => false)) {
+            leaderSelected = true; break
+          }
+          if (page.url().includes('/pool/')) {
+            leaderSelected = true; break
+          }
+          const available = await page.locator(leaderSelector).count()
+          if (available > 0) {
+            await page.locator(leaderSelector).first().click({ timeout: 2000 }).catch(() => {})
+            await page.waitForTimeout(500)
+          }
+          const hasSelection = await page.locator('.leaders-grid .draftable-card.selected').count() > 0
+          if (hasSelection) { leaderSelected = true; break }
+          // Also check if pick was auto-submitted (pickStatus changed to 'picked')
+          const wasPicked = await page.locator('.leaders-grid .draftable-card').count() === 0
+          if (wasPicked) { leaderSelected = true; break }
+          await page.waitForTimeout(500)
+        }
+        if (!leaderSelected) {
+          throw new Error(`Round ${round}: Failed to select a leader after multiple attempts`)
+        }
+        debugLog(`    ✓ Leader selected`)
 
         // Wait for round to advance (bots will pick, then packs pass)
         if (round < 3) {
@@ -264,44 +272,48 @@ test.describe('Draft with bots', () => {
         break
       }
 
-      // Try to select a card
-      let selectedThisPick = false
-      for (let attempt = 0; attempt < 20 && !selectedThisPick; attempt++) {
-        // Poll to trigger bot processing
+      // Wait for clickable pack cards to appear - MUST have cards to interact with
+      const packSelector = '.pack-grid .draftable-card:not(.selected):not(.dimmed):not(.disabled)'
+      let foundCards = false
+      for (let wait = 0; wait < 30; wait++) { // 15 seconds max
         await pollServer()
-
-        // Check if draft completed
-        if (page.url().includes('/pool/')) {
-          debugLog('      (draft complete)')
-          break
-        }
-
-        // Check if we have a selection
-        const hasSelection = await page.locator('.pack-grid .draftable-card.selected').count() > 0
-        if (hasSelection) {
-          selectedThisPick = true
-          debugLog(`      ✓ Card selected`)
-          break
-        }
-
-        // Check for clickable cards (no disabled, no skeleton)
-        const selector = '.pack-grid .draftable-card:not(.selected):not(.dimmed):not(.disabled)'
-        const cardCount = await page.locator(selector).count()
-        const hasDisabled = await page.locator('.pack-grid .draftable-card.disabled').count() > 0
+        if (page.url().includes('/pool/')) { foundCards = true; break }
         const hasSkeleton = await page.locator('.skeleton-card').first().isVisible().catch(() => false)
-
-        if (cardCount > 0 && !hasDisabled && !hasSkeleton) {
-          debugLog(`      Clicking card (${cardCount} available)...`)
-          try {
-            await page.locator(selector).first().click({ timeout: 2000 })
-            await page.waitForTimeout(300)
-          } catch (e: any) {
-            debugLog(`      Click error: ${e.message.slice(0, 40)}`)
-          }
-        }
-
+        if (hasSkeleton) { await page.waitForTimeout(500); continue }
+        const count = await page.locator(packSelector).count()
+        if (count > 0) { foundCards = true; break }
         await page.waitForTimeout(500)
       }
+      if (page.url().includes('/pool/')) {
+        debugLog('      (draft complete)')
+        break
+      }
+      if (!foundCards) {
+        throw new Error(`Pick ${pick}: No clickable pack cards available - page is inoperable`)
+      }
+
+      // Click a card with retry (click may be missed if loading state changes mid-click)
+      const cardCount = await page.locator(packSelector).count()
+      debugLog(`      Clicking card (${cardCount} available)...`)
+      let cardSelected = false
+      for (let clickAttempt = 0; clickAttempt < 5 && !cardSelected; clickAttempt++) {
+        if (page.url().includes('/pool/')) { cardSelected = true; break }
+        const available = await page.locator(packSelector).count()
+        if (available > 0) {
+          await page.locator(packSelector).first().click({ timeout: 2000 }).catch(() => {})
+          await page.waitForTimeout(500)
+        }
+        const hasSelection = await page.locator('.pack-grid .draftable-card.selected').count() > 0
+        if (hasSelection) { cardSelected = true; break }
+        // Also check if pick was auto-submitted
+        const wasPicked = await page.locator('.pack-grid .draftable-card').count() === 0
+        if (wasPicked) { cardSelected = true; break }
+        await page.waitForTimeout(500)
+      }
+      if (!cardSelected) {
+        throw new Error(`Pick ${pick}: Failed to select a card after multiple attempts`)
+      }
+      debugLog(`      ✓ Card selected`)
 
       // Wait for pick to advance (bots will pick quickly)
       if (pick < PICKS_TO_TEST && !page.url().includes('/pool/')) {
@@ -353,74 +365,59 @@ test.describe('Draft with bots', () => {
     }, shareId)
   }
 
-  // Helper: Wait for specific leader round OR pack draft phase
+  // Helper: Wait for specific leader round OR pack draft phase (FAILS on timeout)
   async function waitForLeaderRoundOrPackDraft(targetRound: number): Promise<void> {
-    let attempts = 0
-    while (attempts < 120) { // 60 seconds
+    for (let attempts = 0; attempts < 60; attempts++) { // 30 seconds
       try {
-        // Poll server to trigger timeout checks and bot processing
         await pollServer()
 
-        // Check if transitioned to pack draft
         const inPackDraft = await page.locator('.pack-draft-phase').isVisible().catch(() => false)
         if (inPackDraft) return
 
-        // Check for pool redirect (draft complete)
         if (page.url().includes('/pool/')) return
 
-        // Check leader round
-        const roundInfo = await page.locator('.draft-round-info').textContent({ timeout: 500 })
-        const match = roundInfo?.match(/Leader Round (\d+)/)
+        const roundInfo = await page.locator('.round-pick-info').textContent({ timeout: 500 })
+        const match = roundInfo?.match(/Leader (\d+)/)
         if (match && parseInt(match[1]) >= targetRound) return
       } catch {}
       await page.waitForTimeout(500)
-      attempts++
     }
-    debugLog(`    ⚠ Timeout waiting for leader round ${targetRound}`)
+    throw new Error(`Timeout waiting for leader round ${targetRound} - draft stuck`)
   }
 
-  // Helper: Wait for pack draft phase
+  // Helper: Wait for pack draft phase (FAILS on timeout)
   async function waitForPackDraft(): Promise<void> {
-    let attempts = 0
-    while (attempts < 120) { // 60 seconds
-      // Poll server to trigger timeout checks
+    for (let attempts = 0; attempts < 60; attempts++) { // 30 seconds
       await pollServer()
 
       const isVisible = await page.locator('.pack-draft-phase').isVisible().catch(() => false)
       if (isVisible) return
 
-      // Also check for redirect to pool (draft might have completed)
       if (page.url().includes('/pool/')) return
 
       await page.waitForTimeout(500)
-      attempts++
     }
-    debugLog(`    ⚠ Timeout waiting for pack draft phase`)
+    throw new Error('Timeout waiting for pack draft phase - draft stuck')
   }
 
-  // Helper: Wait for pack pick to advance past current pick
+  // Helper: Wait for pack pick to advance past current pick (FAILS on timeout)
   async function waitForPickAdvance(currentPack: number, currentPick: number): Promise<void> {
-    let attempts = 0
-    while (attempts < 120) { // 60 seconds
+    for (let attempts = 0; attempts < 60; attempts++) { // 30 seconds
       try {
-        // Poll server to trigger timeout checks and bot processing
         await pollServer()
 
-        // Check for completion
         if (page.url().includes('/pool/')) return
 
-        const roundInfo = await page.locator('.draft-round-info').textContent({ timeout: 500 })
-        const match = roundInfo?.match(/Round (\d+) - Pick (\d+)/)
+        const roundInfo = await page.locator('.round-pick-info').textContent({ timeout: 500 })
+        const match = roundInfo?.match(/Pack (\d+) - Pick (\d+)/)
         if (match) {
           const pack = parseInt(match[1])
           const pick = parseInt(match[2])
-          // Check if we've advanced past current pick
           if (pack > currentPack || (pack === currentPack && pick > currentPick)) return
         }
       } catch {}
       await page.waitForTimeout(500)
-      attempts++
     }
-    debugLog(`\n    ⚠ Timeout waiting to advance past Pack ${currentPack} Pick ${currentPick}`)
+    throw new Error(`Timeout waiting to advance past Pack ${currentPack} Pick ${currentPick} - draft stuck`)
   }
 })
