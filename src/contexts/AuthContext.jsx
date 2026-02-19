@@ -3,6 +3,7 @@
 // Authentication context for React
 import { createContext, useContext, useState, useEffect } from 'react'
 import { getSession, signInWithDiscord, signOut as apiSignOut, enrollBeta as apiEnrollBeta, refreshSession as apiRefreshSession, checkPatronStatus as apiCheckPatronStatus } from '../utils/auth'
+import { trackEvent, AnalyticsEvents } from '../hooks/useAnalytics'
 
 const AuthContext = createContext(null)
 
@@ -32,9 +33,17 @@ export function AuthProvider({ children }) {
   async function loadSession() {
     try {
       const session = await getSession()
+      const wasLoggedOut = !user
       setUser(session)
       if (session) {
         apiCheckPatronStatus().then(setIsPatron)
+        // Track sign in if this is a new session (user wasn't logged in before)
+        if (wasLoggedOut) {
+          trackEvent(AnalyticsEvents.USER_SIGNED_IN, {
+            is_beta_tester: session.is_beta_tester,
+            is_admin: session.is_admin,
+          })
+        }
       } else {
         setIsPatron(false)
       }
@@ -59,6 +68,7 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
+    trackEvent(AnalyticsEvents.USER_SIGNED_OUT)
     await apiSignOut()
     setUser(null)
   }
@@ -67,6 +77,7 @@ export function AuthProvider({ children }) {
     const updatedUser = await apiEnrollBeta()
     if (updatedUser) {
       setUser(updatedUser)
+      trackEvent(AnalyticsEvents.BETA_ENROLLED)
       return true
     }
     return false

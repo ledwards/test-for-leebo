@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { fetchSets } from '@/src/utils/api'
 import { getPackImageUrl } from '@/src/utils/packArt'
+import { trackEvent, AnalyticsEvents } from '@/src/hooks/useAnalytics'
 import Button from '@/src/components/Button'
 import PackSelector from '@/src/components/PackSelector'
 import PackOpeningAnimation from '@/src/components/PackOpeningAnimation'
@@ -93,6 +94,15 @@ export default function ChaosSealedPage() {
           packs,
           packImageUrls
         })
+
+        // Count unique sets
+        const uniqueSets = [...new Set(selectedSets)]
+        trackEvent(AnalyticsEvents.CHAOS_SEALED_CREATED, {
+          set_codes: selectedSets,
+          unique_sets: uniqueSets.length,
+          pack_count: 6,
+        })
+
         setShowAnimation(true)
       } else {
         // If we can't fetch pool data, just redirect

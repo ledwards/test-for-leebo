@@ -7,6 +7,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { fetchSets } from '@/src/utils/api'
 import { createDraft } from '@/src/utils/draftApi'
 import { getPackImageUrl } from '@/src/utils/packArt'
+import { trackEvent, AnalyticsEvents } from '@/src/hooks/useAnalytics'
 import Button from '@/src/components/Button'
 import PackSelector from '@/src/components/PackSelector'
 import './page.css'
@@ -67,6 +68,12 @@ export default function ChaosDraftPage() {
           draftMode: 'chaos',
           chaosSets: selectedSets
         }
+      })
+
+      const uniqueSets = [...new Set(selectedSets)]
+      trackEvent(AnalyticsEvents.CHAOS_DRAFT_CREATED, {
+        set_codes: selectedSets,
+        unique_sets: uniqueSets.length,
       })
 
       router.push(`/draft/${result.shareId}`)

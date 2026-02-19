@@ -2,6 +2,7 @@
 'use client'
 
 import { AuthProvider } from '../src/contexts/AuthContext'
+import { PostHogProvider } from '../src/contexts/PostHogProvider'
 import AuthWidget from '../src/components/AuthWidget'
 import '../src/index.css'
 
@@ -71,8 +72,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body>
         <AuthProvider>
-          <AuthWidget />
-          {children}
+          <PostHogProvider>
+            <AuthWidget />
+            {children}
+          </PostHogProvider>
         </AuthProvider>
       </body>
     </html>
