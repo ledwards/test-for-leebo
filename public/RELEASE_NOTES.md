@@ -14,13 +14,6 @@ Finally: Hope to see some of you at the largest U.S. SWU Limited event in Milwau
   - Sealed: Click "Shuffle Packs" before opening to get a random selection of 6 packs from the 24-pack box
   - Draft: Host can shuffle packs in the lobby before starting
 
-### 📦 LAW Pack Generation
-- **Guaranteed Hyperspace common**: Every LAW pack now contains at least one Hyperspace common card (in addition to the Hyperspace Foil in the last slot). This matches the FFG announcement for Set 7.
-- **All 8 common bases**: LAW sealed pools now correctly show all 8 common bases (2 per aspect) in the deck builder. Previously only 4 were showing due to over-aggressive deduplication.
-
-### 📊 Analytics
-- Added anonymous usage analytics to help understand how people use the app and prioritize development. No personal data is collected beyond what you provide via Discord login.
-
 ## 02.15.2026
 
 ### 🌀 Chaos Mode Improvements
