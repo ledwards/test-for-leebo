@@ -242,12 +242,12 @@ async function runQA(silentMode: boolean = false): Promise<TestResult[]> {
       })
     })
 
-    test(`${setCode}: all packs have exactly 1 base`, () => {
+    test(`${setCode}: all packs have exactly 1 common base`, () => {
       allPacks.forEach((pack, i) => {
-        const bases = pack.cards.filter(c => c.isBase)
+        const commonBases = pack.cards.filter(c => c.isBase && c.rarity === 'Common')
         assert(
-          bases.length === 1,
-          `Pack ${i} has ${bases.length} bases (expected 1)`
+          commonBases.length === 1,
+          `Pack ${i} has ${commonBases.length} common bases (expected 1)`
         )
       })
     })
@@ -330,14 +330,14 @@ async function runQA(silentMode: boolean = false): Promise<TestResult[]> {
     test(`${setCode}: packs have 1 or 2 rare/legendary/special in non-foil slots`, () => {
       allPacks.forEach((pack, i) => {
         // Count rare+ cards in non-foil slots (excludes foil slot)
+        // Rare bases count as R/L (they occupy the R/L slot in sets 1-6)
         const rarePlus = pack.cards.filter(c =>
           (c.rarity === 'Rare' || c.rarity === 'Legendary' || c.rarity === 'Special') &&
-          !c.isFoil && !c.isLeader && !c.isBase
+          !c.isFoil && !c.isLeader
         )
 
         // Base rare slot: always 1 R/L/S
         // 3rd UC slot: sometimes upgrades to R/L, giving us 2 total
-        // Note: Special rarity can appear in foil slot but NOT in regular rare slot
         assert(
           rarePlus.length === 1 || rarePlus.length === 2,
           `Pack ${i} has ${rarePlus.length} non-foil rare/legendary/special (expected 1 or 2)`
@@ -352,7 +352,7 @@ async function runQA(silentMode: boolean = false): Promise<TestResult[]> {
         )
         const rarePlus = pack.cards.filter(c =>
           (c.rarity === 'Rare' || c.rarity === 'Legendary' || c.rarity === 'Special') &&
-          !c.isFoil && !c.isLeader && !c.isBase
+          !c.isFoil && !c.isLeader
         )
 
         // Total non-foil UC + R/L should always be 4

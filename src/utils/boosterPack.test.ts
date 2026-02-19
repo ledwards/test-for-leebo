@@ -79,11 +79,11 @@ async function runTests(): Promise<void> {
     assertEqual(leaders.length, 1, 'Pack should contain exactly 1 leader')
   })
 
-  test('pack contains exactly 1 base', () => {
+  test('pack contains exactly 1 common base', () => {
     clearBeltCache()
     const pack = generateBoosterPack(cards, 'SOR')
-    const bases = pack.cards.filter((c: Card) => c.isBase)
-    assertEqual(bases.length, 1, 'Pack should contain exactly 1 base')
+    const commonBases = pack.cards.filter((c: Card) => c.isBase && c.rarity === 'Common')
+    assertEqual(commonBases.length, 1, 'Pack should contain exactly 1 common base')
   })
 
   test('pack contains 9 commons (non-leader, non-base)', () => {
@@ -108,9 +108,10 @@ async function runTests(): Promise<void> {
   test('pack contains 1-2 rare or legendary (3rd UC may upgrade to R/L)', () => {
     clearBeltCache()
     const pack = generateBoosterPack(cards, 'SOR')
+    // Rare bases count as R/L (they occupy the R/L slot in sets 1-6)
     const rareOrLegendary = pack.cards.filter((c: Card) =>
       (c.rarity === 'Rare' || c.rarity === 'Legendary') &&
-      !c.isFoil && !c.isLeader && !c.isBase
+      !c.isFoil && !c.isLeader
     )
     assert(
       rareOrLegendary.length >= 1 && rareOrLegendary.length <= 2,
@@ -770,6 +771,20 @@ async function runTests(): Promise<void> {
           `All cards should be from SOR, found ${card.set}`
         )
       })
+    }
+  })
+
+  test('foil slot (position 15) always has isFoil=true', () => {
+    // The foil is always the last card (index 15).
+    // This test ensures no post-processing or upgrade corrupts the foil slot.
+    clearBeltCache()
+    for (let i = 0; i < 100; i++) {
+      const pack = generateBoosterPack(cards, 'SOR')
+      const foilSlot = pack.cards[15]
+      assert(
+        foilSlot.isFoil === true,
+        `Pack ${i + 1}: card at position 15 should be foil but has isFoil=${foilSlot.isFoil} (${foilSlot.name}, ${foilSlot.rarity})`
+      )
     }
   })
 

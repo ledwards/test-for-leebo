@@ -458,7 +458,8 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
   // 7. Third UC upgrade to Hyperspace R/L (RARITY change - uses belt for random R/L)
   // This is intentionally a random R/L card, not the same UC in HS form
   // This MUST happen after UC->HS_UC upgrades since it changes rarity and corrupts uncommonIndices
-  // IMPORTANT: Must avoid picking a card whose Normal version is already in the pack
+  // NOTE: If the HS R/L belt serves a card that matches the existing R/L, that's OK.
+  // Belts are independent and do not have knowledge of each other — just like a real printer.
   const thirdUCIndex = uncommonIndices[2];
   if (thirdUCIndex !== undefined) {
     const shouldUpgradeUC3 = hsPlan ? hsPlan.uc3 : (probs.thirdUCToHyperspaceRL && shouldUpgrade(probs.thirdUCToHyperspaceRL));
@@ -670,43 +671,7 @@ export function generateBoosterPack(_cards: RawCard[], setCode: SetCode | string
 
   // Create pack and apply upgrade pass
   const pack: Pack = { cards: packCards };
-  const upgradedPack = applyUpgradePass(pack, setCode);
-
-  // Final dedup pass - check for same-treatment duplicates after all upgrades
-  // A duplicate is same card ID + variant type + foil status
-  const getTreatmentKey = (card: RawCard): string => {
-    const variant = card.variantType || 'Normal';
-    const foilSuffix = card.isFoil ? '-Foil' : '';
-    return `${card.id}-${variant}${foilSuffix}`;
-  };
-
-  const seenTreatments = new Set<string>();
-  const cleanedCards: RawCard[] = [];
-
-  for (const card of upgradedPack.cards) {
-    const key = getTreatmentKey(card);
-    if (!seenTreatments.has(key)) {
-      seenTreatments.add(key);
-      cleanedCards.push(card);
-    }
-    // Duplicate found - skip it (pack will have fewer cards, but no duplicates)
-  }
-
-  // If we removed any duplicates, fill back to 16 cards with fresh commons
-  while (cleanedCards.length < 16) {
-    const replacement = commonBeltA.next() || commonBeltB.next();
-    if (replacement) {
-      const repKey = getTreatmentKey(replacement);
-      if (!seenTreatments.has(repKey)) {
-        seenTreatments.add(repKey);
-        cleanedCards.push(replacement);
-      }
-    } else {
-      break; // Belts exhausted
-    }
-  }
-
-  return { cards: cleanedCards };
+  return applyUpgradePass(pack, setCode);
 }
 
 /**
