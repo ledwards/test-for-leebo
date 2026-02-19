@@ -77,8 +77,17 @@ export class HyperfoilBelt {
       (includeSpecial || c.rarity !== 'Special')
     )
 
-    // Fallback: if no HSF variants in data, use Normal variants as placeholders
-    // This handles LAW before HSF card data is loaded
+    // Fallback: if no HSF variants, use Hyperspace variants (LAW has these)
+    if (this.fillingPool.length === 0) {
+      this.fillingPool = cards.filter(c =>
+        c.variantType === 'Hyperspace' &&
+        !c.isLeader &&
+        !c.isBase &&
+        (includeSpecial || c.rarity !== 'Special')
+      )
+    }
+
+    // Final fallback: use Normal variants as placeholders
     if (this.fillingPool.length === 0) {
       this.fillingPool = cards.filter(c =>
         c.variantType === 'Normal' &&
@@ -88,8 +97,10 @@ export class HyperfoilBelt {
       )
     }
 
-    // Get target weights based on set number
-    const targetWeights = setNumber >= 4 ? TARGET_WEIGHTS_SETS_4_6 : TARGET_WEIGHTS_SETS_1_3
+    // Get target weights: use set config's hyperspaceFoilSlotWeights if available,
+    // otherwise fall back to hardcoded weights based on set number
+    const configWeights = config?.rarityWeights?.hyperspaceFoilSlot
+    const targetWeights = configWeights || (setNumber >= 4 ? TARGET_WEIGHTS_SETS_4_6 : TARGET_WEIGHTS_SETS_1_3)
 
     // Count unique cards per rarity
     const rarityCounts: Record<string, number> = {}

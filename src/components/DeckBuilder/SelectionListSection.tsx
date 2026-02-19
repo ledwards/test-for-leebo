@@ -42,6 +42,8 @@ export interface SelectionListSectionProps {
   getAspectIcons: (card: CardData) => ReactNode[]
   onCardHover: (cardId: string, card: CardData, e: MouseEvent) => void
   onCardLeave: () => void
+  onAddStarterLeaders?: () => void
+  hasStarterLeaders?: boolean
 }
 
 export function SelectionListSection({
@@ -60,6 +62,8 @@ export function SelectionListSection({
   getAspectIcons,
   onCardHover,
   onCardLeave,
+  onAddStarterLeaders,
+  hasStarterLeaders = false,
 }: SelectionListSectionProps) {
   const sectionSort = tableSort[sectionId] || { field: null, direction: 'asc' as const }
 
@@ -75,10 +79,22 @@ export function SelectionListSection({
       <h2
         className="list-section-title"
         onClick={onToggleExpanded}
-        style={{ cursor: 'pointer', userSelect: 'none' }}
+        style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center' }}
       >
         <span style={{ marginRight: '0.5rem' }}>{expanded ? '▼' : '▶'}</span>
         {title} ({positions.length})
+        {onAddStarterLeaders && (
+          <button
+            className="add-starter-leaders-button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onAddStarterLeaders()
+            }}
+            title={hasStarterLeaders ? "Remove starter deck leaders" : "Add the Hyperspace versions of this set's starter deck leaders"}
+          >
+            {hasStarterLeaders ? '- Starter Leaders' : '+ Starter Leaders'}
+          </button>
+        )}
       </h2>
       {expanded && positions.length > 0 && (
         <table className="list-table">

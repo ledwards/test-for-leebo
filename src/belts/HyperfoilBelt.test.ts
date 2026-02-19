@@ -118,10 +118,11 @@ async function runTests(): Promise<void> {
   console.log('')
   console.log('\x1b[1m\x1b[35m🤠 LAW HyperfoilBelt Tests\x1b[0m')
 
-  test('LAW: initializes with Normal variant fallback (no HSF data)', () => {
+  test('LAW: initializes with Hyperspace variant fallback (no HSF data)', () => {
     const belt = new HyperfoilBelt('LAW')
-    assert(belt.fillingPool.length > 0, 'Filling pool should not be empty (should fall back to Normal variants)')
-    assert(belt.fillingPool.every(c => c.variantType === 'Normal'), 'Fallback should use Normal variant cards')
+    assert(belt.fillingPool.length > 0, 'Filling pool should not be empty')
+    // LAW has Hyperspace variants but no HSF data yet, so falls back to Hyperspace
+    assert(belt.fillingPool.every(c => c.variantType === 'Hyperspace'), 'Fallback should use Hyperspace variant cards')
   })
 
   test('LAW: next() returns card marked as isFoil and isHyperspace', () => {

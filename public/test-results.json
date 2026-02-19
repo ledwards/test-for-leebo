@@ -1,21 +1,21 @@
 {
-  "runAt": "2026-02-19T02:51:55.244Z",
-  "executionTime": 13590,
+  "runAt": "2026-02-19T04:24:31.832Z",
+  "executionTime": 19605,
   "summary": {
     "totalSuites": 22,
-    "passedSuites": 22,
-    "failedSuites": 0,
-    "totalTests": 489,
-    "passed": 489,
-    "failed": 0
+    "passedSuites": 21,
+    "failedSuites": 1,
+    "totalTests": 495,
+    "passed": 493,
+    "failed": 2
   },
   "suites": [
     {
       "name": "Booster Pack",
       "suite": "utils",
-      "status": "passed",
-      "exitCode": 0,
-      "executionTime": 1108,
+      "status": "failed",
+      "exitCode": 1,
+      "executionTime": 5478,
       "tests": [
         {
           "suite": "utils",
@@ -35,7 +35,7 @@
         {
           "suite": "utils",
           "name": "pack contains exactly 1 base\u001b[0m",
-          "status": "passed"
+          "status": "failed"
         },
         {
           "suite": "utils",
@@ -204,18 +204,23 @@
         },
         {
           "suite": "utils",
-          "name": "Tests passed: 37\u001b[0m",
+          "name": "Tests passed: 36\u001b[0m",
           "status": "passed"
+        },
+        {
+          "suite": "utils",
+          "name": "Tests failed: 1\u001b[0m",
+          "status": "failed"
         }
       ],
-      "errorMessage": null
+      "errorMessage": "\u001b[36m🔄 Initializing card cache...\u001b[0m"
     },
     {
       "name": "Variant Downgrade",
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 643,
+      "executionTime": 782,
       "tests": [
         {
           "suite": "utils",
@@ -295,7 +300,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 461,
+      "executionTime": 518,
       "tests": [
         {
           "suite": "utils",
@@ -310,7 +315,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 459,
+      "executionTime": 507,
       "tests": [
         {
           "suite": "utils",
@@ -325,7 +330,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 647,
+      "executionTime": 714,
       "tests": [
         {
           "suite": "belts",
@@ -344,7 +349,7 @@
         },
         {
           "suite": "belts",
-          "name": "next() removes card from hopper\u001b[0m",
+          "name": "next() removes card from hopper when serving common\u001b[0m",
           "status": "passed"
         },
         {
@@ -379,12 +384,27 @@
         },
         {
           "suite": "belts",
+          "name": "rare bases are loaded only for sets that put them in base slot\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "rare bases appear in base slot at expected rate for LAW (statistical)\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "sets 1-6 never serve rare bases from base slot\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
           "name": "no repeating pattern: consecutive belt fills produce different sequences\u001b[0m",
           "status": "passed"
         },
         {
           "suite": "belts",
-          "name": "Tests passed: 11\u001b[0m",
+          "name": "Tests passed: 14\u001b[0m",
           "status": "passed"
         }
       ],
@@ -395,7 +415,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 728,
+      "executionTime": 723,
       "tests": [
         {
           "suite": "belts",
@@ -495,7 +515,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 660,
+      "executionTime": 755,
       "tests": [
         {
           "suite": "belts",
@@ -590,7 +610,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 660,
+      "executionTime": 739,
       "tests": [
         {
           "suite": "belts",
@@ -629,7 +649,7 @@
         },
         {
           "suite": "belts",
-          "name": "LAW: initializes with Normal variant fallback (no HSF data)\u001b[0m",
+          "name": "LAW: initializes with Hyperspace variant fallback (no HSF data)\u001b[0m",
           "status": "passed"
         },
         {
@@ -670,7 +690,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 666,
+      "executionTime": 714,
       "tests": [
         {
           "suite": "belts",
@@ -685,7 +705,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 666,
+      "executionTime": 674,
       "tests": [
         {
           "suite": "belts",
@@ -760,11 +780,21 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 748,
+      "executionTime": 1292,
       "tests": [
         {
           "suite": "belts",
           "name": "initializes with a set code and loads rares and legendaries\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "sets 1-6 include rare bases in filling pool (rare bases go in rare slot)\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "set 7+ (LAW) excludes rare bases from filling pool (they go in base slot)\u001b[0m",
           "status": "passed"
         },
         {
@@ -834,7 +864,7 @@
         },
         {
           "suite": "belts",
-          "name": "Tests passed: 14\u001b[0m",
+          "name": "Tests passed: 16\u001b[0m",
           "status": "passed"
         }
       ],
@@ -845,7 +875,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 673,
+      "executionTime": 730,
       "tests": [
         {
           "suite": "belts",
@@ -900,7 +930,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 656,
+      "executionTime": 704,
       "tests": [
         {
           "suite": "belts",
@@ -975,7 +1005,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 441,
+      "executionTime": 465,
       "tests": [
         {
           "suite": "fixes",
@@ -990,7 +1020,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 696,
+      "executionTime": 790,
       "tests": [
         {
           "suite": "draft",
@@ -1005,7 +1035,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 446,
+      "executionTime": 482,
       "tests": [
         {
           "suite": "bots",
@@ -1150,7 +1180,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 675,
+      "executionTime": 697,
       "tests": [
         {
           "suite": "data",
@@ -1585,7 +1615,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 675,
+      "executionTime": 706,
       "tests": [
         {
           "suite": "data",
@@ -2620,7 +2650,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 475,
+      "executionTime": 561,
       "tests": [
         {
           "suite": "hooks",
@@ -2635,7 +2665,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 458,
+      "executionTime": 559,
       "tests": [
         {
           "suite": "hooks",
@@ -2650,7 +2680,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 463,
+      "executionTime": 511,
       "tests": [
         {
           "suite": "hooks",
@@ -2665,7 +2695,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 481,
+      "executionTime": 501,
       "tests": [
         {
           "suite": "hooks",
@@ -2695,7 +2725,7 @@
     {
       "suite": "utils",
       "name": "pack contains exactly 1 base\u001b[0m",
-      "status": "passed"
+      "status": "failed"
     },
     {
       "suite": "utils",
@@ -2864,8 +2894,13 @@
     },
     {
       "suite": "utils",
-      "name": "Tests passed: 37\u001b[0m",
+      "name": "Tests passed: 36\u001b[0m",
       "status": "passed"
+    },
+    {
+      "suite": "utils",
+      "name": "Tests failed: 1\u001b[0m",
+      "status": "failed"
     },
     {
       "suite": "utils",
@@ -2964,7 +2999,7 @@
     },
     {
       "suite": "belts",
-      "name": "next() removes card from hopper\u001b[0m",
+      "name": "next() removes card from hopper when serving common\u001b[0m",
       "status": "passed"
     },
     {
@@ -2999,12 +3034,27 @@
     },
     {
       "suite": "belts",
+      "name": "rare bases are loaded only for sets that put them in base slot\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "rare bases appear in base slot at expected rate for LAW (statistical)\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "sets 1-6 never serve rare bases from base slot\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
       "name": "no repeating pattern: consecutive belt fills produce different sequences\u001b[0m",
       "status": "passed"
     },
     {
       "suite": "belts",
-      "name": "Tests passed: 11\u001b[0m",
+      "name": "Tests passed: 14\u001b[0m",
       "status": "passed"
     },
     {
@@ -3219,7 +3269,7 @@
     },
     {
       "suite": "belts",
-      "name": "LAW: initializes with Normal variant fallback (no HSF data)\u001b[0m",
+      "name": "LAW: initializes with Hyperspace variant fallback (no HSF data)\u001b[0m",
       "status": "passed"
     },
     {
@@ -3329,6 +3379,16 @@
     },
     {
       "suite": "belts",
+      "name": "sets 1-6 include rare bases in filling pool (rare bases go in rare slot)\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "set 7+ (LAW) excludes rare bases from filling pool (they go in base slot)\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
       "name": "filling pool contains only Rare and Legendary rarities\u001b[0m",
       "status": "passed"
     },
@@ -3394,7 +3454,7 @@
     },
     {
       "suite": "belts",
-      "name": "Tests passed: 14\u001b[0m",
+      "name": "Tests passed: 16\u001b[0m",
       "status": "passed"
     },
     {

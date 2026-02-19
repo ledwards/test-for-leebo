@@ -22,9 +22,9 @@ This document tracks things we don't know yet about Set 7 pack collation and nee
 **Related:** LAW is the FIRST set where rare bases go in the base slot (not the rare slot), per `rareBasesInRareSlot: false`
 
 ### 4. Prestige Cards in Standard Packs
-**Current assumption:** ~1 in 18 packs, replaces rare slot
+**Current assumption:** ~1 per box (1/24 packs), replaces rare slot
 **Implementation:** Currently placeholder/TODO in `boosterPack.ts`
-**To verify:** Prestige pull rate from physical boxes
+**To verify:** Confirm prestige pull rate from physical boxes
 **File:** `src/utils/boosterPack.ts` - search for "Prestige"
 
 ### 5. Common Belt Assignments

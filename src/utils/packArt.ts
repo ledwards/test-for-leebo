@@ -14,23 +14,25 @@
 import type { SetCode } from '../types'
 
 /**
- * Pack art URL mappings for each set
+ * Expansion art URL mappings for each set (background key art)
  * Images sourced from https://starwarsunlimited.com/products
  * Using key art images from the official Star Wars Unlimited website
  */
-const PACK_ART_URLS: Record<string, string> = {
+const EXPANSION_ART_URLS: Record<string, string> = {
   // Spark of Rebellion - Set 1
-  SOR: '/pack-art/sor.jpg',
+  SOR: '/expansion-art/sor.jpg',
   // Shadows of the Galaxy - Set 2
-  SHD: '/pack-art/shd.jpg',
+  SHD: '/expansion-art/shd.jpg',
   // Twilight of the Republic - Set 3
-  TWI: '/pack-art/twi.png',
+  TWI: '/expansion-art/twi.png',
   // Jump to Lightspeed - Set 4
-  JTL: '/pack-art/jtl.jpg',
+  JTL: '/expansion-art/jtl.jpg',
   // Legends of the Force - Set 5
-  LOF: '/pack-art/lof.png',
+  LOF: '/expansion-art/lof.png',
   // Secrets of Power - Set 6
-  SEC: '/pack-art/sec.png',
+  SEC: '/expansion-art/sec.png',
+  // A Lawless Time - Set 7
+  LAW: '/expansion-art/law.png',
 }
 
 /**
@@ -50,14 +52,16 @@ const PACK_IMAGE_URLS: Record<string, string> = {
   LOF: '/pack-images/lof-pack.png',
   // Secrets of Power - Set 6
   SEC: '/pack-images/sec-pack.png',
+  // A Lawless Time - Set 7
+  LAW: '/pack-images/law-pack.png',
 }
 
 /**
- * Get pack art URL for a set code (background key art)
+ * Get expansion art URL for a set code (background key art)
  * Returns the URL if available, or null if not set
  */
 export function getPackArtUrl(setCode: SetCode | string): string | null {
-  return PACK_ART_URLS[setCode] || null
+  return EXPANSION_ART_URLS[setCode] || null
 }
 
 /**
@@ -70,9 +74,9 @@ export function getPackImageUrl(setCode: SetCode | string): string {
 }
 
 /**
- * Set pack art URL for a set code
+ * Set expansion art URL for a set code
  * Useful for updating URLs programmatically
  */
 export function setPackArtUrl(setCode: SetCode | string, url: string): void {
-  PACK_ART_URLS[setCode] = url
+  EXPANSION_ART_URLS[setCode] = url
 }

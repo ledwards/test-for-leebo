@@ -22,7 +22,7 @@ LAW introduces significant pack construction changes per [official FFG announcem
 |---------|----------|--------------|
 | Foil slot | Regular foil (upgrades to HS Foil) | **Always Hyperspace Foil** |
 | HS common | ~1 in 3 packs | **Guaranteed every pack** |
-| Prestige cards | Carbonite only | **~1 in 18 standard packs** |
+| Prestige cards | Carbonite only | **~1 per box (1/24 packs)** |
 | Showcase leaders | ~1 in 288 | ~1 in 576 (rarer) |
 | Triple-aspect cards | None | **Introduced** |
 | Rare bases | In rare slot | **In base slot (~1/6 rate)** |
@@ -55,7 +55,7 @@ LAW introduces significant pack construction changes per [official FFG announcem
 2. **Base** (1) - Common from BaseBelt (~5/6), Rare from BaseBelt (~1/6)
 3. **Commons** (9) - Slots 1-4 from Belt A, slot 5 **always Hyperspace**, slots 6-9 from Belt B
 4. **Uncommons** (3) - From UncommonBelt
-5. **Rare/Legendary/Prestige** (1) - 5:1 ratio, ~1/18 Prestige
+5. **Rare/Legendary/Prestige** (1) - 5:1 ratio, ~1/24 Prestige (1 per box)
 6. **Hyperspace Foil** (1) - **Always Hyperspace Foil** (no regular foils)
 
 ### Belt Configuration (Block B)
@@ -85,7 +85,7 @@ LAW uses a **HyperspaceUpgradeBelt** (same as Sets 1-6) with `budget-0 = 0`, gua
 | UC1 → Hyperspace UC | ~7% | 4/60 | Same as Sets 1-6 |
 | UC2 → Hyperspace UC | ~3% | 2/60 | Same as Sets 1-6 |
 | Rare → Hyperspace | 1/15 (~6.7%) | 4/60 | Same as Sets 1-6 |
-| Rare → Prestige | **1/18 (~5.5%)** | independent | New in LAW |
+| Rare → Prestige | **1/24 (~4.2%)** | independent | New in LAW, ~1 per box |
 
 **Belt stats:** μ = 1.1 HS/pack, 90% budget-1 (exactly 1 HS), 10% budget-2 (2 HS)
 
@@ -172,7 +172,7 @@ Example: Vigilance+Cunning → first is Vigilance → Belt A
 - Common slot 5 fills the gap when no other slot upgrades (~47% of packs)
 
 ### Prestige Cards in Standard Packs
-- ~1 in 18 packs contains a non-foil Prestige variant
+- ~1 per box (1/24 packs) contains a non-foil Prestige variant
 - Appears in the rare slot (replaces R/L)
 - `packRules.prestigeInStandardPacks: true`
 - Note: Foil/serialized Prestige remain Carbonite-exclusive
