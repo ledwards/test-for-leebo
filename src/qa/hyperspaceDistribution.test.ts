@@ -390,17 +390,17 @@ async function run(): Promise<void> {
       assert(rate >= 0.97, `Expected ≥97% of packs to have ≥1 HS (excl HSF), got ${(rate * 100).toFixed(1)}%`)
     })
 
-    test('LAW: HS common at slot 5 (index 6) matches belt rate (~47%)', () => {
+    test('LAW: HS common at slot 9 (index 14, last common) matches belt rate (~47%)', () => {
       let hsCommonCount = 0
       lawPacks.forEach(pack => {
-        const card = pack.cards[6]
+        const card = pack.cards[14] // Last common slot (slot 9)
         if (card && (card.variantType === 'Hyperspace' || card.isHyperspace === true)) {
           hsCommonCount++
         }
       })
       const rate = hsCommonCount / SAMPLE_SIZE
       const expected = 28 / 60 // belt: 28 common upgrades per 60 packs
-      console.log(`\x1b[36m   HS common (index 6): ${hsCommonCount}/${SAMPLE_SIZE} (${(rate * 100).toFixed(1)}%, expected ${(expected * 100).toFixed(1)}%)\x1b[0m`)
+      console.log(`\x1b[36m   HS common (index 14, slot 9): ${hsCommonCount}/${SAMPLE_SIZE} (${(rate * 100).toFixed(1)}%, expected ${(expected * 100).toFixed(1)}%)\x1b[0m`)
       assert(
         Math.abs(rate - expected) / expected < 0.20,
         `HS common rate ${(rate * 100).toFixed(1)}% deviates >20% from expected ${(expected * 100).toFixed(1)}%`

@@ -80,8 +80,8 @@ describe('LAW_CONFIG', () => {
       assert.strictEqual(packRules.guaranteedHyperspaceCommon, true)
     })
 
-    it('should have hyperspaceCommonSlot set to 5', () => {
-      assert.strictEqual(packRules.hyperspaceCommonSlot, 5)
+    it('should have hyperspaceCommonSlot set to 9 (last common)', () => {
+      assert.strictEqual(packRules.hyperspaceCommonSlot, 9)
     })
 
     it('should have prestigeInStandardPacks set to true', () => {

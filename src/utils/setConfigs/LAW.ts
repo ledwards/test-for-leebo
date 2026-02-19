@@ -5,7 +5,7 @@
  *
  * Major pack changes for this set (per FFG announcement):
  * - No regular foils - foil slot is ALWAYS Hyperspace Foil
- * - Guaranteed Hyperspace card in every pack (middle common slot)
+ * - Guaranteed Hyperspace card in every pack (last common slot - TBD)
  * - Prestige cards in standard boosters (~1 in 18 packs)
  * - Showcase leaders are significantly rarer
  * - First set with triple-aspect cards (double primary aspect)
@@ -61,7 +61,7 @@ export const LAW_CONFIG: SetConfig = {
 
     // Guaranteed Hyperspace common in every pack
     guaranteedHyperspaceCommon: true,
-    hyperspaceCommonSlot: 5, // Middle slot (1-indexed)
+    hyperspaceCommonSlot: 9, // Last common slot (1-indexed) - TBD until physical packs verified
 
     // Prestige cards can appear in standard packs
     prestigeInStandardPacks: true,

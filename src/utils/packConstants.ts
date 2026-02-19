@@ -411,10 +411,10 @@ export const SET_7_PLUS_CONSTANTS: PackConstants = {
   // ---------------------------------------------------------------------------
   // Guaranteed Hyperspace Common (NEW)
   // Every pack has at least 1 Hyperspace card - in a common slot
-  // We use the middle slot (slot 5) as the guaranteed HS slot
+  // Using last slot (slot 9) to minimize duplicates - TBD until physical packs verified
   // ---------------------------------------------------------------------------
   guaranteedHyperspaceCommon: true,
-  hyperspaceCommonSlot: 5, // Middle common slot (1-indexed)
+  hyperspaceCommonSlot: 9, // Last common slot (1-indexed) - TBD
 
   // ---------------------------------------------------------------------------
   // Additional Common Hyperspace Upgrade Rate
