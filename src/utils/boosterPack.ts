@@ -474,8 +474,9 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
   const blockConfig: BeltConfig = getBeltConfig(block);
   const isLawPlus = usesLawPackRules(setCode);
 
-  // For LAW+, slot 5 is always Hyperspace (guaranteed) — but only as fallback when no belt
-  if (isLawPlus && blockConfig.guaranteedHyperspace && !hsPlan) {
+  // For LAW+, slot 9 is ALWAYS Hyperspace (100% guaranteed)
+  // For other sets, use belt plan or probability
+  if (isLawPlus && blockConfig.guaranteedHyperspace) {
     const hyperspaceIndex = 1 + blockConfig.hyperspaceSlot;
     if (hyperspaceIndex < pack.cards.length) {
       const currentCommon = pack.cards[hyperspaceIndex];
