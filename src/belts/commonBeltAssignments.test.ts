@@ -93,6 +93,7 @@ describe('Common Belt Assignments', () => {
       assert.strictEqual(getBlockForSet('JTL'), 'A')
       assert.strictEqual(getBlockForSet('LOF'), 'A')
       assert.strictEqual(getBlockForSet('SEC'), 'A')
+      assert.strictEqual(getBlockForSet('LAW'), 'B')
     })
   })
 
@@ -116,11 +117,25 @@ describe('Common Belt Assignments', () => {
       assert.strictEqual(config.targetBeltASize, 50)
       assert.strictEqual(config.targetBeltBSize, 50)
     })
+
+    test('Block B config is correct (LAW+)', async (t) => {
+      const config = getBeltConfig('B')
+      assert.strictEqual(config.beltASlots, 4)
+      assert.strictEqual(config.beltBSlots, 4)
+      assert.strictEqual(config.alternatingSlot, 5)
+      assert.strictEqual(config.hyperspaceSlot, 9, 'LAW uses slot 9 (last common) for guaranteed HS')
+      assert.strictEqual(config.targetBeltASize, 50)
+      assert.strictEqual(config.targetBeltBSize, 50)
+      assert.strictEqual(config.guaranteedHyperspace, true, 'LAW guarantees HS common per pack')
+    })
   })
 
   describe('CommonBelt Card Loading', () => {
-    test('getBeltCards returns correct number of cards', async (t) => {
+    test('getBeltCards returns correct number of cards (static assignments)', async (t) => {
       for (const [setCode, assignments] of Object.entries(COMMON_BELT_ASSIGNMENTS)) {
+        // Skip sets with autoAssign - they use dynamic aspect-based assignment
+        if (assignments.autoAssign) continue
+
         const beltACards = getBeltCards(setCode, 'A')
         const beltBCards = getBeltCards(setCode, 'B')
 
@@ -129,6 +144,26 @@ describe('Common Belt Assignments', () => {
         assert.strictEqual(beltBCards.length, assignments.beltB.length,
           `${setCode} Belt B should load ${assignments.beltB.length} cards, got ${beltBCards.length}`)
       }
+    })
+
+    test('LAW uses autoAssign with ~50/50 belt split', async (t) => {
+      const assignments = COMMON_BELT_ASSIGNMENTS['LAW']
+      assert.ok(assignments.autoAssign, 'LAW should have autoAssign enabled')
+
+      const beltACards = getBeltCards('LAW', 'A')
+      const beltBCards = getBeltCards('LAW', 'B')
+
+      // Both belts should have cards (not empty)
+      assert.ok(beltACards.length > 0, 'LAW Belt A should have cards via autoAssign')
+      assert.ok(beltBCards.length > 0, 'LAW Belt B should have cards via autoAssign')
+
+      // Should have roughly 50/50 split (within 5 cards difference)
+      const total = beltACards.length + beltBCards.length
+      const diff = Math.abs(beltACards.length - beltBCards.length)
+      assert.ok(diff <= 10,
+        `LAW belts should be roughly balanced: A=${beltACards.length}, B=${beltBCards.length}`)
+      assert.ok(total >= 80,
+        `LAW should have ~100 commons total, got ${total}`)
     })
   })
 
