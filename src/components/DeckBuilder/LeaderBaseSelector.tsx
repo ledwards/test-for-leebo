@@ -73,6 +73,7 @@ export interface LeaderBaseSelectorProps {
   setShowAspectPenalties?: (show: boolean) => void
   isLoading?: boolean
   onAddStarterLeaders?: () => void
+  hasStarterLeaders?: boolean
 }
 
 export function LeaderBaseSelector({
@@ -97,6 +98,7 @@ export function LeaderBaseSelector({
   setShowAspectPenalties,
   isLoading = false,
   onAddStarterLeaders,
+  hasStarterLeaders = false,
 }: LeaderBaseSelectorProps) {
   // Try to get values from context
   let contextValue: ReturnType<typeof useDeckBuilder> | null = null
@@ -269,9 +271,9 @@ export function LeaderBaseSelector({
                     e.stopPropagation()
                     onAddStarterLeaders()
                   }}
-                  title="Add the Hyperspace versions of this set's starter deck leaders"
+                  title={hasStarterLeaders ? "Remove starter deck leaders" : "Add the Hyperspace versions of this set's starter deck leaders"}
                 >
-                  + Starter Leaders
+                  {hasStarterLeaders ? '- Starter Leaders' : '+ Starter Leaders'}
                 </button>
               )}
             </h3>

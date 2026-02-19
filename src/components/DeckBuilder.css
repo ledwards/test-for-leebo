@@ -706,7 +706,7 @@
 
 /* Add Starter Leaders button */
 .add-starter-leaders-button {
-  margin-left: auto;
+  margin-left: 0.5rem;
   padding: 4px 10px;
   font-size: 0.7rem;
   font-weight: 600;

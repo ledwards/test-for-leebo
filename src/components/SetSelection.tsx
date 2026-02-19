@@ -164,11 +164,24 @@ function SetSelection({ onSetSelect, onBack }: SetSelectionProps) {
               className="set-card set-card--beta"
               onClick={() => onSetSelect(set.code)}
             >
-              <div className="beta-badge">Beta</div>
-              <div className="beta-card-content">
-                <div className="placeholder-text">{set.name}</div>
-                <div className="placeholder-code">{set.code}</div>
-                <div className="beta-card-label">Pre-Release</div>
+              <div className="beta-badge">Pre-Release</div>
+              <div className="set-image-container">
+                {set.imageUrl && !failedImages.has(set.code) ? (
+                  <img
+                    src={set.imageUrl}
+                    alt={`${set.name} booster pack`}
+                    className="set-image"
+                    onError={(e) => handleImageError(set.code, e)}
+                  />
+                ) : (
+                  <div className="set-image-placeholder" style={{ position: 'relative' }}>
+                    <div className="placeholder-text">{set.name}</div>
+                    <div className="placeholder-code">{set.code}</div>
+                  </div>
+                )}
+              </div>
+              <div className="set-info">
+                <h3>{set.name}</h3>
               </div>
             </div>
           ))}

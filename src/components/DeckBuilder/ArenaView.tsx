@@ -24,6 +24,8 @@ export interface ArenaViewProps {
   onCardTouchStart?: (card: CardData) => void
   onCardTouchEnd?: () => void
   isLoading?: boolean
+  onAddStarterLeaders?: () => void
+  hasStarterLeaders?: boolean
 }
 
 export function ArenaView({
@@ -32,6 +34,8 @@ export function ArenaView({
   onCardTouchStart,
   onCardTouchEnd,
   isLoading = false,
+  onAddStarterLeaders,
+  hasStarterLeaders = false,
 }: ArenaViewProps) {
   const {
     cardPositions,
@@ -124,6 +128,8 @@ export function ArenaView({
             deckSortOption={deckSortOption}
             setShowAspectPenalties={setShowAspectPenalties}
             isLoading={isLoading}
+            onAddStarterLeaders={onAddStarterLeaders}
+            hasStarterLeaders={hasStarterLeaders}
           />
         )}
       </div>

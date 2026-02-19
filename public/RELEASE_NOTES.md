@@ -1,13 +1,25 @@
 # Release Notes
 
 ## 02.18.2026
+This is a big one. I'm proud to get this live within just a few hours of the full set being spoiled, including major changes to how packs are made (rare bases in base slot, no regular foils, guaranteed hyperspace per pack) and how aspect filters need to work from a UI design perspective to accommodate multi-aspect cards.
+
+One of the big use cases here will be practicing for pre-release, so we also added the ability to put hyperspace leaders into your sealed pools.
+
+Finally: Hope to see some of you at the largest U.S. SWU Limited event in Milwaukee, WI this weekend!
 
 ### 🎉 New Features
+- **A Lawless Time (LAW) Now Live**: Set 7 is now available for all users! Pre-release disclaimer shown during pack opening notes that collation is our best guess until we have more real-world data.
+- **Starter Leaders**: In the deck builder, click "+ Starter Leaders" next to the Leaders header to add the Hyperspace versions of the set's starter deck leaders to your pool. Great for practicing with the pre-release leaders in sealed!
 - **Shuffle Packs**: New button in sealed and draft lobby to shuffle which packs you receive from a simulated 24-pack booster box. Just like cracking a real box, you can now randomize your position in the box before opening your packs. This matters, becuase the way TCG packs and boxes are collated in real life invovles some amount of patterning that reduces variance. Shuffling packs increases variance, and shoudl result in more duplicates and triplicates in sealed pools. We will be collecting data as people use this feature to see how it affects statistical distributions.
   - Sealed: Click "Shuffle Packs" before opening to get a random selection of 6 packs from the 24-pack box
   - Draft: Host can shuffle packs in the lobby before starting
-- **Starter Leaders**: In the deck builder, click "+ Starter Leaders" next to the Leaders header to add the Hyperspace versions of the set's starter deck leaders to your pool. Great for practicing with the starter leaders in sealed!
-- **A Lawless Time (LAW) Now Live**: Set 7 is now available for all users! Pre-release disclaimer shown during pack opening notes that collation is our best guess until we have more real-world data.
+
+### 📦 LAW Pack Generation
+- **Guaranteed Hyperspace common**: Every LAW pack now contains at least one Hyperspace common card (in addition to the Hyperspace Foil in the last slot). This matches the FFG announcement for Set 7.
+- **All 8 common bases**: LAW sealed pools now correctly show all 8 common bases (2 per aspect) in the deck builder. Previously only 4 were showing due to over-aggressive deduplication.
+
+### 📊 Analytics
+- Added anonymous usage analytics to help understand how people use the app and prioritize development. No personal data is collected beyond what you provide via Discord login.
 
 ## 02.15.2026
 

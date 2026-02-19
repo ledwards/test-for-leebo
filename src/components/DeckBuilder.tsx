@@ -1065,6 +1065,17 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       const labelHeight = 30
       let currentY = padding
 
+      // Aspect sort helper for bases
+      const aspectOrder = ['Vigilance', 'Command', 'Aggression', 'Cunning']
+      const getAspectSortValue = (card: CardType) => {
+        const aspects = card.aspects || []
+        if (aspects.length === 0) return 999
+        for (let i = 0; i < aspectOrder.length; i++) {
+          if (aspects.includes(aspectOrder[i])) return i
+        }
+        return 998
+      }
+
       // Get rare bases from pack cards
       const rareBasesFromPacks = cards.filter(card => (card.isBase || card.type === 'Base') && card.rarity === 'Rare')
       const rareBasesMap = new Map<string, CardType>()
