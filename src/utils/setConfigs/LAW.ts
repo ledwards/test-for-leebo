@@ -30,23 +30,22 @@ export const LAW_CONFIG: SetConfig = {
   prerelease: true, // Pre-release set with estimated collation
 
   // Card counts (Normal variants only) - from swuapi.com data
-  // NOTE: LAW data is incomplete (~120/260 cards). Counts updated to match actual data.
-  // Run `npm run fetch-cards` to refresh when more cards are available.
+  // Auto-refreshed via prebuild fetch-cards
   cardCounts: {
     leaders: {
-      common: 4,  // Darth Vader, The Client, Han Solo, Hera Syndulla
-      rare: 5,    // Sebulba, Lando, Agent Kallus, Jyn Erso, Director Krennic
-      total: 11   // includes 2 Special leaders (Leia Organa, Jabba)
+      common: 8,
+      rare: 8,
+      total: 18   // includes 2 Special leaders (Leia Organa, Jabba)
     },
     bases: {
-      common: 4,  // Daimyo's Palace, Aldhani Garrison, Stygeon Spire, Canto Bight
+      common: 8,
       rare: 3,    // Alliance Outpost, Shipbreaking Yard, Citadel Research Center
-      total: 8    // includes 1 Special base (Great Pit of Carkoon)
+      total: 12   // includes 1 Special base (Great Pit of Carkoon)
     },
-    commons: 19,
-    uncommons: 34,
-    rares: 28,
-    legendaries: 13,
+    commons: 100,
+    uncommons: 60,
+    rares: 47,
+    legendaries: 20,
     specials: 10
   },
 
