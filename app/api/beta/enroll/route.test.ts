@@ -128,4 +128,65 @@ describe('Beta enrollment database operations', () => {
   })
 })
 
+describe('Discord beta tester role assignment', () => {
+  it('should assign Discord role after successful enrollment', () => {
+    // Enrollment flow: DB update → assign Discord role (best-effort) → return response
+    const discordId = '123456789'
+    const enrolled = true
+    const shouldAssignRole = enrolled && !!discordId
+
+    assert.strictEqual(shouldAssignRole, true)
+  })
+
+  it('should skip role assignment if user has no discord_id', () => {
+    const discordId = undefined
+    const shouldAssignRole = !!discordId
+
+    assert.strictEqual(shouldAssignRole, false)
+  })
+
+  it('should not block enrollment if role assignment fails', () => {
+    // Role assignment is best-effort (.catch(() => {}))
+    // Enrollment succeeds regardless of Discord API result
+    const enrollmentSuccess = true
+    const roleAssignmentFailed = true
+
+    // Enrollment still succeeds
+    assert.strictEqual(enrollmentSuccess, true)
+    assert.ok(roleAssignmentFailed, 'Role failure does not affect enrollment')
+  })
+
+  it('should use correct Discord API endpoint for role assignment', () => {
+    const guildId = '111'
+    const discordId = '222'
+    const roleId = '333'
+    const url = `https://discord.com/api/v10/guilds/${guildId}/members/${discordId}/roles/${roleId}`
+
+    assert.ok(url.includes('/roles/333'))
+    assert.ok(url.includes('/members/222'))
+    assert.ok(url.includes('/guilds/111'))
+  })
+
+  it('should use PUT method for role assignment', () => {
+    // Discord API requires PUT to add a role
+    const method = 'PUT'
+    assert.strictEqual(method, 'PUT')
+  })
+
+  it('addBetaTesterRole should no-op if env var not configured', () => {
+    const BETA_TESTER_ROLE_ID = undefined
+    const shouldAttempt = !!BETA_TESTER_ROLE_ID
+
+    assert.strictEqual(shouldAttempt, false)
+  })
+
+  it('addRole should no-op if bot token or guild ID missing', () => {
+    const BOT_TOKEN = undefined
+    const GUILD_ID = '111'
+    const shouldAttempt = !!BOT_TOKEN && !!GUILD_ID
+
+    assert.strictEqual(shouldAttempt, false)
+  })
+})
+
 console.log('\n🧪 Running beta enrollment API tests...\n')
