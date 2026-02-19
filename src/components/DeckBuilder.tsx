@@ -307,12 +307,12 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
   const getAspectColorName = (aspect: string): string => {
     const aspectColorMap: Record<string, string> = {
-      'Vigilance': 'blue',
-      'Command': 'green',
-      'Aggression': 'red',
-      'Cunning': 'yellow',
-      'Villainy': 'purple',
-      'Heroism': 'orange',
+      'Vigilance': 'Blue',
+      'Command': 'Green',
+      'Aggression': 'Red',
+      'Cunning': 'Yellow',
+      'Villainy': 'Purple',
+      'Heroism': 'Orange',
     }
     return aspectColorMap[aspect] || ''
   }
@@ -344,9 +344,13 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
       }
 
-      // Format: {Original Base Name} ({Leader} {BaseColor})
+      // Format: {Prefix} ({Leader} {BaseColor}) {Date}
+      // Extract date from originalBaseName (e.g., "LAW Sealed 02/19/2026" -> date is "02/19/2026")
+      const dateMatch = originalBaseName.match(/(\d{2}\/\d{2}\/\d{4})$/)
+      const date = dateMatch ? dateMatch[1] : ''
+      const prefix = date ? originalBaseName.replace(date, '').trim() : originalBaseName
       const suffix = baseDisplay ? `${leaderName} ${baseDisplay}` : leaderName
-      const name = `${originalBaseName} (${suffix})`
+      const name = date ? `${prefix} (${suffix}) ${date}` : `${originalBaseName} (${suffix})`
 
       setCurrentPoolName(name)
       await updatePool(shareId, { name })
