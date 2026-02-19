@@ -408,7 +408,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
               {pack.cards.map((card, cardIndex) => (
                 <div
                   key={cardIndex}
-                  className={`card-item ${card.isLeader ? 'leader' : ''} ${card.isBase ? 'base' : ''} ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`}
+                  className={`card-item ${card.isLeader || card.type === 'Leader' ? 'leader' : ''} ${card.isBase || card.type === 'Base' ? 'base' : ''} ${card.isFoil ? 'foil' : ''} ${card.isHyperspace ? 'hyperspace' : ''} ${card.isShowcase ? 'showcase' : ''}`}
 
                   onMouseEnter={(e) => {
                     // DISABLE enlarged preview on mobile/touch devices
@@ -434,7 +434,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
                       // Leaders and bases are landscape: 168px x 120px, so 3x = 504px x 360px
                       // Regular cards are portrait: 120px x 168px, so 3x = 360px x 504px
                       // Leaders with back: front horizontal (504x360) + back vertical (360x504) side by side
-                      const isHorizontal = card.isLeader || card.isBase
+                      const isHorizontal = card.isLeader || card.type === 'Leader' || card.isBase || card.type === 'Base'
                       const hasBackImage = card.backImageUrl && card.isLeader
                       let previewWidth: number, previewHeight: number
                       if (hasBackImage) {
@@ -519,7 +519,7 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
       {hoveredCardPreview && (() => {
         const card = hoveredCardPreview.card
         const hasBackImage = card.backImageUrl && card.isLeader
-        const isHorizontal = card.isLeader || card.isBase
+        const isHorizontal = card.isLeader || card.type === 'Leader' || card.isBase || card.type === 'Base'
         const borderRadius = '12px'
 
         // Calculate dimensions
