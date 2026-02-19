@@ -22,6 +22,7 @@ export interface SetSelectionProps {
 function SetSelection({ onSetSelect, onBack }: SetSelectionProps) {
   const { user } = useAuth()
   const [sets, setSets] = useState<SetData[]>([])
+  const [latestSets, setLatestSets] = useState<SetData[]>([])
   const [betaSets, setBetaSets] = useState<SetData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -94,9 +95,11 @@ function SetSelection({ onSetSelect, onBack }: SetSelectionProps) {
         setLoading(true)
         const setsData = await fetchSets({ includeBeta: hasBetaAccess })
         // Separate beta sets from regular sets
-        const regular = setsData.filter((set: SetData) => !set.beta)
+        const regular = setsData.filter((set: SetData) => !set.beta && getSetNumber(set.code) < 7)
+        const latest = setsData.filter((set: SetData) => !set.beta && getSetNumber(set.code) >= 7)
         const beta = setsData.filter((set: SetData) => set.beta)
         setRawSets(regular)
+        setLatestSets(latest)
         setBetaSets(beta)
       } catch (err) {
         setError((err as Error).message)
@@ -157,6 +160,38 @@ function SetSelection({ onSetSelect, onBack }: SetSelectionProps) {
   return (
     <div className="set-selection">
       <h1>Select a Set</h1>
+      {latestSets.length > 0 && (
+        <div className="latest-sets-row">
+          {latestSets.map((set) => (
+            <div
+              key={set.code}
+              className={`set-card${set.releaseDate && new Date(set.releaseDate) > new Date() ? ' set-card--prerelease' : ''}`}
+              onClick={() => onSetSelect(set.code)}
+            >
+              {set.releaseDate && new Date(set.releaseDate) > new Date() && (
+                <div className="beta-badge">Pre-Release</div>
+              )}
+              <div className="set-image-container">
+                {set.imageUrl && !failedImages.has(set.code) && (
+                  <img
+                    src={set.imageUrl}
+                    alt={`${set.name} booster pack`}
+                    className="set-image"
+                    onError={(e) => handleImageError(set.code, e)}
+                  />
+                )}
+                <div className="set-image-placeholder" style={{ display: (!set.imageUrl || failedImages.has(set.code)) ? 'flex' : 'none' }}>
+                  <div className="placeholder-text">{set.name}</div>
+                  <div className="placeholder-code">{set.code}</div>
+                </div>
+              </div>
+              <div className="set-info">
+                <h3>{set.name}</h3>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {betaSets.length > 0 && (
         <div className="beta-sets-row">
           {betaSets.map((set) => (
