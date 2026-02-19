@@ -9,7 +9,7 @@
  * - Prestige cards in standard boosters (~1 in 18 packs)
  * - Showcase leaders are significantly rarer
  * - First set with triple-aspect cards (double primary aspect)
- * - LAST set where rare bases appear in the rare slot
+ * - FIRST set where rare bases appear in the base slot (not the rare slot)
  *
  * Source: https://starwarsunlimited.com/articles/a-shift-from-what-was
  *
@@ -51,9 +51,9 @@ export const LAW_CONFIG: SetConfig = {
 
   // Pack construction rules - LAW-specific
   packRules: {
-    // LAW is the LAST set where rare bases go in the rare slot
-    // Future sets (8+) will have rare bases in the base slot
-    rareBasesInRareSlot: true,
+    // Starting with LAW (set 7), rare bases go in the base slot instead of the rare slot
+    // Sets 1-6 have rareBasesInRareSlot: true (rare bases in RareLegendaryBelt)
+    rareBasesInRareSlot: false,
 
     // No regular foils - foil slot is always Hyperspace Foil
     // HyperfoilBelt falls back to Normal variants when no HSF data exists

@@ -39,6 +39,7 @@ This directory contains detailed documentation for each Star Wars: Unlimited set
 - Foil slot is ALWAYS Hyperspace Foil (no regular foils)
 - Prestige cards can appear in standard packs (~1 in 18)
 - Triple-aspect cards (double primary aspect)
+- **Rare bases in base slot** (~1/6 rate) instead of rare slot
 
 ## Pack Structure (All Sets)
 

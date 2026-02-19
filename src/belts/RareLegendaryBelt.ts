@@ -73,19 +73,23 @@ export class RareLegendaryBelt {
     const setNumber = config?.setNumber || 1
     this.ratio = setNumber <= 3 ? 7 : 5
 
+    // Check if this set puts rare bases in the base slot (set 7+)
+    // If so, exclude them from the rare slot. Otherwise, include them.
+    const rareBasesInBaseSlot = config?.packRules?.rareBasesInRareSlot === false
+
     // Filter to normal variant non-leader rares and legendaries
     this.rares = cards.filter(c =>
       c.variantType === 'Normal' &&
       c.rarity === 'Rare' &&
       !c.isLeader &&
-      !c.isBase
+      (!c.isBase || !rareBasesInBaseSlot)
     )
 
     this.legendaries = cards.filter(c =>
       c.variantType === 'Normal' &&
       c.rarity === 'Legendary' &&
       !c.isLeader &&
-      !c.isBase
+      (!c.isBase || !rareBasesInBaseSlot)
     )
 
     // Filling pool is all rares + legendaries

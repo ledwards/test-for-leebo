@@ -46,9 +46,21 @@ async function runTests(): Promise<void> {
     assert(belt.rares.length > 0, 'Should have rares')
     assert(belt.legendaries.length > 0, 'Should have legendaries')
     assert(belt.fillingPool.every(c => !c.isLeader), 'No leaders in filling pool')
-    assert(belt.fillingPool.every(c => !c.isBase), 'No bases in filling pool')
     assert(belt.fillingPool.every(c => c.set === 'SOR'), 'All cards should be from SOR set')
     assert(belt.fillingPool.every(c => c.variantType === 'Normal'), 'All cards should be normal variants')
+  })
+
+  test('sets 1-6 include rare bases in filling pool (rare bases go in rare slot)', () => {
+    const belt = new RareLegendaryBelt('SOR')
+    const rareBases = belt.rares.filter(c => c.isBase)
+    assert(rareBases.length > 0, 'SOR should have rare bases in the rare slot')
+    assert(rareBases.every(c => c.rarity === 'Rare'), 'All rare bases should be Rare rarity')
+  })
+
+  test('set 7+ (LAW) excludes rare bases from filling pool (they go in base slot)', () => {
+    const belt = new RareLegendaryBelt('LAW')
+    const rareBases = belt.rares.filter(c => c.isBase)
+    assertEqual(rareBases.length, 0, 'LAW should NOT have rare bases in rare slot (they go in base slot)')
   })
 
   test('filling pool contains only Rare and Legendary rarities', () => {
@@ -84,7 +96,6 @@ async function runTests(): Promise<void> {
     assert(card !== null, 'next() should return a card')
     assert(card.rarity === 'Rare' || card.rarity === 'Legendary', 'Returned card should be Rare or Legendary')
     assert(!card.isLeader, 'Returned card should not be a leader')
-    assert(!card.isBase, 'Returned card should not be a base')
     assert(card.set === 'SOR', 'Returned card should be from correct set')
   })
 

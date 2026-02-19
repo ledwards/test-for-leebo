@@ -3,11 +3,14 @@
  * BaseBelt
  *
  * A belt that provides base cards for booster packs.
- * Only includes common bases. Uses aspect-based seam deduplication
- * to prevent adjacent bases with the same aspect.
+ * Cycles through common bases with aspect-based seam deduplication.
+ * Rare bases are sprinkled in probabilistically (same pattern as LeaderBelt).
+ *
+ * Target ratio: 1/6 packs get a Rare base (~16.67%) — configurable via packConstants.rareBaseRate
  */
 
 import { getCachedCards } from '../utils/cardCache';
+import { getSetConfig } from '../utils/setConfigs';
 import type { RawCard } from '../utils/cardData';
 import type { SetCode } from '../types';
 
@@ -38,11 +41,17 @@ export class BaseBelt {
   setCode: SetCode
   hopper: RawCard[]
   fillingPool: RawCard[]
+  rareBases: RawCard[]
+  rareProbability: number
+  lastBaseName: string | null
 
   constructor(setCode: SetCode | string) {
     this.setCode = setCode as SetCode
     this.hopper = []
     this.fillingPool = []
+    this.rareBases = []
+    this.rareProbability = 0
+    this.lastBaseName = null
 
     this._initialize()
   }
@@ -52,13 +61,32 @@ export class BaseBelt {
    */
   _initialize(): void {
     const cards = getCachedCards(this.setCode)
+    const config = getSetConfig(this.setCode)
 
-    // Filter to only normal variant common bases
+    // Filter to only normal variant common bases (the cycle pool)
     this.fillingPool = cards.filter(c =>
       c.isBase &&
       c.variantType === 'Normal' &&
       c.rarity === 'Common'
     )
+
+    // Only load rare bases into the base slot when the set config says so.
+    // Sets 1-6: rareBasesInRareSlot is true (or undefined) → rare bases go in RareLegendaryBelt
+    // Set 7+ (LAW): rareBasesInRareSlot is false → rare bases go here in the base slot
+    const rareBasesInBaseSlot = config?.packRules?.rareBasesInRareSlot === false
+
+    if (rareBasesInBaseSlot) {
+      this.rareBases = cards.filter(c =>
+        c.isBase &&
+        c.variantType === 'Normal' &&
+        c.rarity === 'Rare'
+      )
+
+      // Rate matches LeaderBelt's RARE_PROBABILITY (1/6 ≈ 16.67%)
+      if (this.rareBases.length > 0) {
+        this.rareProbability = 1 / 6
+      }
+    }
 
     // Initial fill
     this._fillIfNeeded()
@@ -110,13 +138,43 @@ export class BaseBelt {
   }
 
   /**
-   * Get the next base from the hopper
+   * Get a random rare base
+   */
+  _randomRare(): RawCard | null {
+    if (this.rareBases.length === 0) return null
+    const index = Math.floor(Math.random() * this.rareBases.length)
+    return this.rareBases[index] ?? null
+  }
+
+  /**
+   * Get the next base from the belt
+   *
+   * Logic (mirrors LeaderBelt):
+   * - rareProbability chance to serve a rare base
+   * - Otherwise serve the next common from the hopper cycle
+   * - If rare would duplicate the last base name, fall back to common
    */
   next(): RawCard | null {
-    this._fillIfNeeded()
+    // Decide: rare or common?
+    if (this.rareBases.length > 0 && this.rareProbability > 0 && Math.random() < this.rareProbability) {
+      const rare = this._randomRare()
+      if (rare && rare.name !== this.lastBaseName) {
+        this.lastBaseName = rare.name
+        return { ...rare }
+      }
+      // If rare would duplicate last base, fall through to common
+    }
 
+    // Serve from common hopper
+    this._fillIfNeeded()
     const card = this.hopper.shift()
-    return card ? { ...card } : null // Return a copy
+
+    if (card) {
+      this.lastBaseName = card.name
+      return { ...card }
+    }
+
+    return null
   }
 
   /**
