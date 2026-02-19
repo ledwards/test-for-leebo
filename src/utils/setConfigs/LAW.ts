@@ -1,7 +1,7 @@
 // @ts-nocheck
 /**
  * Set Configuration for LAW - A Lawless Time
- * Set 7 (Beta)
+ * Set 7
  *
  * Major pack changes for this set (per FFG announcement):
  * - No regular foils - foil slot is ALWAYS Hyperspace Foil

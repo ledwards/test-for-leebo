@@ -11,6 +11,7 @@ interface SetData {
   name: string
   imageUrl?: string
   beta?: boolean
+  releaseDate?: string
 }
 
 export interface SetSelectionProps {
@@ -40,7 +41,7 @@ function SetSelection({ onSetSelect, onBack }: SetSelectionProps) {
       'JTL': 4, // Jump to Lightspeed
       'LOF': 5, // Legends of the Force
       'SEC': 6, // Secrets of Power
-      'LAW': 7, // A Lawless Time (beta)
+      'LAW': 7, // A Lawless Time
       // Future sets will be 8, 9, 10, etc.
     }
     return setCodeMap[setCode] || 999 // Unknown sets go to end
@@ -191,9 +192,12 @@ function SetSelection({ onSetSelect, onBack }: SetSelectionProps) {
         {sets.map((set) => (
           <div
             key={set.code}
-            className="set-card"
+            className={`set-card${set.releaseDate && new Date(set.releaseDate) > new Date() ? ' set-card--prerelease' : ''}`}
             onClick={() => onSetSelect(set.code)}
           >
+            {set.releaseDate && new Date(set.releaseDate) > new Date() && (
+              <div className="beta-badge">Pre-Release</div>
+            )}
             <div className="set-image-container">
               {set.imageUrl && !failedImages.has(set.code) && (
                 <img

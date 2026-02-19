@@ -1,76 +1,50 @@
 // @ts-nocheck
-// Tests for API utilities - beta set filtering
+// Tests for API utilities - set filtering
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { fetchSets } from './api'
 
 describe('fetchSets', () => {
-  describe('beta set filtering', () => {
-    it('should exclude beta sets by default', async () => {
+  describe('set filtering', () => {
+    it('should return all 7 sets by default', async () => {
       const sets = await fetchSets()
       const setCodes = sets.map(s => s.code)
 
-      assert.ok(!setCodes.includes('LAW'), 'LAW should not be included by default')
+      assert.ok(setCodes.includes('LAW'), 'LAW should be included')
       assert.ok(setCodes.includes('SOR'), 'SOR should be included')
       assert.ok(setCodes.includes('SEC'), 'SEC should be included')
-      assert.strictEqual(sets.length, 6, 'Should have 6 non-beta sets')
+      assert.strictEqual(sets.length, 7, 'Should have 7 sets')
     })
 
-    it('should exclude beta sets when includeBeta is false', async () => {
-      const sets = await fetchSets({ includeBeta: false })
-      const setCodes = sets.map(s => s.code)
-
-      assert.ok(!setCodes.includes('LAW'), 'LAW should not be included')
-      assert.strictEqual(sets.length, 6, 'Should have 6 non-beta sets')
-    })
-
-    it('should include beta sets when includeBeta is true', async () => {
-      const sets = await fetchSets({ includeBeta: true })
-      const setCodes = sets.map(s => s.code)
-
-      assert.ok(setCodes.includes('LAW'), 'LAW should be included')
-      assert.ok(setCodes.includes('SOR'), 'SOR should still be included')
-      assert.strictEqual(sets.length, 7, 'Should have 7 sets including beta')
-    })
-
-    it('should mark LAW as a beta set', async () => {
-      const sets = await fetchSets({ includeBeta: true })
+    it('should include LAW without beta flag', async () => {
+      const sets = await fetchSets()
       const lawSet = sets.find(s => s.code === 'LAW')
 
       assert.ok(lawSet, 'LAW set should exist')
-      assert.strictEqual(lawSet.beta, true, 'LAW should have beta: true')
+      assert.ok(!lawSet.beta, 'LAW should not have beta flag')
       assert.strictEqual(lawSet.name, 'A Lawless Time', 'LAW should have correct name')
     })
 
-    it('should not mark regular sets as beta', async () => {
-      const sets = await fetchSets({ includeBeta: true })
-      const nonBetaSets = sets.filter(s => s.code !== 'LAW')
+    it('should not mark any sets as beta', async () => {
+      const sets = await fetchSets()
 
-      for (const set of nonBetaSets) {
+      for (const set of sets) {
         assert.ok(!set.beta, `${set.code} should not be marked as beta`)
       }
     })
   })
 
   describe('set data structure', () => {
-    it('should include imageUrl for released sets', async () => {
-      const sets = await fetchSets({ includeBeta: false })
+    it('should include imageUrl for all sets', async () => {
+      const sets = await fetchSets()
 
       for (const set of sets) {
         assert.ok(set.imageUrl, `${set.code} should have imageUrl`)
       }
     })
 
-    it('should have imageUrl property defined (may be null for beta)', async () => {
-      const sets = await fetchSets({ includeBeta: true })
-
-      for (const set of sets) {
-        assert.ok('imageUrl' in set, `${set.code} should have imageUrl property`)
-      }
-    })
-
     it('should include code, name, and releaseDate for all sets', async () => {
-      const sets = await fetchSets({ includeBeta: true })
+      const sets = await fetchSets()
 
       for (const set of sets) {
         assert.ok(set.code, 'Set should have code')

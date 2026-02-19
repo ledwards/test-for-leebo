@@ -33,7 +33,7 @@ export async function fetchSets({ includeBeta = false }: FetchSetsOptions = {}):
     { code: 'JTL', name: 'Jump to Lightspeed', releaseDate: '2025-03-14' },
     { code: 'LOF', name: 'Legends of the Force', releaseDate: '2025-07-11' },
     { code: 'SEC', name: 'Secrets of Power', releaseDate: '2025-11-07' },
-    { code: 'LAW', name: 'A Lawless Time', releaseDate: '2026-03-13', beta: true },
+    { code: 'LAW', name: 'A Lawless Time', releaseDate: '2026-03-13' },
   ]
 
   // Filter out beta sets unless explicitly requested
