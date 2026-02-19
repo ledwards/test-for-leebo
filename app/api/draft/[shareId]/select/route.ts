@@ -150,6 +150,10 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
               // All players have selected - process picks and advance
               // Re-fetch pod state to ensure fresh data
               const freshPod = await queryRow('SELECT * FROM draft_pods WHERE id = $1', [pod.id])
+              if (!freshPod) {
+                console.error('Draft pod not found when processing picks:', pod.id)
+                return
+              }
               const freshState = typeof freshPod.draft_state === 'string'
                 ? JSON.parse(freshPod.draft_state)
                 : freshPod.draft_state
