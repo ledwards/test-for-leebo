@@ -75,6 +75,7 @@ export interface PackConstants {
   hyperspaceNonFoilWeights: RarityWeights
   hyperfoilWeights: RarityWeights
   showcaseLeaderRate: number
+  rareBaseRate: number
   specialInFoilSlot: boolean
   specialInHyperspaceSlot?: boolean
   hyperspaceFoilSlotWeights?: RarityWeights
@@ -193,6 +194,13 @@ export const SETS_1_3_CONSTANTS: PackConstants = {
   showcaseLeaderRate: 1 / 288,
 
   // ---------------------------------------------------------------------------
+  // Rare Base Rate (in base slot)
+  // Same as rare leader rate: ~1 in 6 packs
+  // Only applies to sets that have rare bases (e.g., LAW+)
+  // ---------------------------------------------------------------------------
+  rareBaseRate: 1 / 6,
+
+  // ---------------------------------------------------------------------------
   // Special Rarity Handling
   // Sets 1-3: No Special rarity cards in packs (Question 11)
   // ---------------------------------------------------------------------------
@@ -309,6 +317,12 @@ export const SETS_4_6_CONSTANTS: PackConstants = {
   // Very rare - approximately 1 in 288 packs
   // ---------------------------------------------------------------------------
   showcaseLeaderRate: 1 / 288,
+
+  // ---------------------------------------------------------------------------
+  // Rare Base Rate (in base slot)
+  // Same as rare leader rate: ~1 in 6 packs
+  // ---------------------------------------------------------------------------
+  rareBaseRate: 1 / 6,
 
   // ---------------------------------------------------------------------------
   // Special Rarity Handling
@@ -448,15 +462,21 @@ export const SET_7_PLUS_CONSTANTS: PackConstants = {
   showcaseLeaderRate: 1 / 576,
 
   // ---------------------------------------------------------------------------
+  // Rare Base Rate (in base slot)
+  // Same as rare leader rate: ~1 in 6 packs
+  // ---------------------------------------------------------------------------
+  rareBaseRate: 1 / 6,
+
+  // ---------------------------------------------------------------------------
   // Special Rarity Handling
   // ---------------------------------------------------------------------------
   specialInFoilSlot: true,
   specialInHyperspaceSlot: true,
 
   // ---------------------------------------------------------------------------
-  // Rare Bases in Rare Slot
-  // LAW is the LAST set where this is true. Future sets (8+) will have
-  // rare bases in the base slot instead.
+  // Rare Bases in Rare Slot (default for set 7+ constants)
+  // Per-set configs override this. LAW overrides to false (rare bases in base slot).
+  // Future sets will likely also be false.
   // ---------------------------------------------------------------------------
   rareBasesInRareSlot: true,
 }
