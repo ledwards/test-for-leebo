@@ -8,6 +8,7 @@ import { savePool, updatePool } from '../utils/poolApi'
 import { useAuth } from '../contexts/AuthContext'
 import { getSetConfig } from '../utils/setConfigs'
 import { getPackArtUrl } from '../utils/packArt'
+import { trackEvent, AnalyticsEvents } from '../hooks/useAnalytics'
 import EditableTitle from './EditableTitle'
 import Button from './Button'
 
@@ -242,6 +243,13 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
 
       const saved = await savePool(poolData)
       setSavedShareId(saved.shareId)
+
+      // Track pool creation
+      trackEvent(AnalyticsEvents.SEALED_POOL_CREATED, {
+        set_code: setCode,
+        pack_count: generatedPacks.length,
+        card_count: allCards.length,
+      })
 
       // Update URL without page reload
       const newUrl = `/pool/${saved.shareId}`

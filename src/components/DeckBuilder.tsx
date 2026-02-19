@@ -5,6 +5,7 @@ import DeckBuilderContext from '../contexts/DeckBuilderContext'
 import { getCachedCards, isCacheInitialized, initializeCardCache } from '../utils/cardCache'
 import { deduplicateCommonBases } from '../utils/baseDedup'
 import { buildBaseCardMap as buildBaseCardMapUtil, getBaseCardId as getBaseCardIdUtil } from '../utils/variantDowngrade'
+import { trackEvent, AnalyticsEvents } from '../hooks/useAnalytics'
 import { fetchSetCards } from '../utils/api'
 import { useAuth } from '../contexts/AuthContext'
 import { jsonParse } from '../utils/json'
@@ -268,6 +269,32 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
     setViewModeInitialized(true)
   }, [shareId, viewModeInitialized])
+
+  // Track deck builder opened and view mode changes
+  useEffect(() => {
+    if (viewModeInitialized) {
+      trackEvent(AnalyticsEvents.DECK_BUILDER_OPENED, {
+        set_code: setCode,
+        pool_type: poolType,
+        view_mode: viewMode,
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewModeInitialized]) // Only track on initial load
+
+  // Track view mode changes (after initial load)
+  const prevViewMode = useRef(viewMode)
+  useEffect(() => {
+    if (viewModeInitialized && prevViewMode.current !== viewMode) {
+      trackEvent(AnalyticsEvents.DECK_BUILDER_VIEW_CHANGED, {
+        from_view: prevViewMode.current,
+        to_view: viewMode,
+        set_code: setCode,
+        pool_type: poolType,
+      })
+      prevViewMode.current = viewMode
+    }
+  }, [viewMode, viewModeInitialized, setCode, poolType])
 
   // Memoized active leader and base cards (derived from cardPositions)
   const leaderCard = useMemo(() => {
@@ -1014,10 +1041,15 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
       const poolCards = cards.filter(card => !card.isBase && !card.isLeader && card.type !== 'Base' && card.type !== 'Leader')
       const poolLeaders = cards.filter(card => card.isLeader || card.type === 'Leader')
 
-      // Get deduplicated common bases from all set cards if available
-      // For chaos draft/sealed, this deduplicates across multiple sets by aspect+HP
+      // Get common bases from all set cards
+      // For chaos draft/sealed (comma-separated setCode), deduplicate across sets by aspect+HP
+      // For single-set sealed, show all Normal variant common bases
+      const isMultiSet = setCode.includes(',')
+      const commonBases = allSetCards.filter(c =>
+        (c.isBase || c.type === 'Base') && c.rarity === 'Common' && c.variantType === 'Normal'
+      )
       const uniqueCommonBases = allSetCards.length > 0
-        ? deduplicateCommonBases(allSetCards)
+        ? (isMultiSet ? deduplicateCommonBases(allSetCards) : commonBases)
         : []
 
       const initialPositions: Record<string, CardPosition> = {}
@@ -1139,9 +1171,16 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
       // If no common bases found, add them
       if (!hasCommonBases) {
-        // Get deduplicated common bases from all set cards
-        // For chaos draft/sealed, this deduplicates across multiple sets by aspect+HP
-        const uniqueCommonBases = deduplicateCommonBases(allSetCards)
+        // Get common bases from all set cards
+        // For chaos draft/sealed (comma-separated setCode), deduplicate across sets by aspect+HP
+        // For single-set sealed, show all Normal variant common bases
+        const isMultiSet = setCode.includes(',')
+        const commonBases = allSetCards.filter(c =>
+          (c.isBase || c.type === 'Base') && c.rarity === 'Common' && c.variantType === 'Normal'
+        )
+        const uniqueCommonBases = isMultiSet
+          ? deduplicateCommonBases(allSetCards)
+          : commonBases
 
         // Find the leaders-bases section bounds
         const leadersBasesBounds = sectionBounds['leaders-bases']
@@ -1278,6 +1317,31 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
 
     setCardPositions(updatedPositions)
   }, [starterLeadersAvailable, hasStarterLeaders, cardPositions, sectionBounds])
+
+  // Function to remove starter leaders from the pool
+  const removeStarterLeaders = useCallback(() => {
+    const updatedPositions = { ...cardPositions }
+    // Remove any leader-starter-* entries
+    Object.keys(updatedPositions).forEach(key => {
+      if (key.startsWith('leader-starter-')) {
+        // If this was the active leader, deselect it
+        if (activeLeader === key) {
+          setActiveLeader(null)
+        }
+        delete updatedPositions[key]
+      }
+    })
+    setCardPositions(updatedPositions)
+  }, [cardPositions, activeLeader])
+
+  // Combined toggle for starter leaders
+  const toggleStarterLeaders = useCallback(() => {
+    if (hasStarterLeaders) {
+      removeStarterLeaders()
+    } else {
+      addStarterLeaders()
+    }
+  }, [hasStarterLeaders, removeStarterLeaders, addStarterLeaders])
 
   // Save deck builder state to localStorage whenever it changes
   useEffect(() => {
@@ -1998,7 +2062,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
               onCardTouchStart={handleCardTouchStart}
               onCardTouchEnd={handleCardTouchEnd}
               isLoading={isLoading}
-              onAddStarterLeaders={starterLeadersAvailable.length > 0 && !hasStarterLeaders ? addStarterLeaders : undefined}
+              onAddStarterLeaders={starterLeadersAvailable.length > 0 ? toggleStarterLeaders : undefined}
+              hasStarterLeaders={hasStarterLeaders}
             />
           )}
 
@@ -2171,6 +2236,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
                   setHoveredCard(null)
                   handleCardMouseLeave()
                 }}
+                onAddStarterLeaders={starterLeadersAvailable.length > 0 ? toggleStarterLeaders : undefined}
+                hasStarterLeaders={hasStarterLeaders}
               />
 
           {/* Bases Section */}
@@ -2242,6 +2309,8 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           onCardTouchStart={handleCardTouchStart}
           onCardTouchEnd={handleCardTouchEnd}
           isLoading={isLoading}
+          onAddStarterLeaders={starterLeadersAvailable.length > 0 ? toggleStarterLeaders : undefined}
+          hasStarterLeaders={hasStarterLeaders}
         />
       )}
 

@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
+import { trackEvent, AnalyticsEvents } from '@/src/hooks/useAnalytics'
 import './page.css'
 
 export default function RotisseriePage() {
@@ -41,6 +42,7 @@ export default function RotisseriePage() {
         }
 
         const result = await response.json()
+        trackEvent(AnalyticsEvents.ROTISSERIE_CREATED)
         router.replace(`/formats/rotisserie/${result.data.shareId}`)
       } catch (err) {
         setError(err.message || 'Failed to create draft')

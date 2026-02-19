@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { createDraft } from '../../../src/utils/draftApi'
 import { initializeCardCache } from '../../../src/utils/cardCache'
+import { trackEvent, AnalyticsEvents } from '../../../src/hooks/useAnalytics'
 import SetSelection from '../../../src/components/SetSelection'
 import '../../../src/App.css'
 import '../draft.css'
@@ -36,6 +37,7 @@ export default function NewDraftPage() {
 
     try {
       const result = await createDraft(setCode)
+      trackEvent(AnalyticsEvents.DRAFT_CREATED, { set_code: setCode })
       router.push(`/draft/${result.shareId}`)
     } catch (err) {
       console.error('Failed to create draft:', err)

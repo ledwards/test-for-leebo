@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { fetchSets } from '@/src/utils/api'
+import { trackEvent, AnalyticsEvents } from '@/src/hooks/useAnalytics'
 import Button from '@/src/components/Button'
 import PackSelector from '@/src/components/PackSelector'
 import './page.css'
@@ -64,6 +65,7 @@ export default function PackWarsPage() {
       }
 
       const result = await response.json()
+      trackEvent(AnalyticsEvents.PACK_WARS_CREATED, { set_code: selectedSet })
       router.push(`/formats/pack-wars/${result.data.shareId}`)
     } catch (err) {
       setError(err.message || 'Failed to generate pool')

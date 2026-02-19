@@ -7,6 +7,7 @@
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { getBaseCardId as getBaseCardIdRaw } from '../utils/variantDowngrade'
+import { trackEvent, AnalyticsEvents } from './useAnalytics'
 
 // Wrapper that handles the optional second argument and null returns
 function getBaseCardId(card: unknown): string {
@@ -198,6 +199,13 @@ export function useDeckExport({
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+
+    trackEvent(AnalyticsEvents.DECK_EXPORTED_JSON, {
+      set_code: setCode,
+      pool_type: poolType,
+      deck_size: deckData.deck.reduce((sum, c) => sum + c.count, 0),
+      sideboard_size: deckData.sideboard.reduce((sum, c) => sum + c.count, 0),
+    })
   }
 
   // Copy JSON to clipboard
@@ -240,6 +248,13 @@ export function useDeckExport({
         setErrorMessage(null)
         setMessageType(null)
       }, 3000)
+
+      trackEvent(AnalyticsEvents.DECK_COPIED_JSON, {
+        set_code: setCode,
+        pool_type: poolType,
+        deck_size: deckData.deck.reduce((sum, c) => sum + c.count, 0),
+        sideboard_size: deckData.sideboard.reduce((sum, c) => sum + c.count, 0),
+      })
     } catch {
       setErrorMessage('Failed to copy to clipboard')
       setMessageType('error')
@@ -576,6 +591,13 @@ export function useDeckExport({
             setErrorMessage(null)
             setMessageType(null)
           }, 3000)
+
+          trackEvent(AnalyticsEvents.DECK_IMAGE_GENERATED, {
+            set_code: setCode,
+            pool_type: poolType,
+            deck_size: deckCards.length,
+            sideboard_size: sideboardCards.length,
+          })
         }
       }, 'image/png')
 
@@ -952,6 +974,16 @@ export function useDeckExport({
         canvas.toBlob((blob) => {
           if (blob) {
             const url = URL.createObjectURL(blob)
+
+            trackEvent(AnalyticsEvents.POOL_IMAGE_GENERATED, {
+              set_code: setCode,
+              pool_type: poolType,
+              deck_size: deckCards.length,
+              pool_size: poolCards.length,
+              other_leaders: otherLeaders.length,
+              other_bases: otherBases.length,
+            })
+
             resolve(url)
           } else {
             resolve(null)
