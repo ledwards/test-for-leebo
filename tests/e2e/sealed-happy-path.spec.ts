@@ -95,13 +95,13 @@ test.describe('Sealed happy path', () => {
     await page.waitForLoadState('networkidle')
 
     // Wait for sets to load
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    const setCount = await page.locator('.set-card').count()
+    await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+    const setCount = await page.locator('.sets-grid .set-card').count()
     console.log(`✓ Found ${setCount} sets`)
 
     // Click the first set
-    const setName = await page.locator('.set-card').first().locator('.set-name, h3, h2').textContent()
-    await page.locator('.set-card').first().click()
+    const setName = await page.locator('.sets-grid .set-card').first().locator('.set-name, h3, h2').textContent()
+    await page.locator('.sets-grid .set-card').first().click()
     console.log(`✓ Selected: ${setName?.trim()}`)
 
     // === STEP 2: Wait for pool creation ===

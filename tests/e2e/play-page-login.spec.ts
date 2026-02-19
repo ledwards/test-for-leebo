@@ -87,8 +87,8 @@ test.describe('Play page Discord login button', () => {
     await page.goto(`${BASE_URL}/sets`)
     await page.waitForLoadState('networkidle')
 
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
-    await page.locator('.set-card').first().click()
+    await expect(page.locator('.sets-grid .set-card').first()).toBeVisible({ timeout: 10000 })
+    await page.locator('.sets-grid .set-card').first().click()
 
     await page.waitForURL(/\/pool\/[a-zA-Z0-9_-]+/, { timeout: 30000 })
     poolShareId = page.url().split('/pool/')[1]?.split('/')[0]?.split('?')[0]
