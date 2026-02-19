@@ -3,22 +3,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, setSession } from '@/lib/auth'
 import { queryRow } from '@/lib/db'
-import { isPatron } from '@/lib/discord'
+import { isPatron, addBetaTesterRole } from '@/lib/discord'
 import { handleApiError } from '@/lib/utils'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const session = requireAuth(request)
 
+    // Fetch discord_id for patron check and role assignment
+    const userRow = await queryRow(
+      'SELECT discord_id FROM users WHERE id = $1',
+      [session.id]
+    )
+    const discordId = userRow?.discord_id as string | undefined
+
     // Admins bypass patron check
     if (!session.is_admin) {
-      const userRow = await queryRow(
-        'SELECT discord_id FROM users WHERE id = $1',
-        [session.id]
-      )
-
-      const patron = userRow?.discord_id
-        ? await isPatron(userRow.discord_id as string)
+      const patron = discordId
+        ? await isPatron(discordId)
         : false
 
       if (!patron) {
@@ -61,6 +63,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
       message: 'Beta access granted',
     })
+
+    // Best-effort: assign Discord beta tester role
+    if (discordId) {
+      addBetaTesterRole(discordId).catch(() => {})
+    }
 
     // Set new session cookie with updated role flags
     return setSession(response, user)
