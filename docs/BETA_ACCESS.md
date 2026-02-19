@@ -97,11 +97,12 @@ Returns current user with role flags:
 
 ### POST /api/beta/enroll
 
-Enrolls current user as beta tester.
+Enrolls current user as beta tester. Also assigns the Discord beta tester role (best-effort, non-blocking).
 
 - **Auth:** Required
 - **Body:** None
 - **Response:** Updated user object + new session cookie
+- **Side effect:** Assigns `DISCORD_BETA_TESTER_ROLE_ID` role via Discord bot API (fails silently)
 
 ```json
 {
@@ -266,6 +267,24 @@ node scripts/makeAdmin.test.js
 
 ---
 
+## Discord Role Auto-Assignment
+
+When a user enrolls as a beta tester, the server automatically assigns them the Discord beta tester role.
+
+**Requirements:**
+- `DISCORD_BOT_TOKEN` — Already configured for patron check
+- `DISCORD_GUILD_ID` — Already configured for patron check
+- `DISCORD_BETA_TESTER_ROLE_ID` — Role ID for the beta tester role
+- Bot must have **Manage Roles** permission
+- Bot's role must be **above** the beta tester role in the Discord role hierarchy
+
+**Behavior:**
+- Best-effort: enrollment succeeds even if Discord API call fails
+- Non-blocking: the API call is fire-and-forget (`.catch(() => {})`)
+- No-op if `DISCORD_BETA_TESTER_ROLE_ID` is not configured
+
+---
+
 ## Security Notes
 
 1. **JWT tokens** contain role flags. Changes require new token via:
@@ -288,6 +307,7 @@ node scripts/makeAdmin.test.js
 | `app/beta/page.jsx` | Beta signup page |
 | `app/api/beta/enroll/route.js` | Beta enrollment endpoint |
 | `app/api/auth/refresh/route.js` | Session refresh endpoint |
+| `lib/discord.ts` | Discord API utilities (patron check, role assignment) |
 | `lib/auth.js` | Server auth helpers |
 | `src/utils/auth.js` | Frontend auth utils |
 | `src/contexts/AuthContext.jsx` | React auth context |
