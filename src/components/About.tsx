@@ -47,17 +47,28 @@ function About({ onBack }: AboutProps) {
           </a>
         </section>
 
-        <section className="teammates-section">
-          <h2>Thanks to My Teammates</h2>
-          <div className="teammate-logos">
-            <a href="https://norcalswu.com" target="_blank" rel="noopener noreferrer" className="teammate-link">
-              <img src="/about/NorCalSWU.png" alt="NorCal SWU" className="teammate-logo" />
-            </a>
-            <a href="https://bbbbbbasketball.net" target="_blank" rel="noopener noreferrer" className="teammate-link">
-              <img src="/about/dd.png" alt="Dodonna's Disciples" className="teammate-logo" />
-            </a>
-          </div>
-        </section>
+        <div className="thanks-row">
+          <section className="teammates-section">
+            <h2>Thanks to My Teammates</h2>
+            <div className="teammate-logos">
+              <a href="https://norcalswu.com" target="_blank" rel="noopener noreferrer" className="teammate-link">
+                <img src="/about/NorCalSWU.png" alt="NorCal SWU" className="teammate-logo" />
+              </a>
+              <a href="https://bbbbbbasketball.net" target="_blank" rel="noopener noreferrer" className="teammate-link">
+                <img src="/about/dd.png" alt="Dodonna's Disciples" className="teammate-logo" />
+              </a>
+            </div>
+          </section>
+
+          <section className="sponsor-section">
+            <h2>Thanks to Our Sponsor</h2>
+            <div className="sponsor-logos">
+              <a href="https://root.vc" target="_blank" rel="noopener noreferrer" className="sponsor-link">
+                <img src="/about/root_ventures_logo.png" alt="Root Ventures" className="sponsor-logo" />
+              </a>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   )
