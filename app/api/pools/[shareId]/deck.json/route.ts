@@ -166,20 +166,17 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
     if (!poolName) {
       const setCodes = setCode.includes(',') ? setCode.split(',').map((s: string) => s.trim()) : [setCode]
       const setCodeDisplay = formatSetCodeRange(setCodes)
-      const createdAt = pool.created_at ? new Date(pool.created_at) : new Date()
-      const month = String(createdAt.getMonth() + 1).padStart(2, '0')
-      const day = String(createdAt.getDate()).padStart(2, '0')
-      const year = createdAt.getFullYear()
-      poolName = `${setCodeDisplay} ${formatType} ${month}/${day}/${year}`
+      poolName = `${setCodeDisplay} ${formatType}`
     }
 
     // Build deck data
     const deckData = buildDeckFromState(deckBuilderState, setCode)
 
-    // Build export format
+    // Build export format (SWUDB has 80 char limit on metadata.name)
+    const metadataName = `[PTP] ${poolName}`.slice(0, 80)
     const exportData: ExportData = {
       metadata: {
-        name: `[PTP] ${poolName}`,
+        name: metadataName,
         author: 'Protect the Pod',
       },
       leader: deckData.leader,

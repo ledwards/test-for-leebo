@@ -49,7 +49,7 @@ SWUDB expects card IDs in the format: `SET_XXX`
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `metadata.name` | string | No | Deck name (we prefix with `[PTP]`) |
+| `metadata.name` | string | No | Deck name (we prefix with `[PTP]`). **Max 80 chars** (SWUDB limit). |
 | `metadata.author` | string | No | Always "Protect the Pod" |
 | `leader` | object | Yes | Leader card with `id` and `count` (always 1) |
 | `base` | object | Yes | Base card with `id` and `count` (always 1) |
@@ -66,6 +66,15 @@ Each card entry in `deck` or `sideboard` arrays:
   "count": N        // Number of copies (1-3 for most cards)
 }
 ```
+
+## Deck Name Rules
+
+- **Max length**: `metadata.name` must be 80 characters or fewer (SWUDB import rejects longer names)
+- **Format**: `[PTP] {pool name}` — the `[PTP]` prefix uses 6 characters
+- **Auto-generated**: Default name is `{SetCode} {Format} ({Leader} {BaseColor})`, e.g., `SEC Sealed (Jabba the Hutt Green)`
+- **No dates**: Pool names do not include creation dates
+- **User editable**: Users can rename via the EditableTitle component (enforces 80 char limit with error message)
+- **Truncation**: All export paths truncate `metadata.name` to 80 chars as a safety net
 
 ## Variant Handling
 

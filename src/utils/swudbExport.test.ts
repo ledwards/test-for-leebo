@@ -275,6 +275,104 @@ test('Foil cards export with Normal card ID format', () => {
   )
 })
 
+// Deck Name Tests
+console.log('')
+console.log('Deck Name Handling')
+console.log('==================')
+
+// Helper: simulate the originalBaseName extraction logic from DeckBuilder.tsx
+function extractBaseName(poolName: string): string {
+  const cleaned = poolName
+    .replace(/\s*\(.*$/, '')           // Remove everything from first ( onward
+    .replace(/\s*\d{2}\/\d{2}\/\d{4}$/, '') // Remove trailing date
+    .trim()
+  return cleaned || poolName
+}
+
+// Helper: simulate the auto-naming logic from DeckBuilder.tsx
+function buildAutoName(baseName: string, leaderName: string, baseColor: string): string {
+  const suffix = baseColor ? `${leaderName} ${baseColor}` : leaderName
+  let name = `${baseName} (${suffix})`
+  if (name.length > 80) name = name.slice(0, 80)
+  return name
+}
+
+test('BUGGY: old regex included leader/base suffix in base name, causing append', () => {
+  // The old regex: /^(.+?\d{4})/ matched up to the year, including parenthetical suffixes
+  const nameWithSuffix = 'SEC Sealed (Jabba the Hutt Green) 02/19/2026'
+  const oldRegex = /^(.+?\d{4})/
+  const oldMatch = nameWithSuffix.match(oldRegex)
+  // Old code would set originalBaseName to the full string including the suffix
+  assert(
+    oldMatch![1].includes('Jabba'),
+    'OLD BUG: regex captures leader suffix, causing names to grow'
+  )
+})
+
+test('FIXED: new extraction strips parenthetical suffixes and dates', () => {
+  // Simple name with date
+  assert.strictEqual(extractBaseName('SEC Sealed 02/19/2026'), 'SEC Sealed')
+
+  // Name with leader/base suffix AND date
+  assert.strictEqual(
+    extractBaseName('SEC Sealed (Jabba the Hutt Green) 02/19/2026'),
+    'SEC Sealed'
+  )
+
+  // Name with multiple appended suffixes (the reported bug)
+  assert.strictEqual(
+    extractBaseName('SEC Sealed (Jabba the Hutt Green) (Lama Su Green) 02/19/2026'),
+    'SEC Sealed'
+  )
+
+  // Name without date
+  assert.strictEqual(extractBaseName('LAW Sealed'), 'LAW Sealed')
+
+  // Name without date but with suffix
+  assert.strictEqual(extractBaseName('LAW Sealed (Jabba the Hutt Green)'), 'LAW Sealed')
+
+  // Multi-set chaos
+  assert.strictEqual(extractBaseName('SOR-TWI Sealed 02/19/2026'), 'SOR-TWI Sealed')
+
+  // Draft mode
+  assert.strictEqual(extractBaseName('SEC Draft 02/19/2026'), 'SEC Draft')
+})
+
+test('FIXED: auto-naming replaces suffix instead of appending', () => {
+  const baseName = extractBaseName('SEC Sealed (Jabba the Hutt Green) 02/19/2026')
+  // baseName should be "SEC Sealed", not include old suffix
+  const newName = buildAutoName(baseName, 'Lama Su', 'Green')
+  assert.strictEqual(newName, 'SEC Sealed (Lama Su Green)')
+  assert(!newName.includes('Jabba'), 'Old leader should not appear in new name')
+})
+
+test('auto-generated names do not include dates', () => {
+  const baseName = extractBaseName('SEC Sealed')
+  const name = buildAutoName(baseName, 'Jabba the Hutt', 'Green')
+  assert.strictEqual(name, 'SEC Sealed (Jabba the Hutt Green)')
+  assert(!name.includes('/'), 'Name should not contain date separators')
+})
+
+test('auto-generated names are truncated to 80 characters', () => {
+  const longLeader = 'A'.repeat(80)
+  const name = buildAutoName('SEC Sealed', longLeader, 'Green')
+  assert(name.length <= 80, `Name should be <= 80 chars, got ${name.length}`)
+})
+
+test('metadata.name with [PTP] prefix is truncated to 80 characters', () => {
+  const longPoolName = 'X'.repeat(80)
+  const metadataName = `[PTP] ${longPoolName}`.slice(0, 80)
+  assert(metadataName.length <= 80, `Metadata name should be <= 80 chars, got ${metadataName.length}`)
+  assert(metadataName.startsWith('[PTP]'), 'Should still have prefix')
+})
+
+test('normal-length names are not truncated', () => {
+  const poolName = 'SEC Sealed (Jabba the Hutt Green)'
+  const metadataName = `[PTP] ${poolName}`.slice(0, 80)
+  assert.strictEqual(metadataName, '[PTP] SEC Sealed (Jabba the Hutt Green)')
+  assert(metadataName.length < 80, 'Normal name should be well under 80 chars')
+})
+
 // Summary
 console.log('')
 console.log('\x1b[35m============================\x1b[0m')

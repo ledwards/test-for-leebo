@@ -180,7 +180,7 @@ export function useDeckExport({
     const poolDisplayName = currentPoolName || `${setCode} ${isDraftMode ? 'Draft' : 'Sealed'}`
     const exportData: ExportData = {
       metadata: {
-        name: `[PTP] ${poolDisplayName}`,
+        name: `[PTP] ${poolDisplayName}`.slice(0, 80),
         author: "Protect the Pod"
       },
       leader: deckData.leader,
@@ -230,7 +230,7 @@ export function useDeckExport({
     const poolDisplayName = currentPoolName || `${setCode} ${isDraftMode ? 'Draft' : 'Sealed'}`
     const exportData: ExportData = {
       metadata: {
-        name: `[PTP] ${poolDisplayName}`,
+        name: `[PTP] ${poolDisplayName}`.slice(0, 80),
         author: "Protect the Pod"
       },
       leader: deckData.leader,

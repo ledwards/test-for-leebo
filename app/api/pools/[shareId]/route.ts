@@ -168,11 +168,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
       const setCode = pool.set_code || ''
       const setCodes = setCode.includes(',') ? setCode.split(',').map((s: string) => s.trim()) : [setCode]
       const setCodeDisplay = formatSetCodeRange(setCodes)
-      const createdAt = pool.created_at ? new Date(pool.created_at) : new Date()
-      const month = String(createdAt.getMonth() + 1).padStart(2, '0')
-      const day = String(createdAt.getDate()).padStart(2, '0')
-      const year = createdAt.getFullYear()
-      name = `${setCodeDisplay} ${formatType} ${month}/${day}/${year}`
+      name = `${setCodeDisplay} ${formatType}`
     }
 
     return jsonResponse({

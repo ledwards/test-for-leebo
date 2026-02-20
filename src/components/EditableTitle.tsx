@@ -12,6 +12,7 @@ export interface EditableTitleProps {
   isEditable?: boolean
   placeholder?: string
   className?: string
+  maxLength?: number
 }
 
 export default function EditableTitle({
@@ -20,10 +21,12 @@ export default function EditableTitle({
   onTitleClick,
   isEditable = false,
   placeholder = 'Untitled',
-  className = ''
+  className = '',
+  maxLength = 80,
 }: EditableTitleProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(value || '')
+  const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -45,6 +48,11 @@ export default function EditableTitle({
 
   const handleSave = () => {
     const trimmedValue = editValue.trim()
+    if (maxLength && trimmedValue.length > maxLength) {
+      setError(`Name must be ${maxLength} characters or less`)
+      return
+    }
+    setError(null)
     setIsEditing(false)
     if (trimmedValue !== value && onSave) {
       onSave(trimmedValue || null)
@@ -54,6 +62,7 @@ export default function EditableTitle({
   const handleCancel = () => {
     setIsEditing(false)
     setEditValue(value || '')
+    setError(null)
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -67,18 +76,27 @@ export default function EditableTitle({
   }
 
   if (isEditing) {
+    const isOverLimit = maxLength && editValue.trim().length > maxLength
     return (
       <div className={`editable-title editing ${className}`}>
         <input
           ref={inputRef}
           type="text"
           value={editValue}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setEditValue(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+            setEditValue(e.target.value)
+            if (error) setError(null)
+          }}
           onBlur={handleSave}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="editable-title-input"
+          className={`editable-title-input ${isOverLimit ? 'over-limit' : ''}`}
         />
+        {(error || isOverLimit) && (
+          <span className="editable-title-error">
+            {error || `${editValue.trim().length}/${maxLength}`}
+          </span>
+        )}
       </div>
     )
   }
