@@ -266,7 +266,7 @@ export default function PlayPage({ params }: PageProps) {
 
     return {
       metadata: {
-        name: `[PTP] ${poolName}`,
+        name: `[PTP] ${poolName}`.slice(0, 80),
         author: "Protect the Pod"
       },
       leader: { id: getBaseCardId(leaderCard, baseCardMap), count: 1 },
@@ -1372,6 +1372,7 @@ export default function PlayPage({ params }: PageProps) {
 
   const handleRenamePool = async (newName) => {
     if (!shareId) return
+    if (newName && newName.length > 80) return
     try {
       // Get current deckBuilderState and update poolName in it
       const currentState = jsonParse(pool?.deckBuilderState, {})

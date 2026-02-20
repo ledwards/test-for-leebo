@@ -154,21 +154,21 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
     }
   }, [savedState, initialPoolName])
 
-  // Extract and store the original base name (format + date part) on initial load
+  // Extract and store the original base name (format part only) on initial load
+  // Strips any existing leader/base suffix like "(Jabba the Hutt Green)" and trailing dates
   useEffect(() => {
     if (initialPoolName && !originalBaseName) {
-      // Remove any existing leader/base suffix like "(Jabba the Hutt green)"
-      const baseNameMatch = initialPoolName.match(/^(.+?\d{4})/)
-      if (baseNameMatch) {
-        setOriginalBaseName(baseNameMatch[1])
-      } else {
-        setOriginalBaseName(initialPoolName)
-      }
+      const cleaned = initialPoolName
+        .replace(/\s*\(.*$/, '')           // Remove everything from first ( onward
+        .replace(/\s*\d{2}\/\d{2}\/\d{4}$/, '') // Remove trailing date
+        .trim()
+      setOriginalBaseName(cleaned || initialPoolName)
     }
   }, [initialPoolName, originalBaseName])
 
   const handleRenamePool = (newName: string) => {
     if (!shareId) return
+    if (newName && newName.length > 80) return // Enforced by EditableTitle, but guard here too
     setCurrentPoolName(newName)
     setUserHasRenamedPool(true) // User manually changed the name
     // Save is triggered automatically via useEffect when currentPoolName changes
@@ -344,13 +344,10 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         }
       }
 
-      // Format: {Prefix} ({Leader} {BaseColor}) {Date}
-      // Extract date from originalBaseName (e.g., "LAW Sealed 02/19/2026" -> date is "02/19/2026")
-      const dateMatch = originalBaseName.match(/(\d{2}\/\d{2}\/\d{4})$/)
-      const date = dateMatch ? dateMatch[1] : ''
-      const prefix = date ? originalBaseName.replace(date, '').trim() : originalBaseName
+      // Format: {Prefix} ({Leader} {BaseColor})
       const suffix = baseDisplay ? `${leaderName} ${baseDisplay}` : leaderName
-      const name = date ? `${prefix} (${suffix}) ${date}` : `${originalBaseName} (${suffix})`
+      let name = `${originalBaseName} (${suffix})`
+      if (name.length > 80) name = name.slice(0, 80)
 
       setCurrentPoolName(name)
       await updatePool(shareId, { name })
