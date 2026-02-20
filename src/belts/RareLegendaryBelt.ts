@@ -73,7 +73,7 @@ export class RareLegendaryBelt {
     const setNumber = config?.setNumber || 1
     this.ratio = setNumber <= 3 ? 7 : 5
 
-    // Check if this set puts rare bases in the base slot (set 7+)
+    // Check if this set puts rare bases in the base slot (no current sets do)
     // If so, exclude them from the rare slot. Otherwise, include them.
     const rareBasesInBaseSlot = config?.packRules?.rareBasesInRareSlot === false
 

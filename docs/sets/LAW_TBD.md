@@ -19,7 +19,6 @@ This document tracks things we don't know yet about Set 7 pack collation and nee
 ### 3. Can Rare Bases Appear as Hyperspace Foil?
 **Current assumption:** Unknown - currently rare bases can appear in foil slot but unclear if HSF versions exist
 **To verify:** Check if HSF rare bases exist in card data or physical packs
-**Related:** LAW is the FIRST set where rare bases go in the base slot (not the rare slot), per `rareBasesInRareSlot: false`
 
 ### 4. Prestige Cards in Standard Packs
 **Current assumption:** ~1 per box (1/24 packs), replaces rare slot
@@ -79,7 +78,7 @@ When a TBD is resolved:
 ## Resolved
 
 ### Rare Bases in Rare Slot
-**Resolved:** LAW uses `rareBasesInRareSlot: false` — rare bases go in the base slot, not the rare slot. This is the FIRST set with this behavior (sets 1-6 had `rareBasesInRareSlot: true`).
+**Resolved:** LAW uses `rareBasesInRareSlot: true` — rare bases go in the rare slot, same as all previous sets.
 
 ### Card Data Completeness
 **Resolved:** Full card data now available (264 Normal cards, 264 Hyperspace, 2 Showcase = 530 total). Auto-refreshed via `npm run fetch-cards` in prebuild.

@@ -4,9 +4,9 @@
  *
  * A belt that provides base cards for booster packs.
  * Cycles through common bases with aspect-based seam deduplication.
- * Rare bases are sprinkled in probabilistically (same pattern as LeaderBelt).
  *
- * Target ratio: 1/6 packs get a Rare base (~16.67%) — configurable via packConstants.rareBaseRate
+ * Supports optional rare bases in the base slot (via rareBasesInRareSlot: false in set config).
+ * Currently all sets (1-7) put rare bases in the rare slot, so this belt only serves commons.
  */
 
 import { getCachedCards } from '../utils/cardCache';
@@ -71,8 +71,8 @@ export class BaseBelt {
     )
 
     // Only load rare bases into the base slot when the set config says so.
-    // Sets 1-6: rareBasesInRareSlot is true (or undefined) → rare bases go in RareLegendaryBelt
-    // Set 7+ (LAW): rareBasesInRareSlot is false → rare bases go here in the base slot
+    // All current sets (1-7): rareBasesInRareSlot is true → rare bases go in RareLegendaryBelt
+    // If a future set sets rareBasesInRareSlot: false → rare bases go here in the base slot
     const rareBasesInBaseSlot = config?.packRules?.rareBasesInRareSlot === false
 
     if (rareBasesInBaseSlot) {

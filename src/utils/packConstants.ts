@@ -462,21 +462,15 @@ export const SET_7_PLUS_CONSTANTS: PackConstants = {
   showcaseLeaderRate: 1 / 576,
 
   // ---------------------------------------------------------------------------
-  // Rare Base Rate (in base slot)
-  // Same as rare leader rate: ~1 in 6 packs
-  // ---------------------------------------------------------------------------
-  rareBaseRate: 1 / 6,
-
-  // ---------------------------------------------------------------------------
   // Special Rarity Handling
   // ---------------------------------------------------------------------------
   specialInFoilSlot: true,
   specialInHyperspaceSlot: true,
 
   // ---------------------------------------------------------------------------
-  // Rare Bases in Rare Slot (default for set 7+ constants)
-  // Per-set configs override this. LAW overrides to false (rare bases in base slot).
-  // Future sets will likely also be false.
+  // Rare Bases in Rare Slot
+  // All sets (1-7) put rare bases in the rare slot via RareLegendaryBelt.
+  // The BaseBelt supports rareBasesInRareSlot: false for future sets if needed.
   // ---------------------------------------------------------------------------
   rareBasesInRareSlot: true,
 }

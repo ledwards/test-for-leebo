@@ -155,45 +155,22 @@ async function runTests(): Promise<void> {
     assert(belt.fillingPool.every(c => c.aspects && c.aspects.length > 0), 'All bases should have aspects')
   })
 
-  test('rare bases are loaded only for sets that put them in base slot', () => {
-    // LAW (set 7+) has rareBasesInRareSlot: false → rare bases in base slot
-    const lawBelt = new BaseBelt('LAW')
-    assert(lawBelt.rareBases.length > 0, 'LAW should have rare bases in base slot')
-    assert(lawBelt.rareBases.every(c => c.rarity === 'Rare'), 'All rare bases should be Rare rarity')
-    assert(lawBelt.rareBases.every(c => c.isBase), 'All rare bases should be bases')
-
-    // SOR (set 1) has rare bases but they go in the rare slot, not the base slot
-    const sorBelt = new BaseBelt('SOR')
-    assertEqual(sorBelt.rareBases.length, 0, 'SOR should NOT have rare bases in base slot (they go in rare slot)')
-
-    // SHD has no rare bases at all
-    const shdBelt = new BaseBelt('SHD')
-    assertEqual(shdBelt.rareBases.length, 0, 'SHD should have no rare bases')
-  })
-
-  test('rare bases appear in base slot at expected rate for LAW (statistical)', () => {
-    const belt = new BaseBelt('LAW')
-    const sampleSize = 600
-    let rareCount = 0
-
-    for (let i = 0; i < sampleSize; i++) {
-      const card = belt.next()
-      if (card && card.rarity === 'Rare') rareCount++
+  test('no set loads rare bases into the base slot (all use rare slot)', () => {
+    // All sets (1-7) have rareBasesInRareSlot: true → rare bases go in RareLegendaryBelt
+    for (const setCode of ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'SEC', 'LAW']) {
+      const belt = new BaseBelt(setCode)
+      assertEqual(belt.rareBases.length, 0, `${setCode} should NOT have rare bases in base slot (they go in rare slot)`)
     }
-
-    // Expected rate: 1/6 ≈ 16.67%. Allow wide range: 8%-28%
-    const rareRate = rareCount / sampleSize
-    assert(rareRate > 0.08, `Rare rate too low: ${(rareRate * 100).toFixed(1)}% (expected ~16.7%)`)
-    assert(rareRate < 0.28, `Rare rate too high: ${(rareRate * 100).toFixed(1)}% (expected ~16.7%)`)
   })
 
-  test('sets 1-6 never serve rare bases from base slot', () => {
-    // SOR has rare bases but they belong in the rare slot
-    const belt = new BaseBelt('SOR')
-    for (let i = 0; i < 100; i++) {
-      const card = belt.next()
-      assert(card !== null, 'next() should return a card')
-      assertEqual(card.rarity, 'Common', `SOR base slot should only serve common bases, got ${card.rarity}`)
+  test('base slot only serves common bases for all sets', () => {
+    for (const setCode of ['SOR', 'LAW']) {
+      const belt = new BaseBelt(setCode)
+      for (let i = 0; i < 100; i++) {
+        const card = belt.next()
+        assert(card !== null, `${setCode} next() should return a card`)
+        assertEqual(card.rarity, 'Common', `${setCode} base slot should only serve common bases, got ${card.rarity}`)
+      }
     }
   })
 

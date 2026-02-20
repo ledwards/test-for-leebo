@@ -25,7 +25,7 @@ LAW introduces significant pack construction changes per [official FFG announcem
 | Prestige cards | Carbonite only | **~1 per box (1/24 packs)** |
 | Showcase leaders | ~1 in 288 | ~1 in 576 (rarer) |
 | Triple-aspect cards | None | **Introduced** |
-| Rare bases | In rare slot | **In base slot (~1/6 rate)** |
+| Rare bases | In rare slot | In rare slot (same) |
 
 ## Card Counts
 
@@ -52,7 +52,7 @@ LAW introduces significant pack construction changes per [official FFG announcem
 
 ### Standard Pack (16 cards)
 1. **Leader** (1) - From LeaderBelt, alternating Common/Rare
-2. **Base** (1) - Common from BaseBelt (~5/6), Rare from BaseBelt (~1/6)
+2. **Base** (1) - Common from BaseBelt (always common)
 3. **Commons** (9) - Slots 1-4 from Belt A, slot 5 **always Hyperspace**, slots 6-9 from Belt B
 4. **Uncommons** (3) - From UncommonBelt
 5. **Rare/Legendary/Prestige** (1) - 5:1 ratio, ~1/24 Prestige (1 per box)
@@ -177,11 +177,9 @@ Example: Vigilance+Cunning → first is Vigilance → Belt A
 - `packRules.prestigeInStandardPacks: true`
 - Note: Foil/serialized Prestige remain Carbonite-exclusive
 
-### Rare Bases in Base Slot
-- LAW is the **first set** where rare bases appear in the **base slot** (not the rare slot)
-- Sets 1-6: rare bases go in the rare slot (via RareLegendaryBelt)
-- Set 7+ (LAW): rare bases go in the base slot (via BaseBelt) at ~1/6 rate
-- `packRules.rareBasesInRareSlot: false`
+### Rare Bases in Rare Slot
+- LAW rare bases go in the **rare slot** (same as all previous sets)
+- `packRules.rareBasesInRareSlot: true`
 - 3 rare bases: Alliance Outpost, Shipbreaking Yard, Citadel Research Center
 
 ### Credit Tokens
