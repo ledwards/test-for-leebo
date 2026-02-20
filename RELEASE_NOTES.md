@@ -1,7 +1,12 @@
 # Release Notes
 
+## 02.19.2026
+
+### 📦 Pack Generation
+- **LAW rare bases fixed**: Rare bases in LAW now correctly appear in the rare/legendary slot, same as all previous sets. Previously they were incorrectly placed in the base slot.
+
 ## 02.18.2026
-This is a big one. I'm proud to get this live within just a few hours of the full set being spoiled, including major changes to how packs are made (rare bases in base slot, no regular foils, guaranteed hyperspace per pack) and how aspect filters need to work from a UI design perspective to accommodate multi-aspect cards.
+This is a big one. I'm proud to get this live within just a few hours of the full set being spoiled, including major changes to how packs are made (no regular foils, guaranteed hyperspace per pack) and how aspect filters need to work from a UI design perspective to accommodate multi-aspect cards.
 
 One of the big use cases here will be practicing for pre-release, so we also added the ability to put hyperspace leaders into your sealed pools.
 
