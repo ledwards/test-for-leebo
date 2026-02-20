@@ -1,12 +1,12 @@
 {
-  "runAt": "2026-02-19T05:56:13.017Z",
-  "executionTime": 19513,
+  "runAt": "2026-02-20T02:22:20.194Z",
+  "executionTime": 18528,
   "summary": {
     "totalSuites": 22,
     "passedSuites": 22,
     "failedSuites": 0,
-    "totalTests": 495,
-    "passed": 495,
+    "totalTests": 493,
+    "passed": 493,
     "failed": 0
   },
   "suites": [
@@ -15,7 +15,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 6023,
+      "executionTime": 5709,
       "tests": [
         {
           "suite": "utils",
@@ -220,7 +220,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 900,
+      "executionTime": 688,
       "tests": [
         {
           "suite": "utils",
@@ -300,7 +300,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 631,
+      "executionTime": 471,
       "tests": [
         {
           "suite": "utils",
@@ -315,7 +315,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 503,
+      "executionTime": 479,
       "tests": [
         {
           "suite": "utils",
@@ -330,7 +330,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 709,
+      "executionTime": 651,
       "tests": [
         {
           "suite": "belts",
@@ -384,17 +384,12 @@
         },
         {
           "suite": "belts",
-          "name": "rare bases are loaded only for sets that put them in base slot\u001b[0m",
+          "name": "no set loads rare bases into the base slot (all use rare slot)\u001b[0m",
           "status": "passed"
         },
         {
           "suite": "belts",
-          "name": "rare bases appear in base slot at expected rate for LAW (statistical)\u001b[0m",
-          "status": "passed"
-        },
-        {
-          "suite": "belts",
-          "name": "sets 1-6 never serve rare bases from base slot\u001b[0m",
+          "name": "base slot only serves common bases for all sets\u001b[0m",
           "status": "passed"
         },
         {
@@ -404,7 +399,7 @@
         },
         {
           "suite": "belts",
-          "name": "Tests passed: 14\u001b[0m",
+          "name": "Tests passed: 13\u001b[0m",
           "status": "passed"
         }
       ],
@@ -415,7 +410,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 659,
+      "executionTime": 645,
       "tests": [
         {
           "suite": "belts",
@@ -515,7 +510,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 674,
+      "executionTime": 683,
       "tests": [
         {
           "suite": "belts",
@@ -610,7 +605,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 703,
+      "executionTime": 666,
       "tests": [
         {
           "suite": "belts",
@@ -690,7 +685,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 691,
+      "executionTime": 681,
       "tests": [
         {
           "suite": "belts",
@@ -705,7 +700,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 669,
+      "executionTime": 659,
       "tests": [
         {
           "suite": "belts",
@@ -780,7 +775,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1215,
+      "executionTime": 1084,
       "tests": [
         {
           "suite": "belts",
@@ -789,12 +784,7 @@
         },
         {
           "suite": "belts",
-          "name": "sets 1-6 include rare bases in filling pool (rare bases go in rare slot)\u001b[0m",
-          "status": "passed"
-        },
-        {
-          "suite": "belts",
-          "name": "set 7+ (LAW) excludes rare bases from filling pool (they go in base slot)\u001b[0m",
+          "name": "all sets include rare bases in filling pool (rare bases go in rare slot)\u001b[0m",
           "status": "passed"
         },
         {
@@ -864,7 +854,7 @@
         },
         {
           "suite": "belts",
-          "name": "Tests passed: 16\u001b[0m",
+          "name": "Tests passed: 15\u001b[0m",
           "status": "passed"
         }
       ],
@@ -875,7 +865,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 667,
+      "executionTime": 661,
       "tests": [
         {
           "suite": "belts",
@@ -930,7 +920,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 668,
+      "executionTime": 669,
       "tests": [
         {
           "suite": "belts",
@@ -1005,7 +995,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 436,
+      "executionTime": 447,
       "tests": [
         {
           "suite": "fixes",
@@ -1020,7 +1010,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 719,
+      "executionTime": 729,
       "tests": [
         {
           "suite": "draft",
@@ -1035,7 +1025,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 427,
+      "executionTime": 440,
       "tests": [
         {
           "suite": "bots",
@@ -1180,7 +1170,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 654,
+      "executionTime": 652,
       "tests": [
         {
           "suite": "data",
@@ -1615,7 +1605,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 680,
+      "executionTime": 654,
       "tests": [
         {
           "suite": "data",
@@ -2650,7 +2640,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 463,
+      "executionTime": 467,
       "tests": [
         {
           "suite": "hooks",
@@ -2665,7 +2655,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 457,
+      "executionTime": 454,
       "tests": [
         {
           "suite": "hooks",
@@ -2680,7 +2670,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 489,
+      "executionTime": 462,
       "tests": [
         {
           "suite": "hooks",
@@ -2695,7 +2685,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 471,
+      "executionTime": 472,
       "tests": [
         {
           "suite": "hooks",
@@ -3034,17 +3024,12 @@
     },
     {
       "suite": "belts",
-      "name": "rare bases are loaded only for sets that put them in base slot\u001b[0m",
+      "name": "no set loads rare bases into the base slot (all use rare slot)\u001b[0m",
       "status": "passed"
     },
     {
       "suite": "belts",
-      "name": "rare bases appear in base slot at expected rate for LAW (statistical)\u001b[0m",
-      "status": "passed"
-    },
-    {
-      "suite": "belts",
-      "name": "sets 1-6 never serve rare bases from base slot\u001b[0m",
+      "name": "base slot only serves common bases for all sets\u001b[0m",
       "status": "passed"
     },
     {
@@ -3054,7 +3039,7 @@
     },
     {
       "suite": "belts",
-      "name": "Tests passed: 14\u001b[0m",
+      "name": "Tests passed: 13\u001b[0m",
       "status": "passed"
     },
     {
@@ -3379,12 +3364,7 @@
     },
     {
       "suite": "belts",
-      "name": "sets 1-6 include rare bases in filling pool (rare bases go in rare slot)\u001b[0m",
-      "status": "passed"
-    },
-    {
-      "suite": "belts",
-      "name": "set 7+ (LAW) excludes rare bases from filling pool (they go in base slot)\u001b[0m",
+      "name": "all sets include rare bases in filling pool (rare bases go in rare slot)\u001b[0m",
       "status": "passed"
     },
     {
@@ -3454,7 +3434,7 @@
     },
     {
       "suite": "belts",
-      "name": "Tests passed: 16\u001b[0m",
+      "name": "Tests passed: 15\u001b[0m",
       "status": "passed"
     },
     {
