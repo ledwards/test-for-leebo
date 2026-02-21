@@ -6,14 +6,8 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-import { getBaseCardId as getBaseCardIdRaw } from '../utils/variantDowngrade'
+import { getBaseCardId as getBaseCardIdRaw, buildBaseCardMap } from '../utils/variantDowngrade'
 import { trackEvent, AnalyticsEvents } from './useAnalytics'
-
-// Wrapper that handles the optional second argument and null returns
-function getBaseCardId(card: unknown): string {
-  const result = (getBaseCardIdRaw as (card: unknown, map?: unknown) => string | null)(card, undefined)
-  return result || ''
-}
 
 // === TYPES ===
 
@@ -113,6 +107,15 @@ export function useDeckExport({
   setDeckImageModal,
 }: UseDeckExportProps): UseDeckExportReturn {
   const isDraftMode = poolType === 'draft'
+
+  // Build base card map for variant normalization (handles comma-separated Chaos set codes)
+  const baseCardMap = setCode ? buildBaseCardMap(setCode) : new Map()
+
+  // Wrapper that normalizes variant cards to Normal equivalents for export
+  function getBaseCardId(card: unknown): string {
+    const result = (getBaseCardIdRaw as (card: unknown, map?: unknown) => string | null)(card, baseCardMap)
+    return result || ''
+  }
 
   // Build deck data structure for export (uses base card IDs for Karabast compatibility)
   const buildDeckData = (): DeckData => {
