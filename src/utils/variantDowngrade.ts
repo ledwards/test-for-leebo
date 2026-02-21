@@ -50,7 +50,10 @@ function formatCardIdForExport(cardId: string): string | null {
  * @param setCode - The set code (e.g., 'SOR')
  * @returns Map of "name|type" -> Normal variant card
  */
-export function buildBaseCardMap(setCode: SetCode | string): Map<string, RawCard> {
+export function buildBaseCardMap(setCode: SetCode | string | null | undefined): Map<string, RawCard> {
+  // Handle null/undefined setCode
+  if (!setCode) return new Map()
+
   // Handle comma-separated set codes (e.g., Chaos Sealed: "SOR,JTL,LOF")
   const setCodes = setCode.includes(',') ? setCode.split(',').map(s => s.trim()) : [setCode]
   let cards: RawCard[] = []
