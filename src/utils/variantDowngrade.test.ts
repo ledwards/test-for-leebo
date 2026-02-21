@@ -297,6 +297,67 @@ test('Hyperspace Foil variant maps to Normal base', () => {
   )
 })
 
+// Chaos Sealed (multi-set) Tests
+console.log('')
+console.log('Chaos Sealed (Multi-Set) Tests')
+console.log('===============================')
+
+test('buildBaseCardMap handles comma-separated set codes', () => {
+  const map = buildBaseCardMap('SOR,SHD')
+  assert(map instanceof Map, 'Should return a Map')
+  assert(map.size > 0, 'Should have entries from both sets')
+
+  // Should contain cards from SOR
+  const sorCards = getCachedCards('SOR').filter(c => c.variantType === 'Normal')
+  const shdCards = getCachedCards('SHD').filter(c => c.variantType === 'Normal')
+
+  // Check a card from each set exists
+  const sorCard = sorCards[0]
+  const shdCard = shdCards[0]
+  if (sorCard) {
+    const sorKey = `${sorCard.name}|${sorCard.type}`
+    assert(map.has(sorKey), `Should contain SOR card "${sorCard.name}"`)
+  }
+  if (shdCard) {
+    const shdKey = `${shdCard.name}|${shdCard.type}`
+    assert(map.has(shdKey), `Should contain SHD card "${shdCard.name}"`)
+  }
+})
+
+test('buildBaseCardMap with comma-separated codes normalizes Hyperspace variants', () => {
+  const map = buildBaseCardMap('SOR,SHD')
+  const allCards = [...getCachedCards('SOR'), ...getCachedCards('SHD')]
+
+  // Find a Hyperspace card from either set
+  const hsCard = allCards.find(c =>
+    c.variantType === 'Hyperspace' &&
+    allCards.some(n => n.name === c.name && n.type === c.type && n.variantType === 'Normal')
+  )
+
+  if (!hsCard) {
+    console.log('   (No Hyperspace cards found, skipping)')
+    return
+  }
+
+  const normalCard = allCards.find(c =>
+    c.name === hsCard.name && c.type === hsCard.type && c.variantType === 'Normal'
+  )
+
+  const hsBaseId = getBaseCardId(hsCard, map)
+  const normalBaseId = getBaseCardId(normalCard, map)
+
+  assert(
+    hsBaseId === normalBaseId,
+    `Chaos: Hyperspace "${hsCard.name}" should map to Normal. Got "${hsBaseId}" vs "${normalBaseId}"`
+  )
+})
+
+test('FIXED: single set code still works after multi-set support', () => {
+  const map = buildBaseCardMap('SOR')
+  assert(map instanceof Map, 'Should return a Map')
+  assert(map.size > 0, 'Should have entries')
+})
+
 // Summary
 console.log('')
 console.log('\x1b[35m==========================\x1b[0m')
