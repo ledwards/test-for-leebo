@@ -1,12 +1,12 @@
 {
-  "runAt": "2026-02-20T03:12:59.610Z",
-  "executionTime": 20056,
+  "runAt": "2026-02-21T05:35:00.734Z",
+  "executionTime": 17804,
   "summary": {
     "totalSuites": 22,
     "passedSuites": 22,
     "failedSuites": 0,
-    "totalTests": 493,
-    "passed": 493,
+    "totalTests": 496,
+    "passed": 496,
     "failed": 0
   },
   "suites": [
@@ -15,7 +15,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 6099,
+      "executionTime": 5192,
       "tests": [
         {
           "suite": "utils",
@@ -220,7 +220,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 718,
+      "executionTime": 646,
       "tests": [
         {
           "suite": "utils",
@@ -289,7 +289,22 @@
         },
         {
           "suite": "utils",
-          "name": "Tests passed: 13\u001b[0m",
+          "name": "buildBaseCardMap handles comma-separated set codes\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "utils",
+          "name": "buildBaseCardMap with comma-separated codes normalizes Hyperspace variants\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "utils",
+          "name": "FIXED: single set code still works after multi-set support\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "utils",
+          "name": "Tests passed: 16\u001b[0m",
           "status": "passed"
         }
       ],
@@ -300,7 +315,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 495,
+      "executionTime": 448,
       "tests": [
         {
           "suite": "utils",
@@ -315,7 +330,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 473,
+      "executionTime": 474,
       "tests": [
         {
           "suite": "utils",
@@ -330,7 +345,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 695,
+      "executionTime": 755,
       "tests": [
         {
           "suite": "belts",
@@ -410,7 +425,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 725,
+      "executionTime": 731,
       "tests": [
         {
           "suite": "belts",
@@ -510,7 +525,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 835,
+      "executionTime": 647,
       "tests": [
         {
           "suite": "belts",
@@ -605,7 +620,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 713,
+      "executionTime": 630,
       "tests": [
         {
           "suite": "belts",
@@ -685,7 +700,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 744,
+      "executionTime": 670,
       "tests": [
         {
           "suite": "belts",
@@ -700,7 +715,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 728,
+      "executionTime": 648,
       "tests": [
         {
           "suite": "belts",
@@ -775,7 +790,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1109,
+      "executionTime": 1023,
       "tests": [
         {
           "suite": "belts",
@@ -865,7 +880,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 721,
+      "executionTime": 629,
       "tests": [
         {
           "suite": "belts",
@@ -920,7 +935,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 709,
+      "executionTime": 635,
       "tests": [
         {
           "suite": "belts",
@@ -995,7 +1010,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 474,
+      "executionTime": 415,
       "tests": [
         {
           "suite": "fixes",
@@ -1010,7 +1025,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 779,
+      "executionTime": 697,
       "tests": [
         {
           "suite": "draft",
@@ -1025,7 +1040,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 478,
+      "executionTime": 442,
       "tests": [
         {
           "suite": "bots",
@@ -1170,7 +1185,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 709,
+      "executionTime": 634,
       "tests": [
         {
           "suite": "data",
@@ -1605,7 +1620,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 721,
+      "executionTime": 629,
       "tests": [
         {
           "suite": "data",
@@ -2640,7 +2655,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 527,
+      "executionTime": 436,
       "tests": [
         {
           "suite": "hooks",
@@ -2655,7 +2670,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 552,
+      "executionTime": 437,
       "tests": [
         {
           "suite": "hooks",
@@ -2670,7 +2685,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 527,
+      "executionTime": 459,
       "tests": [
         {
           "suite": "hooks",
@@ -2685,7 +2700,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 521,
+      "executionTime": 524,
       "tests": [
         {
           "suite": "hooks",
@@ -2959,7 +2974,22 @@
     },
     {
       "suite": "utils",
-      "name": "Tests passed: 13\u001b[0m",
+      "name": "buildBaseCardMap handles comma-separated set codes\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "utils",
+      "name": "buildBaseCardMap with comma-separated codes normalizes Hyperspace variants\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "utils",
+      "name": "FIXED: single set code still works after multi-set support\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "utils",
+      "name": "Tests passed: 16\u001b[0m",
       "status": "passed"
     },
     {
