@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { generateMultiBoxPool } from '../../../src/utils/boosterPack'
+import { generateSealedBox } from '../../../src/utils/boosterPack'
 import { getCachedCards, isCacheInitialized, initializeCardCache } from '../../../src/utils/cardCache'
 import { fetchSetCards } from '../../../src/utils/api'
 import { savePool } from '../../../src/utils/poolApi'
@@ -109,9 +109,8 @@ export default function NewPoolPage() {
           return
         }
 
-        // Generate multi-box pool (72 packs from 3 virtual boxes) for better variety when shuffling
-        // Each box has independent belt collation, reducing duplicates when picking random packs
-        const boxPacks = generateMultiBoxPool(cards, urlSetCode, 3, 24)
+        // Generate sealed box (24 packs) for randomization support
+        const boxPacks = generateSealedBox(cards, urlSetCode)
         // Take first 6 packs as the initial display
         const initialIndices = [0, 1, 2, 3, 4, 5]
         const generatedPacks = initialIndices.map(i => boxPacks[i])
