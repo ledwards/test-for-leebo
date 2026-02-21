@@ -64348,41 +64348,6 @@
       "backImageUrl": null
     },
     {
-      "id": "47527",
-      "cardId": "LAW-5",
-      "name": "Experience",
-      "subtitle": null,
-      "set": "LAW",
-      "number": "5",
-      "rarity": "Common",
-      "type": "Token Upgrade",
-      "aspects": [],
-      "traits": [
-        "Learned"
-      ],
-      "arenas": [],
-      "cost": 0,
-      "power": 1,
-      "hp": 1,
-      "frontText": null,
-      "backText": null,
-      "epicAction": null,
-      "keywords": [],
-      "artist": "Ario Murti",
-      "unique": false,
-      "doubleSided": false,
-      "variantType": "Hyperspace",
-      "marketPrice": null,
-      "lowPrice": null,
-      "isLeader": false,
-      "isBase": false,
-      "isFoil": false,
-      "isHyperspace": true,
-      "isShowcase": false,
-      "imageUrl": "https://cdn.starwarsunlimited.com//card_07020_T05_EN_Experience_ce8fffb686.png",
-      "backImageUrl": null
-    },
-    {
       "id": "46077",
       "cardId": "LAW-5",
       "name": "Jyn Erso",
@@ -64421,6 +64386,41 @@
       "isShowcase": false,
       "imageUrl": "https://cdn.starwarsunlimited.com//card_07010005_EN_Jyn_Erso_Leader_3e6b635e8f.png",
       "backImageUrl": "https://cdn.starwarsunlimited.com//card_07010005_EN_Jyn_Erso_Leader_Unit_3c271d744b.png"
+    },
+    {
+      "id": "47527",
+      "cardId": "LAW-5",
+      "name": "Experience",
+      "subtitle": null,
+      "set": "LAW",
+      "number": "5",
+      "rarity": "Common",
+      "type": "Token Upgrade",
+      "aspects": [],
+      "traits": [
+        "Learned"
+      ],
+      "arenas": [],
+      "cost": 0,
+      "power": 1,
+      "hp": 1,
+      "frontText": null,
+      "backText": null,
+      "epicAction": null,
+      "keywords": [],
+      "artist": "Ario Murti",
+      "unique": false,
+      "doubleSided": false,
+      "variantType": "Hyperspace",
+      "marketPrice": null,
+      "lowPrice": null,
+      "isLeader": false,
+      "isBase": false,
+      "isFoil": false,
+      "isHyperspace": true,
+      "isShowcase": false,
+      "imageUrl": "https://cdn.starwarsunlimited.com//card_07020_T05_EN_Experience_ce8fffb686.png",
+      "backImageUrl": null
     },
     {
       "id": "46302",
@@ -65981,41 +65981,6 @@
       "backImageUrl": null
     },
     {
-      "id": "47532",
-      "cardId": "LAW-6",
-      "name": "Shield",
-      "subtitle": null,
-      "set": "LAW",
-      "number": "6",
-      "rarity": "Common",
-      "type": "Token Upgrade",
-      "aspects": [],
-      "traits": [
-        "Armor"
-      ],
-      "arenas": [],
-      "cost": 0,
-      "power": 0,
-      "hp": 0,
-      "frontText": "If damage would be dealt to attached unit, prevent that damage. If you do, defeat a Shield token on it.",
-      "backText": null,
-      "epicAction": null,
-      "keywords": [],
-      "artist": "Gabriel Gómez Almenzar",
-      "unique": false,
-      "doubleSided": false,
-      "variantType": "Hyperspace",
-      "marketPrice": null,
-      "lowPrice": null,
-      "isLeader": false,
-      "isBase": false,
-      "isFoil": false,
-      "isHyperspace": true,
-      "isShowcase": false,
-      "imageUrl": "https://cdn.starwarsunlimited.com//card_07020_T06_EN_Shield_db8275417d.png",
-      "backImageUrl": null
-    },
-    {
       "id": "46082",
       "cardId": "LAW-6",
       "name": "Vel Sartha",
@@ -66054,6 +66019,41 @@
       "isShowcase": false,
       "imageUrl": "https://cdn.starwarsunlimited.com//card_07010006_EN_Vel_Sartha_Leader_5de37f2898.png",
       "backImageUrl": "https://cdn.starwarsunlimited.com//card_07010006_EN_Vel_Sartha_Leader_Unit_ff3fa73090.png"
+    },
+    {
+      "id": "47532",
+      "cardId": "LAW-6",
+      "name": "Shield",
+      "subtitle": null,
+      "set": "LAW",
+      "number": "6",
+      "rarity": "Common",
+      "type": "Token Upgrade",
+      "aspects": [],
+      "traits": [
+        "Armor"
+      ],
+      "arenas": [],
+      "cost": 0,
+      "power": 0,
+      "hp": 0,
+      "frontText": "If damage would be dealt to attached unit, prevent that damage. If you do, defeat a Shield token on it.",
+      "backText": null,
+      "epicAction": null,
+      "keywords": [],
+      "artist": "Gabriel Gómez Almenzar",
+      "unique": false,
+      "doubleSided": false,
+      "variantType": "Hyperspace",
+      "marketPrice": null,
+      "lowPrice": null,
+      "isLeader": false,
+      "isBase": false,
+      "isFoil": false,
+      "isHyperspace": true,
+      "isShowcase": false,
+      "imageUrl": "https://cdn.starwarsunlimited.com//card_07020_T06_EN_Shield_db8275417d.png",
+      "backImageUrl": null
     },
     {
       "id": "46352",
@@ -66850,6 +66850,46 @@
       "backImageUrl": null
     },
     {
+      "id": "47557",
+      "cardId": "LAW-771",
+      "name": "Jyn Erso",
+      "subtitle": "Time to Fight",
+      "set": "LAW",
+      "number": "771",
+      "rarity": "Rare",
+      "type": "Leader",
+      "aspects": [
+        "Vigilance",
+        "Heroism"
+      ],
+      "traits": [
+        "Rebel"
+      ],
+      "arenas": [
+        "Ground"
+      ],
+      "cost": 5,
+      "power": 3,
+      "hp": 6,
+      "frontText": "Action [1 resource, Exhaust]: If a friendly Rebel unit was defeated this phase, search the top 3 cards of your deck for a card and draw it. ",
+      "backText": null,
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "keywords": [],
+      "artist": "EJ Dela Cruz",
+      "unique": true,
+      "doubleSided": true,
+      "variantType": "Showcase",
+      "marketPrice": null,
+      "lowPrice": null,
+      "isLeader": true,
+      "isBase": false,
+      "isFoil": false,
+      "isHyperspace": false,
+      "isShowcase": true,
+      "imageUrl": "https://cdn.starwarsunlimited.com//card_07030771_EN_Jyn_Erso_Leader_9f9f17c861.png",
+      "backImageUrl": "https://cdn.starwarsunlimited.com//card_07030771_EN_Jyn_Erso_Leader_Unit_d8f7d052ad.png"
+    },
+    {
       "id": "47572",
       "cardId": "LAW-774",
       "name": "Director Krennic",
@@ -66978,6 +67018,46 @@
       "backImageUrl": null
     },
     {
+      "id": "47602",
+      "cardId": "LAW-780",
+      "name": "Enfys Nest",
+      "subtitle": "Until We Can Go No Higher",
+      "set": "LAW",
+      "number": "780",
+      "rarity": "Common",
+      "type": "Leader",
+      "aspects": [
+        "Aggression",
+        "Heroism"
+      ],
+      "traits": [
+        "Underworld"
+      ],
+      "arenas": [
+        "Ground"
+      ],
+      "cost": 5,
+      "power": 3,
+      "hp": 7,
+      "frontText": "When you use an “On Attack” ability: You may pay 2 resources and exhaust this leader. If you do, use that ability again.",
+      "backText": null,
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "keywords": [],
+      "artist": "Guillaume Ospital",
+      "unique": true,
+      "doubleSided": true,
+      "variantType": "Showcase",
+      "marketPrice": null,
+      "lowPrice": null,
+      "isLeader": true,
+      "isBase": false,
+      "isFoil": false,
+      "isHyperspace": false,
+      "isShowcase": true,
+      "imageUrl": "https://cdn.starwarsunlimited.com//card_07030780_EN_Enfys_Nest_Leader_355d90fdb1.png",
+      "backImageUrl": "https://cdn.starwarsunlimited.com//card_07030780_EN_Enfys_Nest_Leader_Unit_6e9153e1a8.png"
+    },
+    {
       "id": "46447",
       "cardId": "LAW-79",
       "name": "K-2SO",
@@ -67103,6 +67183,50 @@
       "isHyperspace": false,
       "isShowcase": false,
       "imageUrl": "https://cdn.starwarsunlimited.com//card_07010080_EN_Luke_Skywalker_d020bddb01.png",
+      "backImageUrl": null
+    },
+    {
+      "id": "50092",
+      "cardId": "LAW-802",
+      "name": "K-2SO",
+      "subtitle": "Locking the Vault",
+      "set": "LAW",
+      "number": "802",
+      "rarity": "Rare",
+      "type": "Unit",
+      "aspects": [
+        "Aggression",
+        "Cunning",
+        "Heroism"
+      ],
+      "traits": [
+        "Rebel",
+        "Droid"
+      ],
+      "arenas": [
+        "Ground"
+      ],
+      "cost": 5,
+      "power": 3,
+      "hp": 5,
+      "frontText": "Ambush\nOn Attack: You may deal 3 damage to a damaged ground unit.",
+      "backText": null,
+      "epicAction": null,
+      "keywords": [
+        "Ambush"
+      ],
+      "artist": "Vincent Dutrait",
+      "unique": true,
+      "doubleSided": false,
+      "variantType": "Standard Prestige",
+      "marketPrice": null,
+      "lowPrice": null,
+      "isLeader": false,
+      "isBase": false,
+      "isFoil": false,
+      "isHyperspace": false,
+      "isShowcase": false,
+      "imageUrl": "https://cdn.starwarsunlimited.com//card_07060802_EN_K_2_S0_Carb_A_3d77f4b968.png",
       "backImageUrl": null
     },
     {
@@ -67281,6 +67405,50 @@
       "backImageUrl": null
     },
     {
+      "id": "50287",
+      "cardId": "LAW-841",
+      "name": "K-2SO",
+      "subtitle": "Locking the Vault",
+      "set": "LAW",
+      "number": "841",
+      "rarity": "Rare",
+      "type": "Unit",
+      "aspects": [
+        "Aggression",
+        "Cunning",
+        "Heroism"
+      ],
+      "traits": [
+        "Rebel",
+        "Droid"
+      ],
+      "arenas": [
+        "Ground"
+      ],
+      "cost": 5,
+      "power": 3,
+      "hp": 5,
+      "frontText": "Ambush\nOn Attack: You may deal 3 damage to a damaged ground unit.",
+      "backText": null,
+      "epicAction": null,
+      "keywords": [
+        "Ambush"
+      ],
+      "artist": "Vincent Dutrait",
+      "unique": true,
+      "doubleSided": false,
+      "variantType": "Foil Prestige",
+      "marketPrice": null,
+      "lowPrice": null,
+      "isLeader": false,
+      "isBase": false,
+      "isFoil": false,
+      "isHyperspace": false,
+      "isShowcase": false,
+      "imageUrl": "https://cdn.starwarsunlimited.com//card_07330841_EN_K_2_S0_Carb_B_f3135038d7.png",
+      "backImageUrl": null
+    },
+    {
       "id": "46477",
       "cardId": "LAW-85",
       "name": "You Hold This",
@@ -67446,6 +67614,50 @@
       "isHyperspace": false,
       "isShowcase": false,
       "imageUrl": "https://cdn.starwarsunlimited.com//card_07010088_EN_Anakin_Skywalker_37dfb5e8aa.png",
+      "backImageUrl": null
+    },
+    {
+      "id": "50482",
+      "cardId": "LAW-880",
+      "name": "K-2SO",
+      "subtitle": "Locking the Vault",
+      "set": "LAW",
+      "number": "880",
+      "rarity": "Rare",
+      "type": "Unit",
+      "aspects": [
+        "Aggression",
+        "Cunning",
+        "Heroism"
+      ],
+      "traits": [
+        "Rebel",
+        "Droid"
+      ],
+      "arenas": [
+        "Ground"
+      ],
+      "cost": 5,
+      "power": 3,
+      "hp": 5,
+      "frontText": "Ambush\nOn Attack: You may deal 3 damage to a damaged ground unit.",
+      "backText": null,
+      "epicAction": null,
+      "keywords": [
+        "Ambush"
+      ],
+      "artist": "Vincent Dutrait",
+      "unique": true,
+      "doubleSided": false,
+      "variantType": "Serialized Prestige",
+      "marketPrice": null,
+      "lowPrice": null,
+      "isLeader": false,
+      "isBase": false,
+      "isFoil": false,
+      "isHyperspace": false,
+      "isShowcase": false,
+      "imageUrl": "https://cdn.starwarsunlimited.com//card_07340880_EN_K_2_S0_Carb_C_0d2597006a.png",
       "backImageUrl": null
     },
     {
@@ -284133,9 +284345,9 @@
   ],
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2026-02-20",
+    "lastUpdated": "2026-02-21",
     "description": "Star Wars: Unlimited card database fetched from swuapi.com API",
-    "totalCards": 6994,
+    "totalCards": 6999,
     "sets": [
       {
         "code": "SOR",
@@ -284170,7 +284382,7 @@
       {
         "code": "LAW",
         "name": "A Lawless Time",
-        "cardCount": 536
+        "cardCount": 541
       }
     ]
   }

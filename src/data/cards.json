@@ -61732,6 +61732,46 @@
       "backImageUrl": null
     },
     {
+      "id": "47557",
+      "cardId": "LAW-771",
+      "name": "Jyn Erso",
+      "subtitle": "Time to Fight",
+      "set": "LAW",
+      "number": "771",
+      "rarity": "Rare",
+      "type": "Leader",
+      "aspects": [
+        "Vigilance",
+        "Heroism"
+      ],
+      "traits": [
+        "Rebel"
+      ],
+      "arenas": [
+        "Ground"
+      ],
+      "cost": 5,
+      "power": 3,
+      "hp": 6,
+      "frontText": "Action [1 resource, Exhaust]: If a friendly Rebel unit was defeated this phase, search the top 3 cards of your deck for a card and draw it. ",
+      "backText": null,
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "keywords": [],
+      "artist": "EJ Dela Cruz",
+      "unique": true,
+      "doubleSided": true,
+      "variantType": "Showcase",
+      "marketPrice": null,
+      "lowPrice": null,
+      "isLeader": true,
+      "isBase": false,
+      "isFoil": false,
+      "isHyperspace": false,
+      "isShowcase": true,
+      "imageUrl": "https://cdn.starwarsunlimited.com//card_07030771_EN_Jyn_Erso_Leader_9f9f17c861.png",
+      "backImageUrl": "https://cdn.starwarsunlimited.com//card_07030771_EN_Jyn_Erso_Leader_Unit_d8f7d052ad.png"
+    },
+    {
       "id": "47572",
       "cardId": "LAW-774",
       "name": "Director Krennic",
@@ -61858,6 +61898,46 @@
       "isShowcase": false,
       "imageUrl": "https://cdn.starwarsunlimited.com//card_07010078_EN_Sabine_Wren_5353d45268.png",
       "backImageUrl": null
+    },
+    {
+      "id": "47602",
+      "cardId": "LAW-780",
+      "name": "Enfys Nest",
+      "subtitle": "Until We Can Go No Higher",
+      "set": "LAW",
+      "number": "780",
+      "rarity": "Common",
+      "type": "Leader",
+      "aspects": [
+        "Aggression",
+        "Heroism"
+      ],
+      "traits": [
+        "Underworld"
+      ],
+      "arenas": [
+        "Ground"
+      ],
+      "cost": 5,
+      "power": 3,
+      "hp": 7,
+      "frontText": "When you use an “On Attack” ability: You may pay 2 resources and exhaust this leader. If you do, use that ability again.",
+      "backText": null,
+      "epicAction": "Epic Action: If you control 5 or more resources, deploy this leader.",
+      "keywords": [],
+      "artist": "Guillaume Ospital",
+      "unique": true,
+      "doubleSided": true,
+      "variantType": "Showcase",
+      "marketPrice": null,
+      "lowPrice": null,
+      "isLeader": true,
+      "isBase": false,
+      "isFoil": false,
+      "isHyperspace": false,
+      "isShowcase": true,
+      "imageUrl": "https://cdn.starwarsunlimited.com//card_07030780_EN_Enfys_Nest_Leader_355d90fdb1.png",
+      "backImageUrl": "https://cdn.starwarsunlimited.com//card_07030780_EN_Enfys_Nest_Leader_Unit_6e9153e1a8.png"
     },
     {
       "id": "46447",
@@ -262575,9 +262655,9 @@
   ],
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2026-02-20",
+    "lastUpdated": "2026-02-21",
     "description": "Star Wars: Unlimited card database fetched from swuapi.com API",
-    "totalCards": 6475,
+    "totalCards": 6477,
     "sets": [
       {
         "code": "SOR",
@@ -262612,10 +262692,10 @@
       {
         "code": "LAW",
         "name": "A Lawless Time",
-        "cardCount": 536
+        "cardCount": 541
       }
     ],
     "fixesApplied": 2,
-    "lastProcessed": "2026-02-20"
+    "lastProcessed": "2026-02-21"
   }
 }
