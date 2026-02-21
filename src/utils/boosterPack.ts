@@ -715,30 +715,3 @@ export function generateSealedBox(_cards: RawCard[], setCode: SetCode | string, 
   return packs;
 }
 
-/**
- * Generate multiple sealed booster boxes for increased variety when shuffling.
- * Each box is generated with fresh belts to simulate case-level distribution.
- * This reduces duplicates when picking random packs because the user draws
- * from multiple independent collation runs.
- *
- * @param cards - All cards (unused, kept for API compatibility)
- * @param setCode - Set code
- * @param numBoxes - Number of boxes to simulate (default 3 = 72 packs)
- * @param packsPerBox - Packs per box (default 24)
- * @returns Array of pack objects from all boxes combined
- */
-export function generateMultiBoxPool(_cards: RawCard[], setCode: SetCode | string, numBoxes: number = 3, packsPerBox: number = 24): Pack[] {
-  const allPacks: Pack[] = [];
-
-  for (let box = 0; box < numBoxes; box++) {
-    // Clear belt cache for each box to simulate independent collation runs
-    // This mimics how real cases contain multiple boxes with separate print runs
-    clearBeltCache();
-
-    for (let i = 0; i < packsPerBox; i++) {
-      allPacks.push(generateBoosterPack(_cards, setCode));
-    }
-  }
-
-  return allPacks;
-}
