@@ -5,6 +5,11 @@
 ### 📦 Pack Generation
 - **LAW rare bases fixed**: Rare bases in LAW now correctly appear in the rare/legendary slot, same as all previous sets. Previously they were incorrectly placed in the base slot.
 
+### 🐞 Bug Fixes
+- **Deck name no longer grows infinitely**: Fixed a bug where switching leaders/bases kept appending to the deck name (e.g., "SEC Sealed (Jabba Green) (Jabba Green) (Lama Su Green)..."). Names now correctly replace the leader/base suffix. Dates removed from default names for cleaner display.
+- **Deck names capped at 80 characters**: SWUDB rejects names over 80 chars, so we now enforce this limit in the UI and truncate in all export paths.
+- **Deck export variant fix**: Hyperspace and Foil cards now correctly export as their Normal variant IDs for SWUDB/Karabast compatibility. Also fixed Chaos Sealed exports not building the variant map across all selected sets.
+
 ## 02.18.2026
 This is a big one. I'm proud to get this live within just a few hours of the full set being spoiled, including major changes to how packs are made (no regular foils, guaranteed hyperspace per pack) and how aspect filters need to work from a UI design perspective to accommodate multi-aspect cards.
 
