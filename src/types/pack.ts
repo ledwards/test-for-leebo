@@ -71,8 +71,7 @@ export interface PackGenerationConfig {
   secondUCToHyperspaceUC: number;
   /** Probability of common upgrading to hyperspace common */
   commonToHyperspace: number;
-  /** Probability of rare upgrading to hyperspace rare/legendary */
-  rareToHyperspaceRL: number;
+  // NOTE: Rare slot NEVER upgrades to Hyperspace. HS rares only appear via UC3 upgrade.
   /** Probability of rare upgrading to prestige (LAW+) */
   rareToPrestige: number;
 }

@@ -71,7 +71,7 @@ export interface PackConstants {
   baseHyperspaceRate: number
   commonHyperspaceRate: number
   uncommonHyperspaceRate: number
-  rareSlotHyperspaceRate: number
+  // NOTE: Rare slot NEVER upgrades to Hyperspace. HS rares only appear via UC3 upgrade.
   hyperspaceNonFoilWeights: RarityWeights
   hyperfoilWeights: RarityWeights
   showcaseLeaderRate: number
@@ -157,11 +157,7 @@ export const SETS_1_3_CONSTANTS: PackConstants = {
   // ---------------------------------------------------------------------------
   uncommonHyperspaceRate: 1 / 8.5,
 
-  // ---------------------------------------------------------------------------
-  // Rare/Legendary Hyperspace Upgrade in R Slot (Questions 9, 10)
-  // ~1 in 15 packs
-  // ---------------------------------------------------------------------------
-  rareSlotHyperspaceRate: 1 / 15,
+  // NOTE: Rare slot NEVER upgrades to Hyperspace. HS rares only appear via UC3 upgrade.
 
   // ---------------------------------------------------------------------------
   // HS Non-Foil Rarity Weights (Question 12)
@@ -281,11 +277,7 @@ export const SETS_4_6_CONSTANTS: PackConstants = {
   // ---------------------------------------------------------------------------
   uncommonHyperspaceRate: 1 / 8,
 
-  // ---------------------------------------------------------------------------
-  // Rare/Legendary Hyperspace Upgrade in R Slot (Questions 9, 10)
-  // ~1 in 15 packs
-  // ---------------------------------------------------------------------------
-  rareSlotHyperspaceRate: 1 / 15,
+  // NOTE: Rare slot NEVER upgrades to Hyperspace. HS rares only appear via UC3 upgrade.
 
   // ---------------------------------------------------------------------------
   // HS Non-Foil Rarity Weights (Question 12)
@@ -427,11 +419,7 @@ export const SET_7_PLUS_CONSTANTS: PackConstants = {
   // ---------------------------------------------------------------------------
   uncommonHyperspaceRate: 1 / 8,
 
-  // ---------------------------------------------------------------------------
-  // Rare/Legendary Hyperspace Upgrade in R Slot
-  // Same as sets 1-6 (belt-driven)
-  // ---------------------------------------------------------------------------
-  rareSlotHyperspaceRate: 1 / 15,
+  // NOTE: Rare slot NEVER upgrades to Hyperspace. HS rares only appear via UC3 upgrade.
 
   // ---------------------------------------------------------------------------
   // HS Non-Foil Rarity Weights
@@ -493,7 +481,7 @@ export interface HSBeltConfig {
     uc1: number
     uc2: number
     uc3: number
-    rare: number
+    // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
   }
 }
 
@@ -512,9 +500,10 @@ export interface HSBeltConfig {
  * (findHyperspaceVariant returns null), which add noise above theoretical σ.
  */
 export const HS_BELT_CONFIGS: Record<string, HSBeltConfig> = {
+  // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
   '1-3': {
     cycleSize: 60,
-    budgetDistribution: { 0: 20, 1: 30, 2: 10 },
+    budgetDistribution: { 0: 24, 1: 26, 2: 10 },
     slotCounts: {
       leader: 10,   // 1/6
       base: 10,     // 1/6
@@ -522,13 +511,12 @@ export const HS_BELT_CONFIGS: Record<string, HSBeltConfig> = {
       uc1: 4,       // ~1/15
       uc2: 2,       // ~1/30
       uc3: 8,       // ~1/7.5
-      rare: 4,      // 1/15
     }
-    // total: 10+10+12+4+2+8+4 = 50 ✓
+    // total: 10+10+12+4+2+8 = 46 ✓
   },
   '4-6': {
     cycleSize: 60,
-    budgetDistribution: { 0: 20, 1: 30, 2: 10 },
+    budgetDistribution: { 0: 24, 1: 26, 2: 10 },
     slotCounts: {
       leader: 10,   // 1/6
       base: 10,     // 1/6
@@ -536,9 +524,8 @@ export const HS_BELT_CONFIGS: Record<string, HSBeltConfig> = {
       uc1: 4,       // ~1/15
       uc2: 2,       // ~1/30
       uc3: 8,       // ~1/7.5
-      rare: 4,      // 1/15
     }
-    // total: 50 ✓
+    // total: 46 ✓
   },
   // LAW (Set 7+): Guaranteed ≥1 HS per pack (no budget-0).
   // The belt ensures every pack has at least 1 HS upgrade.
@@ -546,18 +533,18 @@ export const HS_BELT_CONFIGS: Record<string, HSBeltConfig> = {
   // Common fills the gap to guarantee the minimum.
   'LAW': {
     cycleSize: 60,
-    budgetDistribution: { 0: 0, 1: 54, 2: 6 },
+    budgetDistribution: { 0: 0, 1: 58, 2: 2 },
     slotCounts: {
       leader: 10,   // 1/6
       base: 10,     // 1/6
-      common: 28,   // ~1/2.1 (fills the gap: 66-38=28)
+      common: 28,   // ~1/2.1 (fills the gap)
       uc1: 4,       // ~1/15
       uc2: 2,       // ~1/30
       uc3: 8,       // ~1/7.5
-      rare: 4,      // 1/15
     }
-    // total: 10+10+28+4+2+8+4 = 66 ✓
-    // μ = 66/60 = 1.1 HS per pack
+    // total: 10+10+28+4+2+8 = 62 ✓
+    // budget: 0×0 + 1×58 + 2×2 = 62 ✓
+    // μ = 62/60 ≈ 1.03 HS per pack
   },
 }
 

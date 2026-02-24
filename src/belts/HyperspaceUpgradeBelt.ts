@@ -28,15 +28,15 @@ export interface UpgradePlan {
   uc1: boolean
   uc2: boolean
   uc3: boolean
-  rare: boolean
+  // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
 }
 
 type SlotKey = keyof UpgradePlan
 
-const ALL_SLOTS: SlotKey[] = ['leader', 'base', 'common', 'uc1', 'uc2', 'uc3', 'rare']
+const ALL_SLOTS: SlotKey[] = ['leader', 'base', 'common', 'uc1', 'uc2', 'uc3']
 
 function emptyPlan(): UpgradePlan {
-  return { leader: false, base: false, common: false, uc1: false, uc2: false, uc3: false, rare: false }
+  return { leader: false, base: false, common: false, uc1: false, uc2: false, uc3: false }
 }
 
 function countTrue(plan: UpgradePlan): number {
@@ -117,7 +117,7 @@ export class HyperspaceUpgradeBelt {
     this._assignSlot(plans, budgets, 'base', slotCounts.base, budget1Start, cycleSize)
 
     // Assign remaining slots (no co-occurrence constraints between these)
-    this._assignSlot(plans, budgets, 'rare', slotCounts.rare, budget1Start, cycleSize)
+    // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
     this._assignSlot(plans, budgets, 'common', slotCounts.common, budget1Start, cycleSize)
     this._assignSlot(plans, budgets, 'uc3', slotCounts.uc3, budget1Start, cycleSize)
     this._assignSlot(plans, budgets, 'uc1', slotCounts.uc1, budget1Start, cycleSize)
