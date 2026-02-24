@@ -70,12 +70,13 @@ Leader and base HS never co-occur in the same pack.
 | Leader → Showcase | Find showcase variant of same leader | Independent coin flip | 1/288 |
 | Leader → Hyperspace | Find HS variant of same leader | HyperspaceUpgradeBelt | 1/6 |
 | Base → Hyperspace | Find HS variant of same base | HyperspaceUpgradeBelt | 1/6 |
-| Rare → Hyperspace | Find HS variant of same rare | HyperspaceUpgradeBelt | 1/15 |
 | Foil → Hyperfoil | Draw random HS foil | Independent coin flip | 1/50 |
 | UC1 → HS Uncommon | Find HS variant of 1st uncommon | HyperspaceUpgradeBelt | 1/15 |
 | UC2 → HS Uncommon | Find HS variant of 2nd uncommon | HyperspaceUpgradeBelt | 1/30 |
 | UC3 → HS Rare/Legendary | Draw random HS R/L | HyperspaceUpgradeBelt | 1/7.5 |
 | Common → Hyperspace | Find HS variant of common in slot | HyperspaceUpgradeBelt | 1/5 |
+
+**NOTE:** The rare slot NEVER upgrades to Hyperspace. HS rares/legendaries only appear via UC3 upgrade.
 
 ### Common Hyperspace Upgrade
 

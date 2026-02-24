@@ -85,18 +85,19 @@ variant-lookup failures (`findHyperspaceVariant` returning null), which add nois
 
 ### Slot Distribution Within the Cycle
 
-50 total upgrades distributed across 60 packs:
+46 total upgrades distributed across 60 packs:
 
 | Slot | Count per 60 | Effective Rate | Target Rate |
 |------|-------------|----------------|-------------|
 | Leader HS | 10 | 1/6 | 1/6 |
 | Base HS | 10 | 1/6 | 1/6 |
-| R/L HS | 4 | 1/15 | 1/15 |
 | Common HS | 12 | 1/5 | ~1/5 |
 | UC3 → HS R/L | 8 | ~1/7.5 | ~1/8 |
 | UC1 HS | 4 | ~1/15 | ~1/15 |
 | UC2 HS | 2 | ~1/30 | ~1/30 |
-| **Total** | **50** | | |
+| **Total** | **46** | | |
+
+**NOTE:** The rare slot NEVER upgrades to Hyperspace. HS rares only appear via UC3 upgrade.
 
 ### Final Rate Adjustments (Sets 1-6)
 
@@ -108,8 +109,7 @@ variant-lookup failures (`findHyperspaceVariant` returning null), which add nois
 | UC1 HS | 1/8-1/8.5 | 4/60 = 1/15 | reduce |
 | UC2 HS | 1/8-1/8.5 | 2/60 = 1/30 | reduce |
 | UC3 → HS R/L | 1/5-1/5.5 | 8/60 = 1/7.5 | reduce |
-| R/L HS | 1/15 | 4/60 = 1/15 | unchanged |
-| **Total μ** | **~1.15** | **~0.833** | |
+| **Total μ** | **~1.15** | **~0.767** | |
 
 ---
 

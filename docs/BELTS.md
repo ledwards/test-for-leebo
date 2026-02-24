@@ -247,4 +247,5 @@ Key test scenarios:
 - HS budget distribution: 1/3 of packs have 0 HS, max 2 per pack
 - Leader + base HS never co-occur
 - Z-score for 3 HS is ≥3σ (statistically rare)
-- Per-slot HS rates match targets (leader 1/6, base 1/6, R/L 1/15)
+- Per-slot HS rates match targets (leader 1/6, base 1/6, UC3→HS R/L 1/7.5)
+- NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
