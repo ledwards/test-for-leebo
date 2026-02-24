@@ -1,5 +1,13 @@
 # Release Notes
 
+## 02.23.2026
+
+### 📦 Pack Generation
+- **Rare slot never upgrades to Hyperspace**: Fixed incorrect behavior where rares/legendaries in the rare slot (index 14) could upgrade to Hyperspace variants. Per real-world TCG collation, the rare slot card is ALWAYS the Normal variant. Hyperspace rares/legendaries only appear via UC3 upgrade (3rd uncommon slot → random HS R/L from belt). This affects all sets 1-7.
+
+### 💽 Data Changes
+- **Built deck tracking**: Added database tracking for when users play decks from pools. This data will help analyze pool-to-deck conversion patterns and improve pack generation quality metrics.
+
 ## 02.19.2026
 
 ### 📦 Pack Generation
