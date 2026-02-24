@@ -37,11 +37,11 @@ interface UpgradePlan {
   uc1: boolean
   uc2: boolean
   uc3: boolean
-  rare: boolean
+  // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
 }
 
 function countTrueSlots(plan: UpgradePlan): number {
-  return [plan.leader, plan.base, plan.common, plan.uc1, plan.uc2, plan.uc3, plan.rare]
+  return [plan.leader, plan.base, plan.common, plan.uc1, plan.uc2, plan.uc3]
     .filter(Boolean).length
 }
 
@@ -72,14 +72,15 @@ function runTests(): void {
     assert(typeof plan.uc1 === 'boolean', 'uc1 should be boolean')
     assert(typeof plan.uc2 === 'boolean', 'uc2 should be boolean')
     assert(typeof plan.uc3 === 'boolean', 'uc3 should be boolean')
-    assert(typeof plan.rare === 'boolean', 'rare should be boolean')
+    // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
   })
 
   // ========================================================================
   // BUDGET DISTRIBUTION
   // ========================================================================
 
-  test('1/3 of plans have budget 0 (no HS)', () => {
+  test('40% of plans have budget 0 (no HS)', () => {
+    // After removing rare slot upgrade, budget distribution is 24/60 budget-0
     const belt = new HyperspaceUpgradeBelt()
     let zeroCount = 0
     for (let i = 0; i < TOTAL_DRAWS; i++) {
@@ -88,10 +89,10 @@ function runTests(): void {
     }
     const rate = zeroCount / TOTAL_DRAWS
     console.log(`\x1b[36m   Budget-0 rate: ${(rate * 100).toFixed(1)}% (${zeroCount}/${TOTAL_DRAWS})\x1b[0m`)
-    // Must be exactly 1/3 over full cycles
+    // Budget-0 is 24/60 = 40%
     assert(
-      Math.abs(rate - 1 / 3) < 0.02,
-      `Budget-0 rate ${(rate * 100).toFixed(1)}% should be ~33.3%`
+      Math.abs(rate - 24 / 60) < 0.02,
+      `Budget-0 rate ${(rate * 100).toFixed(1)}% should be ~40.0%`
     )
   })
 
@@ -172,20 +173,8 @@ function runTests(): void {
     )
   })
 
-  test('rare HS rate is approximately 1/15', () => {
-    const belt = new HyperspaceUpgradeBelt()
-    let count = 0
-    for (let i = 0; i < TOTAL_DRAWS; i++) {
-      if (belt.next().rare) count++
-    }
-    const rate = count / TOTAL_DRAWS
-    const expected = 1 / 15
-    console.log(`\x1b[36m   Rare HS rate: ${(rate * 100).toFixed(1)}% (expected ${(expected * 100).toFixed(1)}%)\x1b[0m`)
-    assert(
-      Math.abs(rate - expected) / expected < 0.05,
-      `Rare HS rate ${(rate * 100).toFixed(1)}% deviates >5% from expected ${(expected * 100).toFixed(1)}%`
-    )
-  })
+  // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
+  // (rare HS rate test removed)
 
   // ========================================================================
   // HOPPER REFILL
@@ -232,14 +221,15 @@ function runTests(): void {
     assert(zeroCount === 0, `${zeroCount} plans had budget 0, expected 0`)
   })
 
-  test('LAW: total upgrades per cycle approximately equals 66', () => {
+  test('LAW: total upgrades per cycle approximately equals 62', () => {
+    // After removing rare slot upgrade, LAW has 62 upgrades per 60 packs
     const belt = new HyperspaceUpgradeBelt('LAW')
     let totalUpgrades = 0
     for (let i = 0; i < CYCLE_SIZE; i++) {
       totalUpgrades += countTrueSlots(belt.next())
     }
-    console.log(`\x1b[36m   LAW upgrades per cycle: ${totalUpgrades} (expected 66)\x1b[0m`)
-    assert(Math.abs(totalUpgrades - 66) <= 1, `Total upgrades per cycle = ${totalUpgrades}, expected 66 ±1`)
+    console.log(`\x1b[36m   LAW upgrades per cycle: ${totalUpgrades} (expected 62)\x1b[0m`)
+    assert(Math.abs(totalUpgrades - 62) <= 1, `Total upgrades per cycle = ${totalUpgrades}, expected 62 ±1`)
   })
 
   test('LAW: leader + base never co-occur', () => {
