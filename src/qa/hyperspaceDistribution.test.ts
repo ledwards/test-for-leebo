@@ -135,14 +135,8 @@ async function run(): Promise<void> {
     )
   })
 
-  test('Sets 1-3: R/L HS rate is 1/15', () => {
-    const rate = SETS_1_3_CONSTANTS.rareSlotHyperspaceRate
-    const expected = 1 / 15
-    assert(
-      Math.abs(rate - expected) < 0.001,
-      `R/L HS rate is ${rate}, expected ${expected.toFixed(4)}`
-    )
-  })
+  // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
+  // (rareSlotHyperspaceRate has been removed)
 
   test('Sets 4-6: leader HS rate is 1/6', () => {
     const rate = SETS_4_6_CONSTANTS.leaderHyperspaceRate
@@ -162,14 +156,8 @@ async function run(): Promise<void> {
     )
   })
 
-  test('Sets 4-6: R/L HS rate is 1/15', () => {
-    const rate = SETS_4_6_CONSTANTS.rareSlotHyperspaceRate
-    const expected = 1 / 15
-    assert(
-      Math.abs(rate - expected) < 0.001,
-      `R/L HS rate is ${rate}, expected ${expected.toFixed(4)}`
-    )
-  })
+  // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
+  // (rareSlotHyperspaceRate has been removed)
 
   // ========================================================================
   // STATISTICAL PACK TESTS (require generating packs)
@@ -310,10 +298,9 @@ async function run(): Promise<void> {
       )
     })
 
-    test(`${setCode}: R/L slot HS rate is approximately 1/15`, () => {
+    test(`${setCode}: R/L slot NEVER has HS upgrade (HS rares only via UC3)`, () => {
       // The R/L slot is at pack index 14 (after leader, base, 9 commons, 3 uncommons)
-      // Must check THIS specific index, not just any R/L card, because UC3 upgrade
-      // at index 13 can also produce HS R/L cards
+      // This slot should NEVER be upgraded to Hyperspace - HS rares only appear via UC3 upgrade
       const RL_SLOT_INDEX = 14
       let hsRL = 0
       packs.forEach(pack => {
@@ -324,13 +311,12 @@ async function run(): Promise<void> {
       })
 
       const rate = hsRL / SAMPLE_SIZE
-      const expected = 1 / 15
 
-      console.log(`\x1b[36m   R/L slot HS rate (index ${RL_SLOT_INDEX}): ${(rate * 100).toFixed(1)}% (expected ${(expected * 100).toFixed(1)}%)\x1b[0m`)
+      console.log(`\x1b[36m   R/L slot HS rate (index ${RL_SLOT_INDEX}): ${(rate * 100).toFixed(1)}% (expected 0.0%)\x1b[0m`)
 
       assert(
-        Math.abs(rate - expected) / expected < 0.40,
-        `R/L HS rate ${(rate * 100).toFixed(1)}% deviates >40% from expected ${(expected * 100).toFixed(1)}%`
+        rate === 0,
+        `R/L slot should NEVER have HS upgrades, but found ${hsRL}/${SAMPLE_SIZE} (${(rate * 100).toFixed(1)}%)`
       )
     })
   }
