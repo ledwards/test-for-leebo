@@ -48,7 +48,7 @@ interface UpgradeProbabilities {
   leaderToShowcase?: number;
   leaderToHyperspace?: number;
   baseToHyperspace?: number;
-  rareToHyperspaceRL?: number;
+  // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
   foilToHyperfoil?: number;
   firstUCToHyperspaceUC?: number;
   secondUCToHyperspaceUC?: number;
@@ -405,17 +405,8 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
     }
   }
 
-  // 3. Rare slot upgrade to Hyperspace R/L - find HS version of THIS card
-  if (rareIndex >= 0) {
-    const shouldUpgradeRare = hsPlan ? hsPlan.rare : (probs.rareToHyperspaceRL && shouldUpgrade(probs.rareToHyperspaceRL));
-    if (shouldUpgradeRare) {
-      const currentRare = pack.cards[rareIndex];
-      if (currentRare) {
-        const upgraded = findHyperspaceVariant(currentRare, setCode);
-        if (upgraded) pack.cards[rareIndex] = upgraded;
-      }
-    }
-  }
+  // 3. Rare slot - NEVER upgrades to Hyperspace
+  // NOTE: HS rares only appear via UC3 upgrade (slot 3 uncommon → HS R/L belt)
 
   // 4. Foil upgrade to Hyperfoil - replace with a Hyperspace Foil card from belt
   // Independent coin flip (too rare to affect variance). LAW+ skips entirely.

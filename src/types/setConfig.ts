@@ -72,8 +72,7 @@ export interface UpgradeProbabilities {
   secondUCToHyperspaceUC: number;
   /** Common → Hyperspace common */
   commonToHyperspace: number;
-  /** Rare → Hyperspace rare/legendary */
-  rareToHyperspaceRL: number;
+  // NOTE: Rare slot NEVER upgrades to Hyperspace. HS rares only appear via UC3 upgrade.
   /** Rare → Prestige (LAW+) */
   rareToPrestige: number;
 }
