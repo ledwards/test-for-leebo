@@ -110,8 +110,8 @@ export const LAW_CONFIG: SetConfig = {
     // Common upgrades (belt-driven, fills the gap for guaranteed ≥1 HS)
     commonToHyperspace: constants.commonHyperspaceRate,        // (belt: 28/60 ≈ 47%)
 
-    // Rare slot - can be replaced by Prestige or HS R/L
-    rareToHyperspaceRL: constants.rareSlotHyperspaceRate,      // 1/15 (belt: 4/60)
+    // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
+    // Rare slot CAN be replaced by Prestige (LAW+)
     rareToPrestige: constants.prestigeInRareSlotRate || 1/18,
   },
 
