@@ -105,6 +105,9 @@ export default function PlayPage({ params }: PageProps) {
         setPool(poolData)
         setError(null)
 
+        // Record built deck (fire-and-forget)
+        fetch(`/api/pools/${shareId}/build`, { method: 'POST' }).catch(() => {})
+
         // For draft pools, fetch opponent info
         if (poolData.poolType === 'draft' && poolData.draftShareId) {
           fetchOpponent(poolData.draftShareId)

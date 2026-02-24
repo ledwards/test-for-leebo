@@ -65,6 +65,6 @@ export const TWI_CONFIG: SetConfig = {
     firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,    // ~1/8.5 (belt: 4/60)
     secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // ~1/8.5 (belt: 2/60)
     commonToHyperspace: constants.commonHyperspaceRate,         // ~1/3 (belt: 12/60)
-    rareToHyperspaceRL: constants.rareSlotHyperspaceRate,       // ~1/15 (belt: 4/60)
+    // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
   }
 }
