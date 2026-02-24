@@ -39,9 +39,11 @@ The Pack Quality Dashboard will display real-time statistics from the `card_gene
 | Hyperspace Leader | 16.7% (1/6) | HyperspaceUpgradeBelt |
 | Hyperspace Base | 16.7% (1/6) | HyperspaceUpgradeBelt |
 | Hyperspace Common | 20% (1/5) | HyperspaceUpgradeBelt |
-| Hyperspace Rare | 6.7% (1/15) | HyperspaceUpgradeBelt |
+| UC3 → HS Rare/Legendary | 13.3% (1/7.5) | HyperspaceUpgradeBelt (random HS R/L) |
 | Hyperfoil | 2% (1/50) | Independent coin flip |
 | Showcase Leader | 0.35% (1/288) | Independent coin flip |
+
+**NOTE:** The rare slot NEVER upgrades to Hyperspace. HS rares only appear via UC3 upgrade.
 
 **HS Distribution Stats (belt-driven):**
 - ~2/3 of packs have at least 1 HS card, ~1/3 have none
