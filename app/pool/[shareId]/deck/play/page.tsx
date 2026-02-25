@@ -12,6 +12,7 @@ import { getCachedCards, initializeCardCache } from '../../../../../src/utils/ca
 import { buildBaseCardMap, getBaseCardId } from '../../../../../src/utils/variantDowngrade'
 import { jsonParse } from '../../../../../src/utils/json'
 import { defaultSort } from '../../../../../src/services/cards/cardSorting'
+import { calculateAspectPenalty } from '../../../../../src/services/cards/aspectPenalties'
 import Card from '../../../../../src/components/Card'
 import Modal from '../../../../../src/components/Modal'
 import Button from '../../../../../src/components/Button'
@@ -93,7 +94,11 @@ export default function PlayPage({ params }: PageProps) {
   const [loadingPool, setLoadingPool] = useState(false)
   const [baseCardMap, setBaseCardMap] = useState<Map<string, string> | null>(null)
   const [claiming, setClaiming] = useState(false)
-  const [practiceHand, setPracticeHand] = useState<CardType[] | null>(null)
+  const [practiceHand, setPracticeHand] = useState<{
+    cards: CardType[]
+    probAtLeastOne: number
+    avgTurnOnePlays: number
+  } | null>(null)
 
   useEffect(() => {
     setShareId(resolvedParams.shareId)
@@ -1287,8 +1292,11 @@ export default function PlayPage({ params }: PageProps) {
     if (!pool?.deckBuilderState) return
 
     const state = jsonParse(pool.deckBuilderState)
-    const { cardPositions } = state
+    const { cardPositions, activeLeader, activeBase } = state
     if (!cardPositions) return
+
+    const leaderCard = activeLeader ? cardPositions[activeLeader]?.card : null
+    const baseCard = activeBase ? cardPositions[activeBase]?.card : null
 
     const deckCards = Object.values(cardPositions)
       .filter((pos: CardPosition) => pos.section === 'deck' && pos.enabled !== false && !pos.card.isBase && !pos.card.isLeader)
@@ -1298,6 +1306,46 @@ export default function PlayPage({ params }: PageProps) {
     const shuffled = [...deckCards].sort(() => Math.random() - 0.5)
     const hand = shuffled.slice(0, 6)
 
+    // Calculate turn-one-play stats for the full deck
+    // A turn one play: cost + aspect penalty <= 2, and is a Unit or "Faith in Your Friends"
+    const isTurnOnePlay = (card: CardType) => {
+      const cost = (card.cost as number) ?? 0
+      const penalty = calculateAspectPenalty(card, leaderCard, baseCard)
+      const effectiveCost = cost + penalty
+      if (effectiveCost > 2) return false
+      if (card.type === 'Unit') return true
+      if (card.name === 'Faith in Your Friends') return true
+      return false
+    }
+
+    const totalCards = deckCards.length
+    const turnOnePlays = deckCards.filter(isTurnOnePlay).length
+    const handSize = Math.min(6, totalCards)
+
+    // Probability of at least 1 turn-one play in a hand of 6
+    // P(at least 1) = 1 - P(none) = 1 - C(non_t1, 6) / C(total, 6)
+    let probAtLeastOne = 0
+    let avgTurnOnePlays = 0
+    if (totalCards > 0 && handSize > 0) {
+      const nonT1 = totalCards - turnOnePlays
+      if (turnOnePlays === 0) {
+        probAtLeastOne = 0
+        avgTurnOnePlays = 0
+      } else if (nonT1 < handSize) {
+        // Not enough non-T1 cards to fill a hand without any T1
+        probAtLeastOne = 1
+        avgTurnOnePlays = handSize * turnOnePlays / totalCards
+      } else {
+        // Hypergeometric: P(none) = C(nonT1, handSize) / C(total, handSize)
+        let pNone = 1
+        for (let i = 0; i < handSize; i++) {
+          pNone *= (nonT1 - i) / (totalCards - i)
+        }
+        probAtLeastOne = 1 - pNone
+        avgTurnOnePlays = handSize * turnOnePlays / totalCards
+      }
+    }
+
     // Play shuffle sound
     if (typeof window !== 'undefined') {
       const sound = new Audio('/sounds/shuffling-hand.mp3')
@@ -1305,7 +1353,7 @@ export default function PlayPage({ params }: PageProps) {
       sound.play().catch(() => {})
     }
 
-    setPracticeHand(hand)
+    setPracticeHand({ cards: hand, probAtLeastOne, avgTurnOnePlays })
   }
 
   const handleToggleView = async () => {
@@ -1634,17 +1682,20 @@ export default function PlayPage({ params }: PageProps) {
       >
         <Modal.Body>
           <div className="practice-hand-cards">
-            {practiceHand?.map((card, i) => (
+            {practiceHand?.cards.map((card, i) => (
               <Card key={`${card.id}-${i}`} card={card} />
             ))}
           </div>
+          {practiceHand && (
+            <div className="practice-hand-stats">
+              <p>Probability of drawing at least 1 turn one play: {(practiceHand.probAtLeastOne * 100).toFixed(1)}%</p>
+              <p>Average number of turn one plays: {practiceHand.avgTurnOnePlays.toFixed(2)}</p>
+            </div>
+          )}
         </Modal.Body>
         <Modal.Actions>
           <Button variant="primary" onClick={drawPracticeHand}>
             Draw Another
-          </Button>
-          <Button variant="secondary" onClick={() => setPracticeHand(null)}>
-            Close
           </Button>
         </Modal.Actions>
       </Modal>
