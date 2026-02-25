@@ -148,14 +148,15 @@
   top: 20px;
   z-index: 1000;
   backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  /* Specific transitions to avoid interfering with sticky positioning */
+  transition: background 0.3s ease, border-color 0.3s ease, padding 0.3s ease, margin 0.3s ease;
   font-size: 1rem;
   box-sizing: border-box;
   margin-left: 20px;
   margin-right: 130px;
   width: auto;
   overflow: visible;
-  will-change: transform;
+  /* NOTE: Do NOT use will-change: transform here - it breaks position: sticky */
 }
 
 .deck-info-bar:not(.sticky) {
