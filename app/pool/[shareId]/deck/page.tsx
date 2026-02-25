@@ -34,6 +34,7 @@ interface PoolData {
   name?: string
   owner?: PoolOwner
   userId?: string
+  draftShareId?: string
 }
 
 interface PageProps {
@@ -192,6 +193,7 @@ export default function DeckBuilderPage({ params }: PageProps) {
         poolName={poolName}
         poolOwnerUsername={pool?.owner?.username}
         poolOwnerId={pool?.owner?.id || pool?.userId}
+        draftShareId={pool?.draftShareId}
       />
     </div>
   )

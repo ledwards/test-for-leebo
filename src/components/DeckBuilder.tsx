@@ -121,9 +121,10 @@ interface DeckBuilderProps {
   poolName?: string | null
   poolOwnerUsername?: string | null
   poolOwnerId?: string | null
+  draftShareId?: string | null
 }
 
-function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareId = null, poolCreatedAt = null, poolType = 'sealed', poolName: initialPoolName = null, poolOwnerUsername = null, poolOwnerId = null }: DeckBuilderProps) {
+function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareId = null, poolCreatedAt = null, poolType = 'sealed', poolName: initialPoolName = null, poolOwnerUsername = null, poolOwnerId = null, draftShareId = null }: DeckBuilderProps) {
   const { user, isAuthenticated, signIn } = useAuth()
   const isOwner = user && poolOwnerId && user.id === poolOwnerId
   const isDraftMode = poolType === 'draft'
@@ -2004,6 +2005,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           setErrorMessage={setErrorMessage}
           messageType={messageType}
           setMessageType={setMessageType}
+          draftShareId={draftShareId}
         />
 
       {/* Selected Leader/Base and Deck/Sideboard Info - Sticky Bar */}
