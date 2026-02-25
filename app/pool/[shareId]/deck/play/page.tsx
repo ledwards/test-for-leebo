@@ -1558,6 +1558,12 @@ export default function PlayPage({ params }: PageProps) {
               <div className="step-content">
                 <h3>
                   Copy Your Deck
+                  <button className="step-copy-button" onClick={copyUrl}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                  </button>
                   <button className="step-copy-button" onClick={copyToClipboard}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -1565,7 +1571,7 @@ export default function PlayPage({ params }: PageProps) {
                     </svg>
                   </button>
                 </h3>
-                <p>Copy your deck in JSON format.</p>
+                <p>Copy your deck link to paste into <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">Karabast</a>, or copy the deck JSON for <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">SWUDB</a>.</p>
               </div>
             </div>
 
@@ -1579,10 +1585,10 @@ export default function PlayPage({ params }: PageProps) {
                   ) : firstOpponent ? (
                     <p>Your first round opponent is <strong>{firstOpponent.username || 'Unknown Player'}</strong>. Reach out to them on Discord to schedule your match!</p>
                   ) : (
-                    <p>Find an opponent to play against.</p>
+                    <p>Find an opponent in the <a href="https://discord.gg/VcYkfGnSZH" target="_blank" rel="noopener noreferrer">Protect the Pod Discord</a> or play against someone you know.</p>
                   )
                 ) : (
-                  <p>Find an opponent to play against.</p>
+                  <p>Find an opponent in the <a href="https://discord.gg/VcYkfGnSZH" target="_blank" rel="noopener noreferrer">Protect the Pod Discord</a> or play against someone you know.</p>
                 )}
               </div>
             </div>
@@ -1591,26 +1597,27 @@ export default function PlayPage({ params }: PageProps) {
               <span className="step-number">3</span>
               <div className="step-content">
                 <h3>Play on Karabast</h3>
-                <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and load your deck (by pasting JSON into Karabast directly, or via <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">swudb.com</a> if you prefer). Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
+                <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and paste your deck link or JSON. Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="play-actions">
-          <button className="play-action-button edit-deck" onClick={() => router.push(`/pool/${shareId}/deck`)}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
+          <button className="play-action-button primary" onClick={copyUrl}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
             </svg>
-            Edit Deck
+            Copy URL
           </button>
 
-          <button className="play-action-button primary" onClick={copyToClipboard}>
+          <button className="play-action-button" onClick={copyToClipboard}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
-            Copy to Clipboard
+            Copy JSON
           </button>
 
           <button className="play-action-button" onClick={downloadJSON}>
@@ -1633,8 +1640,9 @@ export default function PlayPage({ params }: PageProps) {
 
           <button className="play-action-button" onClick={drawPracticeHand}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="4" y="2" width="10" height="14" rx="1.5" transform="rotate(-6 4 2)"></rect>
-              <rect x="10" y="2" width="10" height="14" rx="1.5" transform="rotate(6 20 2)"></rect>
+              <rect x="3" y="3" width="10" height="14" rx="1.5" transform="rotate(-10 8 10)"></rect>
+              <rect x="7" y="2" width="10" height="14" rx="1.5"></rect>
+              <rect x="11" y="3" width="10" height="14" rx="1.5" transform="rotate(10 16 10)"></rect>
             </svg>
             Practice Hand
           </button>
