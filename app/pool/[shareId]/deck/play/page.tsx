@@ -80,6 +80,7 @@ export default function PlayPage({ params }: PageProps) {
   const resolvedParams = use(params)
   const router = useRouter()
   const { user } = useAuth()
+  const hasBetaAccess = user?.is_beta_tester || user?.is_admin
   const [pool, setPool] = useState<PoolData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -99,6 +100,8 @@ export default function PlayPage({ params }: PageProps) {
     cards: CardType[]
     probAtLeastOne: number
     avgTurnOnePlays: number
+    turnOnePlays: number
+    totalCards: number
   } | null>(null)
 
   useEffect(() => {
@@ -289,14 +292,15 @@ export default function PlayPage({ params }: PageProps) {
     }
   }
 
-  const copyUrl = async () => {
+  const copyDeckLink = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href)
-      setMessage('URL copied to clipboard!')
+      const deckJsonUrl = `${window.location.origin}/api/pools/${shareId}/deck.json`
+      await navigator.clipboard.writeText(deckJsonUrl)
+      setMessage('Deck link copied!')
       setMessageType('success')
       setTimeout(() => { setMessage(null); setMessageType(null) }, 3000)
     } catch (err) {
-      setMessage('Failed to copy URL')
+      setMessage('Failed to copy link')
       setMessageType('error')
       setTimeout(() => { setMessage(null); setMessageType(null) }, 3000)
     }
@@ -1376,7 +1380,7 @@ export default function PlayPage({ params }: PageProps) {
       shuffleSoundRef.current.play().catch(() => {})
     }
 
-    setPracticeHand({ cards: hand, probAtLeastOne, avgTurnOnePlays })
+    setPracticeHand({ cards: hand, probAtLeastOne, avgTurnOnePlays, turnOnePlays, totalCards })
   }
 
   const handleToggleView = async () => {
@@ -1521,6 +1525,17 @@ export default function PlayPage({ params }: PageProps) {
           <p className="play-pool-type">{poolTypeLabel}</p>
         </div>
 
+        <div className="practice-hand-button-container">
+          <button className="play-action-button" onClick={drawPracticeHand}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <g transform="rotate(-15 12 22)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
+              <g transform="rotate(0 12 22)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
+              <g transform="rotate(15 12 22)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
+            </svg>
+            Practice Hand
+          </button>
+        </div>
+
         {/* Login banner for logged-out users */}
         {!user && (
           <div className="login-banner">
@@ -1556,22 +1571,40 @@ export default function PlayPage({ params }: PageProps) {
             <div className="play-step">
               <span className="step-number">1</span>
               <div className="step-content">
-                <h3>
-                  Copy Your Deck
-                  <button className="step-copy-button" onClick={copyUrl}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg>
-                  </button>
-                  <button className="step-copy-button" onClick={copyToClipboard}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                  </button>
-                </h3>
-                <p>Copy your deck link to paste into <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">Karabast</a>, or copy the deck JSON for <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">SWUDB</a>.</p>
+                {hasBetaAccess ? (
+                  <>
+                    <h3>Copy Your Deck:
+                      <button className="step-copy-button" onClick={copyDeckLink} title="Copy deck link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        Link
+                      </button>
+                      <button className="step-copy-button" onClick={copyToClipboard} title="Copy deck JSON">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        JSON
+                      </button>
+                    </h3>
+                    <p>Copy your deck link for <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">Karabast</a>, or copy the deck JSON for <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">SWUDB</a>.</p>
+                  </>
+                ) : (
+                  <>
+                    <h3>
+                      Copy Your Deck
+                      <button className="step-copy-button" onClick={copyToClipboard}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                      </button>
+                    </h3>
+                    <p>Copy your deck in JSON format.</p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -1585,10 +1618,10 @@ export default function PlayPage({ params }: PageProps) {
                   ) : firstOpponent ? (
                     <p>Your first round opponent is <strong>{firstOpponent.username || 'Unknown Player'}</strong>. Reach out to them on Discord to schedule your match!</p>
                   ) : (
-                    <p>Find an opponent in the <a href="https://discord.gg/VcYkfGnSZH" target="_blank" rel="noopener noreferrer">Protect the Pod Discord</a> or play against someone you know.</p>
+                    <p>Find an opponent in the <a href="https://discord.gg/u6fkdDzWqF" target="_blank" rel="noopener noreferrer">Protect the Pod Discord</a> or play against someone you know.</p>
                   )
                 ) : (
-                  <p>Find an opponent in the <a href="https://discord.gg/VcYkfGnSZH" target="_blank" rel="noopener noreferrer">Protect the Pod Discord</a> or play against someone you know.</p>
+                  <p>Find an opponent in the <a href="https://discord.gg/u6fkdDzWqF" target="_blank" rel="noopener noreferrer">Protect the Pod Discord</a> or play against someone you know.</p>
                 )}
               </div>
             </div>
@@ -1597,27 +1630,33 @@ export default function PlayPage({ params }: PageProps) {
               <span className="step-number">3</span>
               <div className="step-content">
                 <h3>Play on Karabast</h3>
-                <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and paste your deck link or JSON. Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
+                {hasBetaAccess ? (
+                  <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and paste your deck link or JSON. Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
+                ) : (
+                  <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and load your deck (by pasting JSON into Karabast directly, or via <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">swudb.com</a> if you prefer). Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         <div className="play-actions">
-          <button className="play-action-button primary" onClick={copyUrl}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-            </svg>
-            Copy URL
-          </button>
+          {hasBetaAccess && (
+            <button className="play-action-button primary" onClick={copyDeckLink}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              Copy Link
+            </button>
+          )}
 
-          <button className="play-action-button" onClick={copyToClipboard}>
+          <button className={`play-action-button${hasBetaAccess ? '' : ' primary'}`} onClick={copyToClipboard}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
-            Copy JSON
+            {hasBetaAccess ? 'Copy JSON' : 'Copy to Clipboard'}
           </button>
 
           <button className="play-action-button" onClick={downloadJSON}>
@@ -1638,14 +1677,6 @@ export default function PlayPage({ params }: PageProps) {
             {generatingImage ? 'Generating...' : 'Deck Image'}
           </button>
 
-          <button className="play-action-button" onClick={drawPracticeHand}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="10" height="14" rx="1.5" transform="rotate(-10 8 10)"></rect>
-              <rect x="7" y="2" width="10" height="14" rx="1.5"></rect>
-              <rect x="11" y="3" width="10" height="14" rx="1.5" transform="rotate(10 16 10)"></rect>
-            </svg>
-            Practice Hand
-          </button>
         </div>
 
         {message && (
@@ -1725,7 +1756,7 @@ export default function PlayPage({ params }: PageProps) {
           </div>
           {practiceHand && (
             <div className="practice-hand-stats">
-              <p>Probability of drawing at least 1 turn one play: {(practiceHand.probAtLeastOne * 100).toFixed(1)}%</p>
+              <p>Probability of drawing at least one turn 1 play: ({practiceHand.turnOnePlays}/{practiceHand.totalCards}) {(practiceHand.probAtLeastOne * 100).toFixed(2)}%</p>
               <p>Average number of turn one plays: {practiceHand.avgTurnOnePlays.toFixed(2)}</p>
             </div>
           )}

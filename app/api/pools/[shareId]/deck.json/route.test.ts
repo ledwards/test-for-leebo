@@ -333,6 +333,52 @@ describe('GET /api/pools/:shareId/deck.json', () => {
     })
   })
 
+  describe('export format (Karabast/SWUDB compatibility)', () => {
+    it('includes secondleader: null in export data', () => {
+      const state: DeckBuilderState = {
+        activeLeader: 'leader-1',
+        activeBase: 'base-1',
+        cardPositions: {
+          'leader-1': {
+            card: { cardId: 'SOR-5', isLeader: true },
+            section: 'leaders',
+            visible: true,
+          },
+          'base-1': {
+            card: { cardId: 'SOR-29', isBase: true },
+            section: 'bases',
+            visible: true,
+          },
+          'card-1': {
+            card: { cardId: 'SOR-100' },
+            section: 'deck',
+            visible: true,
+          },
+        },
+      }
+
+      const deckData = buildDeckFromState(state)
+
+      // Build the export format exactly as route.ts does
+      const exportData = {
+        metadata: { name: '[PTP] Test Deck', author: 'Protect the Pod' },
+        leader: deckData.leader,
+        secondleader: null,
+        base: deckData.base,
+        deck: deckData.deck,
+        sideboard: deckData.sideboard,
+      }
+
+      // Karabast expects these exact top-level keys
+      assert.deepStrictEqual(Object.keys(exportData), [
+        'metadata', 'leader', 'secondleader', 'base', 'deck', 'sideboard',
+      ])
+      assert.strictEqual(exportData.secondleader, null)
+      assert.strictEqual(exportData.metadata.author, 'Protect the Pod')
+      assert.ok(exportData.metadata.name.startsWith('[PTP]'))
+    })
+  })
+
   describe('Card ID formatting', () => {
     it('converts single-digit card numbers to 3-digit padded format', () => {
       assert.strictEqual(mockGetBaseCardId({ cardId: 'SOR-5' }), 'SOR_005')

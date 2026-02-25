@@ -64,9 +64,35 @@
   padding-top: 1rem;
 }
 
+.edit-deck-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: 'Barlow', sans-serif;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .edit-deck-top:hover {
+    color: white;
+    border-color: rgba(255, 0, 0, 0.8);
+    box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+    transform: translateY(-1px);
+  }
+}
+
 .play-header {
   text-align: center;
-  margin-bottom: 5rem;
+  margin-bottom: 1rem;
 }
 
 .play-header h1 {
@@ -109,6 +135,12 @@
   color: rgba(255, 255, 255, 0.6);
   margin: 0 0 1rem 0;
   letter-spacing: 0.05em;
+}
+
+.practice-hand-button-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
 }
 
 /* Login banner for logged-out users */
@@ -248,16 +280,18 @@ a.login-banner-button:focus {
 .step-copy-button {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 28px;
+  gap: 0.3rem;
   height: 28px;
-  padding: 0;
+  padding: 0 0.5rem;
   border: 1px solid rgba(74, 222, 128, 0.5);
   background: rgba(74, 222, 128, 0.1);
   color: #4ade80;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .step-copy-button:hover {
@@ -318,11 +352,6 @@ a.login-banner-button:focus {
 
 .play-action-button.primary:hover {
   background: rgba(0, 100, 0, 0.5);
-}
-
-.play-action-button.edit-deck:hover {
-  border-color: rgba(255, 0, 0, 0.8);
-  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
 }
 
 .play-action-button:disabled {
@@ -635,7 +664,7 @@ a.login-banner-button:focus {
   }
 
   .play-header {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
   }
 
   .play-header h1 {
