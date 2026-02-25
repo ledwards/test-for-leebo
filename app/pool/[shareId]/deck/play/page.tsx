@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { loadPool, updatePool, claimPool } from '../../../../../src/utils/poolApi'
 import { getPackArtUrl } from '../../../../../src/utils/packArt'
@@ -1289,7 +1289,17 @@ export default function PlayPage({ params }: PageProps) {
     }
   }
 
-  const drawPracticeHand = () => {
+  // Preload shuffle sound for instant playback
+  const shuffleSoundRef = useRef<HTMLAudioElement | null>(null)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      shuffleSoundRef.current = new Audio('/sounds/shuffling-hand.mp3')
+      shuffleSoundRef.current.volume = 0.5
+      shuffleSoundRef.current.load()
+    }
+  }, [])
+
+  const drawPracticeHand = (playSound = false) => {
     if (!pool?.deckBuilderState) return
 
     const state = jsonParse(pool.deckBuilderState)
@@ -1347,11 +1357,10 @@ export default function PlayPage({ params }: PageProps) {
       }
     }
 
-    // Play shuffle sound
-    if (typeof window !== 'undefined') {
-      const sound = new Audio('/sounds/shuffling-hand.mp3')
-      sound.volume = 0.5
-      sound.play().catch(() => {})
+    // Play shuffle sound only on redraw
+    if (playSound && shuffleSoundRef.current) {
+      shuffleSoundRef.current.currentTime = 0
+      shuffleSoundRef.current.play().catch(() => {})
     }
 
     setPracticeHand({ cards: hand, probAtLeastOne, avgTurnOnePlays })
@@ -1696,7 +1705,7 @@ export default function PlayPage({ params }: PageProps) {
           )}
         </Modal.Body>
         <Modal.Actions className="practice-hand-actions">
-          <Button variant="primary" onClick={drawPracticeHand}>
+          <Button variant="primary" onClick={() => drawPracticeHand(true)}>
             Draw Another
           </Button>
         </Modal.Actions>
