@@ -715,3 +715,21 @@ a.login-banner-button:focus {
     font-size: 1.5rem;
   }
 }
+
+/* Practice Hand modal */
+.practice-hand-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.practice-hand-cards .canvas-card {
+  width: 120px;
+}
+
+@media (max-width: 768px) {
+  .practice-hand-cards .canvas-card {
+    width: 90px;
+  }
+}
