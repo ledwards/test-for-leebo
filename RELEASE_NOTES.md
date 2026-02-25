@@ -5,6 +5,9 @@
 ### 📦 Pack Generation
 - **Rare slot never upgrades to Hyperspace**: Fixed incorrect behavior where rares/legendaries in the rare slot (index 14) could upgrade to Hyperspace variants. Per real-world TCG collation, the rare slot card is ALWAYS the Normal variant. Hyperspace rares/legendaries only appear via UC3 upgrade (3rd uncommon slot → random HS R/L from belt). This affects all sets 1-7.
 
+### 🎉 New Features
+- **Practice Hand**: On the Play page, click "Practice Hand" to draw 6 random cards from your deck and see what your opening hand might look like. Click "Draw Another" to shuffle and draw again.
+
 ### 💽 Data Changes
 - **Built deck tracking**: Added database tracking for when users play decks from pools. This data will help analyze pool-to-deck conversion patterns and improve pack generation quality metrics.
 
