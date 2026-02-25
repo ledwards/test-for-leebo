@@ -23,6 +23,7 @@ interface ExportData {
     author: string
   }
   leader: DeckEntry | null
+  secondleader: DeckEntry | null
   base: DeckEntry | null
   deck: DeckEntry[]
   sideboard: DeckEntry[]
@@ -80,17 +81,19 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         author: 'Protect the Pod',
       },
       leader: deckData.leader,
+      secondleader: null,
       base: deckData.base,
       deck: deckData.deck,
       sideboard: deckData.sideboard,
     }
 
-    // Return with .json content type
+    // Return with .json content type and CORS headers for external tool access
     return new NextResponse(JSON.stringify(exportData, null, 2), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
+        'Access-Control-Allow-Origin': '*',
       },
     })
   } catch (error) {
