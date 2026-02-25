@@ -3,6 +3,9 @@
 ## 02.24.2026
 
 ### 🎉 New Features
+- **Karabast deck source integration**: Added a deck.json API endpoint for compatibility with Karabast and other SWU tools. A companion PR has been submitted to the Karabast project to add Protect the Pod as a supported deck source.
+- **Copy Deck Link on Play page** (beta testers only): Copy your deck link directly from the Play page to paste into Karabast.
+- **Play page improvements**: Updated instructions with Discord link for finding opponents.
 - **Card preview on iPad**: Tap any card on iPad to see an enlarged preview. Tap anywhere outside the card to dismiss. (Phones still use long-press.)
 
 ### 🐞 Bug Fixes

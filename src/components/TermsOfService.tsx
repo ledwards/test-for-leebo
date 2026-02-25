@@ -20,7 +20,16 @@ function TermsOfService({ onBack }: TermsOfServiceProps) {
         </section>
 
         <section>
-          <h2>2. Description of Service</h2>
+          <h2>2. No Tournaments for Prizes</h2>
+          <p>
+            <strong>Protect the Pod is a practice and casual play tool only. You may NOT use this Service to organize,
+            host, or participate in tournaments, leagues, or competitions where prizes, money, or other compensation
+            are awarded. Any such use is a violation of these Terms and may result in account termination.</strong>
+          </p>
+        </section>
+
+        <section>
+          <h2>3. Description of Service</h2>
           <p>
             Protect the Pod is a web application that simulates opening sealed pods of Star Wars: Unlimited booster packs.
             The Service allows users to generate virtual booster packs, build decks, and share card pools.
@@ -28,7 +37,7 @@ function TermsOfService({ onBack }: TermsOfServiceProps) {
         </section>
 
         <section>
-          <h2>3. User Accounts</h2>
+          <h2>4. User Accounts</h2>
           <p>
             You may use the Service with or without creating an account. When you create an account using Discord OAuth,
             you are responsible for maintaining the security of your account. You are responsible for all activities that occur under your account.
@@ -36,7 +45,7 @@ function TermsOfService({ onBack }: TermsOfServiceProps) {
         </section>
 
         <section>
-          <h2>4. User Content</h2>
+          <h2>5. User Content</h2>
           <p>
             You retain ownership of any content you create or share through the Service, including card pools and deck configurations.
             By sharing content, you grant us a license to display and distribute that content through the Service.
@@ -44,7 +53,7 @@ function TermsOfService({ onBack }: TermsOfServiceProps) {
         </section>
 
         <section>
-          <h2>5. Intellectual Property</h2>
+          <h2>6. Intellectual Property</h2>
           <p>
             The Service and its original content, features, and functionality are owned by Protect the Pod and are protected by international
             copyright, trademark, patent, trade secret, and other intellectual property laws.
@@ -56,7 +65,7 @@ function TermsOfService({ onBack }: TermsOfServiceProps) {
         </section>
 
         <section>
-          <h2>6. Prohibited Uses</h2>
+          <h2>7. Prohibited Uses</h2>
           <p>You may not use the Service:</p>
           <ul>
             <li>For any unlawful purpose or to solicit others to perform unlawful acts</li>
@@ -69,7 +78,7 @@ function TermsOfService({ onBack }: TermsOfServiceProps) {
         </section>
 
         <section>
-          <h2>7. Disclaimer</h2>
+          <h2>8. Disclaimer</h2>
           <p>
             The Service is provided "as is" and "as available" without any warranties of any kind, either express or implied.
             We do not guarantee that the Service will be available at all times or that it will be error-free.
@@ -77,7 +86,7 @@ function TermsOfService({ onBack }: TermsOfServiceProps) {
         </section>
 
         <section>
-          <h2>8. Limitation of Liability</h2>
+          <h2>9. Limitation of Liability</h2>
           <p>
             In no event shall Protect the Pod, its directors, employees, or agents be liable for any indirect, incidental, special,
             consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses.
@@ -85,7 +94,7 @@ function TermsOfService({ onBack }: TermsOfServiceProps) {
         </section>
 
         <section>
-          <h2>9. Changes to Terms</h2>
+          <h2>10. Changes to Terms</h2>
           <p>
             We reserve the right to modify or replace these Terms at any time. If a revision is material, we will provide at least
             30 days notice prior to any new terms taking effect.
@@ -93,7 +102,7 @@ function TermsOfService({ onBack }: TermsOfServiceProps) {
         </section>
 
         <section>
-          <h2>10. Contact Information</h2>
+          <h2>11. Contact Information</h2>
           <p>
             If you have any questions about these Terms of Service, please contact us through the Service.
           </p>

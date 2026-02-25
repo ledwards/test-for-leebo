@@ -200,6 +200,62 @@ export function broadcastEvent(shareId: string, eventType: string, data: Record<
 }
 
 /**
+ * Broadcast pod state to all connected clients on the pod page.
+ * Sends player readiness updates when someone builds a deck.
+ * @param draftShareId - Draft share ID
+ */
+export async function broadcastPodState(draftShareId: string): Promise<void> {
+  const io = global.io
+  if (!io) {
+    console.warn('[Broadcast] Socket.io not initialized - pod broadcast skipped')
+    return
+  }
+
+  try {
+    const pod = await queryRow(
+      `SELECT dp.id, dp.share_id, dp.status
+       FROM draft_pods dp WHERE dp.share_id = $1`,
+      [draftShareId]
+    )
+
+    if (!pod) {
+      io.to(`pod:${draftShareId}`).emit('deleted')
+      return
+    }
+
+    // Get all players with readiness status
+    const players = await queryRows(
+      `SELECT
+        dpp.user_id,
+        dpp.seat_number,
+        u.username,
+        u.avatar_url,
+        CASE WHEN bd.id IS NOT NULL THEN true ELSE false END as is_ready
+       FROM draft_pod_players dpp
+       JOIN users u ON dpp.user_id = u.id
+       LEFT JOIN card_pools cp ON cp.draft_pod_id = dpp.draft_pod_id AND cp.user_id = dpp.user_id
+       LEFT JOIN built_decks bd ON bd.card_pool_id = cp.id
+       WHERE dpp.draft_pod_id = $1
+       ORDER BY dpp.seat_number`,
+      [pod.id]
+    )
+
+    io.to(`pod:${draftShareId}`).emit('pod-state', {
+      timestamp: Date.now(),
+      players: players.map(p => ({
+        id: p.user_id,
+        username: p.username,
+        avatarUrl: p.avatar_url,
+        seatNumber: p.seat_number,
+        isReady: p.is_ready,
+      })),
+    })
+  } catch (err) {
+    console.error('Error broadcasting pod state:', err)
+  }
+}
+
+/**
  * Broadcast rotisserie draft state to all connected clients.
  * @param shareId - Rotisserie draft share ID
  */

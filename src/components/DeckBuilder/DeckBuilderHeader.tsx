@@ -36,6 +36,7 @@ export interface DeckBuilderHeaderProps {
   setErrorMessage: (message: string | null) => void
   messageType: MessageType | null
   setMessageType: (type: MessageType | null) => void
+  draftShareId?: string | null
 }
 
 export function DeckBuilderHeader({
@@ -58,6 +59,7 @@ export function DeckBuilderHeader({
   setErrorMessage,
   messageType,
   setMessageType,
+  draftShareId,
 }: DeckBuilderHeaderProps) {
   // Calculate deck legality for Play button
   const deckCardCount = Object.values(cardPositions)
@@ -125,7 +127,11 @@ export function DeckBuilderHeader({
   // Handle navigate to play
   const handlePlay = () => {
     if (isDeckLegal) {
-      window.location.href = `/pool/${shareId}/deck/play`
+      if (isDraftMode && draftShareId) {
+        window.location.href = `/draft/${draftShareId}/pod`
+      } else {
+        window.location.href = `/pool/${shareId}/deck/play`
+      }
     }
   }
 

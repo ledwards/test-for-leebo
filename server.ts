@@ -98,6 +98,14 @@ app.prepare().then(() => {
     socket.on('leave-rotisserie', (shareId: string) => {
       socket.leave(`rotisserie:${shareId}`)
     })
+
+    socket.on('join-pod', (shareId: string) => {
+      socket.join(`pod:${shareId}`)
+    })
+
+    socket.on('leave-pod', (shareId: string) => {
+      socket.leave(`pod:${shareId}`)
+    })
   })
 
   server.listen(port, () => {
