@@ -48,6 +48,11 @@
   flex-direction: column;
 }
 
+/* Wide variant (for content that needs more horizontal space) */
+.modal-content.modal--wide {
+  max-width: 900px;
+}
+
 /* Close button */
 .modal-close {
   position: absolute;
