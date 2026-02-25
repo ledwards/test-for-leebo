@@ -12,6 +12,9 @@ import { getCachedCards, initializeCardCache } from '../../../../../src/utils/ca
 import { buildBaseCardMap, getBaseCardId } from '../../../../../src/utils/variantDowngrade'
 import { jsonParse } from '../../../../../src/utils/json'
 import { defaultSort } from '../../../../../src/services/cards/cardSorting'
+import Card from '../../../../../src/components/Card'
+import Modal from '../../../../../src/components/Modal'
+import Button from '../../../../../src/components/Button'
 import '../../../../../src/App.css'
 import './play.css'
 
@@ -90,6 +93,7 @@ export default function PlayPage({ params }: PageProps) {
   const [loadingPool, setLoadingPool] = useState(false)
   const [baseCardMap, setBaseCardMap] = useState<Map<string, string> | null>(null)
   const [claiming, setClaiming] = useState(false)
+  const [practiceHand, setPracticeHand] = useState<CardType[] | null>(null)
 
   useEffect(() => {
     setShareId(resolvedParams.shareId)
@@ -1279,6 +1283,31 @@ export default function PlayPage({ params }: PageProps) {
     }
   }
 
+  const drawPracticeHand = () => {
+    if (!pool?.deckBuilderState) return
+
+    const state = jsonParse(pool.deckBuilderState)
+    const { cardPositions } = state
+    if (!cardPositions) return
+
+    const deckCards = Object.values(cardPositions)
+      .filter((pos: CardPosition) => pos.section === 'deck' && pos.enabled !== false && !pos.card.isBase && !pos.card.isLeader)
+      .map((pos: CardPosition) => pos.card)
+
+    // Shuffle and take 6
+    const shuffled = [...deckCards].sort(() => Math.random() - 0.5)
+    const hand = shuffled.slice(0, 6)
+
+    // Play shuffle sound
+    if (typeof window !== 'undefined') {
+      const sound = new Audio('/sounds/shuffling-hand.mp3')
+      sound.volume = 0.5
+      sound.play().catch(() => {})
+    }
+
+    setPracticeHand(hand)
+  }
+
   const handleToggleView = async () => {
     if (showingPool) {
       setShowingPool(false)
@@ -1523,6 +1552,16 @@ export default function PlayPage({ params }: PageProps) {
             </svg>
             {generatingImage ? 'Generating...' : 'Deck Image'}
           </button>
+
+          <button className="play-action-button" onClick={drawPracticeHand}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="4" width="6" height="9" rx="1"></rect>
+              <rect x="9" y="3" width="6" height="9" rx="1"></rect>
+              <rect x="16" y="4" width="6" height="9" rx="1"></rect>
+              <path d="M5 16v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"></path>
+            </svg>
+            Practice Hand
+          </button>
         </div>
 
         {message && (
@@ -1586,6 +1625,29 @@ export default function PlayPage({ params }: PageProps) {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={practiceHand !== null}
+        onClose={() => setPracticeHand(null)}
+        title="Practice Hand"
+        showCloseButton
+      >
+        <Modal.Body>
+          <div className="practice-hand-cards">
+            {practiceHand?.map((card, i) => (
+              <Card key={`${card.id}-${i}`} card={card} />
+            ))}
+          </div>
+        </Modal.Body>
+        <Modal.Actions>
+          <Button variant="primary" onClick={drawPracticeHand}>
+            Draw Another
+          </Button>
+          <Button variant="secondary" onClick={() => setPracticeHand(null)}>
+            Close
+          </Button>
+        </Modal.Actions>
+      </Modal>
     </div>
   )
 }
