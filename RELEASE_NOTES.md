@@ -2,6 +2,9 @@
 
 ## 02.24.2026
 
+### 🎉 New Features
+- **Card preview on iPad**: Tap any card on iPad to see an enlarged preview. Tap anywhere outside the card to dismiss. (Phones still use long-press.)
+
 ### 🐞 Bug Fixes
 - **Sticky nav bar positioning fix**: Fixed a rare bug where the deck builder's sticky navigation bar could appear in the middle of the page with blur overlay covering content. Caused by CSS `will-change: transform` interfering with `position: sticky` during view mode transitions.
 
