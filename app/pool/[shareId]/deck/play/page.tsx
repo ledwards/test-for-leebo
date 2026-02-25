@@ -14,6 +14,7 @@ import { jsonParse } from '../../../../../src/utils/json'
 import { defaultSort } from '../../../../../src/services/cards/cardSorting'
 import { calculateAspectPenalty } from '../../../../../src/services/cards/aspectPenalties'
 import Card from '../../../../../src/components/Card'
+import CardWithPreview from '../../../../../src/components/CardWithPreview'
 import Modal from '../../../../../src/components/Modal'
 import Button from '../../../../../src/components/Button'
 import '../../../../../src/App.css'
@@ -1684,7 +1685,7 @@ export default function PlayPage({ params }: PageProps) {
         <Modal.Body>
           <div className="practice-hand-cards">
             {practiceHand?.cards.map((card, i) => (
-              <Card key={`${card.id}-${i}`} card={card} />
+              <CardWithPreview key={`${card.id}-${i}`} card={card} />
             ))}
           </div>
           {practiceHand && (
