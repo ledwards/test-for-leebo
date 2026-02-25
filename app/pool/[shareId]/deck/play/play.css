@@ -743,6 +743,10 @@ a.login-banner-button:focus {
   margin: 0;
 }
 
+.practice-hand-actions {
+  justify-content: center;
+}
+
 @media (max-width: 600px) {
   .practice-hand-cards {
     gap: 0.25rem;

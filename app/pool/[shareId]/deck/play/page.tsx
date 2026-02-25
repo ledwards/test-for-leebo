@@ -1694,7 +1694,7 @@ export default function PlayPage({ params }: PageProps) {
             </div>
           )}
         </Modal.Body>
-        <Modal.Actions>
+        <Modal.Actions className="practice-hand-actions">
           <Button variant="primary" onClick={drawPracticeHand}>
             Draw Another
           </Button>
