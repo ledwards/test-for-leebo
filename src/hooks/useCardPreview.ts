@@ -54,6 +54,17 @@ function isSmallViewport(): boolean {
   return window.innerHeight <= 500 || window.innerWidth <= 768;
 }
 
+/**
+ * Detect if device is a tablet (iPad-like):
+ * - Has touch capability
+ * - Larger screen (not a phone)
+ */
+function isTablet(): boolean {
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isLargeScreen = window.innerWidth >= 768 && window.innerHeight >= 500;
+  return hasTouch && isLargeScreen;
+}
+
 // === HOOK ===
 
 export function useCardPreview(): UseCardPreviewReturn {
@@ -167,7 +178,9 @@ export function useCardPreview(): UseCardPreviewReturn {
     setHoveredCardPreview(null);
   }, []);
 
-  // === MOBILE: long press ===
+  // === MOBILE/TABLET: touch handling ===
+  // - Tablets (iPad): single tap to show/dismiss preview
+  // - Phones: long press (500ms) to show preview
 
   const handleCardTouchStart = useCallback((card: PreviewCard) => {
     longPressTriggeredRef.current = false;
@@ -175,6 +188,21 @@ export function useCardPreview(): UseCardPreviewReturn {
       clearTimeout(longPressTimeoutRef.current);
     }
 
+    // On tablets (iPad), use tap instead of long press
+    if (isTablet()) {
+      // If preview is already showing this card, do nothing (let touchEnd dismiss it)
+      // If showing different card or no preview, show this card
+      longPressTriggeredRef.current = true;
+      setHoveredCardPreview({
+        card,
+        x: 0,
+        y: 0,
+        isMobile: true, // Use mobile/centered layout on tablets too
+      });
+      return;
+    }
+
+    // On phones, use long press
     longPressTimeoutRef.current = setTimeout(() => {
       longPressTriggeredRef.current = true;
       // Center the preview on screen — CardPreview handles mobile sizing
@@ -192,7 +220,7 @@ export function useCardPreview(): UseCardPreviewReturn {
       clearTimeout(longPressTimeoutRef.current);
       longPressTimeoutRef.current = null;
     }
-    // If long press fired, prevent the synthetic click event
+    // If long press or tablet tap fired, prevent the synthetic click event
     if (longPressTriggeredRef.current) {
       e?.preventDefault?.();
       longPressTriggeredRef.current = false;
