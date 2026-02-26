@@ -1,3 +1,5 @@
+@import '../../../../src/styles/animations.css';
+
 /* Pod page - reuses play page patterns */
 .pod-page {
   min-height: 100vh;
@@ -164,187 +166,195 @@
   color: #4ade80;
 }
 
-.pod-match {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+/* Player grid in pod status */
+.pod-player-grid {
+  display: grid;
+  grid-template-rows: repeat(4, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0.5rem;
 }
 
-.pod-match:last-child {
-  border-bottom: none;
-}
-
-.pod-match-player {
+.pod-player-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex: 1;
+  padding: 0.5rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.pod-match-player.right {
-  flex-direction: row-reverse;
-  text-align: right;
+.pod-seat-number {
+  width: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .pod-match-avatar {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
 }
 
 .pod-match-name {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.pod-match-vs {
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-.pod-match-bye {
-  text-align: center;
-  padding: 0.5rem 0;
-  color: rgba(255, 255, 255, 0.6);
-  font-style: italic;
-}
-
-.pod-match-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-left: 0.5rem;
-  flex-shrink: 0;
-}
-
-.pod-view-link {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-family: 'Barlow', sans-serif;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .pod-view-link:hover {
-    color: white;
-    border-color: rgba(74, 222, 128, 0.6);
-    background: rgba(74, 222, 128, 0.1);
-  }
-}
-
-a.pod-view-link,
-a.pod-view-link:visited {
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-}
-
-/* Instructions - reuse play page pattern */
-.pod-instructions {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-}
-
-.pod-instructions h2 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-  color: #4ade80;
-}
-
-.pod-instructions > p {
-  margin: 0 0 1.5rem 0;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.pod-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.pod-step {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.pod-step .step-number {
-  width: 32px;
-  height: 32px;
-  background: rgba(74, 222, 128, 0.2);
-  border: 2px solid #4ade80;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  color: #4ade80;
-  flex-shrink: 0;
-}
-
-.pod-step .step-content h3 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.1rem;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.pod-step .step-content p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.95rem;
-}
-
-.pod-step .step-content a {
-  color: #60a5fa;
-  text-decoration: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .pod-step .step-content a:hover {
-    text-decoration: underline;
-  }
-}
-
-.step-copy-button {
+.pod-eye-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 1px solid rgba(74, 222, 128, 0.5);
-  background: rgba(74, 222, 128, 0.1);
-  color: #4ade80;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .step-copy-button:hover {
-    background: rgba(74, 222, 128, 0.2);
-    border-color: #4ade80;
+  .pod-eye-button:hover {
+    color: white;
+    border-color: rgba(74, 222, 128, 0.6);
+    background: rgba(74, 222, 128, 0.15);
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
   }
 }
 
-/* Action buttons - reuse play page pattern */
+.pod-eye-button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.pod-eye-spinner {
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+}
+
+/* Deck image modal */
+.deck-image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 2rem;
+}
+
+.deck-image-modal-content {
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.deck-image-modal-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .deck-image-modal-close:hover {
+    color: #ff6b6b;
+  }
+}
+
+.deck-image-modal-image {
+  max-width: 100%;
+  max-height: calc(95vh - 80px);
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* Practice hand button */
+.pod-page .practice-hand-button-container {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Feedback message */
+.pod-message {
+  text-align: center;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.pod-message.success {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+
+.pod-message.error {
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff6b6b;
+}
+
+/* Practice hand modal */
+.practice-hand-cards {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.practice-hand-cards .canvas-card {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 140px;
+}
+
+.practice-hand-stats {
+  text-align: center;
+  margin-top: 1.25rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.practice-hand-stats p {
+  margin: 0;
+}
+
+.practice-hand-actions {
+  justify-content: center;
+}
+
+/* Action buttons */
 .pod-actions {
   display: flex;
   gap: 1rem;
@@ -456,27 +466,6 @@ a.pod-discord-link:active {
   text-decoration: none;
 }
 
-/* Message */
-.pod-message {
-  text-align: center;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
-  font-size: 0.9rem;
-}
-
-.pod-message.success {
-  background: rgba(0, 100, 255, 0.2);
-  border: 1px solid #0066ff;
-  color: #cce5ff;
-}
-
-.pod-message.error {
-  background: rgba(255, 0, 0, 0.2);
-  border: 1px solid #ff0000;
-  color: #ffcccc;
-}
-
 /* Back button */
 .pod-back-button {
   display: inline-flex;
@@ -550,23 +539,6 @@ a.pod-discord-link:active {
     padding: 1rem;
   }
 
-  .pod-instructions {
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .pod-instructions h2 {
-    font-size: 1.25rem;
-  }
-
-  .pod-steps {
-    gap: 1rem;
-  }
-
-  .pod-step .step-content p {
-    font-size: 0.85rem;
-  }
-
   .pod-actions {
     flex-direction: column;
   }
@@ -581,23 +553,19 @@ a.pod-discord-link:active {
     padding: 1rem;
   }
 
-  .pod-match {
-    flex-wrap: wrap;
-    gap: 0.5rem;
+  .pod-player-grid {
+    grid-template-columns: 1fr;
   }
 
-  .pod-match-player {
-    flex: unset;
-    width: 100%;
-    justify-content: center;
+  .practice-hand-cards {
+    gap: 0.25rem;
   }
 
-  .pod-match-player.right {
-    flex-direction: row;
+  .practice-hand-cards .canvas-card {
+    max-width: 100px;
   }
 
-  .pod-match-vs {
-    width: 100%;
-    text-align: center;
+  .practice-hand-stats {
+    font-size: 0.8rem;
   }
 }

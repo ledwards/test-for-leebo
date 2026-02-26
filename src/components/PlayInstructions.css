@@ -1,0 +1,200 @@
+.play-instructions {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.play-instructions h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: #4ade80;
+}
+
+.play-instructions > p {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.play-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.play-step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.play-instructions .step-number {
+  width: 32px;
+  height: 32px;
+  background: rgba(74, 222, 128, 0.2);
+  border: 2px solid #4ade80;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #4ade80;
+  flex-shrink: 0;
+}
+
+.play-instructions .step-content h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.play-instructions .step-copy-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 28px;
+  padding: 0 0.5rem;
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .play-instructions .step-copy-button:hover {
+    background: rgba(74, 222, 128, 0.2);
+    border-color: #4ade80;
+  }
+}
+
+.play-instructions .step-content p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+}
+
+.play-instructions .step-content a {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .play-instructions .step-content a:hover {
+    text-decoration: underline;
+  }
+}
+
+.play-instructions-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.play-instructions-action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Barlow', sans-serif;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .play-instructions-action-button:hover {
+    background: rgba(0, 0, 0, 0.85);
+    border-color: rgba(0, 255, 0, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 255, 0, 0.6);
+  }
+}
+
+.play-instructions-action-button.primary {
+  background: rgba(0, 100, 0, 0.3);
+  border-color: rgba(0, 255, 0, 0.6);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .play-instructions-action-button.primary:hover {
+    background: rgba(0, 100, 0, 0.5);
+  }
+}
+
+.play-instructions-action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .play-instructions-action-button:disabled:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.play-instructions-message {
+  text-align: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.play-instructions-message.success {
+  background: rgba(0, 100, 255, 0.2);
+  border: 1px solid #0066ff;
+  color: #cce5ff;
+}
+
+.play-instructions-message.error {
+  background: rgba(255, 0, 0, 0.2);
+  border: 1px solid #ff0000;
+  color: #ffcccc;
+}
+
+@media (max-width: 768px) {
+  .play-instructions {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .play-instructions h2 {
+    font-size: 1.25rem;
+  }
+
+  .play-steps {
+    gap: 1rem;
+  }
+
+  .play-instructions .step-content p {
+    font-size: 0.85rem;
+  }
+
+  .play-instructions-actions {
+    flex-direction: column;
+  }
+
+  .play-instructions-action-button {
+    width: 100%;
+    justify-content: center;
+    padding: 0.875rem 1rem;
+  }
+}
