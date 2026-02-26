@@ -124,12 +124,10 @@ export async function broadcastDraftState(shareId: string): Promise<void> {
     ) as DraftPlayer[]
 
     const draftState = jsonParse<Record<string, unknown>>(pod.draft_state, {}) as Record<string, unknown>
-    const isLeaderDraftPhase = draftState?.['phase'] === 'leader_draft'
 
     // Build PUBLIC player data (visible to all)
     const publicPlayers: PublicPlayer[] = players.map(p => {
       const draftedLeaders = jsonParse<unknown[]>(p.drafted_leaders, []) as { name: string; aspects?: string[]; imageUrl: string; backImageUrl: string }[]
-      const leadersPack = jsonParse<unknown[]>(p.leaders, []) as { name: string; aspects?: string[]; imageUrl: string; backImageUrl: string }[]
 
       return {
         id: p.id,
@@ -139,13 +137,8 @@ export async function broadcastDraftState(shareId: string): Promise<void> {
         seatNumber: p.seat_number,
         pickStatus: p.pick_status,
         isBot: p.is_bot === true,
-        // During leader draft, show each player's leader pack (packs rotate anyway)
-        leaderPack: isLeaderDraftPhase ? leadersPack.map(l => ({
-          name: l.name,
-          aspects: l.aspects || [],
-          imageUrl: l.imageUrl,
-          backImageUrl: l.backImageUrl,
-        })) : null,
+        // Never expose other players' leader packs - clients get their own via HTTP myPlayer
+        leaderPack: null,
         draftedCardsCount: (jsonParse<unknown[]>(p.drafted_cards, []) as unknown[]).length,
         draftedLeadersCount: draftedLeaders.length,
         draftedLeaders: draftedLeaders.map(l => ({

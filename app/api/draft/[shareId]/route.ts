@@ -105,8 +105,8 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         currentPack: session && p.user_id === session.id
           ? jsonParse(p.current_pack)
           : null,
-        // During leader draft, show each player's leader pack to all (packs rotate anyway)
-        leaderPack: isLeaderDraftPhase ? leadersPack.map(l => ({
+        // Only show leader pack to the owning player (prevent cheating via network inspection)
+        leaderPack: (session && p.user_id === session.id && isLeaderDraftPhase) ? leadersPack.map(l => ({
           name: l.name,
           aspects: l.aspects || [],
           imageUrl: l.imageUrl,
