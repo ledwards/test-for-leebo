@@ -48,9 +48,11 @@
   transition: filter 0.3s ease, opacity 0.3s ease;
 }
 
-.draftable-card.dimmed:hover > div {
-  filter: grayscale(50%);
-  opacity: 0.85;
+@media (hover: hover) and (pointer: fine) {
+  .draftable-card.dimmed:hover > div {
+    filter: grayscale(50%);
+    opacity: 0.85;
+  }
 }
 
 /* Selected card should NEVER be dimmed - even if dimmed class is present */

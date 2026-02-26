@@ -8,6 +8,7 @@
 
 import { query, queryRow, queryRows } from '@/lib/db'
 import { getPassDirection, getLeaderPassDirection, getNextSeat } from './draftLogic'
+import { buildBotDecks } from './botDeckBuilder'
 import type { RawCard } from './cardData'
 
 interface DraftState {
@@ -124,6 +125,25 @@ export async function processAllStagedPicks(
            WHERE id = $3`,
           [JSON.stringify(draftedLeaders), JSON.stringify(remainingLeaders), player.id]
         )
+
+        // Record in draft_picks for analytics
+        try {
+          await query(
+            `INSERT INTO draft_picks (
+              draft_pod_id, user_id, card_id, card_name, set_code, rarity,
+              card_type, variant_type, is_leader, pack_number, pick_in_pack,
+              pick_number, leader_round
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, 0, $9, $10, $11)`,
+            [
+              podId, player.user_id,
+              pickedLeader.id, pickedLeader.name, pickedLeader.set, pickedLeader.rarity,
+              pickedLeader.type, pickedLeader.variantType || 'Normal',
+              leaderRound, pickedLeader.pickNumber, leaderRound
+            ]
+          )
+        } catch (err) {
+          console.error('[DRAFT_PICKS] Error recording leader pick:', err)
+        }
       }
     }
 
@@ -172,6 +192,25 @@ export async function processAllStagedPicks(
            WHERE id = $3`,
           [JSON.stringify(draftedCards), JSON.stringify(remainingPack), player.id]
         )
+
+        // Record in draft_picks for analytics
+        try {
+          await query(
+            `INSERT INTO draft_picks (
+              draft_pod_id, user_id, card_id, card_name, set_code, rarity,
+              card_type, variant_type, is_leader, pack_number, pick_in_pack,
+              pick_number, leader_round
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false, $9, $10, $11, NULL)`,
+            [
+              podId, player.user_id,
+              pickedCard.id, pickedCard.name, pickedCard.set, pickedCard.rarity,
+              pickedCard.type, pickedCard.variantType || 'Normal',
+              packNumber, pickInPack, pickedCard.pickNumber
+            ]
+          )
+        } catch (err) {
+          console.error('[DRAFT_PICKS] Error recording card pick:', err)
+        }
       }
     }
 
@@ -327,6 +366,14 @@ async function advancePackDraftAfterPicks(
          WHERE id = $2`,
         [JSON.stringify({ ...draftState, phase: 'complete' }), podId]
       )
+
+      // Build decks for bot players (fire-and-forget)
+      const podForBots = await queryRow('SELECT * FROM draft_pods WHERE id = $1', [podId])
+      const botSettings = typeof podForBots?.settings === 'string' ? JSON.parse(podForBots.settings) : podForBots?.settings || {}
+      buildBotDecks(podId, podForBots?.set_code || draftState.setCode || '', botSettings).catch(err =>
+        console.error('[BOT_DECK] Error building bot decks:', err)
+      )
+
       return
     }
 
@@ -590,6 +637,14 @@ export async function checkAndAdvancePackDraft(
          WHERE id = $2`,
         [JSON.stringify({ ...draftState, phase: 'complete' }), podId]
       )
+
+      // Build decks for bot players (fire-and-forget)
+      const podForBots = await queryRow('SELECT * FROM draft_pods WHERE id = $1', [podId])
+      const botSettings = typeof podForBots?.settings === 'string' ? JSON.parse(podForBots.settings) : podForBots?.settings || {}
+      buildBotDecks(podId, podForBots?.set_code || draftState.setCode || '', botSettings).catch(err =>
+        console.error('[BOT_DECK] Error building bot decks:', err)
+      )
+
       return true
     }
 

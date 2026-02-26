@@ -17,6 +17,7 @@ import Card from '../../../../../src/components/Card'
 import CardWithPreview from '../../../../../src/components/CardWithPreview'
 import Modal from '../../../../../src/components/Modal'
 import Button from '../../../../../src/components/Button'
+import PlayInstructions from '../../../../../src/components/PlayInstructions'
 import '../../../../../src/App.css'
 import './play.css'
 
@@ -125,6 +126,11 @@ export default function PlayPage({ params }: PageProps) {
         if (poolData.poolType === 'draft' && poolData.draftShareId) {
           fetchOpponent(poolData.draftShareId)
         }
+
+        // For sealed pod pools, fetch opponent info from sealed pod API
+        if (poolData.poolType === 'sealed_pod' && poolData.draftShareId) {
+          fetchSealedPodOpponent(poolData.draftShareId)
+        }
       } catch (err) {
         console.error('Failed to load pool:', err)
         setError(err instanceof Error ? err.message : 'Failed to load pool')
@@ -228,6 +234,47 @@ export default function PlayPage({ params }: PageProps) {
     }
   }
 
+  const fetchSealedPodOpponent = async (draftShareId: string) => {
+    try {
+      const response = await fetch(`/api/sealed/${draftShareId}/pod`, {
+        credentials: 'include'
+      })
+      if (!response.ok) return
+
+      const json = await response.json()
+      const data = json.data || json
+
+      if (!data.pairings) return
+
+      const pairings = data.pairings
+      const players = data.players || []
+
+      // Check if user has a bye
+      if (pairings.byePlayerId === user?.id) {
+        setHasBye(true)
+        return
+      }
+
+      // Find this user's match
+      const myMatch = (pairings.matches || []).find(
+        (m: { player1Id: string; player2Id: string }) =>
+          m.player1Id === user?.id || m.player2Id === user?.id
+      )
+
+      if (myMatch) {
+        const opponentId = myMatch.player1Id === user?.id
+          ? myMatch.player2Id
+          : myMatch.player1Id
+        const opponent = players.find((p: Player) => p.id === opponentId)
+        if (opponent) {
+          setFirstOpponent(opponent)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch sealed pod opponent:', err)
+    }
+  }
+
   const getDeckData = () => {
     if (!pool?.deckBuilderState) return null
 
@@ -294,8 +341,7 @@ export default function PlayPage({ params }: PageProps) {
 
   const copyDeckLink = async () => {
     try {
-      const deckJsonUrl = `${window.location.origin}/api/pools/${shareId}/deck.json`
-      await navigator.clipboard.writeText(deckJsonUrl)
+      await navigator.clipboard.writeText(window.location.href)
       setMessage('Deck link copied!')
       setMessageType('success')
       setTimeout(() => { setMessage(null); setMessageType(null) }, 3000)
@@ -1465,7 +1511,7 @@ export default function PlayPage({ params }: PageProps) {
   const packArtUrl = pool?.setCode ? getPackArtUrl(pool.setCode) : null
   const setConfig = pool?.setCode ? getSetConfig(pool.setCode) : null
   const isOwner = user && pool?.owner?.id === user.id
-  const poolTypeLabel = pool?.poolType === 'draft' ? 'Draft Pool' : 'Sealed Pool'
+  const poolTypeLabel = pool?.poolType === 'draft' ? 'Draft Pool' : pool?.poolType === 'sealed_pod' ? 'Sealed Pod Pool' : 'Sealed Pool'
 
   // Get pool name from deckBuilderState first, then fall back to pool.name
   const getPoolName = () => {
@@ -1563,127 +1609,21 @@ export default function PlayPage({ params }: PageProps) {
           </div>
         )}
 
-        <div className="play-instructions">
-          <h2>Ready to Play!</h2>
-          <p>Your deck is ready. Here's how to get started:</p>
-
-          <div className="play-steps">
-            <div className="play-step">
-              <span className="step-number">1</span>
-              <div className="step-content">
-                {hasBetaAccess ? (
-                  <>
-                    <h3>Copy Your Deck:
-                      <button className="step-copy-button" onClick={copyDeckLink} title="Copy deck link">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                        </svg>
-                        Link
-                      </button>
-                      <button className="step-copy-button" onClick={copyToClipboard} title="Copy deck JSON">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                        JSON
-                      </button>
-                    </h3>
-                    <p>Copy your deck link for <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">Karabast</a>, or copy the deck JSON for <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">SWUDB</a>.</p>
-                  </>
-                ) : (
-                  <>
-                    <h3>
-                      Copy Your Deck
-                      <button className="step-copy-button" onClick={copyToClipboard}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                      </button>
-                    </h3>
-                    <p>Copy your deck in JSON format.</p>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="play-step">
-              <span className="step-number">2</span>
-              <div className="step-content">
-                <h3>Find Your Opponent</h3>
-                {pool?.poolType === 'draft' ? (
-                  hasBye ? (
-                    <p>You have a bye this round (organizer privilege for odd-numbered pods).</p>
-                  ) : firstOpponent ? (
-                    <p>Your first round opponent is <strong>{firstOpponent.username || 'Unknown Player'}</strong>. Reach out to them on Discord to schedule your match!</p>
-                  ) : (
-                    <p>Find an opponent in the <a href="https://discord.gg/u6fkdDzWqF" target="_blank" rel="noopener noreferrer">Protect the Pod Discord</a> or play against someone you know.</p>
-                  )
-                ) : (
-                  <p>Find an opponent in the <a href="https://discord.gg/u6fkdDzWqF" target="_blank" rel="noopener noreferrer">Protect the Pod Discord</a> or play against someone you know.</p>
-                )}
-              </div>
-            </div>
-
-            <div className="play-step">
-              <span className="step-number">3</span>
-              <div className="step-content">
-                <h3>Play on Karabast</h3>
-                {hasBetaAccess ? (
-                  <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and paste your deck link or JSON. Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
-                ) : (
-                  <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and load your deck (by pasting JSON into Karabast directly, or via <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">swudb.com</a> if you prefer). Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="play-actions">
-          {hasBetaAccess && (
-            <button className="play-action-button primary" onClick={copyDeckLink}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-              </svg>
-              Copy Link
-            </button>
-          )}
-
-          <button className={`play-action-button${hasBetaAccess ? '' : ' primary'}`} onClick={copyToClipboard}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            {hasBetaAccess ? 'Copy JSON' : 'Copy to Clipboard'}
-          </button>
-
-          <button className="play-action-button" onClick={downloadJSON}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Download
-          </button>
-
-          <button className="play-action-button" onClick={exportDeckImage} disabled={generatingImage}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <circle cx="8.5" cy="8.5" r="1.5"></circle>
-              <polyline points="21 15 16 10 5 21"></polyline>
-            </svg>
-            {generatingImage ? 'Generating...' : 'Deck Image'}
-          </button>
-
-        </div>
-
-        {message && (
-          <div className={`play-message ${messageType}`}>
-            {message}
-          </div>
-        )}
+        <PlayInstructions
+          shareId={shareId}
+          poolType={pool?.poolType || 'sealed'}
+          hasBetaAccess={hasBetaAccess}
+          opponentName={firstOpponent?.username}
+          hasBye={hasBye}
+          onCopyLink={copyDeckLink}
+          onCopyJson={copyToClipboard}
+          onDownload={downloadJSON}
+          onDeckImage={exportDeckImage}
+          generatingImage={generatingImage}
+          message={message}
+          messageType={messageType}
+          showActions={true}
+        />
       </div>
 
       {deckImageModal && (

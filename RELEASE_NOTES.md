@@ -1,5 +1,16 @@
 # Release Notes
 
+## 02.26.2026
+
+### 🎉 New Features
+- **Draft pod page overhaul**: Completely reworked the post-draft pod page with new action buttons (Copy Link, Copy JSON, Download, Deck Image), Practice Hand, and a 2-column player status grid for the host.
+- **Bot deck building**: Bots now automatically build decks when a draft completes. They select a leader using power rankings, pick the best matching base, score all drafted cards, and build a 30-card deck. Bot players show "Ready" on the pod page instead of "Building" forever.
+- **Host deck viewer**: Draft hosts can click the eye icon next to any "Ready" player to view their deck as a generated image popup.
+- **Shared Play Instructions component**: Extracted the how-to-play instructions into a shared component used by both the pod page and play page, fixing the wrong Discord URL on the pod page.
+
+### 🐞 Bug Fixes
+- **Card preview on hover not working in Draft**: Fixed a bug where the enlarged card preview on hover was broken for some Chrome desktop users during the draft picking phase. The mobile detection was checking `ontouchstart` and `maxTouchPoints`, which false-positive on touchscreen laptops and certain Chrome configurations. Sealed mode was unaffected because it uses a different (viewport-only) check. Now both use the same viewport-based detection.
+
 ## 02.24.2026
 
 ### 🎉 New Features

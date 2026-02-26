@@ -80,10 +80,8 @@ function DraftableCard({
   const handleMouseEnter = (e: MouseEvent<HTMLDivElement>) => {
     onHover?.(card)
 
-    // MOBILE: Never show hover preview on mobile/touch devices
-    // Check both screen width and touch capability to be safe
-    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
-    if (isMobile) return
+    // Skip hover preview on small viewports (use same check as useCardPreview)
+    if (window.innerWidth <= 768 || window.innerHeight <= 500) return
 
     const rect = e.currentTarget.getBoundingClientRect()
 
