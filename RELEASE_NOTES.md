@@ -8,6 +8,9 @@
 - **Play page improvements**: Updated instructions with Discord link for finding opponents.
 - **Card preview on iPad**: Tap any card on iPad to see an enlarged preview. Tap anywhere outside the card to dismiss. (Phones still use long-press.)
 
+### 🔒 Security
+- **Leader draft pack visibility**: During the leader draft phase, other players' available leader packs were visible via network inspection (browser DevTools). Leader packs are now only sent to the owning player, preventing opponents from seeing what leaders are available to other drafters.
+
 ### 🐞 Bug Fixes
 - **Sticky nav bar positioning fix**: Fixed a rare bug where the deck builder's sticky navigation bar could appear in the middle of the page with blur overlay covering content. Caused by CSS `will-change: transform` interfering with `position: sticky` during view mode transitions.
 
