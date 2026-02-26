@@ -2,6 +2,8 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useCardPreview } from '@/src/hooks/useCardPreview'
+import { CardPreview } from '@/src/components/DeckBuilder/CardPreview'
 import './stats.css'
 
 interface Treatment {
@@ -112,8 +114,9 @@ interface QAResults {
   }
 }
 
-// Stats start date - from env var or default to include all historical data
-const STATS_START_DATE = process.env.NEXT_PUBLIC_STATS_START_DATE || '2020-01-01'
+// Stats start date - default to 2026-02-12 when position-based slot_type tracking was deployed.
+// Earlier data used rarity-based inference which misclassified UC3→Rare upgrades.
+const STATS_START_DATE = process.env.NEXT_PUBLIC_STATS_START_DATE || '2026-02-12'
 
 // Format numbers with commas
 const fmt = (n: number) => n.toLocaleString()
@@ -218,7 +221,25 @@ export default function StatsPage() {
         ) : activeTab === 'Overall' ? (
           <QATab />
         ) : loading ? (
-          <div className="stats-loading">Loading statistics...</div>
+          <div className="stats-loading-skeleton">
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+              {['Cards', 'Packs', 'Quality'].map(label => (
+                <div key={label} className="skeleton-block" style={{ width: '80px', height: '32px' }} />
+              ))}
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <div className="skeleton-line" style={{ width: '200px', height: '1.1rem', marginBottom: '1rem' }} />
+            </div>
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="skeleton-row">
+                <div className="skeleton-line" style={{ maxWidth: '140px' }} />
+                <div className="skeleton-line" style={{ maxWidth: '80px' }} />
+                <div className="skeleton-line" style={{ maxWidth: '60px' }} />
+                <div className="skeleton-line" style={{ maxWidth: '60px' }} />
+                <div className="skeleton-line" style={{ maxWidth: '60px' }} />
+              </div>
+            ))}
+          </div>
         ) : error ? (
           <div className="stats-error">Error: {error}</div>
         ) : (
@@ -235,7 +256,7 @@ interface GenerationStatsTabProps {
 }
 
 function GenerationStatsTab({ stats, setCode }: GenerationStatsTabProps) {
-  const [subTab, setSubTab] = useState('quality')
+  const [subTab, setSubTab] = useState('cards')
   const [qualityData, setQualityData] = useState<QualityData | null>(null)
   const [qualityLoading, setQualityLoading] = useState(true)
 
@@ -309,19 +330,13 @@ function GenerationStatsTab({ stats, setCode }: GenerationStatsTabProps) {
         )}
       </div>
 
-      {/* Sub-tabs for Quality, Cards and Packs */}
+      {/* Sub-tabs */}
       <div className="stats-subtabs">
-        <button
-          className={`stats-subtab ${subTab === 'quality' ? 'active' : ''}`}
-          onClick={() => setSubTab('quality')}
-        >
-          Quality
-        </button>
         <button
           className={`stats-subtab ${subTab === 'cards' ? 'active' : ''}`}
           onClick={() => setSubTab('cards')}
         >
-          Cards
+          Draft Picks
         </button>
         <button
           className={`stats-subtab ${subTab === 'packs' ? 'active' : ''}`}
@@ -329,79 +344,220 @@ function GenerationStatsTab({ stats, setCode }: GenerationStatsTabProps) {
         >
           Packs
         </button>
+        <button
+          className={`stats-subtab ${subTab === 'quality' ? 'active' : ''}`}
+          onClick={() => setSubTab('quality')}
+        >
+          QA
+        </button>
       </div>
 
-      {subTab === 'quality' ? (
-        <QualitySubTab data={qualityData} loading={qualityLoading} />
-      ) : subTab === 'cards' ? (
-        <CardsSubTab stats={stats} setCode={setCode} hasEnoughData={hasEnoughData} />
-      ) : (
+      {subTab === 'cards' ? (
+        <CardsSubTab setCode={setCode} />
+      ) : subTab === 'packs' ? (
         <PacksSubTab setCode={setCode} />
+      ) : (
+        <QualitySubTab data={qualityData} loading={qualityLoading} />
       )}
     </div>
   )
 }
 
-interface CardsSubTabProps {
-  stats: Stats
-  setCode: string
-  hasEnoughData: boolean
+interface DraftPickCard {
+  cardName: string
+  cardId: string
+  rarity: string
+  cardType: string
+  timesPicked: number
+  firstPicks: number
+  firstPickPct: number | null
+  avgPickPosition: number
+  draftsSeenIn: number
+  aspects: string[]
+  subtitle: string | null
+  cost: number | null
+  imageUrl: string | null
 }
 
-function CardsSubTab({ stats, setCode, hasEnoughData }: CardsSubTabProps) {
+interface DraftPickStats {
+  setCode: string
+  totalPicks: number
+  totalDrafts: number
+  totalDrafters: number
+  cards: DraftPickCard[]
+}
+
+type SortKey = 'cardName' | 'rarity' | 'avgPickPosition' | 'firstPickPct' | 'timesPicked'
+
+const RARITY_ORDER: Record<string, number> = { 'Legendary': 0, 'Rare': 1, 'Uncommon': 2, 'Common': 3 }
+
+interface CardsSubTabProps {
+  setCode: string
+}
+
+function CardsSubTab({ setCode }: CardsSubTabProps) {
+  const [data, setData] = useState<DraftPickStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [sortKey, setSortKey] = useState<SortKey>('avgPickPosition')
+  const [sortAsc, setSortAsc] = useState(true)
+  const {
+    hoveredCardPreview,
+    handleCardMouseEnter,
+    handleCardMouseLeave,
+    handlePreviewMouseEnter,
+    handlePreviewMouseLeave,
+    handleCardTouchStart,
+    handleCardTouchEnd,
+    dismissPreview,
+  } = useCardPreview()
+
+  useEffect(() => {
+    setLoading(true)
+    fetch(`/api/stats/draft-picks?setCode=${setCode}&since=${STATS_START_DATE}`)
+      .then(r => r.json())
+      .then(result => setData(result.data || result))
+      .catch(err => console.error('Error fetching draft picks:', err))
+      .finally(() => setLoading(false))
+  }, [setCode])
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortAsc(!sortAsc)
+    } else {
+      setSortKey(key)
+      // Default direction: ASC for avgPickPosition/name, DESC for firstPickPct/timesPicked
+      setSortAsc(key === 'avgPickPosition' || key === 'cardName')
+    }
+  }
+
+  const sortedCards = useMemo(() => {
+    if (!data?.cards) return []
+    return [...data.cards].sort((a, b) => {
+      let cmp = 0
+      switch (sortKey) {
+        case 'cardName': cmp = a.cardName.localeCompare(b.cardName); break
+        case 'rarity': cmp = (RARITY_ORDER[a.rarity] ?? 9) - (RARITY_ORDER[b.rarity] ?? 9); break
+        case 'avgPickPosition': cmp = a.avgPickPosition - b.avgPickPosition; break
+        case 'firstPickPct': cmp = (a.firstPickPct ?? -1) - (b.firstPickPct ?? -1); break
+        case 'timesPicked': cmp = a.timesPicked - b.timesPicked; break
+      }
+      return sortAsc ? cmp : -cmp
+    })
+  }, [data?.cards, sortKey, sortAsc])
+
+  if (loading) return (
+    <div className="stats-loading-skeleton">
+      {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+        <div key={i} className="skeleton-row">
+          <div className="skeleton-line" style={{ maxWidth: '140px' }} />
+          <div className="skeleton-line" style={{ maxWidth: '60px' }} />
+          <div className="skeleton-line" style={{ maxWidth: '60px' }} />
+          <div className="skeleton-line" style={{ maxWidth: '80px' }} />
+        </div>
+      ))}
+    </div>
+  )
+
+  if (!data || data.cards.length === 0) {
+    return (
+      <div className="stats-empty">
+        <p>No draft data available for {setCode} yet.</p>
+        <p>Draft pick statistics will appear after drafts are completed.</p>
+      </div>
+    )
+  }
+
+  const SortHeader = ({ label, col, title }: { label: string, col: SortKey, title?: string }) => (
+    <th className={`sortable ${sortKey === col ? 'active' : ''}`} onClick={() => handleSort(col)} title={title}>
+      {label}
+      {sortKey === col && <span className="sort-indicator">{sortAsc ? ' ▲' : ' ▼'}</span>}
+    </th>
+  )
+
+  const pickClass = (avg: number) =>
+    avg <= 3 ? 'pick-early' : avg <= 7 ? 'pick-mid' : 'pick-late'
+
+  const rarityClass = (r: string) =>
+    `rarity-${r.toLowerCase()}`
+
   return (
     <div className="cards-subtab">
-      {/* Cards table only - stats are above the tabs now */}
+      <div className="draft-picks-summary">
+        <div className="stat-item">
+          <span className="stat-label">Drafts:</span>
+          <span className="stat-value">{fmt(data.totalDrafts)}</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">Total Picks:</span>
+          <span className="stat-value">{fmt(data.totalPicks)}</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">Drafters:</span>
+          <span className="stat-value">{fmt(data.totalDrafters)}</span>
+        </div>
+      </div>
+
+      {data.totalPicks < 100 && (
+        <p className="stats-warning">
+          Small sample size ({fmt(data.totalPicks)} picks from {fmt(data.totalDrafts)} drafts). Statistics may not be reliable yet.
+        </p>
+      )}
+
       <div className="stats-table-container">
         <table className="stats-table">
           <thead>
             <tr>
-              <th>Card #</th>
-              <th>Name</th>
-              <th>Type</th>
+              <SortHeader label="Name" col="cardName" />
+              <SortHeader label="Avg Pick" col="avgPickPosition" title="Average position this card is picked within a pack (1 = first pick, 14 = last). Lower is better." />
+              <SortHeader label="1st Pick" col="firstPickPct" title="How often this card is the first pick out of a fresh pack (pick position 1 of 14)." />
+              <SortHeader label="Rarity" col="rarity" />
               <th>Aspects</th>
-              <th>Base</th>
-              <th>Hyperspace</th>
-              <th>Foil</th>
-              <th>Hyper Foil</th>
-              <th>Showcase</th>
+              <SortHeader label="# Drafted" col="timesPicked" title="Total number of times this card was drafted across all drafts." />
             </tr>
           </thead>
           <tbody>
-            {stats.cards.map(card => (
+            {sortedCards.map(card => (
               <tr key={card.cardId}>
-                <td>{card.cardId.split('-')[1]}</td>
-                <td>
-                  <div className="card-name-cell">
-                    <div className="card-name">{card.name}</div>
-                    {card.subtitle && (
-                      <div className="card-subtitle">{card.subtitle}</div>
-                    )}
-                  </div>
+                <td
+                  className="card-name-cell"
+                  onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity }, e)}
+                  onMouseLeave={handleCardMouseLeave}
+                  onTouchStart={() => handleCardTouchStart({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity })}
+                  onTouchEnd={handleCardTouchEnd}
+                >
+                  <span className="card-name">{card.cardName}</span>
+                  {card.subtitle && <span className="card-subtitle-inline">, {card.subtitle}</span>}
                 </td>
-                <td>{card.type}</td>
+                <td className={pickClass(card.avgPickPosition)}>{Math.round(card.avgPickPosition)}</td>
+                <td className={card.firstPickPct && card.firstPickPct >= 10 ? 'first-pick-high' : ''}>
+                  {card.firstPicks}/{card.timesPicked} ({card.firstPickPct !== null ? `${card.firstPickPct}%` : '—'})
+                </td>
+                <td><span className={rarityClass(card.rarity)}>{card.rarity}</span></td>
                 <td>
                   <div className="aspects-cell">
-                    {card.aspects && card.aspects.map((aspect, i) => (
-                      <img
-                        key={i}
-                        src={`/icons/${aspect.toLowerCase()}.png`}
-                        alt={aspect}
-                        className="aspect-icon"
-                      />
+                    {card.aspects.map((aspect, i) => (
+                      <img key={i} src={`/icons/${aspect.toLowerCase()}.png`} alt={aspect} className="aspect-icon" />
                     ))}
                   </div>
                 </td>
-                <TreatmentCell treatment={card.analysis?.base} hasEnoughData={hasEnoughData} />
-                <TreatmentCell treatment={card.analysis?.hyperspace} hasEnoughData={hasEnoughData} />
-                <TreatmentCell treatment={card.analysis?.foil} hasEnoughData={hasEnoughData} />
-                <TreatmentCell treatment={card.analysis?.hyperspace_foil} hasEnoughData={hasEnoughData} />
-                <TreatmentCell treatment={card.analysis?.showcase} hasEnoughData={hasEnoughData} />
+                <td>{fmt(card.timesPicked)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {hoveredCardPreview && (
+        <CardPreview
+          card={hoveredCardPreview.card}
+          x={hoveredCardPreview.x}
+          y={hoveredCardPreview.y}
+          isMobile={hoveredCardPreview.isMobile}
+          onMouseEnter={handlePreviewMouseEnter}
+          onMouseLeave={handlePreviewMouseLeave}
+          onDismiss={dismissPreview}
+        />
+      )}
     </div>
   )
 }
@@ -569,7 +725,17 @@ function PacksSubTab({ setCode }: PacksSubTabProps) {
   }, [packs])
 
   if (loading && packs.length === 0) {
-    return <div className="stats-loading">Loading packs...</div>
+    return (
+      <div className="stats-loading-skeleton">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="skeleton-row">
+            <div className="skeleton-line" style={{ maxWidth: '100px' }} />
+            <div className="skeleton-line" style={{ maxWidth: '200px' }} />
+            <div className="skeleton-line" style={{ maxWidth: '80px' }} />
+          </div>
+        ))}
+      </div>
+    )
   }
 
   if (packs.length === 0) {
@@ -1521,7 +1687,17 @@ function QATab() {
   }
 
   if (loading) {
-    return <div className="stats-loading">Loading QA results...</div>
+    return (
+      <div className="stats-loading-skeleton">
+        {[1, 2, 3, 4, 5].map(i => (
+          <div key={i} className="skeleton-row">
+            <div className="skeleton-line" style={{ maxWidth: '120px' }} />
+            <div className="skeleton-line" style={{ maxWidth: '80px' }} />
+            <div className="skeleton-line" style={{ maxWidth: '60px' }} />
+          </div>
+        ))}
+      </div>
+    )
   }
 
   return (
@@ -1712,7 +1888,17 @@ function QualitySubTab({ data, loading }: QualitySubTabProps) {
   )
 
   if (loading) {
-    return <div className="stats-loading">Loading pack quality data...</div>
+    return (
+      <div className="stats-loading-skeleton">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="skeleton-row">
+            <div className="skeleton-line" style={{ maxWidth: '160px' }} />
+            <div className="skeleton-line" style={{ maxWidth: '80px' }} />
+            <div className="skeleton-line" style={{ maxWidth: '80px' }} />
+          </div>
+        ))}
+      </div>
+    )
   }
 
   if (!data) {

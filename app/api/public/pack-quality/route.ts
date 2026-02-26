@@ -10,15 +10,23 @@
  *   - all: If "true", returns summary for all sets
  */
 import { jsonResponse, handleApiError } from '@/lib/utils'
+import { applyRateLimit } from '@/lib/rateLimit'
 import { getPackQualityData, getAvailableSets } from '@/src/services/packQualityService'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    // Rate limit check
+    const rateLimitResponse = applyRateLimit(request)
+    if (rateLimitResponse) return rateLimitResponse as unknown as NextResponse
+
     const url = new URL(request.url)
     const setCode = url.searchParams.get('setCode')
     const all = url.searchParams.get('all') === 'true'
-    const since = url.searchParams.get('since') || '2020-01-01'
+    // Default to 2026-02-12 when position-based slot_type tracking was deployed.
+    // Earlier data used rarity-based inference which misclassified UC3→Rare upgrades
+    // as 'rare_legendary', corrupting legendary rate and slot composition metrics.
+    const since = url.searchParams.get('since') || '2026-02-12'
 
     // If requesting all sets summary
     if (all) {

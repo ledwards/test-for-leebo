@@ -350,9 +350,9 @@ export function buildMetricResult(
  * instead of 'uncommon').
  *
  * @param setCode - The set code (SOR, SHD, TWI, JTL, LOF, SEC, LAW)
- * @param since - ISO date string to filter data (default: 2020-01-01)
+ * @param since - ISO date string to filter data (default: 2026-02-12, when position-based tracking was deployed)
  */
-export async function getPackQualityData(setCode: string, since: string = '2020-01-01'): Promise<PackQualityData> {
+export async function getPackQualityData(setCode: string, since: string = '2026-02-12'): Promise<PackQualityData> {
   const constants = getPackConstants(setCode)
   const setNumber = getSetNumber(setCode)
 
