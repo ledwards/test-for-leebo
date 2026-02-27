@@ -1,9 +1,36 @@
 # Release Notes
 
+## 02.26.2026
+
+### 🎉 New Features
+- **Solo and Pod modes**: The homepage now separtes into Solo and Pod modes. Use Solo to rpactice by yourself, or to make Limited format decks that you can play against someone later. Use Pod Play to join an existing Draft or Sealed Pod listed publicly on the site, or to start a private pod with your friends.
+- **Sealed pods**: You can now start a Sealed Pod. Just like a Draft Pod, but sealed!
+- **Draft logs**: You can now see your Draft picks in order after the fact to help improve your draft picking. These default to private, but can be made public by clicking the lock icon so you can share with friends and teammates for feedback.
+- **Stats overhaul**: Stats is now focused on competitive data based on anonymized, aggregate data collection. Pack quality metrics are moved to the QA page.
+- **Public API**: A very early API supports these statsand also exporting your personal data. Documentation at [https://www.protectthepod.com/api](https://www.protectthepod.com/api)
+
+### 📦 Pack Generation
+- **Foil legendary rate fixed**: Fixed foil slot over-representing legendary cards. 
+
+### 📊 Stats & Quality
+- **Duplicate metrics split by format**: Duplicate/triplicate tracking now separates sealed pools (6 packs per pool) from draft (3 packs per player). Previously draft data was mixed into sealed expectations, producing extreme z-scores. Sealed groups by pool, draft groups by the 3 packs each player opens. Both display separately on the QA page.
+
+### 🐞 Bug Fixes
+- **Card preview on hover not working in Draft**: Fixed a bug where the enlarged card preview on hover was broken for some Chrome desktop users during the draft picking phase.
+
+### 📝 Terms of Service
+- **No tournaments allowed** We want to make clear that Protect the Pod exists to support the Star War Unlimited limited scene, not replace it. Tournaments are not allowed on the platform, which is intended purely for competitve practice and fun casual formats. More information about this rule on the Discord.
+
 ## 02.24.2026
 
 ### 🎉 New Features
+- **Karabast deck source integration**: Added a deck.json API endpoint for compatibility with Karabast and other SWU tools. A companion PR has been submitted to the Karabast project to add Protect the Pod as a supported deck source.
+- **Copy Deck Link on Play page** (beta testers only): Copy your deck link directly from the Play page to paste into Karabast.
+- **Play page improvements**: Updated instructions with Discord link for finding opponents.
 - **Card preview on iPad**: Tap any card on iPad to see an enlarged preview. Tap anywhere outside the card to dismiss. (Phones still use long-press.)
+
+### 🔒 Security
+- **Leader draft pack visibility**: During the leader draft phase, other players' available leader packs were visible via network inspection (browser DevTools). Leader packs are now only sent to the owning player, preventing opponents from seeing what leaders are available to other drafters.
 
 ### 🐞 Bug Fixes
 - **Sticky nav bar positioning fix**: Fixed a rare bug where the deck builder's sticky navigation bar could appear in the middle of the page with blur overlay covering content. Caused by CSS `will-change: transform` interfering with `position: sticky` during view mode transitions.
