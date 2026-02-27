@@ -23,7 +23,7 @@ const DECK_SIZE = 30
 export async function buildBotDecks(podId: string, setCode: string, settings: Record<string, unknown> = {}): Promise<void> {
   // Get all bot players in this pod
   const botPlayers = await queryRows(
-    `SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 AND is_bot = true`,
+    `SELECT * FROM pod_players WHERE pod_id = $1 AND is_bot = true`,
     [podId]
   )
 
@@ -31,7 +31,7 @@ export async function buildBotDecks(podId: string, setCode: string, settings: Re
 
   // Get the pod for metadata
   const pod = await queryRow(
-    'SELECT * FROM draft_pods WHERE id = $1',
+    'SELECT * FROM pods WHERE id = $1',
     [podId]
   )
 
@@ -54,7 +54,7 @@ async function buildSingleBotDeck(
 ): Promise<void> {
   // Check if pool already exists for this bot
   const existingPool = await queryRow(
-    'SELECT * FROM card_pools WHERE draft_pod_id = $1 AND user_id = $2',
+    'SELECT * FROM card_pools WHERE pod_id = $1 AND user_id = $2',
     [pod.id, bot.user_id]
   )
   if (existingPool) return // Already built
@@ -200,7 +200,7 @@ async function buildSingleBotDeck(
       name,
       cards,
       packs,
-      draft_pod_id,
+      pod_id,
       deck_builder_state
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING id`,

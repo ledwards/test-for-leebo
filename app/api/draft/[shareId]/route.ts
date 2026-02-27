@@ -22,14 +22,15 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
     let pod = await queryRow(
       `SELECT
         dp.id, dp.share_id, dp.host_id, dp.status, dp.current_players, dp.max_players,
-        dp.set_code, dp.set_name,   dp.settings,
+        dp.set_code, dp.set_name, dp.name, dp.settings,
         dp.draft_state, dp.state_version, dp.started_at, dp.completed_at,
         dp.timer_enabled, dp.timer_seconds, dp.pick_timeout_seconds, dp.timed,
         dp.pick_started_at, dp.paused, dp.paused_at, dp.paused_duration_seconds,
+        dp.is_public,
         dp.created_at, dp.updated_at,
         u.username as host_username,
         u.avatar_url as host_avatar
-       FROM draft_pods dp
+       FROM pods dp
        LEFT JOIN users u ON dp.host_id = u.id
        WHERE dp.share_id = $1`,
       [shareId]
@@ -47,14 +48,15 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
       pod = await queryRow(
         `SELECT
           dp.id, dp.share_id, dp.host_id, dp.status, dp.current_players, dp.max_players,
-          dp.set_code, dp.set_name,   dp.settings,
+          dp.set_code, dp.set_name, dp.name, dp.settings,
           dp.draft_state, dp.state_version, dp.started_at, dp.completed_at,
           dp.timer_enabled, dp.timer_seconds, dp.pick_timeout_seconds, dp.timed,
           dp.pick_started_at, dp.paused, dp.paused_at, dp.paused_duration_seconds,
+          dp.is_public,
           dp.created_at, dp.updated_at,
           u.username as host_username,
           u.avatar_url as host_avatar
-         FROM draft_pods dp
+         FROM pods dp
          LEFT JOIN users u ON dp.host_id = u.id
          WHERE dp.share_id = $1`,
         [shareId]
@@ -68,9 +70,9 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         u.id as user_id,
         u.username,
         u.avatar_url
-       FROM draft_pod_players dpp
+       FROM pod_players dpp
        JOIN users u ON dpp.user_id = u.id
-       WHERE dpp.draft_pod_id = $1
+       WHERE dpp.pod_id = $1
        ORDER BY dpp.seat_number`,
       [pod.id]
     )
@@ -129,6 +131,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
       shareId: pod.share_id,
       setCode: pod.set_code,
       setName: pod.set_name,
+      name: pod.name,
       setArtUrl: getPackArtUrl(pod.set_code),
       status: pod.status,
       maxPlayers: pod.max_players,
@@ -146,6 +149,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         avatarUrl: pod.host_avatar,
       },
       players: formattedPlayers,
+      isPublic: pod.is_public || false,
       isHost: session ? pod.host_id === session.id : false,
       isPlayer: !!myPlayer,
       myPlayer: myPlayer ? {
@@ -178,7 +182,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
 
     // Get pod and verify host
     const pod = await queryRow(
-      'SELECT id, host_id, share_id FROM draft_pods WHERE share_id = $1',
+      'SELECT id, host_id, share_id FROM pods WHERE share_id = $1',
       [shareId]
     )
 
@@ -194,8 +198,8 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
     // This ensures showcases are attributed to the correct user even after the draft is deleted
     const players = await queryRows(
       `SELECT user_id, drafted_leaders, drafted_cards
-       FROM draft_pod_players
-       WHERE draft_pod_id = $1 AND user_id IS NOT NULL`,
+       FROM pod_players
+       WHERE pod_id = $1 AND user_id IS NOT NULL`,
       [pod.id]
     )
 
@@ -233,10 +237,10 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
 
     // Delete associated card_pools (dependent destroy)
     // The generations are kept for history, but pools from this draft are cleaned up
-    await query('DELETE FROM card_pools WHERE draft_pod_id = $1', [pod.id])
+    await query('DELETE FROM card_pools WHERE pod_id = $1', [pod.id])
 
     // Delete pod (cascade will remove players)
-    await query('DELETE FROM draft_pods WHERE id = $1', [pod.id])
+    await query('DELETE FROM pods WHERE id = $1', [pod.id])
 
     return jsonResponse({ message: 'Draft deleted successfully' })
   } catch (error) {

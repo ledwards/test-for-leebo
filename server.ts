@@ -5,6 +5,8 @@ import { createServer, IncomingMessage, ServerResponse } from 'http'
 import { spawn } from 'child_process'
 import next from 'next'
 import { Server } from 'socket.io'
+import { query } from './lib/db.js'
+import { broadcastPublicPodsUpdate } from './src/lib/socketBroadcast.js'
 
 declare global {
   var io: Server | undefined
@@ -81,8 +83,63 @@ app.prepare().then(() => {
   // Store globally so API routes can access it
   global.io = io
 
+  // In-memory presence tracking: userId → Set<socketId>
+  const presenceMap = new Map<string, Set<string>>()
+
+  // Delist timers: when a host disconnects, wait before hiding their public pods
+  const delistTimers = new Map<string, NodeJS.Timeout>()
+  const DELIST_DELAY_MS = 60_000 // 60 seconds
+
+  function startDelistTimer(userId: string): void {
+    // Cancel any existing timer first
+    cancelDelistTimer(userId)
+    const timer = setTimeout(async () => {
+      delistTimers.delete(userId)
+      try {
+        const result = await query(
+          `UPDATE pods SET is_public = false WHERE host_id = $1 AND is_public = true AND status = 'waiting'`,
+          [userId]
+        )
+        if (result.rowCount && result.rowCount > 0) {
+          console.log(`[Delist] Host ${userId} disconnected >60s, delisted ${result.rowCount} public pod(s)`)
+          await broadcastPublicPodsUpdate()
+        }
+      } catch (err) {
+        console.error('[Delist] Failed to delist pods:', err)
+      }
+    }, DELIST_DELAY_MS)
+    delistTimers.set(userId, timer)
+  }
+
+  function cancelDelistTimer(userId: string): void {
+    const timer = delistTimers.get(userId)
+    if (timer) {
+      clearTimeout(timer)
+      delistTimers.delete(userId)
+    }
+  }
+
+  function broadcastPresenceCount(): void {
+    const count = presenceMap.size
+    io.to('presence').emit('presence:count', { count })
+  }
+
   io.on('connection', (socket) => {
     console.log('[DEBUG] Socket.io client connected:', socket.id)
+
+    // Presence tracking
+    socket.on('presence:join', (userId: string) => {
+      if (!userId) return
+      socket.join('presence')
+      ;(socket as any)._presenceUserId = userId
+      if (!presenceMap.has(userId)) {
+        presenceMap.set(userId, new Set())
+      }
+      presenceMap.get(userId)!.add(socket.id)
+      cancelDelistTimer(userId)
+      broadcastPresenceCount()
+    })
+
     socket.on('join-draft', (shareId: string) => {
       socket.join(`draft:${shareId}`)
     })
@@ -105,6 +162,35 @@ app.prepare().then(() => {
 
     socket.on('leave-pod', (shareId: string) => {
       socket.leave(`pod:${shareId}`)
+    })
+
+    socket.on('join-sealed', (shareId: string) => {
+      socket.join(`sealed:${shareId}`)
+    })
+
+    socket.on('leave-sealed', (shareId: string) => {
+      socket.leave(`sealed:${shareId}`)
+    })
+
+    socket.on('join-public-pods', () => {
+      socket.join('public-pods')
+    })
+
+    socket.on('leave-public-pods', () => {
+      socket.leave('public-pods')
+    })
+
+    socket.on('disconnect', () => {
+      const userId = (socket as any)._presenceUserId as string | undefined
+      if (userId && presenceMap.has(userId)) {
+        const sockets = presenceMap.get(userId)!
+        sockets.delete(socket.id)
+        if (sockets.size === 0) {
+          presenceMap.delete(userId)
+          startDelistTimer(userId)
+        }
+        broadcastPresenceCount()
+      }
     })
   })
 

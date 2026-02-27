@@ -20,7 +20,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Get draft pod
     const pod = await queryRow(
-      'SELECT * FROM draft_pods WHERE share_id = $1',
+      'SELECT * FROM pods WHERE share_id = $1',
       [shareId]
     )
 
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Check if user is a player
     const player = await queryRow(
-      'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 AND user_id = $2',
+      'SELECT * FROM pod_players WHERE pod_id = $1 AND user_id = $2',
       [pod.id, session.id]
     )
 
@@ -58,13 +58,13 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     if (pod.status === 'waiting') {
       // During lobby: Remove player completely (same as leave)
       await query(
-        'DELETE FROM draft_pod_players WHERE id = $1',
+        'DELETE FROM pod_players WHERE id = $1',
         [player.id]
       )
 
       // Update player count and state version
       await query(
-        `UPDATE draft_pods
+        `UPDATE pods
          SET current_players = current_players - 1,
              state_version = state_version + 1
          WHERE id = $1`,
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
       // Keep all their data (current_pack, drafted_cards, drafted_leaders, etc.)
       // The bot system will take over their picks
       await query(
-        `UPDATE draft_pod_players
+        `UPDATE pod_players
          SET is_bot = true
          WHERE id = $1`,
         [player.id]
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
       // Increment state version to notify clients
       await query(
-        `UPDATE draft_pods
+        `UPDATE pods
          SET state_version = state_version + 1
          WHERE id = $1`,
         [pod.id]

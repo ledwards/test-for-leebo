@@ -1,3 +1,5 @@
+@import '../../src/styles/animations.css';
+
 /* Stats Page Styles */
 
 .stats-page {
@@ -44,6 +46,31 @@
   color: rgba(255, 255, 255, 0.5);
   font-weight: 400;
   margin-top: 0.5rem;
+}
+
+/* Bot/Human filter checkboxes */
+.stats-filters {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.stats-filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.stats-filter-checkbox input[type="checkbox"] {
+  accent-color: #2196F3;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 /* Tabs - folder/tab style with rounded top corners */
@@ -251,9 +278,7 @@
 
 /* Card Name Cell */
 .card-name-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  cursor: pointer;
 }
 
 .card-name {
@@ -272,6 +297,7 @@
   display: flex;
   gap: 0.25rem;
   align-items: center;
+  justify-content: center;
 }
 
 .aspect-icon {
@@ -1318,4 +1344,69 @@
 
 .test-detail-name {
   flex: 1;
+}
+
+/* === Draft Picks Sub-Tab === */
+
+.draft-picks-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Sortable column headers */
+.stats-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stats-table th.sortable:hover {
+    color: #2196F3;
+  }
+}
+
+.stats-table th.sortable.active {
+  color: #2196F3;
+}
+
+.sort-indicator {
+  margin-left: 0.25rem;
+  font-size: 0.7rem;
+}
+
+/* Pick position color coding */
+.pick-early {
+  color: #27AE60;
+  font-weight: 700;
+}
+
+.pick-mid {
+  color: #F39C12;
+  font-weight: 600;
+}
+
+.pick-late {
+  color: #E74C3C;
+  font-weight: 500;
+}
+
+/* First pick highlight */
+.first-pick-high {
+  color: #27AE60;
+  font-weight: 700;
+}
+
+/* Rarity colors */
+.rarity-common { color: rgba(255, 255, 255, 0.5); }
+.rarity-uncommon { color: #27AE60; }
+.rarity-rare { color: #2196F3; }
+.rarity-legendary { color: #E74C3C; }
+
+/* Inline subtitle */
+.card-subtitle-inline {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
 }

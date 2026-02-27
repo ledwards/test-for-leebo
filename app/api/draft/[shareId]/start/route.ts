@@ -25,7 +25,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Get draft pod
     const pod = await queryRow(
-      'SELECT * FROM draft_pods WHERE share_id = $1',
+      'SELECT * FROM pods WHERE share_id = $1',
       [shareId]
     )
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Get all players
     const players = await queryRows(
-      'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
+      'SELECT * FROM pod_players WHERE pod_id = $1 ORDER BY seat_number',
       [pod.id]
     )
 
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
       const firstPackCards = firstPack.cards || firstPack // Extract cards array
 
       await query(
-        `UPDATE draft_pod_players
+        `UPDATE pod_players
          SET leaders = $1,
              current_pack = $2,
              pick_status = 'picking',
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Store all packs in pod (for later rounds)
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET status = 'active',
            draft_state = $1,
            all_packs = $2,

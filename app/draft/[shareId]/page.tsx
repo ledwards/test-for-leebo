@@ -5,6 +5,7 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { useDraftSocket } from '../../../src/hooks/useDraftSocket'
+import { usePresence } from '../../../src/hooks/usePresence'
 import { joinDraft, leaveDraft, startDraft, randomizeSeats, randomizePacks, makePick, selectCard, updateSettings, togglePause, dropFromDraft } from '../../../src/utils/draftApi'
 import DraftLobby from '../../../src/components/DraftLobby'
 import LeaderDraftPhase from '../../../src/components/LeaderDraftPhase'
@@ -29,7 +30,8 @@ const InfoIcon = () => (
 export default function DraftRoomPage({ params }: PageProps) {
   const resolvedParams = use(params)
   const router = useRouter()
-  const { isAuthenticated, loading: authLoading } = useAuth()
+  const { user, isAuthenticated, loading: authLoading } = useAuth()
+  usePresence(user?.id)
   const [shareId, setShareId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [startingDraft, setStartingDraft] = useState(false)

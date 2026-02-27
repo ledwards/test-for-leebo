@@ -25,7 +25,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Get draft pod
     const pod = await queryRow(
-      'SELECT * FROM draft_pods WHERE share_id = $1',
+      'SELECT * FROM pods WHERE share_id = $1',
       [shareId]
     )
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Get current player
     const player = await queryRow(
-      'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 AND user_id = $2',
+      'SELECT * FROM pod_players WHERE pod_id = $1 AND user_id = $2',
       [pod.id, session.id]
     )
 
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
       // Update player
       await query(
-        `UPDATE draft_pod_players
+        `UPDATE pod_players
          SET drafted_leaders = $1,
              leaders = $2,
              pick_status = 'picked',
@@ -111,6 +111,25 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
           player.id
         ]
       )
+
+      // Record in draft_picks for analytics
+      try {
+        await query(
+          `INSERT INTO draft_picks (
+            pod_id, user_id, card_id, card_name, set_code, rarity,
+            card_type, variant_type, is_leader, pack_number, pick_in_pack,
+            pick_number, leader_round
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, 0, $9, $10, $11)`,
+          [
+            pod.id, session.id,
+            pickedLeader.id, pickedLeader.name, pickedLeader.set, pickedLeader.rarity,
+            pickedLeader.type, pickedLeader.variantType || 'Normal',
+            leaderRound, pickedLeader.pickNumber, leaderRound
+          ]
+        )
+      } catch (err) {
+        console.error('[DRAFT_PICKS] Error recording leader pick:', err)
+      }
 
       // Check if all players have picked and advance
       await checkAndAdvanceLeaderDraft(pod.id, draftState, pod)
@@ -142,7 +161,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
       // Update player
       await query(
-        `UPDATE draft_pod_players
+        `UPDATE pod_players
          SET drafted_cards = $1,
              current_pack = $2,
              pick_status = 'picked',
@@ -154,6 +173,25 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
           player.id
         ]
       )
+
+      // Record in draft_picks for analytics
+      try {
+        await query(
+          `INSERT INTO draft_picks (
+            pod_id, user_id, card_id, card_name, set_code, rarity,
+            card_type, variant_type, is_leader, pack_number, pick_in_pack,
+            pick_number, leader_round
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false, $9, $10, $11, NULL)`,
+          [
+            pod.id, session.id,
+            pickedCard.id, pickedCard.name, pickedCard.set, pickedCard.rarity,
+            pickedCard.type, pickedCard.variantType || 'Normal',
+            packNumber, pickInPack, pickedCard.pickNumber
+          ]
+        )
+      } catch (err) {
+        console.error('[DRAFT_PICKS] Error recording card pick:', err)
+      }
 
       // Check if all players have picked and advance
       await checkAndAdvancePackDraft(pod.id, draftState, pod)

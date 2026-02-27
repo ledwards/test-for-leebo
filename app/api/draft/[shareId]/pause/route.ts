@@ -18,7 +18,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Get draft pod
     const pod = await queryRow(
-      'SELECT * FROM draft_pods WHERE share_id = $1',
+      'SELECT * FROM pods WHERE share_id = $1',
       [shareId]
     )
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
       const totalPausedDuration = (pod.paused_duration_seconds || 0) + pausedDuration
 
       await query(
-        `UPDATE draft_pods
+        `UPDATE pods
          SET paused = false,
              paused_at = NULL,
              paused_duration_seconds = $1,
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     } else {
       // Pausing
       await query(
-        `UPDATE draft_pods
+        `UPDATE pods
          SET paused = true,
              paused_at = $1,
              state_version = state_version + 1

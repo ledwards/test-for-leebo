@@ -30,7 +30,13 @@
   display: flex;
   gap: 20px;
   justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
+}
+
+.settings-row-spread {
+  justify-content: space-between;
+  width: 100%;
 }
 
 .draft-settings-left .settings-row {
@@ -79,6 +85,22 @@
 .setting-value {
   color: #888;
   font-weight: 400;
+}
+
+.setting-select {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  color: white;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  font-family: 'Barlow', sans-serif;
+  cursor: pointer;
+}
+
+.setting-select:focus {
+  outline: none;
+  border-color: rgba(33, 150, 243, 0.8);
 }
 
 /* Controls section */

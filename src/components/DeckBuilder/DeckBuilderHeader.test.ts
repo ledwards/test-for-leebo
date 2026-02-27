@@ -16,6 +16,8 @@ function getPlayRedirectUrl(isDeckLegal, isDraftMode, draftShareId, shareId) {
 
   if (isDraftMode && draftShareId) {
     return `/draft/${draftShareId}/pod`
+  } else if (!isDraftMode && draftShareId) {
+    return `/sealed/${draftShareId}/pod`
   } else {
     return `/pool/${shareId}/deck/play`
   }
@@ -33,9 +35,14 @@ describe('DeckBuilderHeader play redirect', () => {
       assert.strictEqual(url, '/draft/draft-abc/pod')
     })
 
-    it('redirects sealed pool to play page', () => {
+    it('redirects solo sealed pool to play page', () => {
       const url = getPlayRedirectUrl(true, false, null, 'pool-xyz')
       assert.strictEqual(url, '/pool/pool-xyz/deck/play')
+    })
+
+    it('redirects sealed pod pool to sealed pod page', () => {
+      const url = getPlayRedirectUrl(true, false, 'sealed-abc', 'pool-xyz')
+      assert.strictEqual(url, '/sealed/sealed-abc/pod')
     })
 
     it('redirects draft pool without draftShareId to play page', () => {

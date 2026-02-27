@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
 
     // Get the draft pod
     const pod = await queryRow(
-      'SELECT * FROM draft_pods WHERE share_id = $1',
+      'SELECT * FROM pods WHERE share_id = $1',
       [shareId]
     )
 
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
 
     // Check if user is a player in this draft
     const player = await queryRow(
-      'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 AND user_id = $2',
+      'SELECT * FROM pod_players WHERE pod_id = $1 AND user_id = $2',
       [pod.id, session.id]
     )
 
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
 
     // Check if a pool already exists for this user and draft
     const existingPool = await queryRow(
-      'SELECT * FROM card_pools WHERE draft_pod_id = $1 AND user_id = $2',
+      'SELECT * FROM card_pools WHERE pod_id = $1 AND user_id = $2',
       [pod.id, session.id]
     )
 
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         name,
         cards,
         packs,
-        draft_pod_id
+        pod_id
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         session.id,

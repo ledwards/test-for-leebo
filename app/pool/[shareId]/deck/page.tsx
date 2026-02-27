@@ -84,7 +84,6 @@ export default function DeckBuilderPage({ params }: PageProps) {
 
   useEffect(() => {
     if (error || (!loading && !pool)) {
-      // Redirect to set selection page
       window.location.href = '/sets'
     }
   }, [error, loading, pool])
@@ -171,13 +170,6 @@ export default function DeckBuilderPage({ params }: PageProps) {
     return pool?.name || null
   }
   const poolName = getPoolNameFromState()
-
-  // Only redirect on error after loading completes
-  useEffect(() => {
-    if (error || (!loading && !pool)) {
-      window.location.href = '/sets'
-    }
-  }, [error, loading, pool])
 
   return (
     <div className="app">

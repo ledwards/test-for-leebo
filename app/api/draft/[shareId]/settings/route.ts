@@ -3,7 +3,7 @@
 import { query, queryRow } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
-import { broadcastDraftState } from '@/src/lib/socketBroadcast'
+import { broadcastDraftState, broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {
@@ -18,7 +18,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext): Pro
 
     // Get draft pod
     const pod = await queryRow(
-      'SELECT * FROM draft_pods WHERE share_id = $1',
+      'SELECT * FROM pods WHERE share_id = $1',
       [shareId]
     )
 
@@ -38,8 +38,13 @@ export async function PATCH(request: NextRequest, { params }: RouteContext): Pro
 
     // Update allowed fields
     const updates: string[] = []
-    const values: (boolean | number)[] = []
+    const values: (boolean | number | string)[] = []
     let paramIndex = 1
+
+    if (typeof body.name === 'string' && body.name.trim().length > 0) {
+      updates.push('name = $' + paramIndex++)
+      values.push(body.name.trim().slice(0, 100))
+    }
 
     if (typeof body.timed === 'boolean') {
       updates.push('timed = $' + paramIndex++)
@@ -61,6 +66,18 @@ export async function PATCH(request: NextRequest, { params }: RouteContext): Pro
       values.push(body.timerEnabled)
     }
 
+    if (typeof body.isPublic === 'boolean') {
+      updates.push('is_public = $' + paramIndex++)
+      values.push(body.isPublic)
+    }
+
+    if (typeof body.maxPlayers === 'number' && body.maxPlayers >= 2 && body.maxPlayers <= 8) {
+      if (body.maxPlayers >= pod.current_players) {
+        updates.push('max_players = $' + paramIndex++)
+        values.push(body.maxPlayers)
+      }
+    }
+
     if (updates.length === 0) {
       return errorResponse('No valid settings to update', 400)
     }
@@ -70,7 +87,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext): Pro
     values.push(pod.id)
 
     await query(
-      'UPDATE draft_pods SET ' + updates.join(', ') + ' WHERE id = $' + paramIndex,
+      'UPDATE pods SET ' + updates.join(', ') + ' WHERE id = $' + paramIndex,
       values
     )
 
@@ -78,6 +95,13 @@ export async function PATCH(request: NextRequest, { params }: RouteContext): Pro
     broadcastDraftState(shareId).catch(err => {
       console.error('Error broadcasting draft state:', err)
     })
+
+    // If public visibility or name changed, notify multiplayer page listeners
+    if (typeof body.isPublic === 'boolean' || typeof body.name === 'string') {
+      broadcastPublicPodsUpdate().catch(err => {
+        console.error('Error broadcasting public pods update:', err)
+      })
+    }
 
     return jsonResponse({ success: true })
   } catch (error) {

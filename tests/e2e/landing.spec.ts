@@ -52,37 +52,32 @@ test.describe('Landing Page', () => {
     expect(issues).toHaveLength(0)
   })
 
-  test('should navigate to sealed set selection', async ({ page }) => {
+  test('should navigate to solo page', async ({ page }) => {
     await page.goto('/')
     await waitForNetworkIdle(page)
 
-    // Click sealed button
+    // Click Solo button
     await page.locator('.sealed-button').click()
 
-    // Should navigate to sets page
-    await expect(page).toHaveURL('/sets')
+    // Should navigate to solo page
+    await expect(page).toHaveURL('/solo')
 
-    // Wait for sets to load
-    await expect(page.locator('.set-selection')).toBeVisible()
-    await expect(page.locator('.sets-grid')).toBeVisible()
-
-    // Should have set cards
-    await expect(page.locator('.set-card').first()).toBeVisible({ timeout: 10000 })
+    // Check solo page elements
+    await expect(page.locator('h1')).toContainText('Solo')
   })
 
-  test('should navigate to draft page', async ({ page }) => {
+  test('should navigate to multiplayer page', async ({ page }) => {
     await page.goto('/')
     await waitForNetworkIdle(page)
 
-    // Click draft button
+    // Click Pod button
     await page.locator('.draft-button').click()
 
-    // Should navigate to draft page
-    await expect(page).toHaveURL('/draft')
+    // Should navigate to multiplayer page
+    await expect(page).toHaveURL('/multiplayer')
 
-    // Check draft page elements
-    await expect(page.locator('h1')).toContainText('Draft Mode')
-    await expect(page.locator('.create-draft-button')).toBeVisible()
+    // Check multiplayer page elements
+    await expect(page.locator('h1')).toContainText('Pod')
   })
 
   test('should show login button when not authenticated', async ({ page }) => {

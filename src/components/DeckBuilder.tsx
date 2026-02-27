@@ -2032,6 +2032,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         isAuthenticated={isAuthenticated}
         signIn={signIn}
         shareId={shareId}
+        draftShareId={draftShareId}
         setErrorMessage={setErrorMessage}
         setMessageType={setMessageType}
         setCode={setCode}

@@ -59,11 +59,9 @@ export function CardWithPreview({ card, onClick, ...rest }: CardWithPreviewProps
         if (previewX < 0) previewX = 10
       }
 
-      let previewY = rect.top
-      const previewTop = previewY - previewHeight / 2
-      const previewBottom = previewY + previewHeight / 2
-      if (previewTop < 0) previewY = previewHeight / 2 + 10
-      if (previewBottom > window.innerHeight) previewY = window.innerHeight - previewHeight / 2 - 10
+      let previewY = rect.top + rect.height / 2
+      if (previewY - previewHeight / 2 < 10) previewY = previewHeight / 2 + 10
+      if (previewY + previewHeight / 2 > window.innerHeight - 10) previewY = window.innerHeight - previewHeight / 2 - 10
 
       setPreview({ card, x: previewX, y: previewY, isMobile: false })
     }, 400)

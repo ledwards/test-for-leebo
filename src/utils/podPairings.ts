@@ -31,6 +31,51 @@ export interface PairingResult {
  * @param storedByePlayerId - Previously stored bye player ID (for consistency)
  * @returns Pairing result with matches and bye player
  */
+/**
+ * Compute random pairings via Fisher-Yates shuffle.
+ * Used for sealed pods where seat position doesn't matter.
+ * Handles odd-count with a random bye.
+ *
+ * @param players - Array of players with userId and seatNumber
+ * @returns Pairing result with matches and bye player
+ */
+export function computeRandomPairings(
+  players: PairingPlayer[]
+): PairingResult {
+  if (players.length < 2) {
+    return {
+      matches: [],
+      byePlayerId: players.length === 1 ? players[0].userId : null,
+    }
+  }
+
+  // Fisher-Yates shuffle
+  const shuffled = [...players]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+
+  let byePlayerId: string | null = null
+
+  // Handle odd player count - last player gets a bye
+  if (shuffled.length % 2 === 1) {
+    byePlayerId = shuffled[shuffled.length - 1].userId
+    shuffled.pop()
+  }
+
+  // Pair sequentially: [0,1], [2,3], [4,5], ...
+  const matches: PairingMatch[] = []
+  for (let i = 0; i < shuffled.length; i += 2) {
+    matches.push({
+      player1Id: shuffled[i].userId,
+      player2Id: shuffled[i + 1].userId,
+    })
+  }
+
+  return { matches, byePlayerId }
+}
+
 export function computePairings(
   players: PairingPlayer[],
   storedByePlayerId: string | null = null

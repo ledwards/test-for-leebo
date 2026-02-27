@@ -432,5 +432,6 @@ See `scripts/clone-prod-to-dev.sh` as an example.
 
 - **NEVER PUSH OR DEPLOY WITHOUT EXPLICIT DIRECTION** - "commit" means ONLY commit, NOT push. Pushes trigger deploy to production. Only push when the user explicitly says "push" or "push to origin".
 - **"commit" ≠ "commit and push"** - These are separate operations. Always wait for explicit push instruction.
+- **Release Notes structure**: `RELEASE_NOTES.md` has a "How to Update Release Notes" section at the bottom for contributors. This section (and the `---` HR above it) must NEVER appear on the website. `ReleaseNotes.tsx` strips everything from `## How to Update Release Notes` onwards. If you edit the release notes file, keep this section at the very bottom and don't change its heading.
 - The mobile test (`deck-builder.spec.js:220`) is flaky - pre-existing issue
 - Skip 8-player test during iteration (takes 10+ minutes)

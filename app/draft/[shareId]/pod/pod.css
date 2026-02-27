@@ -201,6 +201,15 @@
   flex-shrink: 0;
 }
 
+.pod-match-avatar.default-avatar,
+.pod-opponent-avatar.default-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #5865F2;
+  color: white;
+}
+
 .pod-match-name {
   font-weight: 600;
   font-size: 0.85rem;

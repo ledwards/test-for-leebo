@@ -16,9 +16,11 @@ interface SealedPool {
   poolType?: string
 }
 
-interface DraftPod {
+interface Pod {
   shareId: string
   draftName?: string
+  setCode?: string
+  poolShareId?: string
   createdAt: string
   status: string
   isActive?: boolean
@@ -27,8 +29,8 @@ interface DraftPod {
 export default function AuthWidget() {
   const { user, loading, signOut, isPatron } = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [mostRecentSealed, setMostRecentSealed] = useState<SealedPool | null>(null)
-  const [currentDraft, setCurrentDraft] = useState<DraftPod | null>(null)
+  const [latestLivePod, setLatestLivePod] = useState<{ url: string; label: string } | null>(null)
+  const [latestSoloPod, setLatestSoloPod] = useState<{ url: string; label: string } | null>(null)
   const [hasShowcases, setHasShowcases] = useState(false)
   const [loadingData, setLoadingData] = useState(false)
   const drawerRef = useRef<HTMLDivElement>(null)
@@ -69,40 +71,61 @@ export default function AuthWidget() {
       Promise.all([
         fetchUserPools(user.id),
         fetch('/api/draft/history', { credentials: 'include' }).then(r => r.json()),
+        fetch('/api/sealed/history', { credentials: 'include' }).then(r => r.json()),
         fetch(`/api/users/${user.id}/showcase-leaders?limit=1`).then(r => r.ok ? r.json() : { total: 0 })
       ])
-        .then(([poolsData, draftData, showcaseData]) => {
-          // Check if user has any showcase leaders
+        .then(([poolsData, draftData, sealedHistoryData, showcaseData]) => {
           const showcaseTotal = showcaseData?.data?.total || showcaseData?.total || 0
           setHasShowcases(showcaseTotal > 0)
-          // Find most recent sealed pool (not draft type)
-          const sealedPools = (poolsData || [])
+
+          // Latest Solo Pod: most recent non-draft user pool
+          const soloPools = (poolsData || [])
             .filter((p: SealedPool) => p.poolType !== 'draft')
             .sort((a: SealedPool, b: SealedPool) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-
-          setMostRecentSealed(sealedPools[0] || null)
-
-          // Find current or most recent draft
-          const allDrafts = draftData?.data?.pods || draftData?.pods || []
-          const sortedDrafts = allDrafts.sort((a: DraftPod, b: DraftPod) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-
-          // Find active draft first (waiting, leader_draft, pack_draft)
-          const activeDraft = sortedDrafts.find((d: DraftPod) =>
-            d.status === 'waiting' || d.status === 'active'
-          )
-
-          if (activeDraft) {
-            setCurrentDraft({ ...activeDraft, isActive: true })
-          } else if (sortedDrafts[0]) {
-            setCurrentDraft({ ...sortedDrafts[0], isActive: false })
+          if (soloPools[0]) {
+            setLatestSoloPod({
+              url: `/pool/${soloPools[0].shareId}/deck`,
+              label: soloPools[0].name || 'Solo Pool',
+            })
           } else {
-            setCurrentDraft(null)
+            setLatestSoloPod(null)
           }
+
+          // Latest Live Pod: most recent draft or multiplayer sealed pod
+          const allDrafts = draftData?.data?.pods || draftData?.pods || []
+          const allSealedPods = sealedHistoryData?.data?.pods || sealedHistoryData?.pods || []
+
+          const liveCandidates: { url: string; label: string; date: Date }[] = []
+
+          const sortedDrafts = [...allDrafts].sort((a: Pod, b: Pod) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+          if (sortedDrafts[0]) {
+            const d = sortedDrafts[0]
+            const url = d.status === 'complete' && d.poolShareId
+              ? `/pool/${d.poolShareId}/deck`
+              : `/draft/${d.shareId}`
+            liveCandidates.push({ url, label: `${d.setCode} Draft`, date: new Date(d.createdAt) })
+          }
+
+          const sortedSealed = [...allSealedPods].sort((a: any, b: any) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+          if (sortedSealed[0]) {
+            const s = sortedSealed[0]
+            const url = s.poolShareId
+              ? `/pool/${s.poolShareId}/deck`
+              : `/sealed/${s.shareId}`
+            liveCandidates.push({ url, label: `${s.setCode} Sealed`, date: new Date(s.createdAt) })
+          }
+
+          liveCandidates.sort((a, b) => b.date.getTime() - a.date.getTime())
+          setLatestLivePod(liveCandidates[0] || null)
         })
         .catch(err => {
           console.error('Failed to fetch user data:', err)
-          setMostRecentSealed(null)
-          setCurrentDraft(null)
+          setLatestLivePod(null)
+          setLatestSoloPod(null)
         })
         .finally(() => {
           setLoadingData(false)
@@ -115,10 +138,6 @@ export default function AuthWidget() {
   const handleSignOut = async () => {
     await signOut()
     setDrawerOpen(false)
-  }
-
-  const truncateName = (name: string | undefined, maxLength = 30): string => {
-    return name && name.length > maxLength ? name.substring(0, maxLength) + '...' : (name || '')
   }
 
   const isHomepage = pathname === '/'
@@ -205,59 +224,38 @@ export default function AuthWidget() {
 
             <div className="auth-widget-drawer-menu">
               <a
-                href="/sets"
+                href="/solo"
                 className="auth-widget-drawer-menu-item"
                 onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                   e.preventDefault()
-                  router.push('/sets')
-                  setDrawerOpen(false)
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="12" y1="8" x2="12" y2="16"></line>
-                  <line x1="8" y1="12" x2="16" y2="12"></line>
-                </svg>
-                New Sealed Pool
-              </a>
-
-              <a
-                href="/draft"
-                className="auth-widget-drawer-menu-item"
-                onClick={(e: MouseEvent<HTMLAnchorElement>) => {
-                  e.preventDefault()
-                  router.push('/draft')
-                  setDrawerOpen(false)
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <line x1="19" y1="8" x2="19" y2="14"></line>
-                  <line x1="22" y1="11" x2="16" y2="11"></line>
-                </svg>
-                New Draft Pod
-              </a>
-
-              <a
-                href="/formats"
-                className="auth-widget-drawer-menu-item"
-                onClick={(e: MouseEvent<HTMLAnchorElement>) => {
-                  e.preventDefault()
-                  router.push('/formats')
+                  router.push('/solo')
                   setDrawerOpen(false)
                 }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                  <line x1="9" y1="9" x2="9.01" y2="9" />
-                  <line x1="15" y1="9" x2="15.01" y2="9" />
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                Other Formats
+                Solo Play
               </a>
 
-              {(loadingData || mostRecentSealed || currentDraft) && (
+              <a
+                href="/multiplayer"
+                className="auth-widget-drawer-menu-item"
+                onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+                  e.preventDefault()
+                  router.push('/multiplayer')
+                  setDrawerOpen(false)
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2 13c0-4 3.5-7 8-7s7 3 7 6c0 2.5-2 4.5-5 5.5H8C4.5 17 2 15.5 2 13zm5 0a1 1 0 100-2 1 1 0 000 2z"/>
+                  <path d="M17 12c1-2 3-3.5 5-4-1 2-1 4 0 6-2-1-4-1.5-5-2z"/>
+                </svg>
+                Live Pod
+              </a>
+
+              {(loadingData || latestLivePod || latestSoloPod) && (
                 <div className="auth-widget-drawer-divider"></div>
               )}
 
@@ -274,41 +272,31 @@ export default function AuthWidget() {
                 </>
               )}
 
-              {!loadingData && mostRecentSealed && (
+              {!loadingData && latestLivePod && (
                 <a
-                  href={`/pool/${mostRecentSealed.shareId}/deck`}
+                  href={latestLivePod.url}
                   className="auth-widget-drawer-menu-item auth-widget-drawer-pool-item"
                   onClick={() => setDrawerOpen(false)}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"></polygon>
                   </svg>
-                  <span>{truncateName(mostRecentSealed.name) || 'Last Sealed Pool'}</span>
+                  <span>{latestLivePod.label}</span>
                 </a>
               )}
 
-              {!loadingData && currentDraft && (
+              {!loadingData && latestSoloPod && (
                 <a
-                  href={`/draft/${currentDraft.shareId}`}
+                  href={latestSoloPod.url}
                   className="auth-widget-drawer-menu-item auth-widget-drawer-pool-item"
                   onClick={() => setDrawerOpen(false)}
                 >
-                  {currentDraft.isActive ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"></polygon>
-                    </svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                    </svg>
-                  )}
-                  <span>
-                    {currentDraft.isActive
-                      ? (truncateName(currentDraft.draftName) || 'Current Draft Pod')
-                      : (truncateName(currentDraft.draftName) || 'Most Recent Draft')
-                    }
-                  </span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="3" width="14" height="18" rx="2"></rect>
+                    <rect x="8" y="1" width="14" height="18" rx="2"></rect>
+                  </svg>
+                  <span>{latestSoloPod.label}</span>
                 </a>
               )}
 

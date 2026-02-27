@@ -22,7 +22,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     const session = requireAuth(request)
 
     const pod = await queryRow(
-      'SELECT * FROM draft_pods WHERE share_id = $1',
+      'SELECT * FROM pods WHERE share_id = $1',
       [shareId]
     )
 

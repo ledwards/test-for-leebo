@@ -129,6 +129,9 @@ export function DeckBuilderHeader({
     if (isDeckLegal) {
       if (isDraftMode && draftShareId) {
         window.location.href = `/draft/${draftShareId}/pod`
+      } else if (!isDraftMode && draftShareId) {
+        // Sealed pod — redirect to sealed pod page
+        window.location.href = `/sealed/${draftShareId}/pod`
       } else {
         window.location.href = `/pool/${shareId}/deck/play`
       }

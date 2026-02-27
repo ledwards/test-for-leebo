@@ -55,11 +55,15 @@ interface Draft {
   timerEnabled?: boolean
   pickTimeoutSeconds?: number
   timerSeconds?: number
+  isPublic?: boolean
+  [key: string]: unknown
 }
 
 interface SettingsChange {
   timed?: boolean
   timerEnabled?: boolean
+  isPublic?: boolean
+  maxPlayers?: number
 }
 
 export interface HostControlsProps {
@@ -181,10 +185,35 @@ function HostControls({
           </label>
         </div>
 
-        <div className="settings-row">
+        <div className="settings-row settings-row-spread">
           <span className="setting-item">
-            <span className="setting-label">Max Players:</span> <span className="setting-value">{draft?.maxPlayers || 8}</span>
+            <span className="setting-label">Max Players:</span>
+            <select
+              className="setting-select"
+              value={draft?.maxPlayers || 8}
+              onChange={(e) => {
+                if (onSettingsChange) {
+                  onSettingsChange({ maxPlayers: Number(e.target.value) })
+                }
+              }}
+            >
+              {[2, 3, 4, 5, 6, 7, 8].map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
           </span>
+          <label className="setting-checkbox">
+            <input
+              type="checkbox"
+              checked={draft?.isPublic || false}
+              onChange={(e) => {
+                if (onSettingsChange) {
+                  onSettingsChange({ isPublic: e.target.checked })
+                }
+              }}
+            />
+            <span>Visible to other players</span>
+          </label>
         </div>
       </div>
 

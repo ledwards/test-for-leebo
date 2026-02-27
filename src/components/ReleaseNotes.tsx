@@ -53,9 +53,9 @@ function ReleaseNotes() {
     fetch(`/RELEASE_NOTES.md?v=${Date.now()}`)
       .then(response => response.text())
       .then(text => {
-        // Remove everything after triple HR
-        const tripleHrIndex = text.indexOf('---\n\n---\n\n---')
-        let contentToDisplay = tripleHrIndex !== -1 ? text.substring(0, tripleHrIndex) : text
+        // Remove "How to Update Release Notes" section and the HR above it
+        const howToIndex = text.indexOf('## How to Update Release Notes')
+        let contentToDisplay = howToIndex !== -1 ? text.substring(0, howToIndex).replace(/\n---\s*\n*$/, '') : text
         // Remove leading whitespace/newlines
         contentToDisplay = contentToDisplay.trimStart()
         const html = parseMarkdownToHTML(contentToDisplay)
