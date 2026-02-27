@@ -3,13 +3,23 @@
 ## 02.26.2026
 
 ### 🎉 New Features
-- **Draft pod page overhaul**: Completely reworked the post-draft pod page with new action buttons (Copy Link, Copy JSON, Download, Deck Image), Practice Hand, and a 2-column player status grid for the host.
-- **Bot deck building**: Bots now automatically build decks when a draft completes. They select a leader using power rankings, pick the best matching base, score all drafted cards, and build a 30-card deck. Bot players show "Ready" on the pod page instead of "Building" forever.
-- **Host deck viewer**: Draft hosts can click the eye icon next to any "Ready" player to view their deck as a generated image popup.
-- **Shared Play Instructions component**: Extracted the how-to-play instructions into a shared component used by both the pod page and play page, fixing the wrong Discord URL on the pod page.
+- **Solo and Pod modes**: The homepage now separtes into Solo and Pod modes. Use Solo to rpactice by yourself, or to make Limited format decks that you can play against someone later. Use Pod Play to join an existing Draft or Sealed Pod listed publicly on the site, or to start a private pod with your friends.
+- **Sealed pods**: You can now start a Sealed Pod. Just like a Draft Pod, but sealed!
+- **Draft logs**: You can now see your Draft picks in order after the fact to help improve your draft picking. These default to private, but can be made public by clicking the lock icon so you can share with friends and teammates for feedback.
+- **Stats overhaul**: Stats is now focused on competitive data based on anonymized, aggregate data collection. Pack quality metrics are moved to the QA page.
+- **Public API**: A very early API supports these statsand also exporting your personal data. Documentation at [https://www.protectthepod.com/api](https://www.protectthepod.com/api)
+
+### 📦 Pack Generation
+- **Foil legendary rate fixed**: Fixed foil slot over-representing legendary cards. 
+
+### 📊 Stats & Quality
+- **Duplicate metrics split by format**: Duplicate/triplicate tracking now separates sealed pools (6 packs per pool) from draft (3 packs per player). Previously draft data was mixed into sealed expectations, producing extreme z-scores. Sealed groups by pool, draft groups by the 3 packs each player opens. Both display separately on the QA page.
 
 ### 🐞 Bug Fixes
-- **Card preview on hover not working in Draft**: Fixed a bug where the enlarged card preview on hover was broken for some Chrome desktop users during the draft picking phase. The mobile detection was checking `ontouchstart` and `maxTouchPoints`, which false-positive on touchscreen laptops and certain Chrome configurations. Sealed mode was unaffected because it uses a different (viewport-only) check. Now both use the same viewport-based detection.
+- **Card preview on hover not working in Draft**: Fixed a bug where the enlarged card preview on hover was broken for some Chrome desktop users during the draft picking phase.
+
+### 📝 Terms of Service
+- **No tournaments allowed** We want to make clear that Protect the Pod exists to support the Star War Unlimited limited scene, not replace it. Tournaments are not allowed on the platform, which is intended purely for competitve practice and fun casual formats. More information about this rule on the Discord.
 
 ## 02.24.2026
 
