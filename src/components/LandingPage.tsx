@@ -5,9 +5,18 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 import { usePresence } from '../hooks/usePresence'
+import { usePublicPodsSocket } from '../hooks/usePublicPodsSocket'
 import ReleaseNotes from './ReleaseNotes'
 import Button from './Button'
 import './LandingPage.css'
+
+// Card art for mode buttons (hover reveal)
+const MODE_ART = {
+  sealedSolo: 'https://cdn.starwarsunlimited.com//card_0302320_EN_Satine_Kryze_0bf353c213.png',
+  sealedPod: 'https://cdn.starwarsunlimited.com//card_05020306_EN_Always_Two_97eba647fc.png',
+  draftSolo: 'https://cdn.starwarsunlimited.com//card_SWH_01_317_Luke_Skywalker_HYP_9f28359c78.png',
+  draftPod: 'https://cdn.starwarsunlimited.com//card_04020305_EN_No_Glory_Only_Results_59f53decda.png',
+}
 
 interface ActiveDraft {
   shareId: string
@@ -25,22 +34,17 @@ interface ActiveSealedPod {
   createdAt?: string
 }
 
-interface LandingPageProps {
-  onSoloClick: () => void
-  onPodClick: () => void
-  // Keep old props for backward compat during transition
-  onSealedClick?: () => void
-  onDraftClick?: () => void
-  onOtherFormatsClick?: () => void
-}
-
-function LandingPage({ onSoloClick, onPodClick, onSealedClick, onDraftClick, onOtherFormatsClick }: LandingPageProps) {
+function LandingPage() {
   const { user, loading, signIn } = useAuth()
   const hasBetaAccess = user?.is_beta_tester || user?.is_admin
   const router = useRouter()
   const playerCount = usePresence(user?.id)
+  const publicPods = usePublicPodsSocket()
   const [activeDraft, setActiveDraft] = useState<ActiveDraft | null>(null)
   const [activeSealedPod, setActiveSealedPod] = useState<ActiveSealedPod | null>(null)
+
+  const sealedPodsOpen = publicPods.filter(p => p.podType === 'sealed').length
+  const draftPodsOpen = publicPods.filter(p => p.podType === 'draft').length
 
   // Check for active drafts and sealed pods when user is logged in
   useEffect(() => {
@@ -126,14 +130,57 @@ function LandingPage({ onSoloClick, onPodClick, onSealedClick, onDraftClick, onO
             </Button>
           </div>
         )}
-        <div className="mode-selection">
-          <button className="mode-button sealed-button" onClick={onSoloClick}>
-            Solo
+        <div className="mode-grid">
+          <div className="mode-column-header">Solo</div>
+          <div className="mode-column-header">Live Pod</div>
+          <button className="mode-button" onClick={() => router.push('/sealed')}>
+            <div className="mode-button-art" style={{ backgroundImage: `url("${MODE_ART.sealedSolo}")` }} />
+            <div className="mode-button-content">
+              <span className="mode-button-title">Sealed</span>
+              <span className="mode-button-subtitle">Open 6 packs, build a deck</span>
+            </div>
           </button>
-          <button className="mode-button draft-button" onClick={onPodClick}>
-            Live Pod
+          <button className="mode-button" onClick={() => router.push('/sealed/new')}>
+            <div className="mode-button-art" style={{ backgroundImage: `url("${MODE_ART.sealedPod}")` }} />
+            <div className="mode-button-content">
+              <span className="mode-button-title">Sealed</span>
+              <span className="mode-button-subtitle">Play with friends</span>
+              {sealedPodsOpen > 0 && (
+                <span className="pods-open-badge">{sealedPodsOpen} pod{sealedPodsOpen !== 1 ? 's' : ''} open</span>
+              )}
+            </div>
+          </button>
+          <button className="mode-button" onClick={() => router.push('/draft/solo')}>
+            <div className="mode-button-art" style={{ backgroundImage: `url("${MODE_ART.draftSolo}")` }} />
+            <div className="mode-button-content">
+              <span className="mode-button-title">Draft</span>
+              <span className="mode-button-subtitle">Draft against bots</span>
+            </div>
+          </button>
+          <button className="mode-button" onClick={() => router.push('/draft')}>
+            <div className="mode-button-art" style={{ backgroundImage: `url("${MODE_ART.draftPod}")` }} />
+            <div className="mode-button-content">
+              <span className="mode-button-title">Draft</span>
+              <span className="mode-button-subtitle">8-player booster draft</span>
+              {draftPodsOpen > 0 && (
+                <span className="pods-open-badge">{draftPodsOpen} pod{draftPodsOpen !== 1 ? 's' : ''} open</span>
+              )}
+            </div>
           </button>
         </div>
+        <button
+          className="casual-button format-mode-card art-event"
+          onClick={() => router.push('/casual')}
+        >
+          <div
+            className="format-mode-card-art"
+            style={{ backgroundImage: `url("https://cdn.starwarsunlimited.com//card_0302467_EN_Jar_Jar_Binks_0e94fbc644.png")` }}
+          />
+          <div className="format-mode-card-content">
+            <span className="mode-button-title">Casual Formats</span>
+            <span className="mode-button-subtitle">Chaos, Pack Wars, and more</span>
+          </div>
+        </button>
         {playerCount > 0 && (
           <div className="players-online-landing">
             <span className="online-dot-landing" />
