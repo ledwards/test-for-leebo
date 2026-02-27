@@ -8,6 +8,7 @@ import { dropFromDraft } from '../../src/utils/draftApi'
 import { useRouter } from 'next/navigation'
 import { getSetConfig } from '../../src/utils/setConfigs'
 import EditableTitle from '../../src/components/EditableTitle'
+import Button from '../../src/components/Button'
 import '../../src/App.css'
 import './History.css'
 
@@ -89,7 +90,7 @@ interface DropConfirmState {
 
 export default function HistoryPage() {
   const { user, loading: authLoading } = useAuth()
-  const [activeTab, setActiveTab] = useState<'sealed' | 'draft' | 'formats'>('sealed')
+  const [activeTab, setActiveTab] = useState<'solo' | 'multiplayer'>('solo')
   const [sealedPools, setSealedPools] = useState<SealedPool[]>([])
   const [draftPods, setDraftPods] = useState<DraftPod[]>([])
   const [formatPools, setFormatPools] = useState<FormatPool[]>([])
@@ -99,9 +100,9 @@ export default function HistoryPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [dropConfirm, setDropConfirm] = useState<DropConfirmState | null>(null)
   const [isDropping, setIsDropping] = useState(false)
-  const [showHiddenSealed, setShowHiddenSealed] = useState(false)
-  const [showHiddenDraft, setShowHiddenDraft] = useState(false)
-  const [showHiddenFormats, setShowHiddenFormats] = useState(false)
+  const [showHiddenSolo, setShowHiddenSolo] = useState(false)
+  const [showHiddenMulti, setShowHiddenMulti] = useState(false)
+  const [multiSealedPods, setMultiSealedPods] = useState<any[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -113,13 +114,14 @@ export default function HistoryPage() {
     if (user) {
       setLoading(true)
 
-      // Fetch user pools, drafts, and other format pools
+      // Fetch user pools, drafts, sealed pods, and other format pools
       Promise.all([
         fetchUserPools(user.id),
         fetch('/api/draft/history', { credentials: 'include' }).then(r => r.json()),
-        fetch('/api/formats/history', { credentials: 'include' }).then(r => r.json())
+        fetch('/api/formats/history', { credentials: 'include' }).then(r => r.json()),
+        fetch('/api/sealed/history', { credentials: 'include' }).then(r => r.json()),
       ])
-        .then(([poolsData, draftData, formatsData]) => {
+        .then(([poolsData, draftData, formatsData, sealedData]) => {
           // Handle sealed pools (filter out draft pools and other format pool types)
           const formatPoolTypes = ['chaos_sealed', 'pack_wars', 'pack_blitz', 'chaos_draft', 'rotisserie']
           if (poolsData && Array.isArray(poolsData)) {
@@ -147,6 +149,15 @@ export default function HistoryPage() {
             setFormatPools(pools)
           } else {
             setFormatPools([])
+          }
+
+          // Handle multiplayer sealed pods (all statuses)
+          if (sealedData && (sealedData.data?.pods || sealedData.pods)) {
+            const pods = (sealedData.data?.pods || sealedData.pods)
+              .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            setMultiSealedPods(pods)
+          } else {
+            setMultiSealedPods([])
           }
         })
         .catch(err => {
@@ -306,6 +317,27 @@ export default function HistoryPage() {
   const visibleFormatPools = formatPools.filter(p => !p.hidden)
   const hiddenFormatPools = formatPools.filter(p => p.hidden)
 
+  // Merged arrays for Solo/Multiplayer tabs
+  const soloItems = [
+    ...sealedPools.map(p => ({ ...p, format: 'Sealed', itemType: 'sealed' })),
+    ...formatPools.map(p => ({ ...p, format: FORMAT_POOL_TYPE_NAMES[p.poolType] || p.poolType, itemType: 'formats' })),
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const visibleSoloItems = soloItems.filter(p => !p.hidden)
+  const hiddenSoloItems = soloItems.filter(p => p.hidden)
+
+  const multiplayerItems = [
+    ...draftPods.map(p => ({ ...p, format: 'Draft', itemType: 'draft' })),
+    ...multiSealedPods.map(p => ({
+      id: p.id, shareId: p.shareId, setCode: p.setCode, status: p.status,
+      draftName: p.poolName || p.podName, leaderName: p.leaderName, baseName: p.baseName,
+      mainDeckCount: p.mainDeckCount, createdAt: p.createdAt, isHost: p.isHost,
+      poolShareId: p.poolShareId, hidden: false, isBot: false,
+      format: 'Sealed', itemType: 'multi-sealed',
+    })),
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const visibleMultiItems = multiplayerItems.filter(p => !p.hidden)
+  const hiddenMultiItems = multiplayerItems.filter(p => p.hidden)
+
   // Helper function to get URL for format pool
   const getFormatPoolUrl = (pool: FormatPool) => {
     const baseRoute = FORMAT_POOL_TYPE_ROUTES[pool.poolType] || '/pool'
@@ -318,6 +350,39 @@ export default function HistoryPage() {
         <div className="history-page">
           <div className="history-header">
             <h1>History</h1>
+          </div>
+          <div className="history-tabs">
+            {['Solo', 'Multiplayer'].map(label => (
+              <button key={label} className={`history-tab ${label === 'Solo' ? 'active' : ''}`} disabled>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="history-table-container">
+            <table className="history-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Format</th>
+                  <th>Leader</th>
+                  <th>Base</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[1, 2, 3, 4, 5].map(i => (
+                  <tr key={i}>
+                    <td><div className="skeleton-line" style={{ width: '120px' }} /></td>
+                    <td><div className="skeleton-line" style={{ width: '80px' }} /></td>
+                    <td><div className="skeleton-line" style={{ width: '100px' }} /></td>
+                    <td><div className="skeleton-line" style={{ width: '90px' }} /></td>
+                    <td><div className="skeleton-line" style={{ width: '110px' }} /></td>
+                    <td><div className="skeleton-line" style={{ width: '50px' }} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -348,40 +413,34 @@ export default function HistoryPage() {
 
         <div className="history-tabs">
           <button
-            className={`history-tab ${activeTab === 'sealed' ? 'active' : ''}`}
-            onClick={() => setActiveTab('sealed')}
+            className={`history-tab ${activeTab === 'solo' ? 'active' : ''}`}
+            onClick={() => setActiveTab('solo')}
           >
-            Sealed
+            Solo
           </button>
           <button
-            className={`history-tab ${activeTab === 'draft' ? 'active' : ''}`}
-            onClick={() => setActiveTab('draft')}
+            className={`history-tab ${activeTab === 'multiplayer' ? 'active' : ''}`}
+            onClick={() => setActiveTab('multiplayer')}
           >
-            Draft
-          </button>
-          <button
-            className={`history-tab ${activeTab === 'formats' ? 'active' : ''}`}
-            onClick={() => setActiveTab('formats')}
-          >
-            Other
+            Multiplayer
           </button>
         </div>
 
-        {activeTab === 'sealed' && (
+        {activeTab === 'solo' && (
           <>
-            {sealedPools.length === 0 ? (
+            {soloItems.length === 0 ? (
               <div className="history-empty">
-                <p>No sealed pools found. Create your first pool to get started!</p>
+                <p>No pools found. Create your first pool to get started!</p>
               </div>
             ) : (
               <>
-                {visibleSealedPools.length > 0 && (
+                {visibleSoloItems.length > 0 && (
                   <div className="history-table-container">
                     <table className="history-table">
                       <thead>
                         <tr>
                           <th>Title</th>
-                          <th>Set</th>
+                          <th>Format</th>
                           <th>Leader</th>
                           <th>Base</th>
                           <th>Date</th>
@@ -389,103 +448,85 @@ export default function HistoryPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {visibleSealedPools.map((pool) => (
-                          <tr key={pool.id}>
-                            <td>
-                              <EditableTitle
-                                value={pool.name}
-                                onSave={(newName) => handleRenamePool(pool.shareId, newName)}
-                                onTitleClick={() => window.location.href = `/pool/${pool.shareId}/deck`}
-                                isEditable={true}
-                                placeholder="Untitled Pool"
-                                className="history-editable-title"
-                              />
-                            </td>
-                            <td style={{ color: 'white', fontWeight: '600' }}>
-                              {getSetName(pool.setCode)}
-                            </td>
-                            <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                              {pool.leaderName || '-'}
-                            </td>
-                            <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                              {pool.baseName || '-'}
-                            </td>
-                            <td>{formatDate(pool.createdAt)}</td>
-                            <td className="history-actions-cell">
-                              <div className="actions-wrapper">
-                                <button
-                                  className="history-view-button"
-                                  onClick={() => window.location.href = `/pool/${pool.shareId}/deck`}
-                                >
-                                  View
-                                </button>
-                                {isDeckPlayable(pool.leaderName, pool.baseName, pool.mainDeckCount) && (
-                                  <button
-                                    className="history-play-button"
-                                    onClick={() => window.location.href = `/pool/${pool.shareId}/deck/play`}
-                                    title="Play"
-                                  >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        {visibleSoloItems.map((item) => {
+                          const isFormat = item.itemType === 'formats'
+                          const viewUrl = isFormat ? getFormatPoolUrl(item) + '/deck' : `/pool/${item.shareId}/deck`
+                          const playUrl = isFormat ? getFormatPoolUrl(item) + '/deck/play' : `/pool/${item.shareId}/deck/play`
+                          const handleRename = isFormat
+                            ? (newName) => handleRenameFormat(item.shareId, newName)
+                            : (newName) => handleRenamePool(item.shareId, newName)
+                          const deleteType = isFormat ? 'formats' : 'sealed'
+                          return (
+                            <tr key={`${item.itemType}-${item.id}`}>
+                              <td>
+                                <EditableTitle
+                                  value={item.name}
+                                  onSave={handleRename}
+                                  onTitleClick={() => window.location.href = viewUrl}
+                                  isEditable={true}
+                                  placeholder="Untitled Pool"
+                                  className="history-editable-title"
+                                />
+                              </td>
+                              <td style={{ color: 'white', fontWeight: '600' }}>
+                                {item.format}
+                              </td>
+                              <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                {item.leaderName || '-'}
+                              </td>
+                              <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                {item.baseName || '-'}
+                              </td>
+                              <td>{formatDate(item.createdAt)}</td>
+                              <td className="history-actions-cell">
+                                <div className="actions-wrapper">
+                                  <button className="history-view-button" onClick={() => window.location.href = viewUrl}>View</button>
+                                  {isDeckPlayable(item.leaderName, item.baseName, item.mainDeckCount) && (
+                                    <button className="history-play-button" onClick={() => window.location.href = playUrl} title="Play">
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                    </button>
+                                  )}
+                                  <button className="history-hide-button" onClick={() => handleToggleHidden(item.shareId, item.hidden, deleteType)} title="Hide">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                      <line x1="1" y1="1" x2="23" y2="23"></line>
                                     </svg>
                                   </button>
-                                )}
-                                <button
-                                  className="history-hide-button"
-                                  onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'sealed')}
-                                  title="Hide"
-                                >
-                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                                  </svg>
-                                </button>
-                                <button
-                                  className="history-delete-button"
-                                  onClick={() => setDeleteConfirm({ shareId: pool.shareId, type: 'sealed' })}
-                                  title="Delete"
-                                >
-                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                  </svg>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                                  <button className="history-delete-button" onClick={() => setDeleteConfirm({ shareId: item.shareId, type: deleteType })} title="Delete">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <polyline points="3 6 5 6 21 6"></polyline>
+                                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
                       </tbody>
                     </table>
                   </div>
                 )}
 
-                {/* Hidden sealed pools section */}
-                {hiddenSealedPools.length > 0 && (
+                {hiddenSoloItems.length > 0 && (
                   <div className="hidden-pools-section">
                     <button
-                      className={`hidden-pools-toggle ${showHiddenSealed ? 'expanded' : ''}`}
-                      onClick={() => setShowHiddenSealed(!showHiddenSealed)}
+                      className={`hidden-pools-toggle ${showHiddenSolo ? 'expanded' : ''}`}
+                      onClick={() => setShowHiddenSolo(!showHiddenSolo)}
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        style={{ transform: showHiddenSealed ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-                      >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                        style={{ transform: showHiddenSolo ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
                         <polyline points="9 18 15 12 9 6"></polyline>
                       </svg>
-                      Hidden ({hiddenSealedPools.length})
+                      Hidden ({hiddenSoloItems.length})
                     </button>
-                    {showHiddenSealed && (
+                    {showHiddenSolo && (
                       <div className="history-table-container hidden-pools-table-container">
                         <table className="history-table">
                           <thead>
                             <tr>
                               <th>Title</th>
-                              <th>Set</th>
+                              <th>Format</th>
                               <th>Leader</th>
                               <th>Base</th>
                               <th>Date</th>
@@ -493,71 +534,55 @@ export default function HistoryPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {hiddenSealedPools.map((pool) => (
-                              <tr key={pool.id}>
-                                <td>
-                                  <EditableTitle
-                                    value={pool.name}
-                                    onSave={(newName) => handleRenamePool(pool.shareId, newName)}
-                                    onTitleClick={() => window.location.href = `/pool/${pool.shareId}/deck`}
-                                    isEditable={true}
-                                    placeholder="Untitled Pool"
-                                    className="history-editable-title"
-                                  />
-                                </td>
-                                <td style={{ color: 'white', fontWeight: '600' }}>
-                                  {getSetName(pool.setCode)}
-                                </td>
-                                <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                  {pool.leaderName || '-'}
-                                </td>
-                                <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                  {pool.baseName || '-'}
-                                </td>
-                                <td>{formatDate(pool.createdAt)}</td>
-                                <td className="history-actions-cell">
-                                  <div className="actions-wrapper">
-                                    <button
-                                      className="history-view-button"
-                                      onClick={() => window.location.href = `/pool/${pool.shareId}/deck`}
-                                    >
-                                      View
-                                    </button>
-                                    {isDeckPlayable(pool.leaderName, pool.baseName, pool.mainDeckCount) && (
-                                      <button
-                                        className="history-play-button"
-                                        onClick={() => window.location.href = `/pool/${pool.shareId}/deck/play`}
-                                        title="Play"
-                                      >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            {hiddenSoloItems.map((item) => {
+                              const isFormat = item.itemType === 'formats'
+                              const viewUrl = isFormat ? getFormatPoolUrl(item) + '/deck' : `/pool/${item.shareId}/deck`
+                              const playUrl = isFormat ? getFormatPoolUrl(item) + '/deck/play' : `/pool/${item.shareId}/deck/play`
+                              const handleRename = isFormat
+                                ? (newName) => handleRenameFormat(item.shareId, newName)
+                                : (newName) => handleRenamePool(item.shareId, newName)
+                              const deleteType = isFormat ? 'formats' : 'sealed'
+                              return (
+                                <tr key={`${item.itemType}-${item.id}`}>
+                                  <td>
+                                    <EditableTitle
+                                      value={item.name}
+                                      onSave={handleRename}
+                                      onTitleClick={() => window.location.href = viewUrl}
+                                      isEditable={true}
+                                      placeholder="Untitled Pool"
+                                      className="history-editable-title"
+                                    />
+                                  </td>
+                                  <td style={{ color: 'white', fontWeight: '600' }}>{item.format}</td>
+                                  <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>{item.leaderName || '-'}</td>
+                                  <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>{item.baseName || '-'}</td>
+                                  <td>{formatDate(item.createdAt)}</td>
+                                  <td className="history-actions-cell">
+                                    <div className="actions-wrapper">
+                                      <button className="history-view-button" onClick={() => window.location.href = viewUrl}>View</button>
+                                      {isDeckPlayable(item.leaderName, item.baseName, item.mainDeckCount) && (
+                                        <button className="history-play-button" onClick={() => window.location.href = playUrl} title="Play">
+                                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                        </button>
+                                      )}
+                                      <button className="history-unhide-button" onClick={() => handleToggleHidden(item.shareId, item.hidden, deleteType)} title="Show">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                          <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                       </button>
-                                    )}
-                                    <button
-                                      className="history-unhide-button"
-                                      onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'sealed')}
-                                      title="Show"
-                                    >
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                        <circle cx="12" cy="12" r="3"></circle>
-                                      </svg>
-                                    </button>
-                                    <button
-                                      className="history-delete-button"
-                                      onClick={() => setDeleteConfirm({ shareId: pool.shareId, type: 'sealed' })}
-                                      title="Delete"
-                                    >
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                      </svg>
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
+                                      <button className="history-delete-button" onClick={() => setDeleteConfirm({ shareId: item.shareId, type: deleteType })} title="Delete">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                          <polyline points="3 6 5 6 21 6"></polyline>
+                                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -565,7 +590,7 @@ export default function HistoryPage() {
                   </div>
                 )}
 
-                {visibleSealedPools.length === 0 && hiddenSealedPools.length > 0 && !showHiddenSealed && (
+                {visibleSoloItems.length === 0 && hiddenSoloItems.length > 0 && !showHiddenSolo && (
                   <div className="history-empty">
                     <p>All pools are hidden. Click "Hidden" above to show them.</p>
                   </div>
@@ -575,21 +600,21 @@ export default function HistoryPage() {
           </>
         )}
 
-        {activeTab === 'draft' && (
+        {activeTab === 'multiplayer' && (
           <>
-            {draftPods.length === 0 ? (
+            {multiplayerItems.length === 0 ? (
               <div className="history-empty">
-                <p>No drafts found. Join or create a draft to get started!</p>
+                <p>No multiplayer pods found. Join or create a pod to get started!</p>
               </div>
             ) : (
               <>
-                {visibleDraftPods.length > 0 && (
+                {visibleMultiItems.length > 0 && (
                   <div className="history-table-container">
                     <table className="history-table">
                       <thead>
                         <tr>
                           <th>Title</th>
-                          <th>Set</th>
+                          <th>Format</th>
                           <th>Status</th>
                           <th>Leader</th>
                           <th>Base</th>
@@ -598,29 +623,39 @@ export default function HistoryPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {visibleDraftPods.map((pod) => {
+                        {visibleMultiItems.map((pod) => {
+                          const isDraft = pod.itemType === 'draft'
+                          const isSealed = pod.itemType === 'multi-sealed'
                           const isActive = pod.status === 'waiting' || pod.status === 'active' || pod.status === 'leader_draft' || pod.status === 'pack_draft'
                           const handleTitleClick = () => {
-                            if (isActive) {
-                              window.location.href = `/draft/${pod.shareId}`
-                            } else if (pod.poolShareId) {
-                              window.location.href = `/draft_pool/${pod.poolShareId}/`
+                            if (isDraft) {
+                              if (isActive) {
+                                window.location.href = `/draft/${pod.shareId}`
+                              } else if (pod.poolShareId) {
+                                window.location.href = `/draft_pool/${pod.poolShareId}/`
+                              }
+                            } else {
+                              if (isActive) {
+                                window.location.href = `/sealed/${pod.shareId}`
+                              } else if (pod.poolShareId) {
+                                window.location.href = `/pool/${pod.poolShareId}/deck`
+                              }
                             }
                           }
                           return (
-                            <tr key={pod.id}>
+                            <tr key={`${pod.itemType}-${pod.id}`}>
                               <td>
                                 <EditableTitle
                                   value={isActive ? null : pod.draftName}
-                                  onSave={(newName) => handleRenameDraft(pod.poolShareId, newName)}
+                                  onSave={(newName) => isDraft && handleRenameDraft(pod.poolShareId, newName)}
                                   onTitleClick={handleTitleClick}
-                                  isEditable={!isActive && !!pod.poolShareId}
-                                  placeholder={isActive ? "Active Draft Pod" : "Untitled Draft"}
+                                  isEditable={isDraft && !isActive && !!pod.poolShareId}
+                                  placeholder={isActive ? (isDraft ? "Active Draft" : "Active Sealed Pod") : (isDraft ? "Untitled Draft" : "Untitled Sealed")}
                                   className="history-editable-title"
                                 />
                               </td>
                               <td style={{ color: 'white', fontWeight: '600' }}>
-                                {getSetName(pod.setCode)}
+                                {pod.format}
                               </td>
                               <td>
                                 <span style={{
@@ -639,30 +674,21 @@ export default function HistoryPage() {
                               <td>{formatDate(pod.createdAt)}</td>
                               <td className="history-actions-cell">
                                 <div className="actions-wrapper">
-                                  <button
-                                    className="history-view-button"
-                                    onClick={() => window.location.href = `/draft/${pod.shareId}`}
-                                  >
-                                    View
-                                  </button>
-                                  {isActive && pod.isHost && (
-                                    <button
-                                      className="history-delete-button"
-                                      onClick={() => setDeleteConfirm({ shareId: pod.shareId, type: 'draft', isActiveDraft: true })}
-                                      title="Cancel Draft"
-                                    >
+                                  <button className="history-view-button" onClick={() => {
+                                    if (isDraft) window.location.href = `/draft/${pod.shareId}`
+                                    else if (isActive) window.location.href = `/sealed/${pod.shareId}`
+                                    else if (pod.poolShareId) window.location.href = `/pool/${pod.poolShareId}/deck`
+                                  }}>View</button>
+                                  {isDraft && isActive && pod.isHost && (
+                                    <button className="history-delete-button" onClick={() => setDeleteConfirm({ shareId: pod.shareId, type: 'draft', isActiveDraft: true })} title="Cancel Draft">
                                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <line x1="18" y1="6" x2="6" y2="18"></line>
                                         <line x1="6" y1="6" x2="18" y2="18"></line>
                                       </svg>
                                     </button>
                                   )}
-                                  {isActive && !pod.isHost && !pod.isBot && (
-                                    <button
-                                      className="history-drop-button"
-                                      onClick={() => setDropConfirm({ shareId: pod.shareId })}
-                                      title="Drop from Draft"
-                                    >
+                                  {isDraft && isActive && !pod.isHost && !pod.isBot && (
+                                    <button className="history-drop-button" onClick={() => setDropConfirm({ shareId: pod.shareId })} title="Drop from Draft">
                                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                                         <polyline points="16 17 21 12 16 7"></polyline>
@@ -670,34 +696,31 @@ export default function HistoryPage() {
                                       </svg>
                                     </button>
                                   )}
-                                  {!isActive && pod.poolShareId && (
+                                  {isDraft && !isActive && (
+                                    <button className="history-log-button" onClick={() => window.location.href = `/draft/${pod.shareId}/log`} title="Draft Log">
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                      </svg>
+                                    </button>
+                                  )}
+                                  {!isActive && pod.poolShareId && isDeckPlayable(pod.leaderName, pod.baseName, pod.mainDeckCount) && (
+                                    <button className="history-play-button" onClick={() => window.location.href = isDraft ? `/draft_pool/${pod.poolShareId}/play` : `/pool/${pod.poolShareId}/deck/play`} title="Play">
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                    </button>
+                                  )}
+                                  {isDraft && !isActive && pod.poolShareId && (
                                     <>
-                                      {isDeckPlayable(pod.leaderName, pod.baseName, pod.mainDeckCount) && (
-                                        <button
-                                          className="history-play-button"
-                                          onClick={() => window.location.href = `/draft_pool/${pod.poolShareId}/play`}
-                                          title="Play"
-                                        >
-                                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                          </svg>
-                                        </button>
-                                      )}
-                                      <button
-                                        className="history-hide-button"
-                                        onClick={() => handleToggleHidden(pod.poolShareId, pod.hidden, 'draft')}
-                                        title="Hide"
-                                      >
+                                      <button className="history-hide-button" onClick={() => handleToggleHidden(pod.poolShareId, pod.hidden, 'draft')} title="Hide">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                           <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                                           <line x1="1" y1="1" x2="23" y2="23"></line>
                                         </svg>
                                       </button>
-                                      <button
-                                        className="history-delete-button"
-                                        onClick={() => setDeleteConfirm({ shareId: pod.poolShareId, type: 'draft', isActiveDraft: false })}
-                                        title="Delete"
-                                      >
+                                      <button className="history-delete-button" onClick={() => setDeleteConfirm({ shareId: pod.poolShareId, type: 'draft', isActiveDraft: false })} title="Delete">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                           <polyline points="3 6 5 6 21 6"></polyline>
                                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -715,33 +738,25 @@ export default function HistoryPage() {
                   </div>
                 )}
 
-                {/* Hidden draft pods section */}
-                {hiddenDraftPods.length > 0 && (
+                {hiddenMultiItems.length > 0 && (
                   <div className="hidden-pools-section">
                     <button
-                      className={`hidden-pools-toggle ${showHiddenDraft ? 'expanded' : ''}`}
-                      onClick={() => setShowHiddenDraft(!showHiddenDraft)}
+                      className={`hidden-pools-toggle ${showHiddenMulti ? 'expanded' : ''}`}
+                      onClick={() => setShowHiddenMulti(!showHiddenMulti)}
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        style={{ transform: showHiddenDraft ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-                      >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                        style={{ transform: showHiddenMulti ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
                         <polyline points="9 18 15 12 9 6"></polyline>
                       </svg>
-                      Hidden ({hiddenDraftPods.length})
+                      Hidden ({hiddenMultiItems.length})
                     </button>
-                    {showHiddenDraft && (
+                    {showHiddenMulti && (
                       <div className="history-table-container hidden-pools-table-container">
                         <table className="history-table">
                           <thead>
                             <tr>
                               <th>Title</th>
-                              <th>Set</th>
+                              <th>Format</th>
                               <th>Status</th>
                               <th>Leader</th>
                               <th>Base</th>
@@ -750,75 +765,48 @@ export default function HistoryPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {hiddenDraftPods.map((pod) => {
-                              const handleTitleClick = () => {
-                                if (pod.poolShareId) {
-                                  window.location.href = `/draft_pool/${pod.poolShareId}/`
-                                }
-                              }
+                            {hiddenMultiItems.map((pod) => {
+                              const isDraft = pod.itemType === 'draft'
                               return (
-                                <tr key={pod.id}>
+                                <tr key={`${pod.itemType}-${pod.id}`}>
                                   <td>
                                     <EditableTitle
                                       value={pod.draftName}
-                                      onSave={(newName) => handleRenameDraft(pod.poolShareId, newName)}
-                                      onTitleClick={handleTitleClick}
-                                      isEditable={!!pod.poolShareId}
-                                      placeholder="Untitled Draft"
+                                      onSave={(newName) => isDraft && handleRenameDraft(pod.poolShareId, newName)}
+                                      onTitleClick={() => {
+                                        if (isDraft && pod.poolShareId) window.location.href = `/draft_pool/${pod.poolShareId}/`
+                                        else if (pod.poolShareId) window.location.href = `/pool/${pod.poolShareId}/deck`
+                                      }}
+                                      isEditable={isDraft && !!pod.poolShareId}
+                                      placeholder={isDraft ? "Untitled Draft" : "Untitled Sealed"}
                                       className="history-editable-title"
                                     />
                                   </td>
-                                  <td style={{ color: 'white', fontWeight: '600' }}>
-                                    {getSetName(pod.setCode)}
-                                  </td>
-                                  <td>
-                                    <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontWeight: '400' }}>
-                                      Completed
-                                    </span>
-                                  </td>
-                                  <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                    {pod.leaderName || '-'}
-                                  </td>
-                                  <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                    {pod.baseName || '-'}
-                                  </td>
+                                  <td style={{ color: 'white', fontWeight: '600' }}>{pod.format}</td>
+                                  <td><span style={{ color: 'rgba(255, 255, 255, 0.6)', fontWeight: '400' }}>Completed</span></td>
+                                  <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>{pod.leaderName || '-'}</td>
+                                  <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>{pod.baseName || '-'}</td>
                                   <td>{formatDate(pod.createdAt)}</td>
                                   <td className="history-actions-cell">
                                     <div className="actions-wrapper">
-                                      <button
-                                        className="history-view-button"
-                                        onClick={() => window.location.href = `/draft/${pod.shareId}`}
-                                      >
-                                        View
-                                      </button>
-                                      {pod.poolShareId && (
+                                      <button className="history-view-button" onClick={() => {
+                                        if (isDraft) window.location.href = `/draft/${pod.shareId}`
+                                        else if (pod.poolShareId) window.location.href = `/pool/${pod.poolShareId}/deck`
+                                      }}>View</button>
+                                      {pod.poolShareId && isDeckPlayable(pod.leaderName, pod.baseName, pod.mainDeckCount) && (
+                                        <button className="history-play-button" onClick={() => window.location.href = isDraft ? `/draft_pool/${pod.poolShareId}/play` : `/pool/${pod.poolShareId}/deck/play`} title="Play">
+                                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                        </button>
+                                      )}
+                                      {isDraft && pod.poolShareId && (
                                         <>
-                                          {isDeckPlayable(pod.leaderName, pod.baseName, pod.mainDeckCount) && (
-                                            <button
-                                              className="history-play-button"
-                                              onClick={() => window.location.href = `/draft_pool/${pod.poolShareId}/play`}
-                                              title="Play"
-                                            >
-                                              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                              </svg>
-                                            </button>
-                                          )}
-                                          <button
-                                            className="history-unhide-button"
-                                            onClick={() => handleToggleHidden(pod.poolShareId, pod.hidden, 'draft')}
-                                            title="Show"
-                                          >
+                                          <button className="history-unhide-button" onClick={() => handleToggleHidden(pod.poolShareId, pod.hidden, 'draft')} title="Show">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                               <circle cx="12" cy="12" r="3"></circle>
                                             </svg>
                                           </button>
-                                          <button
-                                            className="history-delete-button"
-                                            onClick={() => setDeleteConfirm({ shareId: pod.poolShareId, type: 'draft', isActiveDraft: false })}
-                                            title="Delete"
-                                          >
+                                          <button className="history-delete-button" onClick={() => setDeleteConfirm({ shareId: pod.poolShareId, type: 'draft', isActiveDraft: false })} title="Delete">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                               <polyline points="3 6 5 6 21 6"></polyline>
                                               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -838,217 +826,9 @@ export default function HistoryPage() {
                   </div>
                 )}
 
-                {visibleDraftPods.length === 0 && hiddenDraftPods.length > 0 && !showHiddenDraft && (
+                {visibleMultiItems.length === 0 && hiddenMultiItems.length > 0 && !showHiddenMulti && (
                   <div className="history-empty">
-                    <p>All drafts are hidden. Click "Hidden" above to show them.</p>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        )}
-
-        {activeTab === 'formats' && (
-          <>
-            {formatPools.length === 0 ? (
-              <div className="history-empty">
-                <p>No pools found. Try Chaos Sealed, Pack Wars, or other formats!</p>
-              </div>
-            ) : (
-              <>
-                {visibleFormatPools.length > 0 && (
-                  <div className="history-table-container">
-                    <table className="history-table">
-                      <thead>
-                        <tr>
-                          <th>Title</th>
-                          <th>Format</th>
-                          <th>Leader</th>
-                          <th>Base</th>
-                          <th>Date</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {visibleFormatPools.map((pool) => (
-                          <tr key={pool.id}>
-                            <td>
-                              <EditableTitle
-                                value={pool.name}
-                                onSave={(newName) => handleRenameFormat(pool.shareId, newName)}
-                                onTitleClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck'}
-                                isEditable={true}
-                                placeholder="Untitled Pool"
-                                className="history-editable-title"
-                              />
-                            </td>
-                            <td style={{ color: 'white', fontWeight: '600' }}>
-                              {FORMAT_POOL_TYPE_NAMES[pool.poolType] || pool.poolType}
-                            </td>
-                            <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                              {pool.leaderName || '-'}
-                            </td>
-                            <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                              {pool.baseName || '-'}
-                            </td>
-                            <td>{formatDate(pool.createdAt)}</td>
-                            <td className="history-actions-cell">
-                              <div className="actions-wrapper">
-                                <button
-                                  className="history-view-button"
-                                  onClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck'}
-                                >
-                                  View
-                                </button>
-                                {isDeckPlayable(pool.leaderName, pool.baseName, pool.mainDeckCount) && (
-                                  <button
-                                    className="history-play-button"
-                                    onClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck/play'}
-                                    title="Play"
-                                  >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                    </svg>
-                                  </button>
-                                )}
-                                <button
-                                  className="history-hide-button"
-                                  onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'formats')}
-                                  title="Hide"
-                                >
-                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                                  </svg>
-                                </button>
-                                <button
-                                  className="history-delete-button"
-                                  onClick={() => setDeleteConfirm({ shareId: pool.shareId, type: 'formats' })}
-                                  title="Delete"
-                                >
-                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                  </svg>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Hidden format pools section */}
-                {hiddenFormatPools.length > 0 && (
-                  <div className="hidden-pools-section">
-                    <button
-                      className={`hidden-pools-toggle ${showHiddenFormats ? 'expanded' : ''}`}
-                      onClick={() => setShowHiddenFormats(!showHiddenFormats)}
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        style={{ transform: showHiddenFormats ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-                      >
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                      </svg>
-                      Hidden ({hiddenFormatPools.length})
-                    </button>
-                    {showHiddenFormats && (
-                      <div className="history-table-container hidden-pools-table-container">
-                        <table className="history-table">
-                          <thead>
-                            <tr>
-                              <th>Title</th>
-                              <th>Format</th>
-                              <th>Leader</th>
-                              <th>Base</th>
-                              <th>Date</th>
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {hiddenFormatPools.map((pool) => (
-                              <tr key={pool.id}>
-                                <td>
-                                  <EditableTitle
-                                    value={pool.name}
-                                    onSave={(newName) => handleRenameFormat(pool.shareId, newName)}
-                                    onTitleClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck'}
-                                    isEditable={true}
-                                    placeholder="Untitled Pool"
-                                    className="history-editable-title"
-                                  />
-                                </td>
-                                <td style={{ color: 'white', fontWeight: '600' }}>
-                                  {FORMAT_POOL_TYPE_NAMES[pool.poolType] || pool.poolType}
-                                </td>
-                                <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                  {pool.leaderName || '-'}
-                                </td>
-                                <td style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                  {pool.baseName || '-'}
-                                </td>
-                                <td>{formatDate(pool.createdAt)}</td>
-                                <td className="history-actions-cell">
-                                  <div className="actions-wrapper">
-                                    <button
-                                      className="history-view-button"
-                                      onClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck'}
-                                    >
-                                      View
-                                    </button>
-                                    {isDeckPlayable(pool.leaderName, pool.baseName, pool.mainDeckCount) && (
-                                      <button
-                                        className="history-play-button"
-                                        onClick={() => window.location.href = getFormatPoolUrl(pool) + '/deck/play'}
-                                        title="Play"
-                                      >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                        </svg>
-                                      </button>
-                                    )}
-                                    <button
-                                      className="history-unhide-button"
-                                      onClick={() => handleToggleHidden(pool.shareId, pool.hidden, 'formats')}
-                                      title="Show"
-                                    >
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                        <circle cx="12" cy="12" r="3"></circle>
-                                      </svg>
-                                    </button>
-                                    <button
-                                      className="history-delete-button"
-                                      onClick={() => setDeleteConfirm({ shareId: pool.shareId, type: 'formats' })}
-                                      title="Delete"
-                                    >
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                      </svg>
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {visibleFormatPools.length === 0 && hiddenFormatPools.length > 0 && !showHiddenFormats && (
-                  <div className="history-empty">
-                    <p>All pools are hidden. Click "Hidden" above to show them.</p>
+                    <p>All pods are hidden. Click "Hidden" above to show them.</p>
                   </div>
                 )}
               </>
