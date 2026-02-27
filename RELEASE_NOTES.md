@@ -1,5 +1,14 @@
 # Release Notes
 
+## 02.27.2026
+
+### 📦 Pack Generation
+- **LAW foil position**: In LAW packs, the Hyperspace Foil card now sits between the commons and uncommons (index 11), matching real-world pack collation. Sets 1-6 are unchanged.
+- **Special rarity in UC3 upgrades**: For sets 4+ (JTL, LOF, SEC, LAW), Special rarity cards can now appear when the 3rd uncommon slot upgrades to a Hyperspace rare/legendary. Specials appear at the same per-card frequency as rares.
+
+### 🎮 Game Modes/Gameplay
+- **Spread seating**: Players joining a draft or sealed pod are now seated to maximize distance from existing players around the circular table, rather than filling seats sequentially. This improves fairness in pack passing for partially-filled pods.
+
 ## 02.26.2026
 
 ### 🎉 New Features
