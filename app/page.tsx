@@ -80,6 +80,14 @@ export default function Home() {
     }
   }, [])
 
+  const handleSoloClick = () => {
+    window.location.href = '/solo'
+  }
+
+  const handlePodClick = () => {
+    window.location.href = '/multiplayer'
+  }
+
   const handleSealedClick = () => {
     window.location.href = '/sets'
   }
@@ -167,9 +175,8 @@ export default function Home() {
       )}
       {view === 'landing' && (
         <LandingPage
-          onSealedClick={handleSealedClick}
-          onDraftClick={handleDraftClick}
-          onOtherFormatsClick={handleOtherFormatsClick}
+          onSoloClick={handleSoloClick}
+          onPodClick={handlePodClick}
         />
       )}
       {view === 'set-selection' && (

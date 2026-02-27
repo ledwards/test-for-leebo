@@ -247,7 +247,7 @@ async function insertTestData(pool: pg.Pool): Promise<TestData> {
   ]
 
   const draftPodResult = await pool.query(`
-    INSERT INTO draft_pods (id, share_id, host_id, set_code, status, all_packs, max_players, current_players)
+    INSERT INTO pods (id, share_id, host_id, set_code, status, all_packs, max_players, current_players)
     VALUES (gen_random_uuid(), 'DRAFT001', $1, 'SOR', 'active', $2, 8, 2)
     RETURNING id
   `, [userId, JSON.stringify(oldDraftPacks)])
@@ -375,7 +375,7 @@ async function verifyPackFormat(pool: pg.Pool): Promise<boolean> {
 
   // Check draft pod packs were converted to object format
   const draftResult = await pool.query(`
-    SELECT all_packs FROM draft_pods WHERE share_id = 'DRAFT001'
+    SELECT all_packs FROM pods WHERE share_id = 'DRAFT001'
   `)
 
   if (draftResult.rows.length === 0) {

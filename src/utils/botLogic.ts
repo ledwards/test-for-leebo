@@ -35,7 +35,7 @@ interface DraftState {
 
 interface BotPlayer {
   id: string
-  draft_pod_id: string
+  pod_id: string
   user_id: string | null
   pick_status: string
   is_bot: boolean
@@ -58,7 +58,7 @@ export async function triggerBotPicks(podId: string): Promise<boolean> {
   // Exclude all_packs to save memory
   const pod = await queryRow(
     `SELECT id, share_id, status, draft_state, state_version
-     FROM draft_pods WHERE id = $1`,
+     FROM pods WHERE id = $1`,
     [podId]
   )
   if (!pod || pod.status !== 'active') {
@@ -69,8 +69,8 @@ export async function triggerBotPicks(podId: string): Promise<boolean> {
 
   // Get all bot players who need to pick
   const botsNeedingPicks = await queryRows(
-    `SELECT * FROM draft_pod_players
-     WHERE draft_pod_id = $1 AND is_bot = true AND pick_status = 'picking'`,
+    `SELECT * FROM pod_players
+     WHERE pod_id = $1 AND is_bot = true AND pick_status = 'picking'`,
     [podId]
   )
 
@@ -96,7 +96,7 @@ export async function triggerBotPicks(podId: string): Promise<boolean> {
 async function makeBotPick(botId: string, draftState: DraftState): Promise<boolean> {
   // Re-fetch the bot with fresh data to avoid race conditions
   const bot = await queryRow(
-    `SELECT * FROM draft_pod_players WHERE id = $1 AND pick_status = 'picking'`,
+    `SELECT * FROM pod_players WHERE id = $1 AND pick_status = 'picking'`,
     [botId]
   )
 
@@ -166,7 +166,7 @@ async function makeBotLeaderPick(bot: BotPlayer, draftState: DraftState): Promis
 
   // Use staged selection system
   await query(
-    `UPDATE draft_pod_players
+    `UPDATE pod_players
      SET selected_card_id = $1,
          pick_status = 'selected'
      WHERE id = $2`,
@@ -175,32 +175,32 @@ async function makeBotLeaderPick(bot: BotPlayer, draftState: DraftState): Promis
 
   // Check if only one player remains picking (for last player timer)
   const remainingPickers = await queryRows(
-    `SELECT id FROM draft_pod_players WHERE draft_pod_id = $1 AND pick_status = 'picking'`,
-    [bot.draft_pod_id]
+    `SELECT id FROM pod_players WHERE pod_id = $1 AND pick_status = 'picking'`,
+    [bot.pod_id]
   )
 
   if (remainingPickers.length === 1) {
     // One player left - set lastPlayerStartedAt if not already set
-    const pod = await queryRow('SELECT draft_state FROM draft_pods WHERE id = $1', [bot.draft_pod_id])
+    const pod = await queryRow('SELECT draft_state FROM pods WHERE id = $1', [bot.pod_id])
     const currentState = jsonParse<DraftState>(pod?.draft_state, {}) as DraftState
 
     if (!currentState.lastPlayerStartedAt) {
       currentState.lastPlayerStartedAt = new Date().toISOString()
       await query(
-        `UPDATE draft_pods SET draft_state = $1, state_version = state_version + 1 WHERE id = $2`,
-        [JSON.stringify(currentState), bot.draft_pod_id]
+        `UPDATE pods SET draft_state = $1, state_version = state_version + 1 WHERE id = $2`,
+        [JSON.stringify(currentState), bot.pod_id]
       )
     } else {
       await query(
-        `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
-        [bot.draft_pod_id]
+        `UPDATE pods SET state_version = state_version + 1 WHERE id = $1`,
+        [bot.pod_id]
       )
     }
   } else {
     // Increment state version so clients see the update
     await query(
-      `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
-      [bot.draft_pod_id]
+      `UPDATE pods SET state_version = state_version + 1 WHERE id = $1`,
+      [bot.pod_id]
     )
   }
 
@@ -244,7 +244,7 @@ async function makeBotCardPick(bot: BotPlayer, draftState: DraftState): Promise<
 
   // Use staged selection system
   await query(
-    `UPDATE draft_pod_players
+    `UPDATE pod_players
      SET selected_card_id = $1,
          pick_status = 'selected'
      WHERE id = $2`,
@@ -253,32 +253,32 @@ async function makeBotCardPick(bot: BotPlayer, draftState: DraftState): Promise<
 
   // Check if only one player remains picking (for last player timer)
   const remainingPickers = await queryRows(
-    `SELECT id FROM draft_pod_players WHERE draft_pod_id = $1 AND pick_status = 'picking'`,
-    [bot.draft_pod_id]
+    `SELECT id FROM pod_players WHERE pod_id = $1 AND pick_status = 'picking'`,
+    [bot.pod_id]
   )
 
   if (remainingPickers.length === 1) {
     // One player left - set lastPlayerStartedAt if not already set
-    const pod = await queryRow('SELECT draft_state FROM draft_pods WHERE id = $1', [bot.draft_pod_id])
+    const pod = await queryRow('SELECT draft_state FROM pods WHERE id = $1', [bot.pod_id])
     const currentState = jsonParse<DraftState>(pod?.draft_state, {}) as DraftState
 
     if (!currentState.lastPlayerStartedAt) {
       currentState.lastPlayerStartedAt = new Date().toISOString()
       await query(
-        `UPDATE draft_pods SET draft_state = $1, state_version = state_version + 1 WHERE id = $2`,
-        [JSON.stringify(currentState), bot.draft_pod_id]
+        `UPDATE pods SET draft_state = $1, state_version = state_version + 1 WHERE id = $2`,
+        [JSON.stringify(currentState), bot.pod_id]
       )
     } else {
       await query(
-        `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
-        [bot.draft_pod_id]
+        `UPDATE pods SET state_version = state_version + 1 WHERE id = $1`,
+        [bot.pod_id]
       )
     }
   } else {
     // Increment state version so clients see the update
     await query(
-      `UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1`,
-      [bot.draft_pod_id]
+      `UPDATE pods SET state_version = state_version + 1 WHERE id = $1`,
+      [bot.pod_id]
     )
   }
 
@@ -297,7 +297,7 @@ export async function processBotTurns(podId: string): Promise<void> {
   // Try to acquire processing lock using atomic update
   // Only one process can set bot_processing_since when it's NULL or stale (> 30s old)
   const lockResult = await query(
-    `UPDATE draft_pods
+    `UPDATE pods
      SET bot_processing_since = NOW()
      WHERE id = $1
        AND status = 'active'
@@ -309,7 +309,7 @@ export async function processBotTurns(podId: string): Promise<void> {
   if (lockResult.rowCount === 0) {
     // Another process is handling bots - but still broadcast current state
     // in case the other process finished and we missed the broadcast
-    const pod = await queryRow('SELECT share_id FROM draft_pods WHERE id = $1', [podId])
+    const pod = await queryRow('SELECT share_id FROM pods WHERE id = $1', [podId])
     if (pod?.share_id) {
       broadcastDraftState(pod.share_id).catch(err => {
         console.error('Error broadcasting after lock fail:', err)
@@ -324,14 +324,14 @@ export async function processBotTurns(podId: string): Promise<void> {
 
       // Refresh the lock timestamp to prevent timeout
       await query(
-        `UPDATE draft_pods SET bot_processing_since = NOW() WHERE id = $1`,
+        `UPDATE pods SET bot_processing_since = NOW() WHERE id = $1`,
         [podId]
       )
 
       // Get current state with fresh data (exclude all_packs to save memory)
       const pod = await queryRow(
         `SELECT id, share_id, status, draft_state, state_version
-         FROM draft_pods WHERE id = $1`,
+         FROM pods WHERE id = $1`,
         [podId]
       )
       if (!pod || pod.status !== 'active') {
@@ -345,7 +345,7 @@ export async function processBotTurns(podId: string): Promise<void> {
 
       // Check if all players have selected (using new staged pick system)
       const players = await queryRows(
-        'SELECT pick_status, is_bot, selected_card_id FROM draft_pod_players WHERE draft_pod_id = $1',
+        'SELECT pick_status, is_bot, selected_card_id FROM pod_players WHERE pod_id = $1',
         [podId]
       )
 
@@ -360,7 +360,7 @@ export async function processBotTurns(podId: string): Promise<void> {
         if (!botsMadePicks) {
           // No bots picked, check if humans need to pick
           const updatedPlayers = await queryRows(
-            'SELECT pick_status, is_bot FROM draft_pod_players WHERE draft_pod_id = $1',
+            'SELECT pick_status, is_bot FROM pod_players WHERE pod_id = $1',
             [podId]
           )
           const humansNeedToPick = updatedPlayers.some(p => !p.is_bot && p.pick_status === 'picking')
@@ -375,14 +375,14 @@ export async function processBotTurns(podId: string): Promise<void> {
   } finally {
     // Always release the lock
     await query(
-      `UPDATE draft_pods SET bot_processing_since = NULL WHERE id = $1`,
+      `UPDATE pods SET bot_processing_since = NULL WHERE id = $1`,
       [podId]
     )
 
     // Always broadcast state update after bot processing
     // This ensures clients get the latest state even if no picks were made
     try {
-      const podForBroadcast = await queryRow('SELECT share_id FROM draft_pods WHERE id = $1', [podId])
+      const podForBroadcast = await queryRow('SELECT share_id FROM pods WHERE id = $1', [podId])
       if (podForBroadcast?.share_id) {
         await broadcastDraftState(podForBroadcast.share_id)
       }

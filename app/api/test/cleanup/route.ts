@@ -21,14 +21,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Delete draft pod players for test users
     await query(
-      `DELETE FROM draft_pod_players
+      `DELETE FROM pod_players
        WHERE user_id IN (SELECT id FROM users WHERE discord_id LIKE $1)`,
       [pattern]
     )
 
     // Delete draft pods created by test users
     await query(
-      `DELETE FROM draft_pods
+      `DELETE FROM pods
        WHERE host_id IN (SELECT id FROM users WHERE discord_id LIKE $1)`,
       [pattern]
     )

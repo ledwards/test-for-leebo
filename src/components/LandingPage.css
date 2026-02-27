@@ -32,6 +32,25 @@
   line-height: 1.4;
 }
 
+.players-online-landing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+.online-dot-landing {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4CAF50;
+  display: inline-block;
+  box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+}
+
 .active-draft-banner {
   display: flex;
   align-items: center;

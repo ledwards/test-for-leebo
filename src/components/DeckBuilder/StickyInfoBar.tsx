@@ -56,6 +56,7 @@ export interface StickyInfoBarProps {
   isAuthenticated: boolean
   signIn: () => void
   shareId?: string
+  draftShareId?: string | null
   setErrorMessage: (message: string | null) => void
   setMessageType: (type: MessageType | null) => void
   setCode: string
@@ -91,6 +92,7 @@ export function StickyInfoBar({
   isAuthenticated,
   signIn,
   shareId,
+  draftShareId,
   setErrorMessage,
   setMessageType,
   setCode,
@@ -180,7 +182,13 @@ export function StickyInfoBar({
   // Handle play navigation
   const handlePlay = () => {
     if (isDeckLegal) {
-      window.location.href = `/pool/${shareId}/deck/play`
+      if (isDraftMode && draftShareId) {
+        window.location.href = `/draft/${draftShareId}/pod`
+      } else if (!isDraftMode && draftShareId) {
+        window.location.href = `/sealed/${draftShareId}/pod`
+      } else {
+        window.location.href = `/pool/${shareId}/deck/play`
+      }
     }
   }
 

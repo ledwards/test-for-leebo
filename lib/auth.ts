@@ -79,6 +79,15 @@ export function verifyToken(token: string): Session | null {
  * @returns Session object or null
  */
 export function getSession(request: Request): Session | null {
+  // Check Authorization: Bearer header first
+  const authHeader = request.headers.get('authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7)
+    const session = verifyToken(token)
+    if (session) return session
+  }
+
+  // Fall back to cookie
   const cookieHeader = request.headers.get('cookie')
   if (!cookieHeader) return null
 

@@ -55,11 +55,19 @@ export interface DuplicateMetric {
   status: 'expected' | 'slight_variance' | 'outlier' | 'insufficient_data'
 }
 
-export interface DuplicateMetrics {
+export interface DuplicateMetricGroup {
+  sampleSize: number
   baseTreatmentDuplicates: DuplicateMetric
   anyTreatmentDuplicates: DuplicateMetric
   baseTreatmentTriplicates: DuplicateMetric
   anyTreatmentTriplicates: DuplicateMetric
+}
+
+export interface DuplicateMetrics {
+  sealedUnshuffled: DuplicateMetricGroup
+  sealedShuffled: DuplicateMetricGroup
+  draftUnshuffled: DuplicateMetricGroup
+  draftShuffled: DuplicateMetricGroup
 }
 
 export interface PackQualityData {
@@ -681,134 +689,200 @@ export async function getPackQualityData(setCode: string, since: string = '2026-
   )
 
   // === DUPLICATE/TRIPLICATE METRICS ===
-  // Expected values from baseline analysis (500 pods per set using generateSealedPod)
-  // These are statistical targets - observed should be within ~3σ of expected
-  const EXPECTED = {
-    dupBase: { mean: 0.95, stdDev: 0.78 },   // ~0.7-1.1 mean, ~0.67-0.83 σ across sets
-    dupAny: { mean: 3.75, stdDev: 1.38 },    // ~3.4-4.1 mean, ~1.26-1.46 σ across sets
-    tripBase: { mean: 0.0, stdDev: 0.05 },   // ~0 mean (very rare), small σ for tolerance
-    tripAny: { mean: 0.10, stdDev: 0.30 },   // ~0.07-0.13 mean, ~0.25-0.35 σ across sets
+  // Split into sealed (6 packs per pool) and draft (3 packs per player).
+  // Previous approach mixed both, causing extreme z-scores because draft pods
+  // grouped 24 packs (all players) against 6-pack expected values.
+
+  // Expected values from baseline analysis (500 iterations using generateBoosterPack)
+  // Sealed: 6 consecutive packs from same belt run
+  const EXPECTED_SEALED = {
+    dupBase: { mean: 1.07, stdDev: 0.80 },
+    dupAny: { mean: 3.68, stdDev: 1.39 },
+    tripBase: { mean: 0.0, stdDev: 0.05 },
+    tripAny: { mean: 0.10, stdDev: 0.33 },
+  }
+  // Draft: 3 consecutive packs per player from same belt run
+  const EXPECTED_DRAFT = {
+    dupBase: { mean: 0.11, stdDev: 0.34 },
+    dupAny: { mean: 0.78, stdDev: 0.83 },
+    tripBase: { mean: 0.0, stdDev: 0.05 },
+    tripAny: { mean: 0.0, stdDev: 0.06 },
   }
 
-  // Get pool-level data for duplicate analysis
-  // A pool is identified by source_id
-  const poolData = await queryRows(
-    `SELECT
-      source_id,
-      pack_index,
-      card_name,
-      card_id,
-      treatment,
-      slot_type
-     FROM card_generations
-     WHERE set_code = $1
-             AND generated_at >= $2
-       AND slot_type NOT IN ('leader', 'base')
-     ORDER BY source_id, pack_index`,
+  // Shuffled packs come from random box positions → more duplicates expected.
+  // Wider stdDev until we have enough data to calibrate precisely.
+  const EXPECTED_SEALED_SHUFFLED = {
+    dupBase: { mean: 2.5, stdDev: 1.5 },
+    dupAny: { mean: 5.0, stdDev: 2.0 },
+    tripBase: { mean: 0.1, stdDev: 0.3 },
+    tripAny: { mean: 0.3, stdDev: 0.5 },
+  }
+  const EXPECTED_DRAFT_SHUFFLED = {
+    dupBase: { mean: 0.3, stdDev: 0.5 },
+    dupAny: { mean: 1.2, stdDev: 1.0 },
+    tripBase: { mean: 0.0, stdDev: 0.1 },
+    tripAny: { mean: 0.0, stdDev: 0.1 },
+  }
+
+  // Helper: calculate duplicate stats for a set of card groups
+  const calcDuplicateStats = (
+    groups: Record<string, Array<{ card_name: string; card_id: string; treatment: string }>>,
+    expected: typeof EXPECTED_SEALED,
+  ): DuplicateMetricGroup => {
+    const groupIds = Object.keys(groups)
+    const groupCount = groupIds.length
+
+    const dupBaseValues: number[] = []
+    const dupAnyValues: number[] = []
+    const tripBaseValues: number[] = []
+    const tripAnyValues: number[] = []
+
+    groupIds.forEach(groupId => {
+      const cards = groups[groupId]
+
+      // Base treatment: only 'base' treatment (Normal variant, no foil/HS/showcase)
+      const baseCards = cards.filter(c => c.treatment === 'base')
+      const baseNameCounts: Record<string, number> = {}
+      baseCards.forEach(c => {
+        baseNameCounts[c.card_name] = (baseNameCounts[c.card_name] || 0) + 1
+      })
+      const baseDupes = Object.values(baseNameCounts).filter(n => n > 1).reduce((sum, n) => sum + (n - 1), 0)
+      const baseTrips = Object.values(baseNameCounts).filter(n => n > 2).reduce((sum, n) => sum + (n - 2), 0)
+
+      // Any treatment: exact card_id
+      const exactIdCounts: Record<string, number> = {}
+      cards.forEach(c => {
+        exactIdCounts[c.card_id] = (exactIdCounts[c.card_id] || 0) + 1
+      })
+      const anyDupes = Object.values(exactIdCounts).filter(n => n > 1).reduce((sum, n) => sum + (n - 1), 0)
+      const anyTrips = Object.values(exactIdCounts).filter(n => n > 2).reduce((sum, n) => sum + (n - 2), 0)
+
+      dupBaseValues.push(baseDupes)
+      dupAnyValues.push(anyDupes)
+      tripBaseValues.push(baseTrips)
+      tripAnyValues.push(anyTrips)
+    })
+
+    const calcObservedStats = (arr: number[]) => {
+      if (arr.length === 0) return { mean: 0, stdDev: 0 }
+      const mean = arr.reduce((a, b) => a + b, 0) / arr.length
+      const variance = arr.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / arr.length
+      return { mean, stdDev: Math.sqrt(variance) }
+    }
+
+    const calcDupZScore = (observed: number, exp: number, stdDev: number, n: number) => {
+      if (n === 0 || stdDev === 0) return 0
+      return (observed - exp) / (stdDev / Math.sqrt(n))
+    }
+
+    const categorizeDupStatus = (zScore: number, sampleSize: number): DuplicateMetric['status'] => {
+      if (sampleSize < 10) return 'insufficient_data'
+      const absZ = Math.abs(zScore)
+      if (absZ < 2.0) return 'expected'
+      if (absZ < 3.0) return 'slight_variance'
+      return 'outlier'
+    }
+
+    const buildDupMetric = (
+      observed: { mean: number; stdDev: number },
+      exp: { mean: number; stdDev: number },
+      n: number
+    ): DuplicateMetric => {
+      const zScore = calcDupZScore(observed.mean, exp.mean, exp.stdDev, n)
+      return {
+        observedMean: Math.round(observed.mean * 1000) / 1000,
+        observedStdDev: Math.round(observed.stdDev * 1000) / 1000,
+        expectedMean: exp.mean,
+        expectedStdDev: exp.stdDev,
+        zScore: Math.round(zScore * 100) / 100,
+        sampleSize: n,
+        status: categorizeDupStatus(zScore, n),
+      }
+    }
+
+    const dupBaseObs = calcObservedStats(dupBaseValues)
+    const dupAnyObs = calcObservedStats(dupAnyValues)
+    const tripBaseObs = calcObservedStats(tripBaseValues)
+    const tripAnyObs = calcObservedStats(tripAnyValues)
+
+    return {
+      sampleSize: groupCount,
+      baseTreatmentDuplicates: buildDupMetric(dupBaseObs, expected.dupBase, groupCount),
+      anyTreatmentDuplicates: buildDupMetric(dupAnyObs, expected.dupAny, groupCount),
+      baseTreatmentTriplicates: buildDupMetric(tripBaseObs, expected.tripBase, groupCount),
+      anyTreatmentTriplicates: buildDupMetric(tripAnyObs, expected.tripAny, groupCount),
+    }
+  }
+
+  // --- Sealed duplicate analysis (6 packs per pool, grouped by source_id) ---
+  // JOIN card_pools to get shuffled_packs flag
+  const sealedPoolData = await queryRows(
+    `SELECT cg.source_id, cg.card_name, cg.card_id, cg.treatment,
+            COALESCE(cp.shuffled_packs, false) as shuffled
+     FROM card_generations cg
+     LEFT JOIN card_pools cp ON cp.id = cg.source_id
+     WHERE cg.set_code = $1 AND cg.generated_at >= $2
+       AND cg.source_type = 'sealed'
+       AND cg.slot_type NOT IN ('leader', 'base')
+     ORDER BY cg.source_id`,
     [setCode, since]
   )
 
-  // Group by source_id (pool)
-  const poolGroups: Record<string, Array<{ card_name: string; card_id: string; treatment: string }>> = {}
-  poolData.forEach(row => {
-    if (!poolGroups[row.source_id]) {
-      poolGroups[row.source_id] = []
+  // Determine shuffle state per source_id (all rows for a source share the same shuffle state)
+  const sealedShuffleState: Record<string, boolean> = {}
+  sealedPoolData.forEach(row => {
+    if (!(row.source_id in sealedShuffleState)) {
+      sealedShuffleState[row.source_id] = row.shuffled === true || row.shuffled === 't'
     }
-    poolGroups[row.source_id].push({
-      card_name: row.card_name,
-      card_id: row.card_id,
-      treatment: row.treatment,
-    })
   })
 
-  const poolIds = Object.keys(poolGroups)
-  const poolCount = poolIds.length
-
-  // Calculate stats for each pool
-  const dupBaseValues: number[] = []
-  const dupAnyValues: number[] = []
-  const tripBaseValues: number[] = []
-  const tripAnyValues: number[] = []
-
-  poolIds.forEach(poolId => {
-    const cards = poolGroups[poolId]
-
-    // Base treatment: only 'base' treatment (Normal variant, no foil/HS/showcase)
-    const baseCards = cards.filter(c => c.treatment === 'base')
-    const baseNameCounts: Record<string, number> = {}
-    baseCards.forEach(c => {
-      baseNameCounts[c.card_name] = (baseNameCounts[c.card_name] || 0) + 1
-    })
-    const baseDupes = Object.values(baseNameCounts).filter(n => n > 1).reduce((sum, n) => sum + (n - 1), 0)
-    const baseTrips = Object.values(baseNameCounts).filter(n => n > 2).reduce((sum, n) => sum + (n - 2), 0)
-
-    // Any treatment: exact card_id
-    const exactIdCounts: Record<string, number> = {}
-    cards.forEach(c => {
-      exactIdCounts[c.card_id] = (exactIdCounts[c.card_id] || 0) + 1
-    })
-    const anyDupes = Object.values(exactIdCounts).filter(n => n > 1).reduce((sum, n) => sum + (n - 1), 0)
-    const anyTrips = Object.values(exactIdCounts).filter(n => n > 2).reduce((sum, n) => sum + (n - 2), 0)
-
-    dupBaseValues.push(baseDupes)
-    dupAnyValues.push(anyDupes)
-    tripBaseValues.push(baseTrips)
-    tripAnyValues.push(anyTrips)
+  const sealedUnshuffledGroups: Record<string, Array<{ card_name: string; card_id: string; treatment: string }>> = {}
+  const sealedShuffledGroups: Record<string, Array<{ card_name: string; card_id: string; treatment: string }>> = {}
+  sealedPoolData.forEach(row => {
+    const groups = sealedShuffleState[row.source_id] ? sealedShuffledGroups : sealedUnshuffledGroups
+    if (!groups[row.source_id]) groups[row.source_id] = []
+    groups[row.source_id].push({ card_name: row.card_name, card_id: row.card_id, treatment: row.treatment })
   })
 
-  // Calculate observed statistics
-  const calcObservedStats = (arr: number[]) => {
-    if (arr.length === 0) return { mean: 0, stdDev: 0 }
-    const mean = arr.reduce((a, b) => a + b, 0) / arr.length
-    const variance = arr.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / arr.length
-    const stdDev = Math.sqrt(variance)
-    return { mean, stdDev }
-  }
+  // --- Draft duplicate analysis (3 packs per player, grouped by source_id + player) ---
+  // pack_index = playerIndex * 3 + packIndex, so floor(pack_index / 3) = player index
+  // JOIN pods to get shuffled_packs flag
+  const draftPoolData = await queryRows(
+    `SELECT cg.source_id, cg.pack_index, cg.card_name, cg.card_id, cg.treatment,
+            COALESCE(p.shuffled_packs, false) as shuffled
+     FROM card_generations cg
+     LEFT JOIN pods p ON p.id = cg.source_id
+     WHERE cg.set_code = $1 AND cg.generated_at >= $2
+       AND cg.source_type = 'draft'
+       AND cg.slot_type NOT IN ('leader', 'base')
+       AND cg.pack_index IS NOT NULL
+     ORDER BY cg.source_id, cg.pack_index`,
+    [setCode, since]
+  )
 
-  const dupBaseObs = calcObservedStats(dupBaseValues)
-  const dupAnyObs = calcObservedStats(dupAnyValues)
-  const tripBaseObs = calcObservedStats(tripBaseValues)
-  const tripAnyObs = calcObservedStats(tripAnyValues)
-
-  // Z-score for comparing observed mean to expected mean
-  // Standard error of mean = σ / √n
-  const calcDupZScore = (observed: number, expected: number, stdDev: number, n: number) => {
-    if (n === 0 || stdDev === 0) return 0
-    const se = stdDev / Math.sqrt(n)
-    return (observed - expected) / se
-  }
-
-  // Categorize status based on z-score
-  const categorizeDupStatus = (zScore: number, sampleSize: number): DuplicateMetric['status'] => {
-    if (sampleSize < 10) return 'insufficient_data'
-    const absZ = Math.abs(zScore)
-    if (absZ < 2.0) return 'expected'
-    if (absZ < 3.0) return 'slight_variance'
-    return 'outlier'
-  }
-
-  const buildDupMetric = (
-    observed: { mean: number; stdDev: number },
-    expected: { mean: number; stdDev: number },
-    n: number
-  ): DuplicateMetric => {
-    const zScore = calcDupZScore(observed.mean, expected.mean, expected.stdDev, n)
-    return {
-      observedMean: Math.round(observed.mean * 1000) / 1000,
-      observedStdDev: Math.round(observed.stdDev * 1000) / 1000,
-      expectedMean: expected.mean,
-      expectedStdDev: expected.stdDev,
-      zScore: Math.round(zScore * 100) / 100,
-      sampleSize: n,
-      status: categorizeDupStatus(zScore, n),
+  // Determine shuffle state per source_id
+  const draftShuffleState: Record<string, boolean> = {}
+  draftPoolData.forEach(row => {
+    if (!(row.source_id in draftShuffleState)) {
+      draftShuffleState[row.source_id] = row.shuffled === true || row.shuffled === 't'
     }
-  }
+  })
+
+  const draftUnshuffledGroups: Record<string, Array<{ card_name: string; card_id: string; treatment: string }>> = {}
+  const draftShuffledGroups: Record<string, Array<{ card_name: string; card_id: string; treatment: string }>> = {}
+  draftPoolData.forEach(row => {
+    const playerIdx = Math.floor(row.pack_index / 3)
+    const groupKey = `${row.source_id}-player${playerIdx}`
+    const groups = draftShuffleState[row.source_id] ? draftShuffledGroups : draftUnshuffledGroups
+    if (!groups[groupKey]) groups[groupKey] = []
+    groups[groupKey].push({ card_name: row.card_name, card_id: row.card_id, treatment: row.treatment })
+  })
 
   const duplicateMetrics: DuplicateMetrics = {
-    baseTreatmentDuplicates: buildDupMetric(dupBaseObs, EXPECTED.dupBase, poolCount),
-    anyTreatmentDuplicates: buildDupMetric(dupAnyObs, EXPECTED.dupAny, poolCount),
-    baseTreatmentTriplicates: buildDupMetric(tripBaseObs, EXPECTED.tripBase, poolCount),
-    anyTreatmentTriplicates: buildDupMetric(tripAnyObs, EXPECTED.tripAny, poolCount),
+    sealedUnshuffled: calcDuplicateStats(sealedUnshuffledGroups, EXPECTED_SEALED),
+    sealedShuffled: calcDuplicateStats(sealedShuffledGroups, EXPECTED_SEALED_SHUFFLED),
+    draftUnshuffled: calcDuplicateStats(draftUnshuffledGroups, EXPECTED_DRAFT),
+    draftShuffled: calcDuplicateStats(draftShuffledGroups, EXPECTED_DRAFT_SHUFFLED),
   }
 
   // === OVERALL HEALTH ===
@@ -834,14 +908,28 @@ export async function getPackQualityData(setCode: string, since: string = '2026-
   const structuralPassing = structuralMetrics.filter(m => m.status === 'pass').length
   const totalStructural = structuralMetrics.filter(m => m.status !== 'warning').length
 
-  // Count duplicate metrics within expected range
-  const dupMetricsPassing = [
-    duplicateMetrics.baseTreatmentDuplicates,
-    duplicateMetrics.anyTreatmentDuplicates,
-    duplicateMetrics.baseTreatmentTriplicates,
-    duplicateMetrics.anyTreatmentTriplicates,
-  ].filter(m => m.status === 'expected' || m.status === 'slight_variance' || m.status === 'insufficient_data').length
-  const totalDupMetrics = 4
+  // Count duplicate metrics within expected range (all 4 groups × 4 metrics = 16 total)
+  const allDupMetrics = [
+    duplicateMetrics.sealedUnshuffled.baseTreatmentDuplicates,
+    duplicateMetrics.sealedUnshuffled.anyTreatmentDuplicates,
+    duplicateMetrics.sealedUnshuffled.baseTreatmentTriplicates,
+    duplicateMetrics.sealedUnshuffled.anyTreatmentTriplicates,
+    duplicateMetrics.sealedShuffled.baseTreatmentDuplicates,
+    duplicateMetrics.sealedShuffled.anyTreatmentDuplicates,
+    duplicateMetrics.sealedShuffled.baseTreatmentTriplicates,
+    duplicateMetrics.sealedShuffled.anyTreatmentTriplicates,
+    duplicateMetrics.draftUnshuffled.baseTreatmentDuplicates,
+    duplicateMetrics.draftUnshuffled.anyTreatmentDuplicates,
+    duplicateMetrics.draftUnshuffled.baseTreatmentTriplicates,
+    duplicateMetrics.draftUnshuffled.anyTreatmentTriplicates,
+    duplicateMetrics.draftShuffled.baseTreatmentDuplicates,
+    duplicateMetrics.draftShuffled.anyTreatmentDuplicates,
+    duplicateMetrics.draftShuffled.baseTreatmentTriplicates,
+    duplicateMetrics.draftShuffled.anyTreatmentTriplicates,
+  ]
+  const dupMetricsPassing = allDupMetrics
+    .filter(m => m.status === 'expected' || m.status === 'slight_variance' || m.status === 'insufficient_data').length
+  const totalDupMetrics = allDupMetrics.length
 
   const healthScore = Math.round(
     ((metricsWithinExpected / allMetrics.length) * 0.5 +

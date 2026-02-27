@@ -24,11 +24,11 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
     // Load draft pod
     const pod = await queryRow(
       `SELECT
-        dp.id, dp.share_id, dp.host_id, dp.status, dp.set_code, dp.set_name,
+        dp.id, dp.share_id, dp.host_id, dp.status, dp.set_code, dp.set_name, dp.name,
         dp.draft_state, dp.completed_at,
         u.username as host_username,
         u.avatar_url as host_avatar
-       FROM draft_pods dp
+       FROM pods dp
        LEFT JOIN users u ON dp.host_id = u.id
        WHERE dp.share_id = $1`,
       [shareId]
@@ -52,11 +52,11 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         cp.share_id as pool_share_id,
         cp.id as pool_id,
         CASE WHEN bd.id IS NOT NULL THEN true ELSE false END as is_ready
-       FROM draft_pod_players dpp
+       FROM pod_players dpp
        JOIN users u ON dpp.user_id = u.id
-       LEFT JOIN card_pools cp ON cp.draft_pod_id = dpp.draft_pod_id AND cp.user_id = dpp.user_id
+       LEFT JOIN card_pools cp ON cp.pod_id = dpp.pod_id AND cp.user_id = dpp.user_id
        LEFT JOIN built_decks bd ON bd.card_pool_id = cp.id
-       WHERE dpp.draft_pod_id = $1
+       WHERE dpp.pod_id = $1
        ORDER BY dpp.seat_number`,
       [pod.id]
     )
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         pod: { ...draftState.pod, byePlayerId },
       }
       await queryRow(
-        `UPDATE draft_pods SET draft_state = $1 WHERE id = $2`,
+        `UPDATE pods SET draft_state = $1 WHERE id = $2`,
         [JSON.stringify(updatedState), pod.id]
       )
     }
@@ -124,6 +124,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         shareId: pod.share_id,
         setCode: pod.set_code,
         setName: pod.set_name,
+        name: pod.name,
         hostId: pod.host_id,
         status: pod.status,
         completedAt: pod.completed_at,

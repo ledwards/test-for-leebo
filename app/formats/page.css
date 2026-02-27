@@ -348,3 +348,11 @@
     display: none;
   }
 }
+
+/* Back button pinned top-left */
+.page-back-left {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+}
+

@@ -28,7 +28,7 @@ interface DraftPod {
 
 interface DraftPlayer {
   id: string
-  draft_pod_id: string
+  pod_id: string
   pick_status: string
   leaders: string | RawCard[]
   current_pack: string | RawCard[]
@@ -51,7 +51,7 @@ export async function checkAndEnforceTimeout(podId: string): Promise<boolean> {
     `SELECT id, share_id, status, draft_state, state_version,
             timed, timer_enabled, timer_seconds, pick_timeout_seconds,
             pick_started_at, paused, paused_duration_seconds
-     FROM draft_pods WHERE id = $1`,
+     FROM pods WHERE id = $1`,
     [podId]
   )
 
@@ -80,8 +80,8 @@ export async function checkAndEnforceTimeout(podId: string): Promise<boolean> {
 
   // Get players who haven't selected
   const players = await queryRows(
-    `SELECT * FROM draft_pod_players
-     WHERE draft_pod_id = $1 AND pick_status = 'picking'
+    `SELECT * FROM pod_players
+     WHERE pod_id = $1 AND pick_status = 'picking'
      ORDER BY seat_number`,
     [podId]
   )
@@ -124,7 +124,7 @@ export async function checkAndEnforceTimeout(podId: string): Promise<boolean> {
   // Try to acquire lock using atomic update
   // Use state_version for locking instead of pick_started_at to avoid timestamp precision issues
   const lockResult = await query(
-    `UPDATE draft_pods
+    `UPDATE pods
      SET state_version = state_version + 1
      WHERE id = $1
        AND status = 'active'
@@ -171,7 +171,7 @@ async function forceLeaderSelect(player: DraftPlayer): Promise<void> {
   if (leaders.length === 0) {
     // No leaders to select, just mark as selected with no card
     await query(
-      `UPDATE draft_pod_players SET pick_status = 'selected', selected_card_id = NULL WHERE id = $1`,
+      `UPDATE pod_players SET pick_status = 'selected', selected_card_id = NULL WHERE id = $1`,
       [player.id]
     )
     return
@@ -183,7 +183,7 @@ async function forceLeaderSelect(player: DraftPlayer): Promise<void> {
   const cardId = (selectedLeader as RawCard & { instanceId?: string }).instanceId || selectedLeader.id
 
   await query(
-    `UPDATE draft_pod_players
+    `UPDATE pod_players
      SET selected_card_id = $1,
          pick_status = 'selected'
      WHERE id = $2`,
@@ -202,7 +202,7 @@ async function forcePackSelect(player: DraftPlayer): Promise<void> {
   if (currentPack.length === 0) {
     // No cards to select, just mark as selected with no card
     await query(
-      `UPDATE draft_pod_players SET pick_status = 'selected', selected_card_id = NULL WHERE id = $1`,
+      `UPDATE pod_players SET pick_status = 'selected', selected_card_id = NULL WHERE id = $1`,
       [player.id]
     )
     return
@@ -214,7 +214,7 @@ async function forcePackSelect(player: DraftPlayer): Promise<void> {
   const cardId = (selectedCard as RawCard & { instanceId?: string }).instanceId || selectedCard.id
 
   await query(
-    `UPDATE draft_pod_players
+    `UPDATE pod_players
      SET selected_card_id = $1,
          pick_status = 'selected'
      WHERE id = $2`,

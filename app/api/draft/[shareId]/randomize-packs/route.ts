@@ -30,7 +30,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Get draft pod
     const pod = await queryRow(
-      'SELECT id, host_id, status, box_packs FROM draft_pods WHERE share_id = $1',
+      'SELECT id, host_id, status, box_packs FROM pods WHERE share_id = $1',
       [shareId]
     )
 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Update the database
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET box_packs = $1,
            shuffled_packs = true,
            state_version = state_version + 1

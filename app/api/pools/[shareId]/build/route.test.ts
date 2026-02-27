@@ -13,7 +13,7 @@ import assert from 'node:assert'
 
 // Simulate the broadcast decision logic from the build route
 function shouldBroadcastPodState(pool) {
-  return pool.pool_type === 'draft' && pool.draft_pod_id != null
+  return pool.pool_type === 'draft' && pool.pod_id != null
 }
 
 // Simulate the deck validation from the build route
@@ -39,28 +39,28 @@ function resolveUserId(session, pool) {
 
 describe('POST /api/pools/:shareId/build', () => {
   describe('pod broadcast trigger', () => {
-    it('triggers broadcast for draft pools with draft_pod_id', () => {
-      const pool = { pool_type: 'draft', draft_pod_id: 'pod-uuid-1' }
+    it('triggers broadcast for draft pools with pod_id', () => {
+      const pool = { pool_type: 'draft', pod_id: 'pod-uuid-1' }
       assert.strictEqual(shouldBroadcastPodState(pool), true)
     })
 
     it('does NOT trigger broadcast for sealed pools', () => {
-      const pool = { pool_type: 'sealed', draft_pod_id: null }
+      const pool = { pool_type: 'sealed', pod_id: null }
       assert.strictEqual(shouldBroadcastPodState(pool), false)
     })
 
-    it('does NOT trigger broadcast for draft pool missing draft_pod_id', () => {
-      const pool = { pool_type: 'draft', draft_pod_id: null }
+    it('does NOT trigger broadcast for draft pool missing pod_id', () => {
+      const pool = { pool_type: 'draft', pod_id: null }
       assert.strictEqual(shouldBroadcastPodState(pool), false)
     })
 
     it('does NOT trigger broadcast for rotisserie pools', () => {
-      const pool = { pool_type: 'rotisserie', draft_pod_id: null }
+      const pool = { pool_type: 'rotisserie', pod_id: null }
       assert.strictEqual(shouldBroadcastPodState(pool), false)
     })
 
     it('does NOT trigger broadcast for pack-wars pools', () => {
-      const pool = { pool_type: 'pack-wars', draft_pod_id: null }
+      const pool = { pool_type: 'pack-wars', pod_id: null }
       assert.strictEqual(shouldBroadcastPodState(pool), false)
     })
   })

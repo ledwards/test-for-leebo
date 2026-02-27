@@ -123,7 +123,6 @@ export function useCardPreview(): UseCardPreviewReturn {
 
     previewTimeoutRef.current = setTimeout(() => {
       let previewX = rect.right + 20;
-      const previewY = rect.top;
 
       const isHorizontal = card.isLeader || card.isBase;
       const hasBackImage = card.backImageUrl && card.isLeader;
@@ -144,12 +143,9 @@ export function useCardPreview(): UseCardPreviewReturn {
       }
       if (previewX < 0) previewX = 10;
 
-      const previewTop = previewY - previewHeight / 2;
-      const previewBottom = previewY + previewHeight / 2;
-      let adjustedY = previewY;
-
-      if (previewTop < 0) adjustedY = previewHeight / 2 + 10;
-      if (previewBottom > window.innerHeight) adjustedY = window.innerHeight - previewHeight / 2 - 10;
+      let adjustedY = rect.top + rect.height / 2;
+      if (adjustedY - previewHeight / 2 < 10) adjustedY = previewHeight / 2 + 10;
+      if (adjustedY + previewHeight / 2 > window.innerHeight - 10) adjustedY = window.innerHeight - previewHeight / 2 - 10;
 
       setHoveredCardPreview({ card, x: previewX, y: adjustedY, isMobile: false });
     }, 400);

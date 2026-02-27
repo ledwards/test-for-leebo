@@ -42,6 +42,7 @@ interface PodData {
     shareId: string
     setCode: string
     setName: string
+    name: string | null
     hostId: string
     status: string
     completedAt: string | null

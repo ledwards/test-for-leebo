@@ -102,7 +102,7 @@ export interface DraftPodRow {
  */
 export interface DraftPlayer {
   id: string;
-  draftPodId: string;
+  podId: string;
   userId: string | null;
   seatNumber: number;
   pickStatus: PickStatus;
@@ -125,7 +125,7 @@ export interface DraftPlayer {
  */
 export interface DraftPlayerRow {
   id: string;
-  draft_pod_id: string;
+  pod_id: string;
   user_id: string | null;
   seat_number: number;
   pick_status: string;

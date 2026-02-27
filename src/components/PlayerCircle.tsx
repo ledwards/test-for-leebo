@@ -49,6 +49,7 @@ export interface PlayerCircleProps {
   showLeaderInfo?: boolean | 'simple'
   passDirection?: 'left' | 'right' | null
   leaderRound?: number
+  hostId?: string
 }
 
 /**
@@ -56,7 +57,7 @@ export interface PlayerCircleProps {
  * Current user is always at the bottom (6 o'clock)
  * Other players arranged clockwise from bottom-left
  */
-function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = false, draft, hideEmptySeats = false, showLeaderInfo = false, passDirection = null, leaderRound = 1 }: PlayerCircleProps) {
+function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = false, draft, hideEmptySeats = false, showLeaderInfo = false, passDirection = null, leaderRound = 1, hostId }: PlayerCircleProps) {
   const { isPatron } = useAuth()
   const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState<Leader | null>(null)
   const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -454,6 +455,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
                 isEmpty={!seat.player}
                 showStatus={false}
                 isPatron={seat.isCurrentUser && isPatron}
+                isHost={!!hostId && seat.player?.id === hostId}
               />
             </div>
           )

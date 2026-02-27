@@ -27,7 +27,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     const pod = await queryRow(
       `SELECT id, share_id, status, draft_state, state_version,
               host_id, bot_processing_since
-       FROM draft_pods WHERE share_id = $1`,
+       FROM pods WHERE share_id = $1`,
       [shareId]
     )
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Get current player
     const player = await queryRow(
-      'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 AND user_id = $2',
+      'SELECT * FROM pod_players WHERE pod_id = $1 AND user_id = $2',
       [pod.id, session.id]
     )
 
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Update player's selection (temporary, not a final pick)
     await query(
-      `UPDATE draft_pod_players
+      `UPDATE pod_players
        SET selected_card_id = $1,
            pick_status = $2
        WHERE id = $3`,
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Increment state version so other clients see the update
     await query(
-      'UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1',
+      'UPDATE pods SET state_version = state_version + 1 WHERE id = $1',
       [pod.id]
     )
 
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
       for (let attempt = 0; attempt < 3; attempt++) {
         // Try to acquire a short lock to prevent race conditions
         const lockResult = await query(
-          `UPDATE draft_pods
+          `UPDATE pods
            SET bot_processing_since = NOW()
            WHERE id = $1
              AND status = 'active'
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
           try {
             // Re-fetch players after acquiring lock
             const allPlayers = await queryRows(
-              'SELECT pick_status, selected_card_id FROM draft_pod_players WHERE draft_pod_id = $1',
+              'SELECT pick_status, selected_card_id FROM pod_players WHERE pod_id = $1',
               [pod.id]
             )
             const allSelected = allPlayers.every(p => p.pick_status === 'selected' && p.selected_card_id)
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
             if (allSelected) {
               // All players have selected - process picks and advance
               // Re-fetch pod state to ensure fresh data
-              const freshPod = await queryRow('SELECT * FROM draft_pods WHERE id = $1', [pod.id])
+              const freshPod = await queryRow('SELECT * FROM pods WHERE id = $1', [pod.id])
               if (!freshPod) {
                 console.error('Draft pod not found when processing picks:', pod.id)
                 return
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
             console.error('Error processing picks:', err)
           } finally {
             // Release lock BEFORE calling bot processing (bot processing needs the lock)
-            await query('UPDATE draft_pods SET bot_processing_since = NULL WHERE id = $1', [pod.id])
+            await query('UPDATE pods SET bot_processing_since = NULL WHERE id = $1', [pod.id])
           }
 
           // Trigger bot processing for drafts with bots (after lock is released)

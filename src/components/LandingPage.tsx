@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
+import { usePresence } from '../hooks/usePresence'
 import ReleaseNotes from './ReleaseNotes'
 import Button from './Button'
 import './LandingPage.css'
@@ -11,24 +12,41 @@ import './LandingPage.css'
 interface ActiveDraft {
   shareId: string
   status: string
+  setName?: string
+  draftName?: string
+  createdAt?: string
+}
+
+interface ActiveSealedPod {
+  shareId: string
+  status: string
+  setName?: string
+  poolName?: string
+  createdAt?: string
 }
 
 interface LandingPageProps {
-  onSealedClick: () => void
-  onDraftClick: () => void
+  onSoloClick: () => void
+  onPodClick: () => void
+  // Keep old props for backward compat during transition
+  onSealedClick?: () => void
+  onDraftClick?: () => void
   onOtherFormatsClick?: () => void
 }
 
-function LandingPage({ onSealedClick, onDraftClick, onOtherFormatsClick }: LandingPageProps) {
+function LandingPage({ onSoloClick, onPodClick, onSealedClick, onDraftClick, onOtherFormatsClick }: LandingPageProps) {
   const { user, loading, signIn } = useAuth()
   const hasBetaAccess = user?.is_beta_tester || user?.is_admin
   const router = useRouter()
+  const playerCount = usePresence(user?.id)
   const [activeDraft, setActiveDraft] = useState<ActiveDraft | null>(null)
+  const [activeSealedPod, setActiveSealedPod] = useState<ActiveSealedPod | null>(null)
 
-  // Check for active drafts when user is logged in
+  // Check for active drafts and sealed pods when user is logged in
   useEffect(() => {
     if (!user || loading) {
       setActiveDraft(null)
+      setActiveSealedPod(null)
       return
     }
 
@@ -39,7 +57,6 @@ function LandingPage({ onSealedClick, onDraftClick, onOtherFormatsClick }: Landi
         })
         if (response.ok) {
           const data = await response.json()
-          // Find first active draft (waiting or active status)
           const active = data.pods?.find(
             (pod: ActiveDraft) => pod.status === 'waiting' || pod.status === 'leader_draft' || pod.status === 'pack_draft'
           )
@@ -50,7 +67,25 @@ function LandingPage({ onSealedClick, onDraftClick, onOtherFormatsClick }: Landi
       }
     }
 
+    const checkActiveSealedPods = async () => {
+      try {
+        const response = await fetch('/api/sealed/history', {
+          credentials: 'include',
+        })
+        if (response.ok) {
+          const data = await response.json()
+          const active = data.pods?.find(
+            (pod: ActiveSealedPod) => pod.status === 'waiting'
+          )
+          setActiveSealedPod(active || null)
+        }
+      } catch (err) {
+        console.error('Failed to check active sealed pods:', err)
+      }
+    }
+
     checkActiveDrafts()
+    checkActiveSealedPods()
   }, [user, loading])
 
   return (
@@ -67,7 +102,7 @@ function LandingPage({ onSealedClick, onDraftClick, onOtherFormatsClick }: Landi
         </h2>
         {activeDraft && (
           <div className="active-draft-banner">
-            <span>You have an active Draft Pod.</span>
+            <span>Live Pod: {activeDraft.draftName || activeDraft.setName || ''} Draft{activeDraft.createdAt ? ` ${new Date(activeDraft.createdAt).toLocaleDateString()}` : ''}</span>
             <Button
               variant="primary"
               size="sm"
@@ -78,19 +113,33 @@ function LandingPage({ onSealedClick, onDraftClick, onOtherFormatsClick }: Landi
             </Button>
           </div>
         )}
+        {activeSealedPod && (
+          <div className="active-draft-banner">
+            <span>Live Pod: {activeSealedPod.poolName || activeSealedPod.setName || ''} Sealed{activeSealedPod.createdAt ? ` ${new Date(activeSealedPod.createdAt).toLocaleDateString()}` : ''}</span>
+            <Button
+              variant="primary"
+              size="sm"
+              className="rejoin-button"
+              onClick={() => router.push(`/sealed/${activeSealedPod.shareId}`)}
+            >
+              Rejoin?
+            </Button>
+          </div>
+        )}
         <div className="mode-selection">
-          <button className="mode-button sealed-button" onClick={onSealedClick}>
-            Sealed
+          <button className="mode-button sealed-button" onClick={onSoloClick}>
+            Solo
           </button>
-          <button className="mode-button draft-button" onClick={onDraftClick}>
-            Draft
+          <button className="mode-button draft-button" onClick={onPodClick}>
+            Live Pod
           </button>
-          {onOtherFormatsClick && (
-            <button className="mode-button other-formats-button" onClick={onOtherFormatsClick}>
-              Other
-            </button>
-          )}
         </div>
+        {playerCount > 0 && (
+          <div className="players-online-landing">
+            <span className="online-dot-landing" />
+            <span>{playerCount} player{playerCount !== 1 ? 's' : ''} online</span>
+          </div>
+        )}
         {!loading && !user && (
           <div className="landing-login">
             <Button variant="discord" className="landing-login-button" onClick={signIn}>
@@ -137,13 +186,17 @@ function LandingPage({ onSealedClick, onDraftClick, onOtherFormatsClick }: Landi
       </div>
       <div className="landing-disclaimer">
         <div className="landing-footer-links">
+          <a href="/stats" onClick={(e) => { e.preventDefault(); router.push('/stats') }}>Stats</a>
+          <span className="footer-separator">·</span>
+          <a href="/qa" onClick={(e) => { e.preventDefault(); router.push('/qa') }}>QA</a>
+          <span className="footer-separator">·</span>
+          <a href="/api" onClick={(e) => { e.preventDefault(); router.push('/api') }}>API</a>
+          <span className="footer-separator">·</span>
           <a href="https://github.com/ledwards/swupod" target="_blank" rel="noopener noreferrer">GitHub</a>
           <span className="footer-separator">·</span>
           <a href="https://patreon.com/ProtectthePod" target="_blank" rel="noopener noreferrer">Patreon</a>
           <span className="footer-separator">·</span>
           <a href="https://swag.protectthepod.com" target="_blank" rel="noopener noreferrer">Swag</a>
-          <span className="footer-separator">·</span>
-          <a href="/stats" onClick={(e) => { e.preventDefault(); router.push('/stats') }}>Stats</a>
           <span className="footer-separator">·</span>
           <a href="/about" onClick={(e) => { e.preventDefault(); router.push('/about') }}>About</a>
           <span className="footer-separator">·</span>

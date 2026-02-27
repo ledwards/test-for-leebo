@@ -17,7 +17,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Get draft pod
     const pod = await queryRow(
-      'SELECT * FROM draft_pods WHERE share_id = $1',
+      'SELECT * FROM pods WHERE share_id = $1',
       [shareId]
     )
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Check if already a player
     const existingPlayer = await queryRow(
-      'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 AND user_id = $2',
+      'SELECT * FROM pod_players WHERE pod_id = $1 AND user_id = $2',
       [pod.id, session.id]
     )
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Find next available seat
     const players = await queryRows(
-      'SELECT seat_number FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
+      'SELECT seat_number FROM pod_players WHERE pod_id = $1 ORDER BY seat_number',
       [pod.id]
     )
 
@@ -61,8 +61,8 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Add player
     await query(
-      `INSERT INTO draft_pod_players (
-        draft_pod_id,
+      `INSERT INTO pod_players (
+        pod_id,
         user_id,
         seat_number,
         pick_status,
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Update player count and state version
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET current_players = current_players + 1,
            state_version = state_version + 1
        WHERE id = $1`,

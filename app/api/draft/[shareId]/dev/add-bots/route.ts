@@ -36,7 +36,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Get draft pod (only need id, status, max_players)
     const pod = await queryRow(
-      'SELECT id, status, max_players FROM draft_pods WHERE share_id = $1',
+      'SELECT id, status, max_players FROM pods WHERE share_id = $1',
       [shareId]
     )
 
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Get current players
     const players = await queryRows(
-      'SELECT seat_number FROM draft_pod_players WHERE draft_pod_id = $1',
+      'SELECT seat_number FROM pod_players WHERE pod_id = $1',
       [pod.id]
     )
 
@@ -85,8 +85,8 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
       // Add bot to draft
       await query(
-        `INSERT INTO draft_pod_players (
-          draft_pod_id,
+        `INSERT INTO pod_players (
+          pod_id,
           user_id,
           seat_number,
           pick_status,
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Update player count
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET current_players = current_players + $1,
            state_version = state_version + 1
        WHERE id = $2`,

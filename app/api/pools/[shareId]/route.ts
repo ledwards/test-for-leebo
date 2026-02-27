@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
           cp.is_public,
           cp.created_at,
           cp.updated_at,
-          cp.draft_pod_id,
+          cp.pod_id,
           cp.box_packs,
           cp.pack_indices,
           cp.shuffled_packs,
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
           u.username as owner_username
          FROM card_pools cp
          LEFT JOIN users u ON cp.user_id = u.id
-         LEFT JOIN draft_pods dp ON cp.draft_pod_id = dp.id
+         LEFT JOIN pods dp ON cp.pod_id = dp.id
          WHERE cp.share_id = $1`,
         [shareId]
       )

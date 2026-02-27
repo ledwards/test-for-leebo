@@ -90,13 +90,30 @@ export class FoilBelt {
     }
 
     // Calculate multipliers to achieve target distribution
-    // Formula: multiplier[R] = targetWeight[R] / uniqueCards[R]
-    // We use a base scale factor to ensure reasonable multiplier values
-    const baseScale = 1000 // Scale factor for precision
+    // Formula: multiplier[R] = (targetWeight[R] / 100) * baseScale / uniqueCards[R]
+    //
+    // We dynamically compute baseScale so the rarest category (Legendary at 0.3%)
+    // gets at least 10 copies per unique card. This avoids the old Math.max(1,...)
+    // clamp that over-represented legendaries by 6x when the computed multiplier
+    // rounded to 0 and was clamped to 1.
+    //
+    // Formula: baseScale = ceil(minCopies * 100 / min(targetPct / uniqueCount))
+    const MIN_COPIES_PER_CARD = 10
+    let minWeightPerCard = Infinity
+    for (const rarity in rarityCounts) {
+      const targetPct = targetWeights[rarity] || 0
+      if (targetPct > 0) {
+        const weightPerCard = targetPct / rarityCounts[rarity]
+        if (weightPerCard < minWeightPerCard) {
+          minWeightPerCard = weightPerCard
+        }
+      }
+    }
+    const baseScale = Math.ceil(MIN_COPIES_PER_CARD * 100 / minWeightPerCard)
+
     for (const rarity in rarityCounts) {
       const targetPct = targetWeights[rarity] || 0
       const uniqueCount = rarityCounts[rarity] || 1
-      // multiplier = (targetPct / 100) * baseScale / uniqueCount
       this.rarityQuantities[rarity] = Math.max(1, Math.round((targetPct / 100) * baseScale / uniqueCount))
     }
 

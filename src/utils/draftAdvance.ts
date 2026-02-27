@@ -31,7 +31,7 @@ interface DraftPod {
 
 interface DraftPlayer {
   id: string
-  draft_pod_id: string
+  pod_id: string
   user_id: string | null
   seat_number: number
   pick_status: string
@@ -66,7 +66,7 @@ export async function processAllStagedPicks(
   // Use SELECT FOR UPDATE to lock the rows and prevent race conditions
   // This ensures only one request can process picks at a time
   const players = await queryRows(
-    'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number FOR UPDATE',
+    'SELECT * FROM pod_players WHERE pod_id = $1 ORDER BY seat_number FOR UPDATE',
     [podId]
   )
 
@@ -116,7 +116,7 @@ export async function processAllStagedPicks(
         draftedLeaders.push(pickedLeader)
 
         await query(
-          `UPDATE draft_pod_players
+          `UPDATE pod_players
            SET drafted_leaders = $1,
                leaders = $2,
                selected_card_id = NULL,
@@ -130,7 +130,7 @@ export async function processAllStagedPicks(
         try {
           await query(
             `INSERT INTO draft_picks (
-              draft_pod_id, user_id, card_id, card_name, set_code, rarity,
+              pod_id, user_id, card_id, card_name, set_code, rarity,
               card_type, variant_type, is_leader, pack_number, pick_in_pack,
               pick_number, leader_round
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, 0, $9, $10, $11)`,
@@ -183,7 +183,7 @@ export async function processAllStagedPicks(
         draftedCards.push(pickedCard)
 
         await query(
-          `UPDATE draft_pod_players
+          `UPDATE pod_players
            SET drafted_cards = $1,
                current_pack = $2,
                selected_card_id = NULL,
@@ -197,7 +197,7 @@ export async function processAllStagedPicks(
         try {
           await query(
             `INSERT INTO draft_picks (
-              draft_pod_id, user_id, card_id, card_name, set_code, rarity,
+              pod_id, user_id, card_id, card_name, set_code, rarity,
               card_type, variant_type, is_leader, pack_number, pick_in_pack,
               pick_number, leader_round
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false, $9, $10, $11, NULL)`,
@@ -237,7 +237,7 @@ async function advanceLeaderDraftAfterPicks(
     const direction = getLeaderPassDirection(1)
     // Need to re-fetch players to get updated leaders
     const updatedPlayers = await queryRows(
-      'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
+      'SELECT * FROM pod_players WHERE pod_id = $1 ORDER BY seat_number',
       [podId]
     )
     await passLeaders(updatedPlayers, direction)
@@ -245,7 +245,7 @@ async function advanceLeaderDraftAfterPicks(
     draftState.leaderRound = 2
     delete draftState.lastPlayerStartedAt // Clear last player timer for new round
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET draft_state = $1,
            state_version = state_version + 1,
            pick_started_at = NOW(),
@@ -255,7 +255,7 @@ async function advanceLeaderDraftAfterPicks(
     )
 
     await query(
-      `UPDATE draft_pod_players SET pick_status = 'picking' WHERE draft_pod_id = $1`,
+      `UPDATE pod_players SET pick_status = 'picking' WHERE pod_id = $1`,
       [podId]
     )
 
@@ -263,7 +263,7 @@ async function advanceLeaderDraftAfterPicks(
     // Pass remaining leader (1) to the right
     const direction = getLeaderPassDirection(2)
     const updatedPlayers = await queryRows(
-      'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
+      'SELECT * FROM pod_players WHERE pod_id = $1 ORDER BY seat_number',
       [podId]
     )
     await passLeaders(updatedPlayers, direction)
@@ -271,7 +271,7 @@ async function advanceLeaderDraftAfterPicks(
     draftState.leaderRound = 3
     delete draftState.lastPlayerStartedAt // Clear last player timer for new round
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET draft_state = $1,
            state_version = state_version + 1,
            pick_started_at = NOW(),
@@ -281,7 +281,7 @@ async function advanceLeaderDraftAfterPicks(
     )
 
     await query(
-      `UPDATE draft_pod_players SET pick_status = 'picking' WHERE draft_pod_id = $1`,
+      `UPDATE pod_players SET pick_status = 'picking' WHERE pod_id = $1`,
       [podId]
     )
 
@@ -294,7 +294,7 @@ async function advanceLeaderDraftAfterPicks(
 
     // Fetch all_packs only when transitioning to pack draft
     const podWithPacks = await queryRow(
-      'SELECT all_packs FROM draft_pods WHERE id = $1',
+      'SELECT all_packs FROM pods WHERE id = $1',
       [podId]
     )
     const allPacks: unknown[][] = typeof podWithPacks?.all_packs === 'string'
@@ -302,7 +302,7 @@ async function advanceLeaderDraftAfterPicks(
       : podWithPacks?.all_packs as unknown[][]
 
     const updatedPlayers = await queryRows(
-      'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
+      'SELECT * FROM pod_players WHERE pod_id = $1 ORDER BY seat_number',
       [podId]
     )
 
@@ -312,7 +312,7 @@ async function advanceLeaderDraftAfterPicks(
       const packCards = (pack as { cards?: RawCard[] }).cards || pack // Extract cards array from pack object
 
       await query(
-        `UPDATE draft_pod_players
+        `UPDATE pod_players
          SET current_pack = $1, pick_status = 'picking'
          WHERE id = $2`,
         [JSON.stringify(packCards), player.id]
@@ -320,7 +320,7 @@ async function advanceLeaderDraftAfterPicks(
     }
 
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET draft_state = $1,
            state_version = state_version + 1,
            pick_started_at = NOW(),
@@ -340,7 +340,7 @@ async function advancePackDraftAfterPicks(
   pod: DraftPod
 ): Promise<void> {
   const players = await queryRows(
-    'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
+    'SELECT * FROM pod_players WHERE pod_id = $1 ORDER BY seat_number',
     [podId]
   )
 
@@ -358,7 +358,7 @@ async function advancePackDraftAfterPicks(
     if (packNumber >= totalPacks) {
       // Draft complete
       await query(
-        `UPDATE draft_pods
+        `UPDATE pods
          SET status = 'complete',
              draft_state = $1,
              completed_at = NOW(),
@@ -368,7 +368,7 @@ async function advancePackDraftAfterPicks(
       )
 
       // Build decks for bot players (fire-and-forget)
-      const podForBots = await queryRow('SELECT * FROM draft_pods WHERE id = $1', [podId])
+      const podForBots = await queryRow('SELECT * FROM pods WHERE id = $1', [podId])
       const botSettings = typeof podForBots?.settings === 'string' ? JSON.parse(podForBots.settings) : podForBots?.settings || {}
       buildBotDecks(podId, podForBots?.set_code || draftState.setCode || '', botSettings).catch(err =>
         console.error('[BOT_DECK] Error building bot decks:', err)
@@ -385,7 +385,7 @@ async function advancePackDraftAfterPicks(
     // Fetch all_packs only when we need to start a new pack
     // (not loaded in most queries to save memory)
     const podWithPacks = await queryRow(
-      'SELECT all_packs FROM draft_pods WHERE id = $1',
+      'SELECT all_packs FROM pods WHERE id = $1',
       [podId]
     )
     const allPacks: unknown[][] = typeof podWithPacks?.all_packs === 'string'
@@ -398,7 +398,7 @@ async function advancePackDraftAfterPicks(
       const packCards = (pack as { cards?: RawCard[] }).cards || pack // Extract cards array from pack object
 
       await query(
-        `UPDATE draft_pod_players
+        `UPDATE pod_players
          SET current_pack = $1, pick_status = 'picking'
          WHERE id = $2`,
         [JSON.stringify(packCards), player.id]
@@ -406,7 +406,7 @@ async function advancePackDraftAfterPicks(
     }
 
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET draft_state = $1,
            state_version = state_version + 1,
            pick_started_at = NOW(),
@@ -424,7 +424,7 @@ async function advancePackDraftAfterPicks(
     delete draftState.lastPlayerStartedAt // Clear last player timer for new pick
 
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET draft_state = $1,
            state_version = state_version + 1,
            pick_started_at = NOW(),
@@ -434,7 +434,7 @@ async function advancePackDraftAfterPicks(
     )
 
     await query(
-      `UPDATE draft_pod_players SET pick_status = 'picking' WHERE draft_pod_id = $1`,
+      `UPDATE pod_players SET pick_status = 'picking' WHERE pod_id = $1`,
       [podId]
     )
   }
@@ -449,7 +449,7 @@ export async function checkAndAdvanceLeaderDraft(
   pod: DraftPod
 ): Promise<boolean> {
   const players = await queryRows(
-    'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
+    'SELECT * FROM pod_players WHERE pod_id = $1 ORDER BY seat_number',
     [podId]
   )
 
@@ -457,7 +457,7 @@ export async function checkAndAdvanceLeaderDraft(
   if (!allPicked) {
     // Just increment state version
     await query(
-      'UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1',
+      'UPDATE pods SET state_version = state_version + 1 WHERE id = $1',
       [podId]
     )
     return false
@@ -475,7 +475,7 @@ export async function checkAndAdvanceLeaderDraft(
     draftState.leaderRound = 2
     delete draftState.lastPlayerStartedAt // Clear last player timer for new round
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET draft_state = $1,
            state_version = state_version + 1,
            pick_started_at = NOW(),
@@ -486,9 +486,9 @@ export async function checkAndAdvanceLeaderDraft(
 
     // Reset pick status
     await query(
-      `UPDATE draft_pod_players
+      `UPDATE pod_players
        SET pick_status = 'picking'
-       WHERE draft_pod_id = $1`,
+       WHERE pod_id = $1`,
       [podId]
     )
 
@@ -501,7 +501,7 @@ export async function checkAndAdvanceLeaderDraft(
     draftState.leaderRound = 3
     delete draftState.lastPlayerStartedAt // Clear last player timer for new round
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET draft_state = $1,
            state_version = state_version + 1,
            pick_started_at = NOW(),
@@ -512,9 +512,9 @@ export async function checkAndAdvanceLeaderDraft(
 
     // Reset pick status for round 3
     await query(
-      `UPDATE draft_pod_players
+      `UPDATE pod_players
        SET pick_status = 'picking'
-       WHERE draft_pod_id = $1`,
+       WHERE pod_id = $1`,
       [podId]
     )
 
@@ -527,7 +527,7 @@ export async function checkAndAdvanceLeaderDraft(
 
     // Fetch all_packs only when transitioning to pack draft
     const podWithPacks = await queryRow(
-      'SELECT all_packs FROM draft_pods WHERE id = $1',
+      'SELECT all_packs FROM pods WHERE id = $1',
       [podId]
     )
     const allPacks: unknown[][] = typeof podWithPacks?.all_packs === 'string'
@@ -541,7 +541,7 @@ export async function checkAndAdvanceLeaderDraft(
       const packCards = (pack as { cards?: RawCard[] }).cards || pack // Extract cards array from pack object
 
       await query(
-        `UPDATE draft_pod_players
+        `UPDATE pod_players
          SET current_pack = $1,
              pick_status = 'picking'
          WHERE id = $2`,
@@ -550,7 +550,7 @@ export async function checkAndAdvanceLeaderDraft(
     }
 
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET draft_state = $1,
            state_version = state_version + 1,
            pick_started_at = NOW(),
@@ -583,7 +583,7 @@ async function passLeaders(players: DraftPlayer[], direction: 'left' | 'right'):
     const nextPlayer = players.find(p => p.seat_number === nextSeat)
     if (nextPlayer) {
       await query(
-        'UPDATE draft_pod_players SET leaders = $1 WHERE id = $2',
+        'UPDATE pod_players SET leaders = $1 WHERE id = $2',
         [JSON.stringify(playerData.leaders), nextPlayer.id]
       )
     }
@@ -599,7 +599,7 @@ export async function checkAndAdvancePackDraft(
   pod: DraftPod
 ): Promise<boolean> {
   const players = await queryRows(
-    'SELECT * FROM draft_pod_players WHERE draft_pod_id = $1 ORDER BY seat_number',
+    'SELECT * FROM pod_players WHERE pod_id = $1 ORDER BY seat_number',
     [podId]
   )
 
@@ -607,7 +607,7 @@ export async function checkAndAdvancePackDraft(
   if (!allPicked) {
     // Just increment state version
     await query(
-      'UPDATE draft_pods SET state_version = state_version + 1 WHERE id = $1',
+      'UPDATE pods SET state_version = state_version + 1 WHERE id = $1',
       [podId]
     )
     return false
@@ -629,7 +629,7 @@ export async function checkAndAdvancePackDraft(
     if (packNumber >= totalPacks) {
       // Draft complete!
       await query(
-        `UPDATE draft_pods
+        `UPDATE pods
          SET status = 'complete',
              draft_state = $1,
              completed_at = NOW(),
@@ -639,7 +639,7 @@ export async function checkAndAdvancePackDraft(
       )
 
       // Build decks for bot players (fire-and-forget)
-      const podForBots = await queryRow('SELECT * FROM draft_pods WHERE id = $1', [podId])
+      const podForBots = await queryRow('SELECT * FROM pods WHERE id = $1', [podId])
       const botSettings = typeof podForBots?.settings === 'string' ? JSON.parse(podForBots.settings) : podForBots?.settings || {}
       buildBotDecks(podId, podForBots?.set_code || draftState.setCode || '', botSettings).catch(err =>
         console.error('[BOT_DECK] Error building bot decks:', err)
@@ -655,7 +655,7 @@ export async function checkAndAdvancePackDraft(
 
     // Fetch all_packs only when moving to next pack
     const podWithPacks = await queryRow(
-      'SELECT all_packs FROM draft_pods WHERE id = $1',
+      'SELECT all_packs FROM pods WHERE id = $1',
       [podId]
     )
     const allPacks: unknown[][] = typeof podWithPacks?.all_packs === 'string'
@@ -669,7 +669,7 @@ export async function checkAndAdvancePackDraft(
       const packCards = (pack as { cards?: RawCard[] }).cards || pack // Extract cards array from pack object
 
       await query(
-        `UPDATE draft_pod_players
+        `UPDATE pod_players
          SET current_pack = $1,
              pick_status = 'picking'
          WHERE id = $2`,
@@ -678,7 +678,7 @@ export async function checkAndAdvancePackDraft(
     }
 
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET draft_state = $1,
            state_version = state_version + 1,
            pick_started_at = NOW(),
@@ -697,7 +697,7 @@ export async function checkAndAdvancePackDraft(
     delete draftState.lastPlayerStartedAt // Clear last player timer for new pick
 
     await query(
-      `UPDATE draft_pods
+      `UPDATE pods
        SET draft_state = $1,
            state_version = state_version + 1,
            pick_started_at = NOW(),
@@ -708,9 +708,9 @@ export async function checkAndAdvancePackDraft(
 
     // Reset pick status
     await query(
-      `UPDATE draft_pod_players
+      `UPDATE pod_players
        SET pick_status = 'picking'
-       WHERE draft_pod_id = $1`,
+       WHERE pod_id = $1`,
       [podId]
     )
   }
@@ -738,7 +738,7 @@ async function passPacks(players: DraftPlayer[], direction: 'left' | 'right'): P
     const nextPlayer = players.find(p => p.seat_number === nextSeat)
     if (nextPlayer) {
       await query(
-        'UPDATE draft_pod_players SET current_pack = $1 WHERE id = $2',
+        'UPDATE pod_players SET current_pack = $1 WHERE id = $2',
         [JSON.stringify(playerData.pack), nextPlayer.id]
       )
     }

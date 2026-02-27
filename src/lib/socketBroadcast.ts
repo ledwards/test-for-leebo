@@ -15,7 +15,7 @@ declare global {
   var io: SocketIOServer | undefined
 }
 
-interface DraftPod {
+interface Pod {
   id: string
   share_id: string
   status: string
@@ -102,9 +102,9 @@ export async function broadcastDraftState(shareId: string): Promise<void> {
               dp.host_id, dp.timed, dp.timer_enabled, dp.timer_seconds, dp.pick_timeout_seconds,
               dp.started_at, dp.completed_at, dp.pick_started_at,
               dp.paused, dp.paused_at, dp.paused_duration_seconds
-       FROM draft_pods dp WHERE dp.share_id = $1`,
+       FROM pods dp WHERE dp.share_id = $1`,
       [shareId]
-    ) as DraftPod | null
+    ) as Pod | null
 
     if (!pod) {
       io.to(`draft:${shareId}`).emit('deleted')
@@ -116,9 +116,9 @@ export async function broadcastDraftState(shareId: string): Promise<void> {
       `SELECT dpp.id, dpp.user_id, dpp.seat_number, dpp.pick_status, dpp.is_bot,
               dpp.leaders, dpp.drafted_leaders, dpp.drafted_cards,
               u.username, u.avatar_url
-       FROM draft_pod_players dpp
+       FROM pod_players dpp
        JOIN users u ON dpp.user_id = u.id
-       WHERE dpp.draft_pod_id = $1
+       WHERE dpp.pod_id = $1
        ORDER BY dpp.seat_number`,
       [pod.id]
     ) as DraftPlayer[]
@@ -207,7 +207,7 @@ export async function broadcastPodState(draftShareId: string): Promise<void> {
   try {
     const pod = await queryRow(
       `SELECT dp.id, dp.share_id, dp.status
-       FROM draft_pods dp WHERE dp.share_id = $1`,
+       FROM pods dp WHERE dp.share_id = $1`,
       [draftShareId]
     )
 
@@ -224,11 +224,11 @@ export async function broadcastPodState(draftShareId: string): Promise<void> {
         u.username,
         u.avatar_url,
         CASE WHEN bd.id IS NOT NULL THEN true ELSE false END as is_ready
-       FROM draft_pod_players dpp
+       FROM pod_players dpp
        JOIN users u ON dpp.user_id = u.id
-       LEFT JOIN card_pools cp ON cp.draft_pod_id = dpp.draft_pod_id AND cp.user_id = dpp.user_id
+       LEFT JOIN card_pools cp ON cp.pod_id = dpp.pod_id AND cp.user_id = dpp.user_id
        LEFT JOIN built_decks bd ON bd.card_pool_id = cp.id
-       WHERE dpp.draft_pod_id = $1
+       WHERE dpp.pod_id = $1
        ORDER BY dpp.seat_number`,
       [pod.id]
     )
@@ -245,6 +245,102 @@ export async function broadcastPodState(draftShareId: string): Promise<void> {
     })
   } catch (err) {
     console.error('Error broadcasting pod state:', err)
+  }
+}
+
+/**
+ * Broadcast sealed pod state to all connected clients in a sealed pod room.
+ * Sends player list and pod status.
+ * @param shareId - Sealed pod share ID
+ */
+export async function broadcastSealedPodState(shareId: string): Promise<void> {
+  const io = global.io
+  if (!io) {
+    console.warn('[Broadcast] Socket.io not initialized - sealed pod broadcast skipped')
+    return
+  }
+
+  try {
+    const pod = await queryRow(
+      `SELECT dp.id, dp.share_id, dp.status, dp.state_version, dp.set_code, dp.set_name,
+              dp.host_id, dp.current_players, dp.max_players, dp.settings
+       FROM pods dp WHERE dp.share_id = $1 AND dp.pod_type = 'sealed'`,
+      [shareId]
+    ) as { id: string; share_id: string; status: string; state_version: number; set_code: string; set_name: string; host_id: string; current_players: number; max_players: number; settings: string | Record<string, unknown> } | null
+
+    if (!pod) {
+      io.to(`sealed:${shareId}`).emit('deleted')
+      return
+    }
+
+    const players = await queryRows(
+      `SELECT dpp.id, dpp.user_id, dpp.seat_number,
+              u.username, u.avatar_url
+       FROM pod_players dpp
+       JOIN users u ON dpp.user_id = u.id
+       WHERE dpp.pod_id = $1
+       ORDER BY dpp.seat_number`,
+      [pod.id]
+    ) as { id: string; user_id: string; seat_number: number; username: string; avatar_url: string }[]
+
+    const settings = jsonParse<Record<string, unknown>>(pod.settings, {}) as Record<string, unknown>
+
+    io.to(`sealed:${shareId}`).emit('sealed-state', {
+      stateVersion: pod.state_version,
+      status: pod.status,
+      currentPlayers: pod.current_players,
+      maxPlayers: pod.max_players,
+      settings,
+      players: players.map(p => ({
+        id: p.user_id,
+        username: p.username,
+        avatarUrl: p.avatar_url,
+        seatNumber: p.seat_number,
+      })),
+      timestamp: Date.now(),
+    })
+  } catch (err) {
+    console.error('Error broadcasting sealed pod state:', err)
+  }
+}
+
+/**
+ * Broadcast updated public pods list to all clients on the multiplayer page.
+ * Called when a pod's is_public flag changes or a public pod is created/deleted.
+ */
+export async function broadcastPublicPodsUpdate(): Promise<void> {
+  const io = global.io
+  if (!io) return
+
+  try {
+    const pods = await queryRows(
+      `SELECT dp.share_id, dp.pod_type, dp.set_code, dp.set_name, dp.name,
+              dp.max_players, dp.current_players, dp.created_at,
+              u.username as host_username, u.avatar_url as host_avatar
+       FROM pods dp
+       LEFT JOIN users u ON dp.host_id = u.id
+       WHERE dp.is_public = true AND dp.status = 'waiting'
+             AND dp.created_at > NOW() - INTERVAL '2 hours'
+       ORDER BY dp.created_at DESC LIMIT 20`,
+      []
+    ) as { share_id: string; pod_type: string; set_code: string; set_name: string; name: string | null; max_players: number; current_players: number; created_at: string; host_username: string; host_avatar: string }[]
+
+    io.to('public-pods').emit('public-pods-update', {
+      pods: pods.map(p => ({
+        shareId: p.share_id,
+        podType: p.pod_type,
+        setCode: p.set_code,
+        setName: p.set_name,
+        name: p.name,
+        maxPlayers: p.max_players,
+        currentPlayers: p.current_players,
+        host: { username: p.host_username, avatarUrl: p.host_avatar },
+        createdAt: p.created_at,
+      })),
+      timestamp: Date.now(),
+    })
+  } catch (err) {
+    console.error('Error broadcasting public pods update:', err)
   }
 }
 

@@ -15,6 +15,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         dp.share_id,
         dp.set_code,
         dp.set_name,
+        dp.name as pod_name,
         dp.status,
         dp.current_players,
         dp.max_players,
@@ -27,9 +28,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         cp.share_id as pool_share_id,
         cp.deck_builder_state,
         cp.hidden as pool_hidden
-       FROM draft_pods dp
-       JOIN draft_pod_players dpp ON dp.id = dpp.draft_pod_id
-       LEFT JOIN card_pools cp ON cp.draft_pod_id = dp.id AND cp.user_id = $1
+       FROM pods dp
+       JOIN pod_players dpp ON dp.id = dpp.pod_id
+       LEFT JOIN card_pools cp ON cp.pod_id = dp.id AND cp.user_id = $1
        WHERE dpp.user_id = $1
          AND (dpp.is_bot = false OR dpp.is_bot IS NULL)
        ORDER BY dp.created_at DESC
@@ -89,6 +90,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         createdAt: pod.created_at,
         startedAt: pod.started_at,
         completedAt: pod.completed_at,
+        podName: pod.pod_name,
         draftName: poolNameFromState || pod.pool_name,
         poolShareId: pod.pool_share_id,
         hidden: pod.pool_hidden === true,

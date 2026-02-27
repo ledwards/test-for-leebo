@@ -5,6 +5,12 @@ import { memo } from 'react'
 import UserAvatar from './UserAvatar'
 import './PlayerSeat.css'
 
+const CrownIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFD700" stroke="none">
+    <path d="M2 20h20v2H2zM4 17h16l-2-9-4 4-2-6-2 6-4-4z"/>
+  </svg>
+)
+
 interface Player {
   username?: string
   avatarUrl?: string
@@ -19,6 +25,7 @@ export interface PlayerSeatProps {
   showStatus?: boolean
   statusColor?: string | null
   isPatron?: boolean
+  isHost?: boolean
 }
 
 function PlayerSeat({
@@ -29,6 +36,7 @@ function PlayerSeat({
   showStatus = false,
   statusColor = null,
   isPatron = false,
+  isHost = false,
 }: PlayerSeatProps) {
   // Status colors
   const getStatusColor = (status?: string): string => {
@@ -85,7 +93,10 @@ function PlayerSeat({
           {player?.pickStatus === 'picked' ? 'Done' : 'Picking...'}
         </div>
       )}
-      <div className="seat-name">{displayName}</div>
+      <div className="seat-name">
+        {isHost && <CrownIcon />}
+        {displayName}
+      </div>
     </div>
   )
 }

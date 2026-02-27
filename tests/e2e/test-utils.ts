@@ -99,12 +99,12 @@ export async function cleanupTestUsers(testId: string): Promise<number> {
 
   // Delete in order due to foreign key constraints
   await db.query(
-    `DELETE FROM draft_pod_players WHERE user_id IN (SELECT id FROM users WHERE discord_id LIKE $1)`,
+    `DELETE FROM pod_players WHERE user_id IN (SELECT id FROM users WHERE discord_id LIKE $1)`,
     [pattern]
   )
 
   await db.query(
-    `DELETE FROM draft_pods WHERE host_id IN (SELECT id FROM users WHERE discord_id LIKE $1)`,
+    `DELETE FROM pods WHERE host_id IN (SELECT id FROM users WHERE discord_id LIKE $1)`,
     [pattern]
   )
 

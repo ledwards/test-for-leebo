@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         dp.paused,
         dp.paused_at,
         dp.paused_duration_seconds
-       FROM draft_pods dp
+       FROM pods dp
        WHERE dp.share_id = $1`,
       [shareId]
     )
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
           dp.paused,
           dp.paused_at,
           dp.paused_duration_seconds
-         FROM draft_pods dp
+         FROM pods dp
          WHERE dp.share_id = $1`,
         [shareId]
       )
@@ -101,9 +101,9 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         dpp.*,
         u.username,
         u.avatar_url
-       FROM draft_pod_players dpp
+       FROM pod_players dpp
        JOIN users u ON dpp.user_id = u.id
-       WHERE dpp.draft_pod_id = $1
+       WHERE dpp.pod_id = $1
        ORDER BY dpp.seat_number`,
       [pod.id]
     )

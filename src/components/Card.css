@@ -67,7 +67,7 @@
   border-radius: 8px;
 }
 
-/* Selection border pseudo-element - static Y G B gradient */
+/* Selection border pseudo-element - animated rainbow gradient */
 .canvas-card::before {
   content: '';
   position: absolute;
@@ -75,14 +75,26 @@
   border-radius: 12px;
   background: linear-gradient(
     135deg,
+    #ff0000,
+    #ff7f00,
     #ffff00,
     #00ff00,
-    #0000ff
+    #0000ff,
+    #4b0082,
+    #9400d3,
+    #ff0000
   );
+  background-size: 300% 300%;
   z-index: -1;
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
+}
+
+@keyframes rainbow-spin {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Leaders and bases use reduced border-radius matching their card */
@@ -106,6 +118,7 @@
 .canvas-card.active-leader::before,
 .canvas-card.active-base::before {
   opacity: 1;
+  animation: rainbow-spin 3s linear infinite;
 }
 
 .canvas-card:hover {

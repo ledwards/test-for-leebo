@@ -6,6 +6,7 @@ import { generateShareId } from '@/lib/utils'
 import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
 import { generateSealedBox, clearBeltCache } from '@/src/utils/boosterPack'
+import { broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -61,11 +62,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     while (attempts < maxAttempts) {
       try {
         result = await query(
-          `INSERT INTO draft_pods (
+          `INSERT INTO pods (
             share_id,
             host_id,
             set_code,
             set_name,
+            name,
             status,
             max_players,
             current_players,
@@ -76,13 +78,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             state_version,
             box_packs,
             shuffled_packs
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
           RETURNING id, share_id, created_at`,
           [
             shareId,
             session.id,
             setCode,
             setName,
+            `${setName} Draft`,
             'waiting',
             maxPlayers,
             1, // Host counts as first player
@@ -114,8 +117,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Add host as first player with seat 1
     await query(
-      `INSERT INTO draft_pod_players (
-        draft_pod_id,
+      `INSERT INTO pod_players (
+        pod_id,
         user_id,
         seat_number,
         pick_status,
@@ -133,6 +136,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         JSON.stringify([])
       ]
     )
+
+    // Broadcast to multiplayer page if pod is public
+    if (settings.isPublic) {
+      broadcastPublicPodsUpdate().catch(err => {
+        console.error('Error broadcasting public pods update:', err)
+      })
+    }
 
     const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const shareUrl = `${APP_URL}/draft/${shareId}`

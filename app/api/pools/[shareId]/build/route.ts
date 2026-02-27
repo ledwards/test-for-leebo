@@ -24,7 +24,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     // Load pool
     const pool = await queryRow(
-      `SELECT id, set_code, pool_type, user_id, deck_builder_state, draft_pod_id
+      `SELECT id, set_code, pool_type, user_id, deck_builder_state, pod_id
        FROM card_pools
        WHERE share_id = $1`,
       [shareId]
@@ -75,11 +75,11 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       ]
     )
 
-    // If this pool belongs to a draft, broadcast readiness update to pod page
-    if (pool.pool_type === 'draft') {
+    // If this pool belongs to a draft or sealed pod, broadcast readiness update to pod page
+    if (pool.pod_id) {
       const draft = await queryRow(
-        `SELECT dp.share_id FROM draft_pods dp WHERE dp.id = $1`,
-        [pool.draft_pod_id]
+        `SELECT dp.share_id FROM pods dp WHERE dp.id = $1`,
+        [pool.pod_id]
       )
       if (draft) {
         broadcastPodState(draft.share_id).catch(() => {})

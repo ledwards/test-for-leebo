@@ -14,10 +14,19 @@ import { buildBaseCardMap, getBaseCardId } from '../../../../src/utils/variantDo
 import { calculateAspectPenalty } from '../../../../src/services/cards/aspectPenalties'
 import Button from '../../../../src/components/Button'
 import CardWithPreview from '../../../../src/components/CardWithPreview'
+import EditableTitle from '../../../../src/components/EditableTitle'
 import Modal from '../../../../src/components/Modal'
 import PlayInstructions from '../../../../src/components/PlayInstructions'
 import '../../../../src/App.css'
 import './pod.css'
+
+const DefaultAvatar = ({ size = 28, className = 'pod-match-avatar' }: { size?: number; className?: string }) => (
+  <div className={`${className} default-avatar`} style={{ width: size, height: size }}>
+    <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 71 55" fill="currentColor">
+      <path d="M60.1 4.9A58.5 58.5 0 0045.4.2a.2.2 0 00-.2.1 40.7 40.7 0 00-1.8 3.7 54 54 0 00-16.2 0A39.2 39.2 0 0025.4.3a.2.2 0 00-.2-.1 58.4 58.4 0 00-14.7 4.6.2.2 0 00-.1.1C1.5 18.7-.9 32.2.3 45.5v.1a58.9 58.9 0 0018 9.1.2.2 0 00.2-.1 42.1 42.1 0 003.6-5.9.2.2 0 00-.1-.3 38.8 38.8 0 01-5.5-2.6.2.2 0 01 0-.4l1.1-.9a.2.2 0 01.2 0 42 42 0 0035.6 0 .2.2 0 01.2 0l1.1.9a.2.2 0 010 .3 36.4 36.4 0 01-5.5 2.7.2.2 0 00-.1.3 47.3 47.3 0 003.6 5.9.2.2 0 00.2.1 58.7 58.7 0 0018-9.1v-.1c1.4-15-2.3-28.4-9.8-40.1a.2.2 0 00-.1-.1zM23.7 37.3c-3.5 0-6.3-3.2-6.3-7.1s2.8-7.1 6.3-7.1 6.4 3.2 6.3 7.1c0 3.9-2.8 7.1-6.3 7.1zm23.3 0c-3.5 0-6.3-3.2-6.3-7.1s2.8-7.1 6.3-7.1 6.4 3.2 6.3 7.1c0 3.9-2.8 7.1-6.3 7.1z"/>
+    </svg>
+  </div>
+)
 
 interface PageProps {
   params: Promise<{ shareId: string }>
@@ -661,7 +670,22 @@ export default function PodPage({ params }: PageProps) {
         </button>
 
         <div className="pod-header">
-          <h1>{draft.setName || 'Draft'}</h1>
+          <EditableTitle
+            value={draft.name || draft.setName || 'Draft'}
+            isEditable={isHost}
+            onSave={(newName) => {
+              if (newName) {
+                fetch(`/api/draft/${shareId}/settings`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ name: newName }),
+                }).catch(() => {})
+              }
+            }}
+            maxLength={100}
+            className="pod-title"
+          />
           <p className="pod-pool-type">Draft Pod</p>
         </div>
 
@@ -694,8 +718,10 @@ export default function PodPage({ params }: PageProps) {
               {[...players].sort((a, b) => a.seatNumber - b.seatNumber).map((player) => (
                 <div key={player.id} className="pod-player-row">
                   <span className="pod-seat-number">{player.seatNumber}</span>
-                  {player.avatarUrl && (
+                  {player.avatarUrl ? (
                     <img src={player.avatarUrl} alt="" className="pod-match-avatar" />
+                  ) : (
+                    <DefaultAvatar />
                   )}
                   <span className="pod-match-name">{player.username}</span>
                   <span className={`pod-status-badge ${player.isReady ? 'ready' : 'building'}`}>
@@ -731,8 +757,10 @@ export default function PodPage({ params }: PageProps) {
             <p className="pod-bye-message">You have a bye this round. Take a break or practice!</p>
           ) : myOpponent ? (
             <div className="pod-opponent-info">
-              {myOpponent.avatarUrl && (
+              {myOpponent.avatarUrl ? (
                 <img src={myOpponent.avatarUrl} alt="" className="pod-opponent-avatar" />
+              ) : (
+                <DefaultAvatar size={64} className="pod-opponent-avatar" />
               )}
               <div className="pod-opponent-details">
                 <p className="pod-opponent-name">{myOpponent.username}</p>
