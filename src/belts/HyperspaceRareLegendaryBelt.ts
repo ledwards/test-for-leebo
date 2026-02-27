@@ -3,7 +3,8 @@
  * HyperspaceRareLegendaryBelt
  *
  * Same as RareLegendaryBelt but uses Hyperspace variant cards.
- * Includes non-leader Rares and all Legendaries from Hyperspace variant.
+ * Includes non-leader Rares, Specials (sets 4+), and all Legendaries
+ * from Hyperspace variant. Specials appear at the same frequency as Rares.
  */
 
 import { getCachedCards } from '../utils/cardCache'
@@ -38,6 +39,7 @@ export class HyperspaceRareLegendaryBelt {
   fillingPool: RawCard[]
   rares: RawCard[]
   legendaries: RawCard[]
+  specials: RawCard[]
   ratio: number
 
   constructor(setCode: SetCode | string) {
@@ -46,6 +48,7 @@ export class HyperspaceRareLegendaryBelt {
     this.fillingPool = []
     this.rares = []
     this.legendaries = []
+    this.specials = []
     this.ratio = 6
 
     this._initialize()
@@ -59,6 +62,9 @@ export class HyperspaceRareLegendaryBelt {
     // Determine ratio based on set number
     const setNumber = config?.setNumber || 1
     this.ratio = setNumber <= 3 ? 6 : 5
+
+    // Include Special rarity for sets 4+ (same sets that have specials in foil slot)
+    const includeSpecials = setNumber >= 4
 
     // Filter to Hyperspace variant non-leader rares and legendaries
     this.rares = cards.filter(c =>
@@ -75,6 +81,16 @@ export class HyperspaceRareLegendaryBelt {
       !c.isBase
     )
 
+    // Specials for sets 4+ (at same frequency as rares)
+    if (includeSpecials) {
+      this.specials = cards.filter(c =>
+        c.variantType === 'Hyperspace' &&
+        c.rarity === 'Special' &&
+        !c.isLeader &&
+        !c.isBase
+      )
+    }
+
     // Fallback: if no Hyperspace variants in data (e.g., LAW), use Normal variants
     if (this.rares.length === 0 && this.legendaries.length === 0) {
       this.rares = cards.filter(c =>
@@ -89,9 +105,17 @@ export class HyperspaceRareLegendaryBelt {
         !c.isLeader &&
         !c.isBase
       )
+      if (includeSpecials && this.specials.length === 0) {
+        this.specials = cards.filter(c =>
+          c.variantType === 'Normal' &&
+          c.rarity === 'Special' &&
+          !c.isLeader &&
+          !c.isBase
+        )
+      }
     }
 
-    this.fillingPool = [...this.rares, ...this.legendaries]
+    this.fillingPool = [...this.rares, ...this.specials, ...this.legendaries]
 
     this._fillIfNeeded()
   }
@@ -107,11 +131,12 @@ export class HyperspaceRareLegendaryBelt {
   }
 
   /**
-   * Fill the hopper with rares and legendaries at the correct ratio
+   * Fill the hopper with rares, specials, and legendaries at the correct ratio
    *
    * SPEC: Target ratios for Hyperspace R/L slot:
    * - Sets 1-3: 6:1 (6 rares per 1 legendary = ~14.3% legendary)
-   * - Sets 4+: 5:1 (5 rares per 1 legendary = ~16.7% legendary)
+   * - Sets 4+: 5:1 (5 rares+specials per 1 legendary = ~16.7% legendary)
+   * Specials appear at the same frequency as rares (same multiplier).
    */
   _fill(): void {
     const wasEmpty = this.hopper.length === 0
@@ -122,7 +147,7 @@ export class HyperspaceRareLegendaryBelt {
 
     if (rareCount === 0 || legCount === 0) {
       // Fallback if no cards of either type
-      const segment = shuffle([...this.rares, ...this.legendaries])
+      const segment = shuffle([...this.rares, ...this.specials, ...this.legendaries])
       this.hopper.push(...segment)
       return
     }
@@ -137,9 +162,13 @@ export class HyperspaceRareLegendaryBelt {
     const finalLegMult = Math.max(1, Math.floor(legMult / gcd))
 
     // Build segment with correct ratio
+    // Specials ride alongside rares at equal frequency
     const segment: RawCard[] = []
     for (let copy = 0; copy < finalRareMult; copy++) {
       segment.push(...this.rares)
+      if (this.specials.length > 0) {
+        segment.push(...this.specials)
+      }
     }
     for (let copy = 0; copy < finalLegMult; copy++) {
       segment.push(...this.legendaries)
