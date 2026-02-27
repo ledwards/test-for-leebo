@@ -4,13 +4,21 @@
  *
  * Uses belts to provide cards for pack slots.
  *
- * Pack structure:
+ * Pack structure (Sets 1-6):
  * - 1 Leader (from LeaderBelt)
  * - 1 Base (common)
  * - 9 Commons
  * - 3 Uncommons
  * - 1 Rare or Legendary
  * - 1 Foil (any rarity)
+ *
+ * Pack structure (LAW+):
+ * - 1 Leader (from LeaderBelt)
+ * - 1 Base (common)
+ * - 9 Commons
+ * - 1 Hyperspace Foil
+ * - 3 Uncommons
+ * - 1 Rare or Legendary
  *
  * Total: 16 cards
  */
@@ -603,6 +611,15 @@ export function generateBoosterPack(_cards: RawCard[], setCode: SetCode | string
     }
   }
 
+  // Generate foil card from belt
+  const foilCard = foilBelt.next();
+
+  // LAW+ pack order: Leader, Base, 9 Commons, HS Foil, 3 UCs, R/L
+  // Earlier sets: Leader, Base, 9 Commons, 3 UCs, R/L, Foil
+  if (isLawPlus && foilCard) {
+    packCards.push(foilCard);
+  }
+
   // 3 Uncommons (from belt)
   for (let i = 0; i < 3; i++) {
     const uncommon = uncommonBelt.next();
@@ -613,9 +630,10 @@ export function generateBoosterPack(_cards: RawCard[], setCode: SetCode | string
   const rareOrLegendary = rareLegendaryBelt.next();
   if (rareOrLegendary) packCards.push(rareOrLegendary);
 
-  // 1 Foil (from belt, already marked as foil)
-  const foilCard = foilBelt.next();
-  if (foilCard) packCards.push(foilCard);
+  // 1 Foil at end (sets 1-6 only; LAW+ already placed foil after commons)
+  if (!isLawPlus && foilCard) {
+    packCards.push(foilCard);
+  }
 
   // Check for duplicates in pack (for debugging)
   // A duplicate is defined as same ID AND same foil status

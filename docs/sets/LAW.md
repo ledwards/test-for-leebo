@@ -54,9 +54,11 @@ LAW introduces significant pack construction changes per [official FFG announcem
 1. **Leader** (1) - From LeaderBelt, alternating Common/Rare
 2. **Base** (1) - Common from BaseBelt (always common)
 3. **Commons** (9) - Slots 1-4 from Belt A, slot 5 **always Hyperspace**, slots 6-9 from Belt B
-4. **Uncommons** (3) - From UncommonBelt
-5. **Rare/Legendary/Prestige** (1) - 5:1 ratio, ~1/24 Prestige (1 per box)
-6. **Hyperspace Foil** (1) - **Always Hyperspace Foil** (no regular foils)
+4. **Hyperspace Foil** (1) - **Always Hyperspace Foil** (no regular foils), positioned between commons and uncommons
+5. **Uncommons** (3) - From UncommonBelt
+6. **Rare/Legendary/Prestige** (1) - 5:1 ratio, ~1/24 Prestige (1 per box)
+
+> **Note:** In sets 1-6, the foil is at the end of the pack (index 15). In LAW+, the HS Foil is at index 11 (after 9 commons), before the 3 uncommons and R/L.
 
 ### Belt Configuration (Block B)
 
@@ -81,7 +83,7 @@ LAW uses a **HyperspaceUpgradeBelt** (same as Sets 1-6) with `budget-0 = 0`, gua
 | Base → Hyperspace | 1/6 (~16.7%) | 10/60 | Same as Sets 1-6 |
 | Foil → Hyperfoil | **N/A** | — | Foil IS Hyperspace Foil |
 | Common → Hyperspace | ~47% | 28/60 | Fills the gap for guaranteed ≥1 HS |
-| UC Slot 3 → HS R/L | ~13% | 8/60 | Same as Sets 1-6 |
+| UC Slot 3 → HS R/L/S | ~13% | 8/60 | Includes Specials at rare frequency (Sets 4+) |
 | UC1 → Hyperspace UC | ~7% | 4/60 | Same as Sets 1-6 |
 | UC2 → Hyperspace UC | ~3% | 2/60 | Same as Sets 1-6 |
 | Rare → Hyperspace | 1/15 (~6.7%) | 4/60 | Same as Sets 1-6 |
@@ -190,12 +192,13 @@ Example: Vigilance+Cunning → first is Vigilance → Belt A
 ## Implementation Details
 
 ### Pack Generation Flow
-1. Generate base pack (leader, base, commons, uncommons, R/L)
-2. Use HyperfoilBelt for foil slot (not FoilBelt)
-3. HyperspaceUpgradeBelt ('LAW' config) determines which slots get HS upgrades
-4. Belt guarantees ≥1 HS per pack (budget-0 = 0)
-5. Skip foil→hyperfoil upgrade (already HS)
-6. Handle Prestige in rare slot (see [LAW_TBD.md](LAW_TBD.md))
+1. Generate base pack: leader, base, 9 commons
+2. Insert HS Foil (from HyperfoilBelt) at index 11 (after commons, before uncommons)
+3. Generate 3 uncommons, then R/L
+4. HyperspaceUpgradeBelt ('LAW' config) determines which slots get HS upgrades
+5. Belt guarantees ≥1 HS per pack (budget-0 = 0)
+6. Skip foil→hyperfoil upgrade (already HS)
+7. Handle Prestige in rare slot (see [LAW_TBD.md](LAW_TBD.md))
 
 > **Note:** HSF/HS variant data and Prestige cards use placeholder implementations. See [LAW_TBD.md](LAW_TBD.md) for details.
 
