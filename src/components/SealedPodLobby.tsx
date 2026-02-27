@@ -1,0 +1,235 @@
+// @ts-nocheck
+'use client'
+
+import { useState } from 'react'
+import Button from './Button'
+import EditableTitle from './EditableTitle'
+import './SealedPodLobby.css'
+
+const CopyIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+  </svg>
+)
+
+const CrownIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFD700" stroke="none">
+    <path d="M2 20h20v2H2zM4 17h16l-2-9-4 4-2-6-2 6-4-4z"/>
+  </svg>
+)
+
+const RemoveIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+)
+
+const DefaultAvatar = ({ size = 28 }: { size?: number }) => (
+  <div className="player-avatar default-avatar" style={{ width: size, height: size }}>
+    <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 71 55" fill="currentColor">
+      <path d="M60.1 4.9A58.5 58.5 0 0045.4.2a.2.2 0 00-.2.1 40.7 40.7 0 00-1.8 3.7 54 54 0 00-16.2 0A39.2 39.2 0 0025.4.3a.2.2 0 00-.2-.1 58.4 58.4 0 00-14.7 4.6.2.2 0 00-.1.1C1.5 18.7-.9 32.2.3 45.5v.1a58.9 58.9 0 0018 9.1.2.2 0 00.2-.1 42.1 42.1 0 003.6-5.9.2.2 0 00-.1-.3 38.8 38.8 0 01-5.5-2.6.2.2 0 01 0-.4l1.1-.9a.2.2 0 01.2 0 42 42 0 0035.6 0 .2.2 0 01.2 0l1.1.9a.2.2 0 010 .3 36.4 36.4 0 01-5.5 2.7.2.2 0 00-.1.3 47.3 47.3 0 003.6 5.9.2.2 0 00.2.1 58.7 58.7 0 0018-9.1v-.1c1.4-15-2.3-28.4-9.8-40.1a.2.2 0 00-.1-.1zM23.7 37.3c-3.5 0-6.3-3.2-6.3-7.1s2.8-7.1 6.3-7.1 6.4 3.2 6.3 7.1c0 3.9-2.8 7.1-6.3 7.1zm23.3 0c-3.5 0-6.3-3.2-6.3-7.1s2.8-7.1 6.3-7.1 6.4 3.2 6.3 7.1c0 3.9-2.8 7.1-6.3 7.1z"/>
+    </svg>
+  </div>
+)
+
+interface Player {
+  id: string
+  username: string
+  avatarUrl?: string
+  seatNumber: number
+}
+
+interface SealedPodLobbyProps {
+  setName: string
+  podName?: string | null
+  shareId: string
+  players: Player[]
+  isHost: boolean
+  isPlayer: boolean
+  currentUserId?: string
+  hostId?: string
+  maxPlayers?: number
+  isPublic?: boolean
+  onStart: () => void
+  onLeave: () => void
+  onCancel: () => void
+  onBack: () => void
+  onRemovePlayer: (userId: string) => void
+  onSettingsChange?: (settings: Record<string, unknown>) => void
+  onRenamePod?: (name: string) => void
+  starting: boolean
+  error: string | null
+}
+
+export default function SealedPodLobby({
+  setName,
+  podName,
+  shareId,
+  players,
+  isHost,
+  isPlayer,
+  currentUserId,
+  hostId,
+  maxPlayers,
+  isPublic,
+  onStart,
+  onLeave,
+  onCancel,
+  onBack,
+  onRemovePlayer,
+  onSettingsChange,
+  onRenamePod,
+  starting,
+  error,
+}: SealedPodLobbyProps) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyShareUrl = async () => {
+    const url = `${window.location.origin}/sealed/${shareId}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  const canStart = isHost && players.length >= 2
+
+  return (
+    <div className="sealed-pod-lobby">
+      <EditableTitle
+        value={podName || `${setName} Sealed`}
+        isEditable={isHost && !!onRenamePod}
+        onSave={(newName) => {
+          if (newName && onRenamePod) {
+            onRenamePod(newName)
+          }
+        }}
+        maxLength={100}
+        className="sealed-pod-title"
+      />
+
+      <div className="sealed-pod-share">
+        <span className="share-label">Share URL:</span>
+        <Button variant="interactive" size="sm" className="copy-url-button" onClick={handleCopyShareUrl}>
+          <CopyIcon />
+          <span>{copied ? 'Copied!' : 'Copy Invite Link'}</span>
+        </Button>
+      </div>
+
+      {isHost && onSettingsChange && (
+        <div className="sealed-pod-settings">
+          <div className="settings-row settings-row-spread">
+            <span className="setting-item">
+              <span className="setting-label">Max Players:</span>
+              <select
+                className="setting-select"
+                value={maxPlayers || 8}
+                onChange={(e) => onSettingsChange({ maxPlayers: Number(e.target.value) })}
+              >
+                {Array.from({ length: 15 }, (_, i) => i + 2).map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </span>
+            <label className="setting-checkbox">
+              <input
+                type="checkbox"
+                checked={isPublic || false}
+                onChange={(e) => onSettingsChange({ isPublic: e.target.checked })}
+              />
+              <span>Visible to other players</span>
+            </label>
+          </div>
+        </div>
+      )}
+
+      <div className="sealed-pod-players">
+        <h2>Players ({players.length}{maxPlayers ? ` / ${maxPlayers}` : ''})</h2>
+        <div className="player-list">
+          {players.map((player) => (
+            <div key={player.id} className={`player-item ${player.id === currentUserId ? 'is-me' : ''}`}>
+              {player.avatarUrl ? (
+                <img className="player-avatar" src={player.avatarUrl} alt="" />
+              ) : (
+                <DefaultAvatar />
+              )}
+              <span className="player-name">
+                {player.id === hostId && <CrownIcon />}
+                {player.username}
+                {player.id === currentUserId && <span className="you-badge">(you)</span>}
+              </span>
+              {isHost && player.id !== currentUserId && (
+                <button
+                  className="remove-player-button"
+                  onClick={() => onRemovePlayer(player.id)}
+                  title="Remove player"
+                >
+                  <RemoveIcon />
+                </button>
+              )}
+            </div>
+          ))}
+          <div className="player-item waiting">
+            <span className="waiting-text">Waiting for players...</span>
+          </div>
+        </div>
+      </div>
+
+      {error && <p className="sealed-pod-error">{error}</p>}
+
+      <div className="sealed-pod-actions">
+        <Button variant="back" onClick={onBack}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Back
+        </Button>
+        {isHost && (
+          <>
+            <Button variant="danger" onClick={onCancel}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              Cancel Pod
+            </Button>
+            <Button
+              variant="primary"
+              onClick={onStart}
+              disabled={!canStart || starting}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              {starting ? 'Starting...' : `Start (${players.length} players)`}
+            </Button>
+          </>
+        )}
+        {isPlayer && !isHost && (
+          <>
+            <Button variant="primary" disabled>
+              Waiting for host...
+            </Button>
+            <Button variant="danger" onClick={onLeave}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              Drop
+            </Button>
+          </>
+        )}
+      </div>
+
+      {isHost && players.length < 2 && (
+        <p className="sealed-pod-hint">Need at least 2 players to start</p>
+      )}
+    </div>
+  )
+}

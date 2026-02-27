@@ -1,0 +1,106 @@
+// @ts-nocheck
+// GET /api/stats/draft-picks - Get draft pick analytics per card
+import { queryRows, queryRow } from '@/lib/db'
+import { jsonResponse, handleApiError } from '@/lib/utils'
+import { getAllCards } from '@/src/utils/cardData'
+import { NextRequest, NextResponse } from 'next/server'
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  try {
+    const url = new URL(request.url)
+    const setCode = url.searchParams.get('setCode') || 'SOR'
+    const since = url.searchParams.get('since') || '2020-01-01'
+    const includeBots = url.searchParams.get('includeBots') !== 'false'
+    const includeHumans = url.searchParams.get('includeHumans') !== 'false'
+
+    // Build card lookup map for enrichment
+    const allCards = getAllCards()
+    const cardMap = new Map()
+    allCards.forEach(card => {
+      cardMap.set(card.id, card)
+    })
+
+    // Build bot/human filter
+    let botJoin = ''
+    let botFilter = ''
+    if (!includeBots || !includeHumans) {
+      botJoin = `JOIN pod_players dpp ON dp.pod_id = dpp.pod_id AND dp.user_id = dpp.user_id`
+      if (!includeBots && includeHumans) {
+        botFilter = `AND (dpp.is_bot = false OR dpp.is_bot IS NULL)`
+      } else if (includeBots && !includeHumans) {
+        botFilter = `AND dpp.is_bot = true`
+      }
+    }
+
+    // Per-card pick analytics (non-leader cards only, merge variants by card_name)
+    // Only count picks from completed drafts
+    const cardStats = await queryRows(
+      `SELECT
+        dp.card_name,
+        MIN(dp.card_id) AS card_id,
+        dp.rarity,
+        dp.card_type,
+        COUNT(*) AS times_picked,
+        COUNT(*) FILTER (WHERE dp.pick_in_pack = 1) AS first_picks,
+        ROUND(AVG(dp.pick_in_pack)::numeric, 2) AS avg_pick_position,
+        COUNT(DISTINCT dp.pod_id) AS drafts_seen_in
+      FROM draft_picks dp
+      JOIN pods pod ON pod.id = dp.pod_id
+      ${botJoin}
+      WHERE dp.set_code = $1 AND dp.is_leader = FALSE AND dp.picked_at >= $2
+        AND pod.status = 'complete'
+        ${botFilter}
+      GROUP BY dp.card_name, dp.rarity, dp.card_type
+      ORDER BY avg_pick_position ASC`,
+      [setCode, since]
+    )
+
+    // Summary stats (completed drafts only)
+    const summary = await queryRow(
+      `SELECT
+        COUNT(*) AS total_picks,
+        COUNT(DISTINCT dp.pod_id) AS total_drafts,
+        COUNT(DISTINCT dp.user_id) AS total_drafters
+      FROM draft_picks dp
+      JOIN pods pod ON pod.id = dp.pod_id
+      ${botJoin}
+      WHERE dp.set_code = $1 AND dp.is_leader = FALSE AND dp.picked_at >= $2
+        AND pod.status = 'complete'
+        ${botFilter}`,
+      [setCode, since]
+    )
+
+    // Enrich cards with aspects, subtitle, cost from card cache
+    const cards = cardStats.map(row => {
+      const timesPicked = parseInt(row.times_picked)
+      const firstPicks = parseInt(row.first_picks)
+      const cardData = cardMap.get(row.card_id)
+
+      return {
+        cardName: row.card_name,
+        cardId: row.card_id,
+        rarity: row.rarity,
+        cardType: row.card_type,
+        timesPicked,
+        firstPicks,
+        firstPickPct: timesPicked > 0 ? Math.round((firstPicks / timesPicked) * 1000) / 10 : null,
+        avgPickPosition: parseFloat(row.avg_pick_position),
+        draftsSeenIn: parseInt(row.drafts_seen_in),
+        aspects: cardData?.aspects || [],
+        subtitle: cardData?.subtitle || null,
+        cost: cardData?.cost ?? null,
+        imageUrl: cardData?.imageUrl || null,
+      }
+    })
+
+    return jsonResponse({
+      setCode,
+      totalPicks: parseInt(summary?.total_picks || '0'),
+      totalDrafts: parseInt(summary?.total_drafts || '0'),
+      totalDrafters: parseInt(summary?.total_drafters || '0'),
+      cards,
+    })
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
