@@ -257,7 +257,7 @@ function CardsSubTab({ setCode, includeBots, includeHumans }: CardsSubTabProps) 
     </div>
   )
 
-  if (!data || data.cards.length === 0) {
+  if (!data || !data.cards || data.cards.length === 0) {
     return (
       <div className="stats-empty">
         <p>No draft data available for {setCode} yet.</p>
@@ -459,7 +459,7 @@ function DeckBuildingSubTab({ setCode, includeBots, includeHumans }: DeckBuildin
     </div>
   )
 
-  if (!data || data.cards.length === 0) {
+  if (!data || !data.cards || data.cards.length === 0) {
     return (
       <div className="stats-empty">
         <p>No deck building data available for {setCode} yet.</p>

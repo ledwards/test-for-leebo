@@ -101,17 +101,19 @@ export default function SealedPodLobby({
 
   return (
     <div className="sealed-pod-lobby">
-      <EditableTitle
-        value={podName || `${setName} Sealed`}
-        isEditable={isHost && !!onRenamePod}
-        onSave={(newName) => {
-          if (newName && onRenamePod) {
-            onRenamePod(newName)
-          }
-        }}
-        maxLength={100}
-        className="sealed-pod-title"
-      />
+      <h1>
+        <EditableTitle
+          value={podName || `${setName} Sealed`}
+          isEditable={isHost && !!onRenamePod}
+          onSave={(newName) => {
+            if (newName && onRenamePod) {
+              onRenamePod(newName)
+            }
+          }}
+          maxLength={100}
+          className="sealed-pod-title"
+        />
+      </h1>
 
       <div className="sealed-pod-share">
         <span className="share-label">Share URL:</span>
