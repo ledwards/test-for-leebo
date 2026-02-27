@@ -4,6 +4,7 @@ import { query, queryRow, queryRows } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { broadcastSealedPodState, broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
+import { findSpreadSeat } from '@/src/utils/seatAssignment'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {
@@ -52,10 +53,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     )
 
     const takenSeats = new Set(players.map(p => p.seat_number))
-    let seatNumber = 1
-    while (takenSeats.has(seatNumber) && seatNumber <= pod.max_players) {
-      seatNumber++
-    }
+    const seatNumber = findSpreadSeat(takenSeats, pod.max_players)
 
     await query(
       `INSERT INTO pod_players (
