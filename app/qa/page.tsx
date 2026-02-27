@@ -248,7 +248,7 @@ interface QASetTabProps {
 }
 
 function QASetTab({ stats, setCode }: QASetTabProps) {
-  const [subTab, setSubTab] = useState('packs')
+  const [subTab, setSubTab] = useState('quality')
   const [qualityData, setQualityData] = useState<QualityData | null>(null)
   const [qualityLoading, setQualityLoading] = useState(true)
 
@@ -310,23 +310,23 @@ function QASetTab({ stats, setCode }: QASetTabProps) {
 
       <div className="stats-subtabs">
         <button
-          className={`stats-subtab ${subTab === 'packs' ? 'active' : ''}`}
-          onClick={() => setSubTab('packs')}
-        >
-          Packs
-        </button>
-        <button
           className={`stats-subtab ${subTab === 'quality' ? 'active' : ''}`}
           onClick={() => setSubTab('quality')}
         >
           Quality
         </button>
+        <button
+          className={`stats-subtab ${subTab === 'packs' ? 'active' : ''}`}
+          onClick={() => setSubTab('packs')}
+        >
+          Packs
+        </button>
       </div>
 
-      {subTab === 'packs' ? (
-        <PacksSubTab setCode={setCode} />
-      ) : (
+      {subTab === 'quality' ? (
         <QualitySubTab data={qualityData} loading={qualityLoading} />
+      ) : (
+        <PacksSubTab setCode={setCode} />
       )}
     </div>
   )
