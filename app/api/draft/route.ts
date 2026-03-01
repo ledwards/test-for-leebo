@@ -5,8 +5,10 @@ import { requireAuth } from '@/lib/auth'
 import { generateShareId } from '@/lib/utils'
 import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
+import { initializeCardCache } from '@/src/utils/cardCache'
 import { generateSealedBox, clearBeltCache } from '@/src/utils/boosterPack'
 import { broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
+import { postPodCreated } from '@/lib/discordLfg'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -20,8 +22,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       maxPlayers = 8,
       timerEnabled = true,
       timerSeconds = 30,
+      isPublic,
       settings = {}
     } = body
+
+    // Default to public unless explicitly set to false
+    const podIsPublic = isPublic !== undefined ? isPublic === true : (settings.isPublic !== undefined ? settings.isPublic === true : true)
 
     // Get set name from config
     // For chaos draft, use "Chaos Draft (SET1, SET2, SET3) MM/DD/YYYY"
@@ -36,6 +42,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const setConfig = getSetConfig(setCode)
       setName = setConfig?.setName || setCode
     }
+
+    // Initialize card cache before generating packs
+    await initializeCardCache()
 
     // Generate 24-pack booster box upfront
     // For chaos drafts, generate 8 packs per set (3 sets = 24 packs)
@@ -71,14 +80,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             status,
             max_players,
             current_players,
+            timed,
+            pick_timeout_seconds,
             timer_enabled,
             timer_seconds,
             settings,
             draft_state,
             state_version,
             box_packs,
-            shuffled_packs
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            shuffled_packs,
+            is_public
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
           RETURNING id, share_id, created_at`,
           [
             shareId,
@@ -89,13 +101,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             'waiting',
             maxPlayers,
             1, // Host counts as first player
+            false, // Round timer off by default
+            60, // Round timer duration default 60s
             timerEnabled,
             timerSeconds,
             JSON.stringify(settings),
             JSON.stringify({ phase: 'lobby' }),
             1,
             JSON.stringify(boxPacks),
-            false
+            false,
+            podIsPublic
           ]
         )
         break
@@ -138,7 +153,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     )
 
     // Broadcast to multiplayer page if pod is public
-    if (settings.isPublic) {
+    if (podIsPublic) {
       broadcastPublicPodsUpdate().catch(err => {
         console.error('Error broadcasting public pods update:', err)
       })
@@ -146,6 +161,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const shareUrl = `${APP_URL}/draft/${shareId}`
+
+    // Post to Discord LFG channel if public
+    if (podIsPublic) {
+      postPodCreated(
+        { id: pod.id, share_id: shareId, set_code: setCode, set_name: setName, name: `${setName} Draft`, max_players: maxPlayers, current_players: 1, pod_type: 'draft' },
+        session.username
+      ).catch(err => {
+        console.error('Error posting draft to Discord:', err)
+      })
+    }
 
     return jsonResponse({
       id: pod.id,
