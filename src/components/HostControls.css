@@ -6,10 +6,16 @@
 }
 
 .host-controls h3 {
-  margin-bottom: 15px;
+  margin-bottom: 8px;
   font-size: 1.1rem;
   color: #888;
   text-align: center;
+}
+
+.host-visibility-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
 }
 
 /* Settings section - below header */
@@ -49,19 +55,32 @@
   font-size: 0.9rem;
 }
 
-.setting-checkbox {
+.setting-lock {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 0.9rem;
-  color: white;
+  transition: all 0.2s ease;
 }
 
-.setting-checkbox input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
+.setting-lock svg {
+  flex-shrink: 0;
+}
+
+.setting-lock-open {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.setting-lock-closed {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
 }
 
 .timeout-settings-row {
@@ -85,6 +104,41 @@
 .setting-value {
   color: #888;
   font-weight: 400;
+}
+
+.setting-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.setting-timer-input {
+  width: 60px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  color: white;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  font-family: 'Barlow', sans-serif;
+  text-align: center;
+}
+
+.setting-timer-input:focus {
+  outline: none;
+  border-color: rgba(33, 150, 243, 0.8);
+}
+
+.setting-timer-input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.setting-timer-unit {
+  font-size: 0.85rem;
+  color: #888;
 }
 
 .setting-select {
@@ -382,13 +436,8 @@
     font-size: 0.9rem;
   }
 
-  .setting-checkbox {
-    font-size: 0.9rem;
-  }
-
-  .setting-checkbox input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
+  .setting-lock {
+    font-size: 0.8rem;
   }
 
   .timeout-settings-row {

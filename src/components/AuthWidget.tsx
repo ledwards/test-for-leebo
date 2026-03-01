@@ -223,12 +223,31 @@ export default function AuthWidget() {
             </div>
 
             <div className="auth-widget-drawer-menu">
+              {!isHomepage && (
+                <a
+                  href="/"
+                  className="auth-widget-drawer-menu-item"
+                  onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+                    e.preventDefault()
+                    router.push('/')
+                    setDrawerOpen(false)
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                  </svg>
+                  Home
+                </a>
+              )}
+
+              <div className="auth-widget-drawer-section-label">Solo</div>
               <a
-                href="/solo"
+                href="/sealed"
                 className="auth-widget-drawer-menu-item"
                 onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                   e.preventDefault()
-                  router.push('/solo')
+                  router.push('/sealed')
                   setDrawerOpen(false)
                 }}
               >
@@ -236,15 +255,14 @@ export default function AuthWidget() {
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                Solo Play
+                Sealed
               </a>
-
               <a
-                href="/multiplayer"
+                href="/draft/solo"
                 className="auth-widget-drawer-menu-item"
                 onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                   e.preventDefault()
-                  router.push('/multiplayer')
+                  router.push('/draft/solo')
                   setDrawerOpen(false)
                 }}
               >
@@ -252,7 +270,45 @@ export default function AuthWidget() {
                   <path d="M2 13c0-4 3.5-7 8-7s7 3 7 6c0 2.5-2 4.5-5 5.5H8C4.5 17 2 15.5 2 13zm5 0a1 1 0 100-2 1 1 0 000 2z"/>
                   <path d="M17 12c1-2 3-3.5 5-4-1 2-1 4 0 6-2-1-4-1.5-5-2z"/>
                 </svg>
-                Live Pod
+                Draft
+              </a>
+
+              <div className="auth-widget-drawer-section-label">Live Pod</div>
+              <a
+                href="/sealed/pod"
+                className="auth-widget-drawer-menu-item"
+                onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+                  e.preventDefault()
+                  router.push('/sealed/pod')
+                  setDrawerOpen(false)
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="7" r="3"></circle>
+                  <path d="M9 12a5 5 0 0 0-5 5v1h10v-1a5 5 0 0 0-5-5z"></path>
+                  <circle cx="17" cy="7" r="3"></circle>
+                  <path d="M21 18v-1a4 4 0 0 0-3-3.87"></path>
+                </svg>
+                Sealed Pod
+              </a>
+              <a
+                href="/draft"
+                className="auth-widget-drawer-menu-item"
+                onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+                  e.preventDefault()
+                  router.push('/draft')
+                  setDrawerOpen(false)
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <g opacity="0.5">
+                    <path d="M4 10c0-2.5 2-4.5 5-4.5s4.5 2 4.5 3.8c0 1.6-1.2 2.8-3.2 3.5H7.5C5.5 12.5 4 11.5 4 10zm3.3-.2a.6.6 0 100-1.2.6.6 0 000 1.2z"/>
+                    <path d="M13.5 8.5c.6-1.2 1.8-2 3-2.5-.6 1.2-.6 2.5 0 3.8-1.2-.6-2.4-.9-3-1.3z"/>
+                  </g>
+                  <path d="M6 14.5c0-2.8 2.3-5 5.5-5s5 2.2 5 4.2c0 1.8-1.4 3.2-3.6 4H10C7.8 17.3 6 16.3 6 14.5zm3.7-.2a.7.7 0 100-1.4.7.7 0 000 1.4z"/>
+                  <path d="M16.5 13c.7-1.3 2-2.3 3.5-2.8-.7 1.4-.7 2.8 0 4.2-1.4-.7-2.8-1-3.5-1.4z"/>
+                </svg>
+                Draft Pod
               </a>
 
               {(loadingData || latestLivePod || latestSoloPod) && (
@@ -321,25 +377,6 @@ export default function AuthWidget() {
                 </a>
               )}
 
-              {/* Stats link - hidden for now
-              <a
-                href="/stats"
-                className="auth-widget-drawer-menu-item"
-                onClick={(e: MouseEvent<HTMLAnchorElement>) => {
-                  e.preventDefault()
-                  router.push('/stats')
-                  setDrawerOpen(false)
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="20" x2="18" y2="10"></line>
-                  <line x1="12" y1="20" x2="12" y2="4"></line>
-                  <line x1="6" y1="20" x2="6" y2="14"></line>
-                </svg>
-                Stats
-              </a>
-              */}
-
               <a
                 href="/history"
                 className="auth-widget-drawer-menu-item"
@@ -370,24 +407,6 @@ export default function AuthWidget() {
                 </svg>
                 About
               </a>
-
-              {!isHomepage && (
-                <a
-                  href="/"
-                  className="auth-widget-drawer-menu-item"
-                  onClick={(e: MouseEvent<HTMLAnchorElement>) => {
-                    e.preventDefault()
-                    router.push('/')
-                    setDrawerOpen(false)
-                  }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                  </svg>
-                  Home
-                </a>
-              )}
 
               <div className="auth-widget-drawer-divider"></div>
 

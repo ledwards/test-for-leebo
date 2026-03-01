@@ -1,5 +1,15 @@
 # Release Notes
 
+## 02.28.2026
+
+### 🎮 Game Modes/Gameplay
+- **Draft Pod and Sealed Pod pages**: Draft and Sealed pod modes now have dedicated landing pages with create, join, and history sections. Solo modes show "Solo Draft" and "Solo Sealed" titles.
+- **Draft table visibility restored**: During leader draft, all players can now see each other's available leader packs again (simulating a physical table). Pack card counts are also visible for all players during the draft.
+- **Host controls improvements**: Public/private visibility toggle, configurable round timer and last-player timer durations, and reorganized button layout.
+
+### 🐞 Bug Fixes
+- **Empty draft packs fix**: Fixed a bug where draft pods could be created with empty packs if the card cache wasn't initialized. Card cache now self-initializes on first access, preventing silent empty results.
+
 ## 02.27.2026
 
 ### 📦 Pack Generation

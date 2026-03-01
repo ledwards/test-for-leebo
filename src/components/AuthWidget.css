@@ -205,6 +205,16 @@
   opacity: 0.7;
 }
 
+.auth-widget-drawer-section-label {
+  padding: 10px 12px 4px;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .auth-widget-drawer-menu-item.more-link {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 4px;

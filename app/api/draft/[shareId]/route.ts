@@ -6,6 +6,7 @@ import { getSession, requireAuth } from '@/lib/auth'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { getPackArtUrl } from '@/src/utils/packArt'
 import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout'
+import { deletePodMessage } from '@/lib/discordLfg'
 import { jsonParse } from '@/src/utils/json'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -107,8 +108,9 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         currentPack: session && p.user_id === session.id
           ? jsonParse(p.current_pack)
           : null,
-        // Only show leader pack to the owning player (prevent cheating via network inspection)
-        leaderPack: (session && p.user_id === session.id && isLeaderDraftPhase) ? leadersPack.map(l => ({
+        currentPackSize: jsonParse(p.current_pack, []).length,
+        // During leader draft, show each player's leader pack to all (visible at the table)
+        leaderPack: isLeaderDraftPhase ? leadersPack.map(l => ({
           name: l.name,
           aspects: l.aspects || [],
           imageUrl: l.imageUrl,
@@ -136,10 +138,10 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
       status: pod.status,
       maxPlayers: pod.max_players,
       currentPlayers: pod.current_players,
-      timed: pod.timed !== false, // default true
+      timed: pod.timed === true,
       timerEnabled: pod.timer_enabled,
       timerSeconds: pod.timer_seconds,
-      pickTimeoutSeconds: pod.pick_timeout_seconds || 120,
+      pickTimeoutSeconds: pod.pick_timeout_seconds || 60,
       stateVersion: pod.state_version,
       draftState,
       settings,
@@ -234,6 +236,9 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
         )
       }
     }
+
+    // Discord LFG: delete pod message (fire-and-forget)
+    deletePodMessage({ id: pod.id, share_id: pod.share_id, set_code: '', set_name: '', name: null, max_players: 0, current_players: 0 }).catch(() => {})
 
     // Delete associated card_pools (dependent destroy)
     // The generations are kept for history, but pools from this draft are cleaned up

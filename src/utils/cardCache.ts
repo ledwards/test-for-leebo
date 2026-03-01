@@ -53,10 +53,14 @@ export function initializeCardCache(): Promise<void> {
 
 /**
  * Get cards for a specific set from cache
+ * Auto-initializes on first access so callers never get empty results
  * @param setCode - The set code
  * @returns Array of cards from that set
  */
 export function getCachedCards(setCode: SetCode | string): RawCard[] {
+  if (!cacheInitialized) {
+    initializeCardCache();
+  }
   return cardCache.get(setCode as SetCode) || [];
 }
 

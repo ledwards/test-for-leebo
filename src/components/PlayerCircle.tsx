@@ -19,6 +19,7 @@ interface Player {
   seatNumber: number
   username?: string
   pickStatus?: 'picked' | 'selected' | 'picking' | 'timeout'
+  currentPackSize?: number
   draftedLeaders?: Leader[]
   leaderPack?: Leader[]
 }
@@ -205,6 +206,9 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
           style={{ color: getStatusColor(player.pickStatus) }}
         >
           {player.pickStatus === 'picked' || player.pickStatus === 'selected' ? 'Done' : 'Picking...'}
+          {typeof player.currentPackSize === 'number' && player.currentPackSize > 0 && (
+            <span className="leader-info-pack-count"> ({player.currentPackSize} cards)</span>
+          )}
         </div>
       </div>
     )
@@ -453,7 +457,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
                 seatNumber={seat.seatNumber}
                 isCurrentUser={seat.isCurrentUser}
                 isEmpty={!seat.player}
-                showStatus={false}
+                showStatus={showStatus}
                 isPatron={seat.isCurrentUser && isPatron}
                 isHost={!!hostId && seat.player?.id === hostId}
               />

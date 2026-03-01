@@ -62,6 +62,8 @@ interface Draft {
 interface SettingsChange {
   timed?: boolean
   timerEnabled?: boolean
+  pickTimeoutSeconds?: number
+  timerSeconds?: number
   isPublic?: boolean
   maxPlayers?: number
 }
@@ -105,7 +107,7 @@ function HostControls({
   const [isCancelling, setIsCancelling] = useState(false)
   const canStart = playerCount >= 2
   const canAddBot = playerCount < (draft?.maxPlayers || 8)
-  const isRoundTimerEnabled = draft?.timed !== false
+  const isRoundTimerEnabled = draft?.timed === true
   const isLastPlayerTimerEnabled = draft?.timerEnabled !== false
 
   const handleCancelDraft = async () => {
@@ -143,7 +145,7 @@ function HostControls({
   }
 
   // Timer settings for display
-  const pickTimeoutSeconds = draft?.pickTimeoutSeconds || 120
+  const pickTimeoutSeconds = draft?.pickTimeoutSeconds || 60
   const lastPlayerTimerSeconds = draft?.timerSeconds || 30
 
   const handleRoundTimerChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -158,9 +160,48 @@ function HostControls({
     }
   }
 
+  const handleRoundTimerSecondsChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value, 10)
+    if (onSettingsChange && !isNaN(val) && val > 0) {
+      onSettingsChange({ pickTimeoutSeconds: val })
+    }
+  }
+
+  const handleLastPlayerTimerSecondsChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value, 10)
+    if (onSettingsChange && !isNaN(val) && val > 0) {
+      onSettingsChange({ timerSeconds: val })
+    }
+  }
+
   return (
     <div className="host-controls">
       <h3>Host Controls</h3>
+
+      <div className="host-visibility-row">
+        <button
+          className={`setting-lock ${draft?.isPublic ? 'setting-lock-open' : 'setting-lock-closed'}`}
+          onClick={() => {
+            if (onSettingsChange) {
+              onSettingsChange({ isPublic: !draft?.isPublic })
+            }
+          }}
+          title={draft?.isPublic ? 'Public — visible to other players' : 'Private — only players with the link can join'}
+        >
+          {draft?.isPublic ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          )}
+          <span>{draft?.isPublic ? 'Public' : 'Private'}</span>
+        </button>
+      </div>
 
       <div className="draft-settings">
         <div className="settings-row">
@@ -170,8 +211,18 @@ function HostControls({
               checked={isRoundTimerEnabled}
               onChange={handleRoundTimerChange}
             />
-            <span>Enable Round Timer: {pickTimeoutSeconds}s</span>
+            <span>Round Timer</span>
           </label>
+          <input
+            type="number"
+            className="setting-timer-input"
+            value={pickTimeoutSeconds}
+            onChange={handleRoundTimerSecondsChange}
+            disabled={!isRoundTimerEnabled}
+            min={5}
+            max={600}
+          />
+          <span className="setting-timer-unit">sec</span>
         </div>
 
         <div className="settings-row">
@@ -181,11 +232,21 @@ function HostControls({
               checked={isLastPlayerTimerEnabled}
               onChange={handleLastPlayerTimerChange}
             />
-            <span>Enable Last Player Timer: {lastPlayerTimerSeconds}s</span>
+            <span>Last Player Timer</span>
           </label>
+          <input
+            type="number"
+            className="setting-timer-input"
+            value={lastPlayerTimerSeconds}
+            onChange={handleLastPlayerTimerSecondsChange}
+            disabled={!isLastPlayerTimerEnabled}
+            min={5}
+            max={600}
+          />
+          <span className="setting-timer-unit">sec</span>
         </div>
 
-        <div className="settings-row settings-row-spread">
+        <div className="settings-row">
           <span className="setting-item">
             <span className="setting-label">Max Players:</span>
             <select
@@ -202,18 +263,6 @@ function HostControls({
               ))}
             </select>
           </span>
-          <label className="setting-checkbox">
-            <input
-              type="checkbox"
-              checked={draft?.isPublic || false}
-              onChange={(e) => {
-                if (onSettingsChange) {
-                  onSettingsChange({ isPublic: e.target.checked })
-                }
-              }}
-            />
-            <span>Visible to other players</span>
-          </label>
         </div>
       </div>
 
@@ -237,7 +286,14 @@ function HostControls({
               variant="secondary"
               glowColor="blue"
               className="control-button"
-              onClick={onRandomizePacks}
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  const sound = new Audio('/sounds/shuffling-hand.mp3')
+                  sound.volume = 0.5
+                  sound.play().catch(() => {})
+                }
+                onRandomizePacks()
+              }}
               disabled={randomizingPacks || playerCount < 2}
               title="Shuffle which packs you get from the booster box"
             >
@@ -247,7 +303,7 @@ function HostControls({
           )}
         </div>
 
-        {/* Row 2: Add Bot + Start Draft */}
+        {/* Row 2: Add Bot */}
         <div className="controls-row secondary-controls">
           <Button
             variant="secondary"
@@ -258,16 +314,6 @@ function HostControls({
           >
             <RobotIcon />
             <span>{addingBot ? 'Adding...' : 'Add Bot'}</span>
-          </Button>
-
-          <Button
-            variant="primary"
-            className="control-button"
-            onClick={onStart}
-            disabled={startingDraft || !canStart}
-          >
-            <PlayIcon />
-            <span>{startingDraft ? 'Starting...' : 'Start Draft'}</span>
           </Button>
         </div>
 
@@ -281,8 +327,18 @@ function HostControls({
           <p className="ready-to-start">Ready to Start</p>
         )}
 
-        {showCancelButton && (
-          <div className="controls-row cancel-controls">
+        <div className="controls-row cancel-controls">
+          <Button
+            variant="primary"
+            className="control-button"
+            onClick={onStart}
+            disabled={startingDraft || !canStart}
+          >
+            <PlayIcon />
+            <span>{startingDraft ? 'Starting...' : 'Start Draft'}</span>
+          </Button>
+
+          {showCancelButton && (
             <Button
               variant="danger"
               className="control-button"
@@ -291,8 +347,8 @@ function HostControls({
             >
               Cancel Draft
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Cancel Confirmation Modal */}

@@ -43,6 +43,7 @@ interface DraftPlayer {
   leaders: string | unknown[]
   drafted_leaders: string | unknown[]
   drafted_cards: string | unknown[]
+  current_pack: string | unknown[]
   username: string
   avatar_url: string
 }
@@ -62,6 +63,7 @@ interface PublicPlayer {
   seatNumber: number
   pickStatus: string
   isBot: boolean
+  currentPackSize: number
   leaderPack: PublicLeader[] | null
   draftedCardsCount: number
   draftedLeadersCount: number
@@ -114,7 +116,7 @@ export async function broadcastDraftState(shareId: string): Promise<void> {
     // Get all players (public info only)
     const players = await queryRows(
       `SELECT dpp.id, dpp.user_id, dpp.seat_number, dpp.pick_status, dpp.is_bot,
-              dpp.leaders, dpp.drafted_leaders, dpp.drafted_cards,
+              dpp.leaders, dpp.drafted_leaders, dpp.drafted_cards, dpp.current_pack,
               u.username, u.avatar_url
        FROM pod_players dpp
        JOIN users u ON dpp.user_id = u.id
@@ -125,9 +127,12 @@ export async function broadcastDraftState(shareId: string): Promise<void> {
 
     const draftState = jsonParse<Record<string, unknown>>(pod.draft_state, {}) as Record<string, unknown>
 
+    const isLeaderDraftPhase = draftState?.phase === 'leader_draft'
+
     // Build PUBLIC player data (visible to all)
     const publicPlayers: PublicPlayer[] = players.map(p => {
       const draftedLeaders = jsonParse<unknown[]>(p.drafted_leaders, []) as { name: string; aspects?: string[]; imageUrl: string; backImageUrl: string }[]
+      const leadersPack = jsonParse<unknown[]>(p.leaders, []) as { name: string; aspects?: string[]; imageUrl: string; backImageUrl: string }[]
 
       return {
         id: p.id,
@@ -137,8 +142,14 @@ export async function broadcastDraftState(shareId: string): Promise<void> {
         seatNumber: p.seat_number,
         pickStatus: p.pick_status,
         isBot: p.is_bot === true,
-        // Never expose other players' leader packs - clients get their own via HTTP myPlayer
-        leaderPack: null,
+        currentPackSize: (jsonParse<unknown[]>(p.current_pack, []) as unknown[]).length,
+        // During leader draft, show each player's leader pack to all (visible at the table)
+        leaderPack: isLeaderDraftPhase ? leadersPack.map(l => ({
+          name: l.name,
+          aspects: l.aspects || [],
+          imageUrl: l.imageUrl,
+          backImageUrl: l.backImageUrl,
+        })) : null,
         draftedCardsCount: (jsonParse<unknown[]>(p.drafted_cards, []) as unknown[]).length,
         draftedLeadersCount: draftedLeaders.length,
         draftedLeaders: draftedLeaders.map(l => ({

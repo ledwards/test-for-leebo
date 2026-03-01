@@ -126,8 +126,9 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
         avatarUrl: p.avatar_url,
         seatNumber: p.seat_number,
         pickStatus: p.pick_status,
-        // Only show leader pack to the owning player (prevent cheating via network inspection)
-        leaderPack: (session && p.user_id === session.id && isLeaderDraftPhase) ? leadersPack.map(l => ({
+        currentPackSize: jsonParse(p.current_pack, []).length,
+        // During leader draft, show each player's leader pack to all (visible at the table)
+        leaderPack: isLeaderDraftPhase ? leadersPack.map(l => ({
           name: l.name,
           aspects: l.aspects || [],
           imageUrl: l.imageUrl,
@@ -170,10 +171,10 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
       draftState,
       players: formattedPlayers,
       myPlayer,
-      timed: pod.timed !== false,
+      timed: pod.timed === true,
       timerEnabled: pod.timer_enabled,
       timerSeconds: pod.timer_seconds,
-      pickTimeoutSeconds: pod.pick_timeout_seconds || 120,
+      pickTimeoutSeconds: pod.pick_timeout_seconds || 60,
       startedAt: pod.started_at,
       completedAt: pod.completed_at,
       pickStartedAt: pod.pick_started_at,
