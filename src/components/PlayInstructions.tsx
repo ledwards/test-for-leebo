@@ -3,12 +3,11 @@
 
 import './PlayInstructions.css'
 
-const DISCORD_INVITE_URL = 'https://discord.gg/u6fkdDzWqF'
+const DISCORD_INVITE_URL = process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || 'https://discord.gg/u6fkdDzWqF'
 
 interface PlayInstructionsProps {
   shareId: string | null
   poolType: 'draft' | 'sealed' | 'sealed_pod' | string
-  hasBetaAccess?: boolean
   opponentName?: string | null
   hasBye?: boolean
   onCopyLink?: () => void
@@ -24,7 +23,6 @@ interface PlayInstructionsProps {
 export default function PlayInstructions({
   shareId,
   poolType,
-  hasBetaAccess = false,
   opponentName = null,
   hasBye = false,
   onCopyLink,
@@ -46,62 +44,27 @@ export default function PlayInstructions({
         <div className="play-step">
           <span className="step-number">1</span>
           <div className="step-content">
-            {hasBetaAccess ? (
-              <>
-                <h3>Copy Your Deck:
-                  {onCopyLink && (
-                    <button className="step-copy-button" onClick={onCopyLink} title="Copy deck link">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                      </svg>
-                      Link
-                    </button>
-                  )}
-                  {onCopyJson && (
-                    <button className="step-copy-button" onClick={onCopyJson} title="Copy deck JSON">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                      </svg>
-                      JSON
-                    </button>
-                  )}
-                </h3>
-                <p>Copy your deck link for <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">Karabast</a>, or copy the deck JSON for <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">SWUDB</a>.</p>
-              </>
-            ) : (
-              <>
-                <h3>
-                  Copy Your Deck
-                  {onCopyLink && (
-                    <button className="step-copy-button" onClick={onCopyLink} title="Copy deck link">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                      </svg>
-                    </button>
-                  )}
-                  {onCopyJson && (
-                    <button className="step-copy-button" onClick={onCopyJson} title="Copy deck JSON">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                      </svg>
-                    </button>
-                  )}
-                </h3>
-                {onCopyLink && onCopyJson ? (
-                  <p>Copy your deck link for <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">Karabast</a>, or copy the deck JSON.</p>
-                ) : onCopyLink ? (
-                  <p>Copy your deck link to paste into <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">Karabast</a>, or go to your {shareId ? <a href={`/pool/${shareId}/deck/play`}>play page</a> : 'play page'} for JSON export.</p>
-                ) : onCopyJson ? (
-                  <p>Copy your deck in JSON format.</p>
-                ) : (
-                  <p>Go to your {shareId ? <a href={`/pool/${shareId}/deck/play`}>play page</a> : 'play page'} to copy your deck.</p>
-                )}
-              </>
-            )}
+            <h3>Copy Your Deck:
+              {onCopyLink && (
+                <button className="step-copy-button" onClick={onCopyLink} title="Copy deck link">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  </svg>
+                  Link
+                </button>
+              )}
+              {onCopyJson && (
+                <button className="step-copy-button" onClick={onCopyJson} title="Copy deck JSON">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  JSON
+                </button>
+              )}
+            </h3>
+            <p>Copy your deck link for <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">Karabast</a>, or copy the deck JSON for <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">SWUDB</a>.</p>
           </div>
         </div>
 
@@ -129,11 +92,7 @@ export default function PlayInstructions({
           <span className="step-number">3</span>
           <div className="step-content">
             <h3>Play on Karabast</h3>
-            {hasBetaAccess ? (
-              <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and paste your deck link or JSON. Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
-            ) : (
-              <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and load your deck (by pasting JSON into Karabast directly, or via <a href="https://swudb.com" target="_blank" rel="noopener noreferrer">swudb.com</a> if you prefer). Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
-            )}
+            <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and paste your deck link or JSON. Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
           </div>
         </div>
       </div>
@@ -141,7 +100,7 @@ export default function PlayInstructions({
       {/* Action buttons */}
       {showActions && (
         <div className="play-instructions-actions">
-          {hasBetaAccess && onCopyLink && (
+          {onCopyLink && (
             <button className="play-instructions-action-button primary" onClick={onCopyLink}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
@@ -152,12 +111,12 @@ export default function PlayInstructions({
           )}
 
           {onCopyJson && (
-            <button className={`play-instructions-action-button${hasBetaAccess ? '' : ' primary'}`} onClick={onCopyJson}>
+            <button className="play-instructions-action-button" onClick={onCopyJson}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
-              {hasBetaAccess ? 'Copy JSON' : 'Copy to Clipboard'}
+              Copy JSON
             </button>
           )}
 

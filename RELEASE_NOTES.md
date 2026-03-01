@@ -7,6 +7,9 @@
 - **Draft table visibility restored**: During leader draft, all players can now see each other's available leader packs again (simulating a physical table). Pack card counts are also visible for all players during the draft.
 - **Host controls improvements**: Public/private visibility toggle, configurable round timer and last-player timer durations, and reorganized button layout.
 
+### 🎉 New Features
+- **Copy Deck Link for all users**: The "Copy Link" button on the Play page is now available to everyone, not just beta testers. Paste your deck link directly into Karabast to play your drafted or sealed deck online.
+
 ### 🐞 Bug Fixes
 - **Empty draft packs fix**: Fixed a bug where draft pods could be created with empty packs if the card cache wasn't initialized. Card cache now self-initializes on first access, preventing silent empty results.
 
@@ -44,7 +47,7 @@
 
 ### 🎉 New Features
 - **Karabast deck source integration**: Added a deck.json API endpoint for compatibility with Karabast and other SWU tools. A companion PR has been submitted to the Karabast project to add Protect the Pod as a supported deck source.
-- **Copy Deck Link on Play page** (beta testers only): Copy your deck link directly from the Play page to paste into Karabast.
+- **Copy Deck Link on Play page**: Copy your deck link directly from the Play page to paste into Karabast.
 - **Play page improvements**: Updated instructions with Discord link for finding opponents.
 - **Card preview on iPad**: Tap any card on iPad to see an enlarged preview. Tap anywhere outside the card to dismiss. (Phones still use long-press.)
 
