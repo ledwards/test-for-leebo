@@ -193,11 +193,11 @@ test.describe('Logged-out user export flow', () => {
     // === STEP 6: Export JSON from Play page (should have data now!) ===
     console.log('\n--- STEP 6: Export JSON from Play page ---')
 
-    const playCopyButton = page.locator('button:has-text("Copy to Clipboard")')
+    const playCopyButton = page.locator('button:has-text("Copy JSON")')
 
     if (await playCopyButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       await playCopyButton.click()
-      console.log('✓ Clicked Copy to Clipboard on Play page')
+      console.log('✓ Clicked Copy JSON on Play page')
 
       await page.waitForTimeout(500)
 

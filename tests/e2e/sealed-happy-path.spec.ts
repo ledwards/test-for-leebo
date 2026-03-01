@@ -242,15 +242,20 @@ test.describe('Sealed happy path', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(1000)
 
-    // === STEP 8: Test Copy to Clipboard button exists ===
-    console.log('\n--- STEP 8: Verifying Copy to Clipboard button ---')
+    // === STEP 8: Test Copy Link and Copy JSON buttons exist ===
+    console.log('\n--- STEP 8: Verifying Copy Link and Copy JSON buttons ---')
 
-    // Note: Clipboard API is unreliable in headless browser tests.
-    // The actual JSON export is validated via the Download test below.
-    const copyButton = page.locator('button:has-text("Copy to Clipboard")')
+    // Copy Link button should be visible to all users (Karabast integration)
+    const copyLinkButton = page.locator('button:has-text("Copy Link")')
+    await expect(copyLinkButton).toBeVisible({ timeout: 5000 })
+    await expect(copyLinkButton).toBeEnabled()
+    console.log('✓ Copy Link button is visible and enabled')
+
+    // Copy JSON button should also be visible
+    const copyButton = page.locator('button:has-text("Copy JSON")')
     await expect(copyButton).toBeVisible({ timeout: 5000 })
     await expect(copyButton).toBeEnabled()
-    console.log('✓ Copy to Clipboard button is visible and enabled')
+    console.log('✓ Copy JSON button is visible and enabled')
 
     // === STEP 9: Verify Download button exists ===
     console.log('\n--- STEP 9: Verifying Download button ---')

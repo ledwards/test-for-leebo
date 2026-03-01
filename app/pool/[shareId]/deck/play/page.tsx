@@ -9,6 +9,7 @@ import { getSetConfig } from '../../../../../src/utils/setConfigs'
 import { useAuth } from '../../../../../src/contexts/AuthContext'
 import EditableTitle from '../../../../../src/components/EditableTitle'
 import { getCachedCards, initializeCardCache } from '../../../../../src/utils/cardCache'
+import { getBaseSetCode } from '../../../../../src/utils/carboniteConstants'
 import { buildBaseCardMap, getBaseCardId } from '../../../../../src/utils/variantDowngrade'
 import { jsonParse } from '../../../../../src/utils/json'
 import { defaultSort } from '../../../../../src/services/cards/cardSorting'
@@ -18,7 +19,9 @@ import CardWithPreview from '../../../../../src/components/CardWithPreview'
 import Modal from '../../../../../src/components/Modal'
 import Button from '../../../../../src/components/Button'
 import PlayInstructions from '../../../../../src/components/PlayInstructions'
+import ChatPanel from '../../../../../src/components/ChatPanel'
 import '../../../../../src/App.css'
+import '../../../../../src/components/ChatPanel.css'
 import './play.css'
 
 interface CardType {
@@ -81,7 +84,6 @@ export default function PlayPage({ params }: PageProps) {
   const resolvedParams = use(params)
   const router = useRouter()
   const { user } = useAuth()
-  const hasBetaAccess = user?.is_beta_tester || user?.is_admin
   const [pool, setPool] = useState<PoolData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -290,7 +292,7 @@ export default function PlayPage({ params }: PageProps) {
 
     // Build set of leader/base IDs from card cache to filter final output
     // Use getBaseCardId to ensure variant treatments map to their base ID
-    const allCards = getCachedCards(pool.setCode) || []
+    const allCards = getCachedCards(getBaseSetCode(pool.setCode)) || []
     const leaderBaseIds = new Set()
     allCards.forEach(card => {
       if (card.type === 'Leader' || card.type === 'Base') {
@@ -1545,6 +1547,8 @@ export default function PlayPage({ params }: PageProps) {
   }
 
   return (
+    <div className="page-with-chat">
+    <div className="page-content">
     <div className="play-page">
       {packArtUrl && (
         <div className="set-art-header" style={{
@@ -1573,7 +1577,7 @@ export default function PlayPage({ params }: PageProps) {
 
         <div className="practice-hand-button-container">
           <button className="play-action-button" onClick={drawPracticeHand}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <g transform="rotate(-15 12 22)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
               <g transform="rotate(0 12 22)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
               <g transform="rotate(15 12 22)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
@@ -1612,7 +1616,6 @@ export default function PlayPage({ params }: PageProps) {
         <PlayInstructions
           shareId={shareId}
           poolType={pool?.poolType || 'sealed'}
-          hasBetaAccess={hasBetaAccess}
           opponentName={firstOpponent?.username}
           hasBye={hasBye}
           onCopyLink={copyDeckLink}
@@ -1707,6 +1710,9 @@ export default function PlayPage({ params }: PageProps) {
           </Button>
         </Modal.Actions>
       </Modal>
+    </div>
+    </div>
+    <ChatPanel shareId={pool?.draftShareId} defaultOpen={true} />
     </div>
   )
 }
