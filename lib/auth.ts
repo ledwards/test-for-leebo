@@ -152,7 +152,11 @@ function parseCookies(cookieHeader: string): Record<string, string> {
   if (!cookieHeader) return cookies
 
   cookieHeader.split(';').forEach((cookie) => {
-    const [name, value] = cookie.trim().split('=')
+    const trimmed = cookie.trim()
+    const eqIndex = trimmed.indexOf('=')
+    if (eqIndex === -1) return
+    const name = trimmed.slice(0, eqIndex)
+    const value = trimmed.slice(eqIndex + 1)
     if (name && value) {
       cookies[name] = decodeURIComponent(value)
     }

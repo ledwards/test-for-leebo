@@ -20,11 +20,17 @@ export function AuthProvider({ children }) {
     // or auth=already_logged_in (if already had session)
     const urlParams = new URLSearchParams(window.location.search)
     const authParam = urlParams.get('auth')
+    const authError = urlParams.get('error')
     if (authParam === 'success' || authParam === 'already_logged_in') {
       // Small delay to ensure cookie is set
       setTimeout(() => {
         loadSession()
       }, 100)
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+    if (authError) {
+      console.error('Discord OAuth error:', decodeURIComponent(authError))
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname)
     }
