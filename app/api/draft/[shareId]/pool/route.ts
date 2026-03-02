@@ -96,10 +96,11 @@ export async function GET(request: NextRequest, { params }: RouteContext): Promi
     // For chaos drafts, store all sets as comma-separated set_code
     const settings = typeof pod.settings === 'string' ? JSON.parse(pod.settings) : pod.settings || {}
     const chaosSets = settings.draftMode === 'chaos' && settings.chaosSets
+    const uniqueChaosSets = chaosSets ? [...new Set(chaosSets as string[])] : null
     const poolSetCode = chaosSets ? chaosSets.join(',') : pod.set_code
-    const setName = chaosSets ? formatSetCodeRange(chaosSets) : (pod.set_name || pod.set_code)
-    const defaultName = chaosSets
-      ? `${formatSetCodeRange(chaosSets)} Chaos Draft ${month}/${day}/${year}`
+    const setName = uniqueChaosSets ? formatSetCodeRange(uniqueChaosSets) : (pod.set_name || pod.set_code)
+    const defaultName = uniqueChaosSets
+      ? `${formatSetCodeRange(uniqueChaosSets)} Chaos Draft ${month}/${day}/${year}`
       : `${pod.set_code} Draft ${month}/${day}/${year}`
 
     await query(

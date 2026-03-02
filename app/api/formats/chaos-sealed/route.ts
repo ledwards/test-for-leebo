@@ -69,7 +69,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const year = now.getFullYear()
     const uniqueSets = [...new Set(setCodes)]
     const setLabel = uniqueSets.length <= 3
-      ? formatSetCodeRange(setCodes)
+      ? formatSetCodeRange(uniqueSets)
       : `${setCodes.length} packs / ${uniqueSets.length} sets`
     const defaultName = `Chaos Sealed (${setLabel}) ${month}/${day}/${year}`
 
