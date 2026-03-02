@@ -25,7 +25,10 @@ interface ChatPanelProps {
 export function ChatPanel({ shareId, lobbyType, enabled = true, defaultOpen = true, onMakePublic, isHost = false }: ChatPanelProps) {
   const { user } = useAuth()
   const [isMobile, setIsMobile] = useState(false)
-  const [isOpen, setIsOpen] = useState(defaultOpen)
+  const [isOpen, setIsOpen] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) return false
+    return defaultOpen
+  })
   const hasAutoOpened = useRef(false)
   const [inputText, setInputText] = useState('')
   const [isGuildMember, setIsGuildMember] = useState<boolean | null>(null)
@@ -156,8 +159,10 @@ export function ChatPanel({ shareId, lobbyType, enabled = true, defaultOpen = tr
 
         {/* Full-screen overlay */}
         {isOpen && (
-          <div className="chat-overlay">
+          <div className="chat-overlay" onClick={handleClose}>
+            <div className="chat-overlay-content" onClick={(e) => e.stopPropagation()}>
             <div className="chat-overlay-header">
+              <Button variant="chrome" onClick={handleClose} aria-label="Close chat">&times;</Button>
               <div className="chat-panel-header-left">
                 <h3>{chatTitle}</h3>
                 {discordThreadUrl && (
@@ -166,7 +171,6 @@ export function ChatPanel({ shareId, lobbyType, enabled = true, defaultOpen = tr
                   </a>
                 )}
               </div>
-              <Button variant="chrome" onClick={handleClose} aria-label="Close chat">&times;</Button>
             </div>
             <ChatContent
               messages={messages}
@@ -188,6 +192,7 @@ export function ChatPanel({ shareId, lobbyType, enabled = true, defaultOpen = tr
               onMakePublic={onMakePublic}
               discordThreadUrl={discordThreadUrl}
             />
+            </div>
           </div>
         )}
       </>
