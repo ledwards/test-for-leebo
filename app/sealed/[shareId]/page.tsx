@@ -99,7 +99,8 @@ export default function SealedPodPage({ params }: PageProps) {
           method: 'POST',
           credentials: 'include',
         })
-        await refresh()
+        // No refresh needed — the join API broadcasts via socket,
+        // which updates public state instantly and fetches user data
       } catch (err) {
         console.error('Failed to auto-join:', err)
       }

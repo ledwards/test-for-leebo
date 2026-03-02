@@ -158,9 +158,14 @@ export function ChatPanel({ shareId, lobbyType, enabled = true, defaultOpen = tr
         {isOpen && (
           <div className="chat-overlay">
             <div className="chat-overlay-header">
-              <h3>{discordThreadUrl ? (
-                <a href={discordThreadUrl} target="_blank" rel="noopener noreferrer" className="chat-title-link">{chatTitle}</a>
-              ) : chatTitle}</h3>
+              <div className="chat-panel-header-left">
+                <h3>{chatTitle}</h3>
+                {discordThreadUrl && (
+                  <a href={discordThreadUrl} target="_blank" rel="noopener noreferrer" className="chat-discord-thread-link">
+                    Chat on Discord
+                  </a>
+                )}
+              </div>
               <Button variant="chrome" onClick={handleClose} aria-label="Close chat">&times;</Button>
             </div>
             <ChatContent
@@ -181,6 +186,7 @@ export function ChatPanel({ shareId, lobbyType, enabled = true, defaultOpen = tr
               isPublic={isPublic}
               isHost={isHost}
               onMakePublic={onMakePublic}
+              discordThreadUrl={discordThreadUrl}
             />
           </div>
         )}
@@ -213,9 +219,12 @@ export function ChatPanel({ shareId, lobbyType, enabled = true, defaultOpen = tr
           <div className="chat-panel-header">
             <div className="chat-panel-header-left">
               {connected && <span className="chat-status-dot" />}
-              <h3>{discordThreadUrl ? (
-                <a href={discordThreadUrl} target="_blank" rel="noopener noreferrer" className="chat-title-link">{chatTitle}</a>
-              ) : chatTitle}</h3>
+              <h3>{chatTitle}</h3>
+              {discordThreadUrl && (
+                <a href={discordThreadUrl} target="_blank" rel="noopener noreferrer" className="chat-discord-thread-link">
+                  Chat on Discord
+                </a>
+              )}
             </div>
             <button className="chat-collapse-btn" onClick={handleClose} aria-label="Collapse chat">
               <span>›</span>
@@ -239,6 +248,7 @@ export function ChatPanel({ shareId, lobbyType, enabled = true, defaultOpen = tr
             isPublic={isPublic}
             isHost={isHost}
             onMakePublic={onMakePublic}
+            discordThreadUrl={discordThreadUrl}
           />
         </>
       )}
@@ -265,6 +275,7 @@ function ChatContent({
   isPublic = true,
   isHost = false,
   onMakePublic,
+  discordThreadUrl,
 }: {
   messages: ChatMessage[]
   loading: boolean
@@ -283,6 +294,7 @@ function ChatContent({
   isPublic?: boolean
   isHost?: boolean
   onMakePublic?: () => void
+  discordThreadUrl?: string | null
 }) {
   const [dismissedPrivateNotice, setDismissedPrivateNotice] = useState(false)
   // Auth gate overlay
@@ -341,7 +353,16 @@ function ChatContent({
         {loading ? (
           <div className="chat-loading">Loading chat...</div>
         ) : messages.length === 0 ? (
-          <div className="chat-empty">No messages yet. Say hello!</div>
+          <div className="chat-empty">
+            {discordThreadUrl ? (
+              <>
+                <p>A <a href={discordThreadUrl} target="_blank" rel="noopener noreferrer" className="chat-empty-link">Discord thread</a> has been created for this pod.</p>
+                <p>Messages sync between here and Discord. Use Discord to coordinate with your pod and find opponents!</p>
+              </>
+            ) : (
+              'No messages yet. Say hello!'
+            )}
+          </div>
         ) : (
           <>
             {messages.slice(0, historyCount || messages.length).map((msg, i) => (

@@ -12,6 +12,7 @@ import LeaderDraftPhase from '../../../src/components/LeaderDraftPhase'
 import PackDraftPhase from '../../../src/components/PackDraftPhase'
 import { getPackArtUrl } from '../../../src/utils/packArt'
 import Button from '../../../src/components/Button'
+import EditableTitle from '../../../src/components/EditableTitle'
 import ChatPanel from '../../../src/components/ChatPanel'
 import '../../../src/App.css'
 import '../draft.css'
@@ -114,7 +115,8 @@ export default function DraftRoomPage({ params }: PageProps) {
     const autoJoin = async () => {
       try {
         await joinDraft(shareId)
-        await refresh()
+        // No refresh needed — the join API broadcasts via socket,
+        // which updates public state instantly and fetches user data
       } catch (err) {
         // Ignore "already in draft" errors
         if (err instanceof Error && !err.message.includes('Already in draft')) {
@@ -458,7 +460,16 @@ export default function DraftRoomPage({ params }: PageProps) {
               <div className="draft-header">
                   <div className="draft-header-center">
                   <div className="draft-title-row">
-                    <h1>{draft.setName || draft.setCode} Draft</h1>
+                    <h1>
+                      <EditableTitle
+                        value={draft.name || `${draft.setName || draft.setCode} Draft`}
+                        isEditable={isHost && status === 'waiting'}
+                        onSave={(newName) => {
+                          if (newName) handleSettingsChange({ name: newName })
+                        }}
+                        maxLength={100}
+                      />
+                    </h1>
                   </div>
                   {status === 'active' && draftState?.phase === 'leader_draft' && (
                     <span className="draft-round-info">Leader Drafting Phase</span>

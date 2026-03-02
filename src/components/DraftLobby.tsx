@@ -89,6 +89,7 @@ function DraftLobby({
             currentUserId={draft?.myPlayer?.id}
             enableTooltip={false}
             hostId={draft?.host?.id}
+            hideEmptySeats={true}
           />
           <p className="player-count">
             {players.length} / {maxPlayers} players

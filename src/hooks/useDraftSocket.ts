@@ -152,6 +152,8 @@ export function useDraftSocket(
       setConnected(true)
       setError(null)
       socket.emit('join-draft', shareId)
+      // Refresh to catch any broadcasts missed between initial fetch and socket connection
+      fetchDraft(false)
     })
 
     socket.on('disconnect', () => {

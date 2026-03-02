@@ -48,7 +48,7 @@ async function discordFetch(path: string, options: RequestInit = {}): Promise<Re
 
 function buildPodEmbed(pod: PodInfo, hostUsername: string, playerNames: string[]): Record<string, unknown> {
   const podType = pod.pod_type === 'sealed' ? 'Sealed' : 'Draft'
-  const emoji = pod.pod_type === 'sealed' ? '🐳' : '⚔️'
+  const emoji = pod.pod_type === 'sealed' ? '🐳' : '🐋'
   const joinUrl = pod.pod_type === 'sealed'
     ? `${APP_URL}/sealed/${pod.share_id}`
     : `${APP_URL}/draft/${pod.share_id}`
@@ -77,7 +77,7 @@ function buildPodEmbed(pod: PodInfo, hostUsername: string, playerNames: string[]
 
 function buildStartedEmbed(pod: PodInfo, hostUsername: string, playerNames: string[]): Record<string, unknown> {
   const podType = pod.pod_type === 'sealed' ? 'Sealed' : 'Draft'
-  const emoji = pod.pod_type === 'sealed' ? '🐳' : '⚔️'
+  const emoji = pod.pod_type === 'sealed' ? '🐳' : '🐋'
 
   // Build player list: crown on its own line, other players on next line
   const otherPlayers = playerNames.filter(n => n !== hostUsername)
