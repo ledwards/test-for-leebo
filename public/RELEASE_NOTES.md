@@ -3,6 +3,7 @@
 ## 03.01.2026
 
 ### 🎉 New Features
+- **Carbonite Booster Packs**: Premium all-variant packs for Sets 4-7 (JTL, LOF, SEC, LAW). Every card is a foil, hyperspace, prestige, or showcase variant. Pre-LAW packs have rarity-specific foil and hyperspace slots; LAW packs use weighted mixed-rarity hyperspace. Each pack includes a guaranteed prestige card and a hyperspace leader (with a chance of showcase upgrade). Selectable in Chaos Sealed and Chaos Draft.
 - **Pod chat persistence via Discord**: Chat messages in public pods are now persisted through Discord threads. Navigate between lobby, draft, deckbuilder, and play pages without losing chat history. Private pods still have live real-time chat, but no history persistence.
 - **Discord thread lifecycle on visibility toggle**: Toggling a pod from private to public now automatically creates the Discord announcement embed and chat thread. Toggling back to private cleans up the Discord embed.
 - **Private pod chat notice**: Private pods show a notice explaining that chat history is live-only, with a "Make Pod Public" button for the host.
@@ -15,12 +16,21 @@
 ### 🎮 Game Modes/Gameplay
 - **Pod play instructions**: Play instructions in draft and sealed pods now reference your specific opponent and podmates instead of generic "find an opponent" language. Added a 4th step about organizing future pod pairings.
 - **Pod organizer crown**: The pod organizer is now indicated with a crown icon next to their name in the player list on pod play pages.
-- **Public/Private pod label**: The visibility toggle on the sealed pod set selection page now reads "Public Pod" / "Private Pod" and appears on its own line below the heading.
+- **Public/Private pod toggle on set selection**: The visibility toggle now appears inline below the "Select a Set" heading on both draft and sealed creation pages, reads "Public Pod" / "Private Pod", and remembers your preference across sessions.
+- **Pod status visible to all players**: The player list on pod play pages is now visible to all players, not just the host. Host-only controls (like viewing other players' decks) remain host-only.
+- **Sequential player numbering**: Players in the pod list now show sequential numbers (1, 2, 3...) instead of internal seat numbers.
+- **Player readiness tracking**: Players who have finished deckbuilding and navigated to the play page now correctly show as "Ready" instead of "Deckbuilding".
+- **System messages in web chat**: Pod events (join, leave, start, rename) now appear as system messages in the web chat panel, not just on Discord.
+- **Discord thread deep link**: Clicking the "Pod Chat (public)" header now opens the Discord thread directly in the Discord app.
+- **Hide Discord banner for members**: The "Join the Community" Discord banner on pod play pages is now hidden for users who are already Discord members.
 
 ### 🐞 Bug Fixes
 - **Pack opening display fix**: Carbonite pack opening animation now correctly sizes prestige cards as portrait instead of incorrectly rendering them as landscape.
 - **Open All button in desktop carousel**: Fixed the "Open All" button being unclickable when many packs triggered the desktop carousel layout.
 - **Practice hand wider layout**: Practice hand modal is now wider, giving cards more room to spread out.
+- **Auto-rejoin bug**: Fixed a bug where leaving a pod would immediately re-add the player due to the auto-join logic firing.
+- **Deck builder loading state**: The deck builder no longer shows misleading action buttons while loading. Removed "Login to Clone" text in favor of just "Clone".
+- **Consistent status labels**: Unified player status labels to "Deckbuilding" and "Ready" everywhere (was inconsistent between different views).
 
 ## 02.28.2026
 

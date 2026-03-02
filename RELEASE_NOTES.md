@@ -2,6 +2,10 @@
 
 ## 03.01.2026
 
+### 🎮 Host Controls
+- **Kick player from pod**: Hosts can now remove players from draft and sealed lobbies. Hover over a player's seat to reveal a red X button, click it, confirm in the modal, and the player is removed. The kicked player is redirected to the LFG page with a message explaining they were removed. Works for both human players and bots.
+- **Bot join messages**: Bots now show a join message in the pod chat when added, matching the behavior of human players joining.
+
 ### 🎉 New Features
 - **Carbonite Booster Packs**: Premium all-variant packs for Sets 4-7 (JTL, LOF, SEC, LAW). Every card is a foil, hyperspace, prestige, or showcase variant. Pre-LAW packs have rarity-specific foil and hyperspace slots; LAW packs use weighted mixed-rarity hyperspace. Each pack includes a guaranteed prestige card and a hyperspace leader (with a chance of showcase upgrade). Selectable in Chaos Sealed and Chaos Draft.
 - **Pod chat persistence via Discord**: Chat messages in public pods are now persisted through Discord threads. Navigate between lobby, draft, deckbuilder, and play pages without losing chat history. Private pods still have live real-time chat, but no history persistence.
@@ -31,6 +35,10 @@
 - **Auto-rejoin bug**: Fixed a bug where leaving a pod would immediately re-add the player due to the auto-join logic firing.
 - **Deck builder loading state**: The deck builder no longer shows misleading action buttons while loading. Removed "Login to Clone" text in favor of just "Clone".
 - **Consistent status labels**: Unified player status labels to "Deckbuilding" and "Ready" everywhere (was inconsistent between different views).
+- **Sealed remove player fix**: Fixed the sealed remove player API using the wrong ID field, which caused "Player not found" errors when trying to kick players (including bots).
+
+### 🧹 Cleanup
+- **Removed /with-friends page**: Removed the unused /with-friends hub page. Its functionality was fully absorbed into the landing page and individual format pages.
 
 ## 02.28.2026
 
