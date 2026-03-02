@@ -1,5 +1,11 @@
 # Release Notes
 
+## 03.02.2026
+
+### 🐞 Bug Fixes
+- **Chaos sealed/draft naming**: Pool names now show unique sets only (e.g. "SOR-TWI" instead of "SOR, SOR, SHD, SHD, TWI, TWI") and use range format for consecutive sets.
+- **Pack opening animation**: Booster pack images are no longer clipped during the opening animation.
+
 ## 03.01.2026
 This is a huge update, maybe the biggest yet. We are now a deck provider for Karabast, pods can be organized via chat and Discord (which sync with each other)
 
