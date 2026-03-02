@@ -70,7 +70,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     })
 
     if (!tokenResponse.ok) {
-      throw new Error('Failed to exchange code for token')
+      const errorBody = await tokenResponse.text()
+      console.error('Discord token exchange failed:', tokenResponse.status, errorBody)
+      throw new Error(`Failed to exchange code for token: ${tokenResponse.status} ${errorBody}`)
     }
 
     const tokenData = await tokenResponse.json()
@@ -131,7 +133,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Create session and redirect to return_to
-    const response = NextResponse.redirect(`${APP_URL}${returnTo}?auth=success`)
+    const separator = returnTo.includes('?') ? '&' : '?'
+    const response = NextResponse.redirect(`${APP_URL}${returnTo}${separator}auth=success`)
     return setSession(response, user!)
   } catch (error) {
     console.error('Discord OAuth error:', error)
