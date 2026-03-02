@@ -418,9 +418,19 @@ function formatTimestamp(ts: string): string {
   return `${date.toLocaleDateString([], { month: '2-digit', day: '2-digit', year: '2-digit' })} ${time}`
 }
 
+function renderLinks(text: string): React.ReactNode[] {
+  const urlRegex = /(https?:\/\/[^\s<]+)/g
+  const parts = text.split(urlRegex)
+  return parts.map((part, i) =>
+    urlRegex.test(part)
+      ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="chat-link">{part}</a>
+      : part
+  )
+}
+
 function renderBold(text: string): React.ReactNode {
   const parts = text.split(/\*\*(.+?)\*\*/g)
-  return parts.map((part, i) => i % 2 === 1 ? <strong key={i}>{part}</strong> : part)
+  return parts.map((part, i) => i % 2 === 1 ? <strong key={i}>{part}</strong> : renderLinks(part))
 }
 
 function ChatMessageItem({ message }: { message: ChatMessage }) {
@@ -455,7 +465,7 @@ function ChatMessageItem({ message }: { message: ChatMessage }) {
           )}
           <span className="chat-message-timestamp">{formatTimestamp(timestamp)}</span>
         </div>
-        <div className="chat-message-text">{text}</div>
+        <div className="chat-message-text">{renderLinks(text)}</div>
       </div>
     </div>
   )

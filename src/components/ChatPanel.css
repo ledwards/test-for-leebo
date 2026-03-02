@@ -274,6 +274,15 @@
   word-break: break-word;
 }
 
+.chat-link {
+  color: #5865F2;
+  text-decoration: none;
+}
+
+.chat-link:hover {
+  text-decoration: underline;
+}
+
 /* === Input Area === */
 
 .chat-input-area {

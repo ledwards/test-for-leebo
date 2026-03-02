@@ -1,5 +1,11 @@
 # Release Notes
 
+## 03.02.2026
+
+### 🐞 Bug Fixes
+- **Chaos sealed/draft naming**: Pool names now show unique sets only (e.g. "SOR-TWI" instead of "SOR, SOR, SHD, SHD, TWI, TWI") and use range format for consecutive sets.
+- **Pack opening animation**: Booster pack images are no longer clipped during the opening animation.
+
 ## 03.01.2026
 This is a huge update, maybe the biggest yet. We are now a deck provider for Karabast, pods can be organized via chat and Discord (which sync with each other)
 
@@ -21,6 +27,9 @@ This is a huge update, maybe the biggest yet. We are now a deck provider for Kar
 
 ### 🎮 Game Modes/Gameplay
 - **Hide Discord banner for members**: The "Join the Community" Discord banner on pod play pages is now hidden for users who are already Discord members.
+
+### 🎨 UI Improvements
+- **Clickable links in chat**: URLs in pod chat messages are now clickable hyperlinks that open in a new tab.
 
 ### 🐞 Bug Fixes
 - **Auto-rejoin bug**: Fixed a bug where leaving a pod would immediately re-add the player due to the auto-join logic firing.
