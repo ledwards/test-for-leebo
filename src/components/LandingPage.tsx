@@ -38,6 +38,14 @@ function LandingPage() {
   const { user, loading, signIn } = useAuth()
   const hasBetaAccess = user?.is_beta_tester || user?.is_admin
   const router = useRouter()
+  const [wasRemoved, setWasRemoved] = useState(false)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('removed') === '1') {
+      setWasRemoved(true)
+    }
+  }, [])
   const playerCount = usePresence(user?.id)
   const publicPods = usePublicPodsSocket()
   const [activeDraft, setActiveDraft] = useState<ActiveDraft | null>(null)
@@ -113,6 +121,9 @@ function LandingPage() {
   return (
     <div className="landing-page">
       <ReleaseNotes />
+      {wasRemoved && (
+        <div className="removed-banner">You were removed from the pod by the host.</div>
+      )}
       <div className="landing-content">
         <a href="/">
           <img className="landing-logo" src="/ptp_logo400.png" alt="Protect the Pod Logo" />
