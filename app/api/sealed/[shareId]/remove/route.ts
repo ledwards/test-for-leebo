@@ -16,9 +16,9 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     const { shareId } = await params
     const session = requireAuth(request)
     const body = await parseBody(request)
-    validateRequired(body, ['userId'])
+    validateRequired(body, ['playerId'])
 
-    const { userId } = body
+    const { playerId } = body
 
     const pod = await queryRow(
       `SELECT * FROM pods WHERE share_id = $1 AND pod_type = 'sealed'`,
@@ -37,17 +37,18 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
       return errorResponse('Cannot remove players after sealed pod has started', 400)
     }
 
-    if (userId === session.id) {
-      return errorResponse('Cannot remove yourself. Delete the sealed pod instead.', 400)
-    }
-
+    // Look up by pod_players.id (frontend player.id is the row PK)
     const player = await queryRow(
-      'SELECT * FROM pod_players WHERE pod_id = $1 AND user_id = $2',
-      [pod.id, userId]
+      'SELECT * FROM pod_players WHERE pod_id = $1 AND id = $2',
+      [pod.id, playerId]
     )
 
     if (!player) {
       return errorResponse('Player not found in this sealed pod', 404)
+    }
+
+    if (player.user_id === session.id) {
+      return errorResponse('Cannot remove yourself. Delete the sealed pod instead.', 400)
     }
 
     await query(
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     })
 
     // Get the removed player's username for notifications
-    const removedUser = await queryRow('SELECT username FROM users WHERE id = $1', [userId])
+    const removedUser = await queryRow('SELECT username FROM users WHERE id = $1', [player.user_id])
 
     // Broadcast removal to web chat
     if (removedUser) {
