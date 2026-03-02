@@ -1,5 +1,49 @@
 # Release Notes
 
+## 03.01.2026
+
+### 🎉 New Features
+- **Pod chat persistence via Discord**: Chat messages in public pods are now persisted through Discord threads. Navigate between lobby, draft, deckbuilder, and play pages without losing chat history. Private pods still have live real-time chat, but no history persistence.
+- **Discord thread lifecycle on visibility toggle**: Toggling a pod from private to public now automatically creates the Discord announcement embed and chat thread. Toggling back to private cleans up the Discord embed.
+- **Private pod chat notice**: Private pods show a notice explaining that chat history is live-only, with a "Make Pod Public" button for the host.
+- **Prestige tier system**: Carbonite prestige cards now use tier1/tier2/serialized naming. Tier 2 and serialized get the foil visual treatment.
+- **Chaos Sealed/Draft improvements**: Pack count now goes up to 12 (was 10), selections persist across page refreshes, and pack names are more compact for large selections.
+
+### 📦 Pack Generation
+- **LAW pack structure update**: Slot 5 is now a dedicated Hyperspace common from its own belt (equal distribution across all HS commons). The other 8 common slots no longer upgrade to Hyperspace. UC3 can now upgrade to Prestige tier 1 (~1/18 rate, checked before HS R/L fallback). The rare/legendary slot can no longer upgrade.
+
+### 🎮 Game Modes/Gameplay
+- **Pod play instructions**: Play instructions in draft and sealed pods now reference your specific opponent and podmates instead of generic "find an opponent" language. Added a 4th step about organizing future pod pairings.
+- **Pod organizer crown**: The pod organizer is now indicated with a crown icon next to their name in the player list on pod play pages.
+- **Public/Private pod label**: The visibility toggle on the sealed pod set selection page now reads "Public Pod" / "Private Pod" and appears on its own line below the heading.
+
+### 🐞 Bug Fixes
+- **Pack opening display fix**: Carbonite pack opening animation now correctly sizes prestige cards as portrait instead of incorrectly rendering them as landscape.
+- **Open All button in desktop carousel**: Fixed the "Open All" button being unclickable when many packs triggered the desktop carousel layout.
+- **Practice hand wider layout**: Practice hand modal is now wider, giving cards more room to spread out.
+
+## 02.28.2026
+
+### 🎮 Game Modes/Gameplay
+- **Draft Pod and Sealed Pod pages**: Draft and Sealed pod modes now have dedicated landing pages with create, join, and history sections. Solo modes show "Solo Draft" and "Solo Sealed" titles.
+- **Draft table visibility restored**: During leader draft, all players can now see each other's available leader packs again (simulating a physical table). Pack card counts are also visible for all players during the draft.
+- **Host controls improvements**: Public/private visibility toggle, configurable round timer and last-player timer durations, and reorganized button layout.
+
+### 🎉 New Features
+- **Copy Deck Link for all users**: The "Copy Link" button on the Play page is now available to everyone, not just beta testers. Paste your deck link directly into Karabast to play your drafted or sealed deck online.
+
+### 🐞 Bug Fixes
+- **Empty draft packs fix**: Fixed a bug where draft pods could be created with empty packs if the card cache wasn't initialized. Card cache now self-initializes on first access, preventing silent empty results.
+
+## 02.27.2026
+
+### 📦 Pack Generation
+- **LAW foil position**: In LAW packs, the Hyperspace Foil card now sits between the commons and uncommons (index 11), matching real-world pack collation. Sets 1-6 are unchanged.
+- **Special rarity in UC3 upgrades**: For sets 4+ (JTL, LOF, SEC, LAW), Special rarity cards can now appear when the 3rd uncommon slot upgrades to a Hyperspace rare/legendary. Specials appear at the same per-card frequency as rares.
+
+### 🎮 Game Modes/Gameplay
+- **Spread seating**: Players joining a draft or sealed pod are now seated to maximize distance from existing players around the circular table, rather than filling seats sequentially. This improves fairness in pack passing for partially-filled pods.
+
 ## 02.26.2026
 
 ### 🎉 New Features
@@ -25,7 +69,7 @@
 
 ### 🎉 New Features
 - **Karabast deck source integration**: Added a deck.json API endpoint for compatibility with Karabast and other SWU tools. A companion PR has been submitted to the Karabast project to add Protect the Pod as a supported deck source.
-- **Copy Deck Link on Play page** (beta testers only): Copy your deck link directly from the Play page to paste into Karabast.
+- **Copy Deck Link on Play page**: Copy your deck link directly from the Play page to paste into Karabast.
 - **Play page improvements**: Updated instructions with Discord link for finding opponents.
 - **Card preview on iPad**: Tap any card on iPad to see an enlarged preview. Tap anywhere outside the card to dismiss. (Phones still use long-press.)
 

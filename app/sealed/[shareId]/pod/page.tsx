@@ -22,6 +22,12 @@ import '../../../../src/App.css'
 import '../../../draft/[shareId]/pod/pod.css'
 import '../../../../src/components/ChatPanel.css'
 
+const CrownIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFD700" stroke="none">
+    <path d="M2 20h20v2H2zM4 17h16l-2-9-4 4-2-6-2 6-4-4z"/>
+  </svg>
+)
+
 const DefaultAvatar = ({ size = 28, className = 'pod-match-avatar' }: { size?: number; className?: string }) => (
   <div className={`${className} default-avatar`} style={{ width: size, height: size }}>
     <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 71 55" fill="currentColor">
@@ -54,8 +60,18 @@ export default function SealedPodPlayPage({ params }: PageProps) {
     turnOnePlays: number
     totalCards: number
   } | null>(null)
+  const [isDiscordMember, setIsDiscordMember] = useState<boolean | null>(null)
   const shuffleSoundRef = useRef(null)
   const socketRef = useRef<Socket | null>(null)
+
+  // Check if user has already joined Discord
+  useEffect(() => {
+    if (!user) return
+    fetch('/api/auth/discord-member', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setIsDiscordMember(data?.data?.isMember ?? false))
+      .catch(() => setIsDiscordMember(false))
+  }, [user])
 
   // Fetch pod data via HTTP
   const fetchPod = useCallback(async (showLoading = true) => {
@@ -122,10 +138,12 @@ export default function SealedPodPlayPage({ params }: PageProps) {
     }
   }, [shareId, fetchPod])
 
-  // Load own pool data
+  // Load own pool data + record built deck for readiness tracking
   useEffect(() => {
     if (!podData?.myPoolShareId) return
     loadPool(podData.myPoolShareId).then(setMyPool).catch(() => {})
+    // Record built deck (fire-and-forget) so pod-state broadcast marks us as ready
+    fetch(`/api/pools/${podData.myPoolShareId}/build`, { method: 'POST', credentials: 'include' }).catch(() => {})
   }, [podData?.myPoolShareId])
 
   // Initialize card cache and base card map
@@ -522,37 +540,35 @@ export default function SealedPodPlayPage({ params }: PageProps) {
 
         <div className="practice-hand-button-container">
           <button className="pod-action-button" onClick={() => drawPracticeHand()} disabled={!myPoolShareId || !myPool}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <g transform="rotate(-15 12 22)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
-              <g transform="rotate(0 12 22)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
-              <g transform="rotate(15 12 22)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
+            <svg width="32" height="32" viewBox="0 -2 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <g transform="rotate(-15 12 16)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
+              <g transform="rotate(0 12 16)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
+              <g transform="rotate(15 12 16)"><rect x="8" y="3" width="8" height="12" rx="1"></rect></g>
             </svg>
             Practice Hand
           </button>
         </div>
 
-        {/* Host view: Pod Status — player grid */}
-        {isHost && (
-          <div className="pod-status-section">
-            <h2>Pod Status</h2>
-            <div className="pod-player-grid">
-              {[...players].sort((a, b) => a.seatNumber - b.seatNumber).map((player) => (
-                <div key={player.id} className="pod-player-row">
-                  <span className="pod-seat-number">{player.seatNumber}</span>
-                  {player.avatarUrl ? (
-                    <img src={player.avatarUrl} alt="" className="pod-match-avatar" />
-                  ) : (
-                    <DefaultAvatar />
-                  )}
-                  <span className="pod-match-name">{player.username}</span>
-                  <span className={`pod-status-badge ${player.isReady ? 'ready' : 'building'}`}>
-                    {player.isReady ? 'Ready' : 'Building'}
-                  </span>
-                </div>
-              ))}
-            </div>
+        {/* Pod Status — player grid */}
+        <div className="pod-status-section">
+          <h2>Pod Status</h2>
+          <div className="pod-player-grid">
+            {[...players].sort((a, b) => a.seatNumber - b.seatNumber).map((player, i) => (
+              <div key={player.id} className="pod-player-row">
+                <span className="pod-seat-number">{i + 1}</span>
+                {player.avatarUrl ? (
+                  <img src={player.avatarUrl} alt="" className="pod-match-avatar" />
+                ) : (
+                  <DefaultAvatar />
+                )}
+                <span className="pod-match-name">{player.id === draft.hostId && <CrownIcon />}{player.username}</span>
+                <span className={`pod-status-badge ${player.isReady ? 'ready' : 'building'}`}>
+                  {player.isReady ? 'Ready' : 'Deckbuilding'}
+                </span>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Your opponent */}
         <div className="pod-opponent-card">
@@ -569,7 +585,7 @@ export default function SealedPodPlayPage({ params }: PageProps) {
               <div className="pod-opponent-details">
                 <p className="pod-opponent-name">{myOpponent.username}</p>
                 <span className={`pod-status-badge ${myOpponent.isReady ? 'ready' : 'building'}`}>
-                  {myOpponent.isReady ? 'Ready to Play' : 'Deckbuilding'}
+                  {myOpponent.isReady ? 'Ready' : 'Deckbuilding'}
                 </span>
               </div>
             </div>
@@ -581,7 +597,7 @@ export default function SealedPodPlayPage({ params }: PageProps) {
         {/* Instructions */}
         <PlayInstructions
           shareId={myPoolShareId}
-          poolType="sealed"
+          poolType="sealed_pod"
           opponentName={myOpponent?.username}
           hasBye={myBye}
           onCopyLink={copyDeckUrl}
@@ -632,17 +648,19 @@ export default function SealedPodPlayPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* Discord banner */}
-        <div className="pod-discord-banner">
-          <h3>Join the Community</h3>
-          <p>Find opponents, discuss strategy, and coordinate matches in the Protect the Pod Discord.</p>
-          <a href={process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || 'https://discord.gg/u6fkdDzWqF'} target="_blank" rel="noopener noreferrer" className="pod-discord-link">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-            </svg>
-            Join Discord
-          </a>
-        </div>
+        {/* Discord banner — hidden if user already a member */}
+        {!isDiscordMember && (
+          <div className="pod-discord-banner">
+            <h3>Join the Community</h3>
+            <p>Find opponents, discuss strategy, and coordinate matches in the Protect the Pod Discord.</p>
+            <a href={process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || 'https://discord.gg/u6fkdDzWqF'} target="_blank" rel="noopener noreferrer" className="pod-discord-link">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+              </svg>
+              Join Discord
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Practice hand modal */}
@@ -699,7 +717,7 @@ export default function SealedPodPlayPage({ params }: PageProps) {
         )}
       </div>
       </div>
-      <ChatPanel shareId={shareId} defaultOpen={false} />
+      <ChatPanel shareId={shareId} />
     </div>
   )
 }

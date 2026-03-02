@@ -13,10 +13,19 @@
 
 /* Back button uses global styles from App.css */
 
+.set-selection-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 3rem;
+}
+
 .set-selection h1 {
   text-align: center;
   font-size: 2.5rem;
-  margin-bottom: 3rem;
+  margin-bottom: 0;
   color: white;
 }
 

@@ -17,9 +17,11 @@ interface SetData {
 export interface SetSelectionProps {
   onSetSelect: (setCode: string) => void
   onBack?: () => void
+  title?: string
+  headerAction?: React.ReactNode
 }
 
-function SetSelection({ onSetSelect, onBack }: SetSelectionProps) {
+function SetSelection({ onSetSelect, onBack, title, headerAction }: SetSelectionProps) {
   const { user } = useAuth()
   const [sets, setSets] = useState<SetData[]>([])
   const [latestSets, setLatestSets] = useState<SetData[]>([])
@@ -159,7 +161,10 @@ function SetSelection({ onSetSelect, onBack }: SetSelectionProps) {
 
   return (
     <div className="set-selection">
-      <h1>Select a Set</h1>
+      <div className="set-selection-header">
+        <h1>{title || 'Select a Set'}</h1>
+        {headerAction && <div className="set-selection-header-action">{headerAction}</div>}
+      </div>
       {latestSets.length > 0 && (
         <div className="latest-sets-row">
           {latestSets.map((set) => (

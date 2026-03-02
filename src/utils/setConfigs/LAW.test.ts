@@ -80,8 +80,8 @@ describe('LAW_CONFIG', () => {
       assert.strictEqual(packRules.guaranteedHyperspaceCommon, true)
     })
 
-    it('should have hyperspaceCommonSlot set to 9 (last common)', () => {
-      assert.strictEqual(packRules.hyperspaceCommonSlot, 9)
+    it('should have hyperspaceCommonSlot set to 5 (dedicated HS common belt)', () => {
+      assert.strictEqual(packRules.hyperspaceCommonSlot, 5)
     })
 
     it('should have prestigeInStandardPacks set to true', () => {
@@ -129,17 +129,31 @@ describe('LAW_CONFIG', () => {
       assert.ok(typeof upgradeProbabilities.baseToHyperspace === 'number')
     })
 
-    it('should have foil upgrade rate', () => {
-      assert.ok(typeof upgradeProbabilities.foilToHyperfoil === 'number')
+    it('should have foil upgrade rate of 0 (foil IS hyperspace foil)', () => {
+      assert.strictEqual(upgradeProbabilities.foilToHyperfoil, 0)
     })
 
     it('should have uncommon upgrade rates', () => {
       assert.ok(typeof upgradeProbabilities.thirdUCToHyperspaceRL === 'number')
+      assert.ok(upgradeProbabilities.thirdUCToHyperspaceRL > 0, 'UC3 can still upgrade to HS R/L (fallback)')
       assert.ok(typeof upgradeProbabilities.firstUCToHyperspaceUC === 'number')
     })
 
-    it('should have common upgrade rate', () => {
-      assert.ok(typeof upgradeProbabilities.commonToHyperspace === 'number')
+    it('should have commonToHyperspace set to 0 (HS common is dedicated belt)', () => {
+      assert.strictEqual(upgradeProbabilities.commonToHyperspace, 0)
+    })
+
+    it('should have rareToPrestige set to 0 (prestige moved to UC3)', () => {
+      assert.strictEqual(upgradeProbabilities.rareToPrestige, 0)
+    })
+
+    it('should have uc3ToPrestige at ~1/18 rate', () => {
+      assert.ok(typeof upgradeProbabilities.uc3ToPrestige === 'number')
+      assert.ok(upgradeProbabilities.uc3ToPrestige > 0, 'UC3 prestige rate should be positive')
+      // SPEC: ~1/18 rate
+      const tolerance = 0.01
+      assert.ok(Math.abs(upgradeProbabilities.uc3ToPrestige - 1/18) < tolerance,
+        `UC3 prestige rate should be ~1/18 (${1/18}), got ${upgradeProbabilities.uc3ToPrestige}`)
     })
   })
 })
