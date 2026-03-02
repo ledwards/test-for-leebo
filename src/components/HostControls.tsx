@@ -258,7 +258,7 @@ function HostControls({
                 }
               }}
             >
-              {[2, 3, 4, 5, 6, 7, 8].map(n => (
+              {[2, 3, 4, 5, 6, 7, 8].filter(n => n >= Math.max(2, playerCount)).map(n => (
                 <option key={n} value={n}>{n}</option>
               ))}
             </select>

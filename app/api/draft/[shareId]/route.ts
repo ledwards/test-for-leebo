@@ -6,7 +6,8 @@ import { getSession, requireAuth } from '@/lib/auth'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { getPackArtUrl } from '@/src/utils/packArt'
 import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout'
-import { deletePodMessage } from '@/lib/discordLfg'
+import { markPodCancelled } from '@/lib/discordLfg'
+import { broadcastDraftState, broadcastSystemChatMessage } from '@/src/lib/socketBroadcast'
 import { jsonParse } from '@/src/utils/json'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -184,7 +185,8 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
 
     // Get pod and verify host
     const pod = await queryRow(
-      'SELECT id, host_id, share_id FROM pods WHERE share_id = $1',
+      `SELECT id, host_id, share_id, set_code, set_name, name, max_players, current_players, pod_type, is_public
+       FROM pods WHERE share_id = $1`,
       [shareId]
     )
 
@@ -199,9 +201,10 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
     // BEFORE DELETING: Fix card_generation attribution for any cards from this draft
     // This ensures showcases are attributed to the correct user even after the draft is deleted
     const players = await queryRows(
-      `SELECT user_id, drafted_leaders, drafted_cards
-       FROM pod_players
-       WHERE pod_id = $1 AND user_id IS NOT NULL`,
+      `SELECT pp.user_id, pp.drafted_leaders, pp.drafted_cards, u.username
+       FROM pod_players pp
+       JOIN users u ON pp.user_id = u.id
+       WHERE pp.pod_id = $1 AND pp.user_id IS NOT NULL`,
       [pod.id]
     )
 
@@ -237,8 +240,19 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
       }
     }
 
-    // Discord LFG: delete pod message (fire-and-forget)
-    deletePodMessage({ id: pod.id, share_id: pod.share_id, set_code: '', set_name: '', name: null, max_players: 0, current_players: 0 }).catch(() => {})
+    // Notify web chat before deleting
+    broadcastSystemChatMessage(shareId, `❌ **${session.username}** cancelled the draft.`)
+
+    // Notify all connected clients that the draft is deleted
+    broadcastDraftState(shareId).catch(() => {})
+
+    // Discord LFG: update embed to show cancelled (must run before pod deletion)
+    const playerNames = players.map((p: { username: string }) => p.username)
+    await markPodCancelled(
+      { id: pod.id, share_id: pod.share_id, set_code: pod.set_code, set_name: pod.set_name, name: pod.name, max_players: pod.max_players, current_players: pod.current_players, pod_type: pod.pod_type || 'draft' },
+      session.username,
+      playerNames
+    ).catch(() => {})
 
     // Delete associated card_pools (dependent destroy)
     // The generations are kept for history, but pools from this draft are cleaned up
