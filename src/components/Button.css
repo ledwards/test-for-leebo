@@ -142,8 +142,17 @@ a.btn:active {
 
 .btn--discord:hover:not(:disabled) {
   background: #4752C4;
+  color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+a.btn--discord,
+a.btn--discord:visited,
+a.btn--discord:hover,
+a.btn--discord:active {
+  color: white;
+  text-decoration: none;
 }
 
 /* Variant: Icon (square icon-only button) */
