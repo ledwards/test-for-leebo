@@ -2,7 +2,7 @@
 // POST /api/draft/:shareId/dev/add-bots - Add bot players for testing (dev only)
 import { query, queryRow, queryRows } from '@/lib/db'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
-import { broadcastDraftState } from '@/src/lib/socketBroadcast'
+import { broadcastDraftState, broadcastSystemChatMessage } from '@/src/lib/socketBroadcast'
 import { NextRequest, NextResponse } from 'next/server'
 
 const BOT_CONFIGS = [
@@ -121,6 +121,11 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
 
     // Broadcast update to all clients
     await broadcastDraftState(shareId)
+
+    // Chat messages for each bot
+    for (const bot of addedBots) {
+      broadcastSystemChatMessage(shareId, `📥 **${bot.name}** joined the pod.`)
+    }
 
     return jsonResponse({
       message: `Added ${botsToAdd} bot(s)`,
