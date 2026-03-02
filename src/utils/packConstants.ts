@@ -80,6 +80,7 @@ export interface PackConstants {
   specialInHyperspaceSlot?: boolean
   hyperspaceFoilSlotWeights?: RarityWeights
   prestigeInRareSlotRate?: number
+  uc3PrestigeRate?: number
   guaranteedHyperspaceCommon?: boolean
   hyperspaceCommonSlot?: number
   rareBasesInRareSlot?: boolean
@@ -368,11 +369,16 @@ export const SET_7_PLUS_CONSTANTS: PackConstants = {
   rareSlotLegendaryRatio: 5,
 
   // ---------------------------------------------------------------------------
-  // Prestige Card Rate (NEW)
-  // ~1 in 18 packs contains a non-foil Prestige variant
-  // Appears in the rare slot (replaces the rare/legendary)
+  // Prestige Card Rate in Rare Slot
+  // LAW: 0 — prestige moved to UC3 slot, not rare slot
   // ---------------------------------------------------------------------------
-  prestigeInRareSlotRate: 1 / 18,
+  prestigeInRareSlotRate: 0,
+
+  // ---------------------------------------------------------------------------
+  // Prestige Card Rate in UC3 Slot (NEW in LAW)
+  // ~1 in 18 packs — UC3 upgrades to Prestige tier 1 (checked before HS R/L)
+  // ---------------------------------------------------------------------------
+  uc3PrestigeRate: 1 / 18,
 
   // ---------------------------------------------------------------------------
   // UC Slot 3 Upgrade Rate
@@ -401,18 +407,18 @@ export const SET_7_PLUS_CONSTANTS: PackConstants = {
   baseHyperspaceRate: 1 / 6,
 
   // ---------------------------------------------------------------------------
-  // Guaranteed Hyperspace Common (NEW)
-  // Every pack has at least 1 Hyperspace card - in a common slot
-  // Using last slot (slot 9) to minimize duplicates - TBD until physical packs verified
+  // Dedicated HS Common Slot (LAW)
+  // Slot 5 is drawn from HyperspaceCommonBelt (always HS, equal distribution)
+  // The other 8 common spots do NOT upgrade to HS
   // ---------------------------------------------------------------------------
   guaranteedHyperspaceCommon: true,
-  hyperspaceCommonSlot: 9, // Last common slot (1-indexed) - TBD
+  hyperspaceCommonSlot: 5, // Slot 5 (1-indexed) - dedicated HS common belt
 
   // ---------------------------------------------------------------------------
-  // Additional Common Hyperspace Upgrade Rate
-  // Beyond the guaranteed slot, additional HS common upgrades
+  // Common Hyperspace Upgrade Rate
+  // LAW: 0 — commons don't upgrade; slot 5 comes pre-HS from dedicated belt
   // ---------------------------------------------------------------------------
-  commonHyperspaceRate: 1 / 6, // Lower since we already have 1 guaranteed
+  commonHyperspaceRate: 0,
 
   // ---------------------------------------------------------------------------
   // Uncommon Hyperspace Upgrade Rate
@@ -527,24 +533,24 @@ export const HS_BELT_CONFIGS: Record<string, HSBeltConfig> = {
     }
     // total: 46 ✓
   },
-  // LAW (Set 7+): Guaranteed ≥1 HS per pack (no budget-0).
-  // The belt ensures every pack has at least 1 HS upgrade.
-  // Non-common slots use the same rates as sets 1-6.
-  // Common fills the gap to guarantee the minimum.
+  // LAW (Set 7+): Slot 5 is a dedicated HS common from HyperspaceCommonBelt.
+  // The belt handles non-common HS upgrades only.
+  // common: 0 because the HS common comes from a dedicated belt, not an upgrade.
+  // UC3 can still upgrade to HS R/L (if prestige doesn't trigger first).
   'LAW': {
     cycleSize: 60,
-    budgetDistribution: { 0: 0, 1: 58, 2: 2 },
+    budgetDistribution: { 0: 28, 1: 30, 2: 2 },
     slotCounts: {
       leader: 10,   // 1/6
       base: 10,     // 1/6
-      common: 28,   // ~1/2.1 (fills the gap)
+      common: 0,    // No common HS upgrades; dedicated belt provides HS common
       uc1: 4,       // ~1/15
       uc2: 2,       // ~1/30
       uc3: 8,       // ~1/7.5
     }
-    // total: 10+10+28+4+2+8 = 62 ✓
-    // budget: 0×0 + 1×58 + 2×2 = 62 ✓
-    // μ = 62/60 ≈ 1.03 HS per pack
+    // total: 10+10+0+4+2+8 = 34 ✓
+    // budget: 0×28 + 1×30 + 2×2 = 34 ✓
+    // μ = 34/60 ≈ 0.57 belt upgrades + 1 guaranteed HS common = ~1.57 HS/pack
   },
 }
 

@@ -70,6 +70,7 @@ export interface UpgradeProbabilities {
   commonToHyperspace: number
   // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
   rareToPrestige?: number
+  uc3ToPrestige?: number
 }
 
 export interface TripleAspectConfig {

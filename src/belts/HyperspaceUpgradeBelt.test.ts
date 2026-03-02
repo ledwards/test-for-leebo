@@ -211,25 +211,31 @@ function runTests(): void {
   console.log('')
   console.log('\x1b[1m\x1b[35m🤠 LAW HyperspaceUpgradeBelt Tests\x1b[0m')
 
-  test('LAW: no plans have budget 0 (every pack has ≥1 HS)', () => {
+  test('LAW: ~47% of plans have budget 0 (HS common is from dedicated belt, not upgrade)', () => {
+    // LAW config: budget-0 = 28/60 = 46.7%
     const belt = new HyperspaceUpgradeBelt('LAW')
     let zeroCount = 0
     for (let i = 0; i < TOTAL_DRAWS; i++) {
       const plan = belt.next()
       if (countTrueSlots(plan) === 0) zeroCount++
     }
-    assert(zeroCount === 0, `${zeroCount} plans had budget 0, expected 0`)
+    const rate = zeroCount / TOTAL_DRAWS
+    console.log(`\x1b[36m   LAW budget-0 rate: ${(rate * 100).toFixed(1)}% (expected 46.7%)\x1b[0m`)
+    assert(
+      Math.abs(rate - 28 / 60) < 0.02,
+      `Budget-0 rate ${(rate * 100).toFixed(1)}% should be ~46.7%`
+    )
   })
 
-  test('LAW: total upgrades per cycle approximately equals 62', () => {
-    // After removing rare slot upgrade, LAW has 62 upgrades per 60 packs
+  test('LAW: total upgrades per cycle approximately equals 34', () => {
+    // common: 0 (dedicated belt), so total = leader:10 + base:10 + uc1:4 + uc2:2 + uc3:8 = 34
     const belt = new HyperspaceUpgradeBelt('LAW')
     let totalUpgrades = 0
     for (let i = 0; i < CYCLE_SIZE; i++) {
       totalUpgrades += countTrueSlots(belt.next())
     }
-    console.log(`\x1b[36m   LAW upgrades per cycle: ${totalUpgrades} (expected 62)\x1b[0m`)
-    assert(Math.abs(totalUpgrades - 62) <= 1, `Total upgrades per cycle = ${totalUpgrades}, expected 62 ±1`)
+    console.log(`\x1b[36m   LAW upgrades per cycle: ${totalUpgrades} (expected 34)\x1b[0m`)
+    assert(Math.abs(totalUpgrades - 34) <= 1, `Total upgrades per cycle = ${totalUpgrades}, expected 34 ±1`)
   })
 
   test('LAW: leader + base never co-occur', () => {
@@ -251,16 +257,14 @@ function runTests(): void {
     assert(Math.abs(rate - 1 / 6) / (1 / 6) < 0.05, `Leader HS rate ${(rate * 100).toFixed(1)}% off target`)
   })
 
-  test('LAW: common HS rate is approximately 28/60', () => {
+  test('LAW: common HS rate is 0 (dedicated belt, not upgrade)', () => {
+    // LAW config: common: 0 — HS common comes from dedicated HyperspaceCommonBelt
     const belt = new HyperspaceUpgradeBelt('LAW')
     let count = 0
     for (let i = 0; i < TOTAL_DRAWS; i++) {
       if (belt.next().common) count++
     }
-    const rate = count / TOTAL_DRAWS
-    const expected = 28 / 60
-    console.log(`\x1b[36m   LAW common HS rate: ${(rate * 100).toFixed(1)}% (expected ${(expected * 100).toFixed(1)}%)\x1b[0m`)
-    assert(Math.abs(rate - expected) / expected < 0.05, `Common HS rate ${(rate * 100).toFixed(1)}% off target`)
+    assert(count === 0, `Common HS count should be 0 (dedicated belt), got ${count}`)
   })
 
   // ========================================================================

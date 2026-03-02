@@ -57,9 +57,9 @@ export const LAW_CONFIG: SetConfig = {
     // HyperfoilBelt falls back to Normal variants when no HSF data exists
     foilSlotIsHyperspaceFoil: true,
 
-    // Guaranteed Hyperspace common in every pack
+    // Dedicated HS common in every pack (slot 5 from HyperspaceCommonBelt)
     guaranteedHyperspaceCommon: true,
-    hyperspaceCommonSlot: 9, // Last common slot (1-indexed) - TBD until physical packs verified
+    hyperspaceCommonSlot: 5, // Slot 5 (1-indexed) - dedicated HS common belt
 
     // Prestige cards can appear in standard packs
     prestigeInStandardPacks: true,
@@ -88,8 +88,9 @@ export const LAW_CONFIG: SetConfig = {
   },
 
   // Upgrade probabilities (belt-driven via HyperspaceUpgradeBelt with 'LAW' config)
-  // Belt guarantees ≥1 HS per pack (budget-0 = 0). Common fills the gap.
-  // When no HS variant data exists, findHyperspaceVariant() falls back to Normal + isHyperspace flag
+  // Slot 5 is a dedicated HS common from HyperspaceCommonBelt (not an upgrade).
+  // UC3 can upgrade to Prestige tier 1 (~1/18) OR HS R/L (belt-driven).
+  // R/L slot CANNOT upgrade at all.
   upgradeProbabilities: {
     // Leader upgrades
     leaderToHyperspace: constants.leaderHyperspaceRate,       // 1/6 (belt: 10/60)
@@ -99,20 +100,22 @@ export const LAW_CONFIG: SetConfig = {
     baseToHyperspace: constants.baseHyperspaceRate,            // 1/6 (belt: 10/60)
 
     // Foil slot - NO upgrade needed, it's always Hyperspace Foil
-    // foilToHyperfoil is effectively 1.0 but handled differently
     foilToHyperfoil: 0, // Handled by foilSlotIsHyperspaceFoil rule
 
     // UC slot upgrades
-    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,      // 1/5 (belt: 8/60)
+    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,      // 1/5 (belt: 8/60, fallback if prestige misses)
     firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // 1/8 (belt: 4/60)
     secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,  // 1/8 (belt: 2/60)
 
-    // Common upgrades (belt-driven, fills the gap for guaranteed ≥1 HS)
-    commonToHyperspace: constants.commonHyperspaceRate,        // (belt: 28/60 ≈ 47%)
+    // Common upgrades - NONE for LAW (slot 5 is dedicated belt, other commons don't upgrade)
+    commonToHyperspace: 0,
 
     // NOTE: Rare slot NEVER upgrades to HS. HS rares only appear via UC3 upgrade.
-    // Rare slot CAN be replaced by Prestige (LAW+)
-    rareToPrestige: constants.prestigeInRareSlotRate || 1/18,
+    // R/L slot CANNOT upgrade to Prestige in LAW (prestige moved to UC3)
+    rareToPrestige: 0,
+
+    // UC3 → Prestige tier 1 (~1/18) — checked BEFORE HS R/L, takes priority
+    uc3ToPrestige: constants.uc3PrestigeRate || 1/18,
   },
 
   // Triple-aspect card handling

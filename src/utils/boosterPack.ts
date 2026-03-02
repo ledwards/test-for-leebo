@@ -15,10 +15,12 @@
  * Pack structure (LAW+):
  * - 1 Leader (from LeaderBelt)
  * - 1 Base (common)
- * - 9 Commons
+ * - 4 Commons (Belt A, slots 1-4)
+ * - 1 HS Common (from HyperspaceCommonBelt, slot 5)
+ * - 4 Commons (Belt B, slots 6-9)
  * - 1 Hyperspace Foil
- * - 3 Uncommons
- * - 1 Rare or Legendary
+ * - 3 Uncommons (UC3 can upgrade to Prestige OR HS R/L)
+ * - 1 Rare or Legendary (CANNOT upgrade)
  *
  * Total: 16 cards
  */
@@ -26,6 +28,9 @@
 import type { SetCode } from '../types';
 import type { RawCard } from './cardData';
 
+import { isCarboniteCode } from './carboniteConstants';
+import { generateCarboniteBoosterPack, clearCarboniteBeltCache } from './carboniteBoosterPack';
+import { CarbonitePrestigeBelt } from '../belts/CarbonitePrestigeBelt';
 import { LeaderBelt } from '../belts/LeaderBelt';
 import { BaseBelt } from '../belts/BaseBelt';
 import { FoilBelt } from '../belts/FoilBelt';
@@ -63,6 +68,7 @@ interface UpgradeProbabilities {
   thirdUCToHyperspaceRL?: number;
   commonToHyperspace?: number;
   rareToPrestige?: number;
+  uc3ToPrestige?: number;
 }
 
 /** Belt configuration from commonBeltAssignments */
@@ -80,6 +86,7 @@ interface Belt {
 interface SetConfig {
   packRules?: {
     foilSlotIsHyperspaceFoil?: boolean;
+    prestigeInStandardPacks?: boolean;
   };
   upgradeProbabilities?: UpgradeProbabilities;
 }
@@ -301,6 +308,14 @@ function getHyperspaceRareLegendaryBelt(setCode: SetCode | string): Belt {
   return beltCache.get(key)!;
 }
 
+function getPrestigeBelt(setCode: SetCode | string): Belt {
+  const key = `prestige-${setCode}`;
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new CarbonitePrestigeBelt(setCode));
+  }
+  return beltCache.get(key)!;
+}
+
 /**
  * Get the set group key for HS belt config ('1-3', '4-6', 'LAW')
  * All sets use the HyperspaceUpgradeBelt for controlled variance.
@@ -331,6 +346,7 @@ function getHyperspaceUpgradeBelt(setCode: SetCode | string): HyperspaceUpgradeB
  */
 export function clearBeltCache(): void {
   beltCache.clear();
+  clearCarboniteBeltCache();
   startWithBeltA = true; // Reset alternating state
 }
 
@@ -454,38 +470,49 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
     }
   }
 
-  // 7. Third UC upgrade to Hyperspace R/L (RARITY change - uses belt for random R/L)
-  // This is intentionally a random R/L card, not the same UC in HS form
+  // 7. Third UC upgrade — two possible paths:
+  // a) UC3 → Prestige tier 1 (LAW+, ~1/18 — checked FIRST, takes priority)
+  // b) UC3 → Hyperspace R/L (RARITY change — uses belt for random R/L)
+  // Cannot be both — at most one upgrade per slot.
   // This MUST happen after UC->HS_UC upgrades since it changes rarity and corrupts uncommonIndices
   // NOTE: If the HS R/L belt serves a card that matches the existing R/L, that's OK.
   // Belts are independent and do not have knowledge of each other — just like a real printer.
   const thirdUCIndex = uncommonIndices[2];
   if (thirdUCIndex !== undefined) {
-    const shouldUpgradeUC3 = hsPlan ? hsPlan.uc3 : (probs.thirdUCToHyperspaceRL && shouldUpgrade(probs.thirdUCToHyperspaceRL));
-    if (shouldUpgradeUC3) {
-      const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode);
-      const upgraded = hsRLBelt.next();
-      if (upgraded) pack.cards[thirdUCIndex] = upgraded;
+    let uc3Upgraded = false;
+
+    // a) UC3 → Prestige (LAW+ only, checked first)
+    if (probs.uc3ToPrestige && shouldUpgrade(probs.uc3ToPrestige)) {
+      const prestigeBelt = getPrestigeBelt(setCode);
+      if (prestigeBelt) {
+        const prestige = (prestigeBelt as CarbonitePrestigeBelt).next();
+        if (prestige) {
+          prestige.prestigeTier = 'tier1';
+          pack.cards[thirdUCIndex] = prestige;
+          uc3Upgraded = true;
+        }
+      }
+    }
+
+    // b) UC3 → HS R/L (fallback if prestige didn't trigger)
+    if (!uc3Upgraded) {
+      const shouldUpgradeUC3 = hsPlan ? hsPlan.uc3 : (probs.thirdUCToHyperspaceRL && shouldUpgrade(probs.thirdUCToHyperspaceRL));
+      if (shouldUpgradeUC3) {
+        const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode);
+        const upgraded = hsRLBelt.next();
+        if (upgraded) pack.cards[thirdUCIndex] = upgraded;
+      }
     }
   }
 
   // 8. Common upgrade - find HS version of the card in the specific hyperspace slot
+  // LAW+: Slot 5 is already HS from dedicated HyperspaceCommonBelt (no upgrade needed here).
+  // Other sets: use belt plan or probability to upgrade the common at the hyperspace slot.
   const block = getBlockForSet(setCode);
   const blockConfig: BeltConfig = getBeltConfig(block);
-  const isLawPlus = usesLawPackRules(setCode);
 
-  // For LAW+, slot 9 is ALWAYS Hyperspace (100% guaranteed)
-  // For other sets, use belt plan or probability
-  if (isLawPlus && blockConfig.guaranteedHyperspace) {
-    const hyperspaceIndex = 1 + blockConfig.hyperspaceSlot;
-    if (hyperspaceIndex < pack.cards.length) {
-      const currentCommon = pack.cards[hyperspaceIndex];
-      if (currentCommon && currentCommon.rarity === 'Common' && !currentCommon.isLeader && !currentCommon.isBase) {
-        const upgraded = findHyperspaceVariant(currentCommon, setCode);
-        if (upgraded) pack.cards[hyperspaceIndex] = upgraded;
-      }
-    }
-  } else {
+  if (block !== 'B') {
+    // Sets 1-6: common HS upgrade via belt plan or probability
     const shouldUpgradeCommon = hsPlan ? hsPlan.common : (probs.commonToHyperspace && shouldUpgrade(probs.commonToHyperspace));
     if (shouldUpgradeCommon) {
       const hyperspaceIndex = 1 + blockConfig.hyperspaceSlot;
@@ -498,17 +525,20 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
       }
     }
   }
+  // LAW+ (Block B): no common upgrade — slot 5 is already HS from dedicated belt
 
-  // 9. Prestige card in rare slot (LAW+ only, ~1 in 18 packs)
-  // TODO: Implement when Prestige variant data is available
-  // For now, this is a placeholder - Prestige cards have their own variantType
-  // if (isLawPlus && probs.rareToPrestige && shouldUpgrade(probs.rareToPrestige)) {
-  //   const prestigeBelt = getPrestigeBelt(setCode)
-  //   if (prestigeBelt && rareIndex >= 0) {
-  //     const prestige = prestigeBelt.next()
-  //     if (prestige) pack.cards[rareIndex] = prestige
-  //   }
-  // }
+  // 9. Prestige card in rare slot (if configured — rareToPrestige > 0)
+  // LAW: rareToPrestige is 0 (prestige moved to UC3 slot above)
+  if (config?.packRules?.prestigeInStandardPacks && probs.rareToPrestige && shouldUpgrade(probs.rareToPrestige)) {
+    const prestigeBelt = getPrestigeBelt(setCode);
+    if (prestigeBelt && rareIndex >= 0) {
+      const prestige = (prestigeBelt as CarbonitePrestigeBelt).next();
+      if (prestige) {
+        prestige.prestigeTier = 'tier1'; // Standard packs always tier 1
+        pack.cards[rareIndex] = prestige;
+      }
+    }
+  }
 
   return pack;
 }
@@ -521,6 +551,11 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
  * @returns Pack object with cards array
  */
 export function generateBoosterPack(_cards: RawCard[], setCode: SetCode | string): Pack {
+  // Carbonite packs have a completely different structure
+  if (isCarboniteCode(setCode as string)) {
+    return generateCarboniteBoosterPack(setCode as string);
+  }
+
   // Get belts
   const leaderBelt = getLeaderBelt(setCode);
   const baseBelt = getBaseBelt(setCode);
@@ -548,15 +583,24 @@ export function generateBoosterPack(_cards: RawCard[], setCode: SetCode | string
   // 9 Commons - slot pattern depends on block
   // Block 0 (SOR, SHD, TWI): Belt A for slots 1-6, Belt B for slots 7-9
   // Block A (JTL, LOF, SEC): Belt A for slots 1-4, slot 5 alternates, Belt B for slots 6-9
+  // Block B (LAW+): Belt A for slots 1-4, slot 5 from HyperspaceCommonBelt, Belt B for slots 6-9
   const block = getBlockForSet(setCode);
   // Note: BeltConfig is used in applyUpgradePass for hyperspace slot position
 
   for (let slot = 1; slot <= 9; slot++) {
+    if (block === 'B' && slot === 5) {
+      // Block B (LAW+): Slot 5 is a dedicated HS common from HyperspaceCommonBelt
+      const hsCommonBelt = getHyperspaceCommonBelt(setCode);
+      const hsCommon = hsCommonBelt.next();
+      if (hsCommon) packCards.push(hsCommon);
+      continue;
+    }
+
     let belt: Belt;
     if (block === 0) {
       // Block 0: Belt A for slots 1-6, Belt B for slots 7-9
       belt = (slot <= 6) ? commonBeltA : commonBeltB;
-    } else {
+    } else if (block === 'A') {
       // Block A: Belt A for slots 1-4, slot 5 alternates, Belt B for slots 6-9
       if (slot <= 4) {
         belt = commonBeltA;
@@ -566,12 +610,20 @@ export function generateBoosterPack(_cards: RawCard[], setCode: SetCode | string
       } else {
         belt = commonBeltB;
       }
+    } else {
+      // Block B (LAW+): Belt A for slots 1-4, Belt B for slots 6-9
+      // (slot 5 handled above with continue)
+      if (slot <= 4) {
+        belt = commonBeltA;
+      } else {
+        belt = commonBeltB;
+      }
     }
     const common = belt.next();
     if (common) packCards.push(common);
   }
 
-  // Toggle alternating slot for next pack
+  // Toggle alternating slot for next pack (only relevant for Block A)
   startWithBeltA = !startWithBeltA;
 
   // Dedup commons - belt cycling can rarely produce duplicates
@@ -581,17 +633,28 @@ export function generateBoosterPack(_cards: RawCard[], setCode: SetCode | string
     const card = packCards[i];
     if (!card) continue;
 
+    // Skip dedup for Block B slot 5 (index 6) — it's from HyperspaceCommonBelt
+    // and won't duplicate with normal commons (different variant)
+    const slot = i - 1; // Convert index to slot (1-indexed)
+
     if (commonNames.has(card.name)) {
       // Duplicate found - get a replacement from the belt this slot came from
-      const slot = i - 1; // Convert index to slot (1-indexed)
       let replacementBelt: Belt;
       if (block === 0) {
         replacementBelt = (slot <= 6) ? commonBeltA : commonBeltB;
-      } else {
+      } else if (block === 'A') {
         if (slot <= 4) {
           replacementBelt = commonBeltA;
         } else if (slot === 5) {
           replacementBelt = currentStartWithA ? commonBeltA : commonBeltB;
+        } else {
+          replacementBelt = commonBeltB;
+        }
+      } else {
+        // Block B (LAW+): slot 5 is HS common belt (skipped above in name check),
+        // slots 1-4 are Belt A, slots 6-9 are Belt B
+        if (slot <= 4) {
+          replacementBelt = commonBeltA;
         } else {
           replacementBelt = commonBeltB;
         }
