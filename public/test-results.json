@@ -1,13 +1,13 @@
 {
-  "runAt": "2026-03-02T06:02:23.956Z",
-  "executionTime": 19531,
+  "runAt": "2026-03-02T07:00:15.731Z",
+  "executionTime": 19728,
   "summary": {
     "totalSuites": 22,
-    "passedSuites": 21,
-    "failedSuites": 1,
-    "totalTests": 497,
-    "passed": 495,
-    "failed": 2
+    "passedSuites": 22,
+    "failedSuites": 0,
+    "totalTests": 496,
+    "passed": 496,
+    "failed": 0
   },
   "suites": [
     {
@@ -15,7 +15,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 6187,
+      "executionTime": 6361,
       "tests": [
         {
           "suite": "utils",
@@ -220,7 +220,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 666,
+      "executionTime": 672,
       "tests": [
         {
           "suite": "utils",
@@ -315,7 +315,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 465,
+      "executionTime": 493,
       "tests": [
         {
           "suite": "utils",
@@ -330,7 +330,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 461,
+      "executionTime": 473,
       "tests": [
         {
           "suite": "utils",
@@ -345,7 +345,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 669,
+      "executionTime": 675,
       "tests": [
         {
           "suite": "belts",
@@ -425,7 +425,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 662,
+      "executionTime": 690,
       "tests": [
         {
           "suite": "belts",
@@ -525,7 +525,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 822,
+      "executionTime": 845,
       "tests": [
         {
           "suite": "belts",
@@ -620,7 +620,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 671,
+      "executionTime": 687,
       "tests": [
         {
           "suite": "belts",
@@ -700,7 +700,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 680,
+      "executionTime": 704,
       "tests": [
         {
           "suite": "belts",
@@ -713,9 +713,9 @@
     {
       "name": "Leader Belt",
       "suite": "belts",
-      "status": "failed",
-      "exitCode": 1,
-      "executionTime": 658,
+      "status": "passed",
+      "exitCode": 0,
+      "executionTime": 667,
       "tests": [
         {
           "suite": "belts",
@@ -755,7 +755,7 @@
         {
           "suite": "belts",
           "name": "rare leaders appear in approximately 1/6 of packs (5:1 ratio)\u001b[0m",
-          "status": "failed"
+          "status": "passed"
         },
         {
           "suite": "belts",
@@ -779,23 +779,18 @@
         },
         {
           "suite": "belts",
-          "name": "Tests passed: 11\u001b[0m",
+          "name": "Tests passed: 12\u001b[0m",
           "status": "passed"
-        },
-        {
-          "suite": "belts",
-          "name": "Tests failed: 1\u001b[0m",
-          "status": "failed"
         }
       ],
-      "errorMessage": "\u001b[36m🔄 Initializing card cache...\u001b[0m"
+      "errorMessage": null
     },
     {
       "name": "Rare/Legendary Belt",
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1054,
+      "executionTime": 1047,
       "tests": [
         {
           "suite": "belts",
@@ -885,7 +880,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 684,
+      "executionTime": 730,
       "tests": [
         {
           "suite": "belts",
@@ -940,7 +935,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 856,
+      "executionTime": 668,
       "tests": [
         {
           "suite": "belts",
@@ -1015,7 +1010,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 447,
+      "executionTime": 436,
       "tests": [
         {
           "suite": "fixes",
@@ -1030,7 +1025,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 775,
+      "executionTime": 762,
       "tests": [
         {
           "suite": "draft",
@@ -1045,7 +1040,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 449,
+      "executionTime": 445,
       "tests": [
         {
           "suite": "bots",
@@ -1190,7 +1185,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 699,
+      "executionTime": 696,
       "tests": [
         {
           "suite": "data",
@@ -1625,7 +1620,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 735,
+      "executionTime": 710,
       "tests": [
         {
           "suite": "data",
@@ -2660,7 +2655,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 466,
+      "executionTime": 509,
       "tests": [
         {
           "suite": "hooks",
@@ -2675,7 +2670,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 496,
+      "executionTime": 480,
       "tests": [
         {
           "suite": "hooks",
@@ -2690,7 +2685,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 464,
+      "executionTime": 495,
       "tests": [
         {
           "suite": "hooks",
@@ -2705,7 +2700,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 464,
+      "executionTime": 478,
       "tests": [
         {
           "suite": "hooks",
@@ -3365,7 +3360,7 @@
     {
       "suite": "belts",
       "name": "rare leaders appear in approximately 1/6 of packs (5:1 ratio)\u001b[0m",
-      "status": "failed"
+      "status": "passed"
     },
     {
       "suite": "belts",
@@ -3389,13 +3384,8 @@
     },
     {
       "suite": "belts",
-      "name": "Tests passed: 11\u001b[0m",
+      "name": "Tests passed: 12\u001b[0m",
       "status": "passed"
-    },
-    {
-      "suite": "belts",
-      "name": "Tests failed: 1\u001b[0m",
-      "status": "failed"
     },
     {
       "suite": "belts",
