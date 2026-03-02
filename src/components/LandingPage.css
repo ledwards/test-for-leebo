@@ -55,8 +55,17 @@
 @media (hover: hover) and (pointer: fine) {
   .discord-cta:hover {
     background: #4752C4;
+    color: white;
     transform: translateY(-2px);
   }
+}
+
+a.discord-cta,
+a.discord-cta:visited,
+a.discord-cta:hover,
+a.discord-cta:active {
+  color: white;
+  text-decoration: none;
 }
 
 .discord-cta svg {

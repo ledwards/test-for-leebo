@@ -399,7 +399,16 @@
 
 .login-required .discord-login-button:hover {
   background: rgba(88, 101, 242, 1);
+  color: white;
   transform: translateY(-1px);
+}
+
+a.discord-login-button,
+a.discord-login-button:visited,
+a.discord-login-button:hover,
+a.discord-login-button:active {
+  color: white;
+  text-decoration: none;
 }
 
 /* Draft complete */
