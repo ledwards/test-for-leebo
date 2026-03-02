@@ -7,7 +7,8 @@ import { generateDraftPacks, processBoxPacksForDraft } from '@/src/utils/draftLo
 import { processBotTurns } from '@/src/utils/botLogic'
 import { initializeCardCache } from '@/src/utils/cardCache'
 import { trackBulkGenerations, PACK_SLOT_TYPES } from '@/src/utils/trackGeneration'
-import { broadcastDraftState } from '@/src/lib/socketBroadcast'
+import { broadcastDraftState, broadcastSystemChatMessage } from '@/src/lib/socketBroadcast'
+import { markPodStarted } from '@/lib/discordLfg'
 import { jsonParse } from '@/src/utils/json'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -173,6 +174,25 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     broadcastDraftState(shareId).catch(err => {
       console.error('Error broadcasting draft state:', err)
     })
+
+    // Broadcast start to web chat
+    const podLabel = pod.name || `${pod.set_name} Draft`
+    broadcastSystemChatMessage(shareId, `🚀 **${podLabel}** has started! Good luck everyone!`)
+
+    // Discord LFG: mark pod as started (fire-and-forget)
+    if (pod.is_public) {
+      queryRows(
+        `SELECT u.username FROM pod_players pp JOIN users u ON pp.user_id = u.id WHERE pp.pod_id = $1 AND pp.is_bot = false ORDER BY pp.seat_number`,
+        [pod.id]
+      ).then(async (namedPlayers) => {
+        const hostUser = await queryRow('SELECT username FROM users WHERE id = $1', [pod.host_id])
+        markPodStarted(
+          { ...pod, current_players: players.length },
+          hostUser?.username || 'Host',
+          namedPlayers.map(p => p.username)
+        ).catch(() => {})
+      }).catch(() => {})
+    }
 
     // console.log('[START] Returning success response')
     return jsonResponse({

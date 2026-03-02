@@ -7,6 +7,7 @@ import { deduplicateCommonBases } from '../utils/baseDedup'
 import { buildBaseCardMap as buildBaseCardMapUtil, getBaseCardId as getBaseCardIdUtil } from '../utils/variantDowngrade'
 import { trackEvent, AnalyticsEvents } from '../hooks/useAnalytics'
 import { fetchSetCards } from '../utils/api'
+import { getBaseSetCode } from '../utils/carboniteConstants'
 import { useAuth } from '../contexts/AuthContext'
 import { jsonParse } from '../utils/json'
 import { calculateAspectPenalty } from '../services/cards/aspectPenalties'
@@ -482,9 +483,11 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
         let allCards: CardType[] = []
 
         for (const code of setCodes) {
-          let cardsData = getCachedCards(code)
+          // Strip -CB suffix for carbonite codes (e.g. 'JTL-CB' -> 'JTL')
+          const baseCode = getBaseSetCode(code)
+          let cardsData = getCachedCards(baseCode)
           if (cardsData.length === 0) {
-            cardsData = await fetchSetCards(code)
+            cardsData = await fetchSetCards(baseCode)
           }
           allCards = allCards.concat(cardsData as CardType[])
         }
@@ -2006,6 +2009,7 @@ function DeckBuilder({ cards, setCode, onBack, savedState, onStateChange, shareI
           messageType={messageType}
           setMessageType={setMessageType}
           draftShareId={draftShareId}
+          isLoading={isLoading}
         />
 
       {/* Selected Leader/Base and Deck/Sideboard Info - Sticky Bar */}

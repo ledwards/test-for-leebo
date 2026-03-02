@@ -37,23 +37,37 @@ const EXPANSION_ART_URLS: Record<string, string> = {
 
 /**
  * Booster pack image URLs (the actual pack, not background art)
- * Used for pack opening animation
+ * Used for pack opening animation — default (variant 1)
  */
 const PACK_IMAGE_URLS: Record<string, string> = {
-  // Spark of Rebellion - Set 1
-  SOR: '/pack-images/sor-pack.png',
-  // Shadows of the Galaxy - Set 2
-  SHD: '/pack-images/shd-pack.png',
-  // Twilight of the Republic - Set 3
-  TWI: '/pack-images/twi-pack.png',
-  // Jump to Lightspeed - Set 4
-  JTL: '/pack-images/jtl-pack.png',
-  // Legends of the Force - Set 5
-  LOF: '/pack-images/lof-pack.png',
-  // Secrets of Power - Set 6
-  SEC: '/pack-images/sec-pack.png',
-  // A Lawless Time - Set 7
-  LAW: '/pack-images/law-pack.png',
+  SOR: '/pack-images/sor-pack-1.png',
+  SHD: '/pack-images/shd-pack-1.png',
+  TWI: '/pack-images/twi-pack-1.png',
+  JTL: '/pack-images/jtl-pack-1.png',
+  LOF: '/pack-images/lof-pack-1.png',
+  SEC: '/pack-images/sec-pack-1.png',
+  LAW: '/pack-images/law-pack-1.png',
+  'JTL-CB': '/pack-images/jtl-cb-pack.png',
+  'LOF-CB': '/pack-images/lof-cb-pack.png',
+  'SEC-CB': '/pack-images/sec-cb-pack.png',
+  'LAW-CB': '/pack-images/law-cb-pack.png',
+}
+
+/**
+ * All pack art variants per set (3 variants for standard, 1 for carbonite)
+ */
+const PACK_IMAGE_VARIANTS: Record<string, string[]> = {
+  SOR: ['/pack-images/sor-pack-1.png', '/pack-images/sor-pack-2.png', '/pack-images/sor-pack-3.png'],
+  SHD: ['/pack-images/shd-pack-1.png', '/pack-images/shd-pack-2.png', '/pack-images/shd-pack-3.png'],
+  TWI: ['/pack-images/twi-pack-1.png', '/pack-images/twi-pack-2.png', '/pack-images/twi-pack-3.png'],
+  JTL: ['/pack-images/jtl-pack-1.png', '/pack-images/jtl-pack-2.png', '/pack-images/jtl-pack-3.png'],
+  LOF: ['/pack-images/lof-pack-1.png', '/pack-images/lof-pack-2.png', '/pack-images/lof-pack-3.png'],
+  SEC: ['/pack-images/sec-pack-1.png', '/pack-images/sec-pack-2.png', '/pack-images/sec-pack-3.png'],
+  LAW: ['/pack-images/law-pack-1.png', '/pack-images/law-pack-2.png', '/pack-images/law-pack-3.png'],
+  'JTL-CB': ['/pack-images/jtl-cb-pack.png'],
+  'LOF-CB': ['/pack-images/lof-cb-pack.png'],
+  'SEC-CB': ['/pack-images/sec-cb-pack.png'],
+  'LAW-CB': ['/pack-images/law-cb-pack.png'],
 }
 
 /**
@@ -71,6 +85,33 @@ export function getPackArtUrl(setCode: SetCode | string): string | null {
  */
 export function getPackImageUrl(setCode: SetCode | string): string {
   return PACK_IMAGE_URLS[setCode] || '/pack-images/default-pack.png'
+}
+
+/**
+ * Get cycling pack image URLs for a set (1,2,3,1,2,3,...)
+ * Used for initial pack display in sealed pools
+ */
+export function getCyclingPackImageUrls(setCode: SetCode | string, count: number): string[] {
+  const variants = PACK_IMAGE_VARIANTS[setCode] || [getPackImageUrl(setCode)]
+  return Array.from({ length: count }, (_, i) => variants[i % variants.length])
+}
+
+/**
+ * Get random pack image URLs for a set
+ * Used after shuffling packs
+ */
+export function getRandomPackImageUrls(setCode: SetCode | string, count: number): string[] {
+  const variants = PACK_IMAGE_VARIANTS[setCode] || [getPackImageUrl(setCode)]
+  return Array.from({ length: count }, () => variants[Math.floor(Math.random() * variants.length)])
+}
+
+/**
+ * Get a random pack image variant for a single set code
+ * Used for chaos sealed where each pack may be a different set
+ */
+export function getRandomPackImageUrl(setCode: SetCode | string): string {
+  const variants = PACK_IMAGE_VARIANTS[setCode] || [getPackImageUrl(setCode)]
+  return variants[Math.floor(Math.random() * variants.length)]
 }
 
 /**

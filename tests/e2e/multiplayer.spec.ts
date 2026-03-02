@@ -59,7 +59,7 @@ test.describe('Multiplayer Page', () => {
     await waitForNetworkIdle(page)
 
     await page.locator('.format-mode-card', { hasText: /^Sealed/ }).click()
-    await page.waitForURL('**/sealed/new', { timeout: 10000 })
+    await page.waitForURL('**/sealed/pod', { timeout: 10000 })
   })
 
   test('should navigate to draft page', async ({ page }) => {

@@ -388,8 +388,9 @@ interface PackSelectorProps {
 - Per-set color theming via `--set-color` CSS variable
 - Grayscale effect on unselected packs (single-select mode)
 - Quantity controls (+/-) for multi-select with duplicate selection
-- Beta badges for sets marked as beta
-- Sets grouped by release: 1-3 (top), 4-6 (middle), 7+ (bottom with separator)
+- Beta badges for sets marked as beta, Carbonite badges for carbonite sets
+- Sets grouped: regular boosters (top), carbonite packs (below separator line)
+- Sorting logic extracted to `src/utils/packSelectorSort.ts` (with tests)
 
 ## PackOpeningAnimation Component
 

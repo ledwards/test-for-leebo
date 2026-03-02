@@ -13,53 +13,14 @@
 
 import { getPackImageUrl } from '@/src/utils/packArt'
 import { getSetConfig } from '@/src/utils/setConfigs'
+import { getBaseCode, sortSetsForDisplay } from '@/src/utils/packSelectorSort'
+import type { SetData } from '@/src/utils/packSelectorSort'
 import './PackSelector.css'
-
-interface SetData {
-  code: string
-  name: string
-  imageUrl?: string
-  beta?: boolean
-}
 
 // Get set color from config
 function getSetColor(setCode: string): string {
-  const config = getSetConfig(setCode)
+  const config = getSetConfig(getBaseCode(setCode))
   return config?.color || '#ffffff'
-}
-
-// Get set number for ordering
-function getSetNumber(setCode: string): number {
-  const setCodeMap: Record<string, number> = {
-    'SOR': 1, 'SHD': 2, 'TWI': 3,
-    'JTL': 4, 'LOF': 5, 'SEC': 6,
-    'LAW': 7,
-  }
-  return setCodeMap[setCode] || 999
-}
-
-// Sort sets for display: 1-3 top, 4-6 middle, 7+ bottom
-function sortSetsForDisplay(sets: SetData[]): { top: SetData[], middle: SetData[], bottom: SetData[] } {
-  const top: SetData[] = []
-  const middle: SetData[] = []
-  const bottom: SetData[] = []
-
-  for (const set of sets) {
-    const num = getSetNumber(set.code)
-    if (num >= 7) {
-      bottom.push(set)
-    } else if (num >= 4 && num <= 6) {
-      middle.push(set)
-    } else {
-      top.push(set)
-    }
-  }
-
-  top.sort((a, b) => getSetNumber(a.code) - getSetNumber(b.code))
-  middle.sort((a, b) => getSetNumber(a.code) - getSetNumber(b.code))
-  bottom.sort((a, b) => getSetNumber(a.code) - getSetNumber(b.code))
-
-  return { top, middle, bottom }
 }
 
 export interface PackSelectorProps {
@@ -137,13 +98,15 @@ export function PackSelector({
 
     // In single-select mode, mark unselected packs when one is selected
     const isUnselected = !isMultiSelect && selectedSet !== null && selectedSet !== set.code
+    // In multi-select mode, mark unselected packs when max is reached
+    const isMaxed = isMultiSelect && !isSelected && selectedSets.length >= maxSelections
 
     return (
       <div
         key={set.code}
         role="button"
         tabIndex={0}
-        className={`pack-selector-button ${isSelected ? 'selected' : ''} ${isUnselected ? 'unselected' : ''}`}
+        className={`pack-selector-button ${isSelected ? 'selected' : ''} ${isUnselected ? 'unselected' : ''} ${isMaxed ? 'maxed' : ''}`}
         onClick={() => handleSetClick(set.code)}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSetClick(set.code) }}
         style={{
@@ -182,12 +145,11 @@ export function PackSelector({
     <div className="pack-selector-section">
       <h3>{title}</h3>
       <div className="pack-selector-grid">
-        {sortedSets.top.map(renderSetButton)}
-        {sortedSets.middle.map(renderSetButton)}
+        {sortedSets.main.map(renderSetButton)}
       </div>
-      {sortedSets.bottom.length > 0 && (
-        <div className="pack-selector-grid beta-row">
-          {sortedSets.bottom.map(renderSetButton)}
+      {sortedSets.carbonite.length > 0 && (
+        <div className="pack-selector-grid carbonite-row">
+          {sortedSets.carbonite.map(renderSetButton)}
         </div>
       )}
     </div>

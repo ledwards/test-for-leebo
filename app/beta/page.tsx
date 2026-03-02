@@ -23,7 +23,7 @@ export default function BetaPage() {
   const handleJoinBeta = async () => {
     const success = await enrollBeta()
     if (success) {
-      router.push('/sets')
+      router.push('/sealed')
     }
   }
 

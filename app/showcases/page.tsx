@@ -314,7 +314,7 @@ export default function ShowcasesPage() {
           <h2>No Showcase Leaders Yet</h2>
           <p>Play Sealed to find rare Showcase Leaders!</p>
           <p className="showcases-hint">Showcase leaders appear in approximately 1 in 288 packs.</p>
-          <Button variant="primary" className="showcases-back-button" onClick={() => router.push('/sets')}>
+          <Button variant="primary" className="showcases-back-button" onClick={() => router.push('/sealed')}>
             Play Sealed
           </Button>
         </div>

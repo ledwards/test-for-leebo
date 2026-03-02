@@ -8,14 +8,18 @@ export function usePresence(userId?: string): number {
   const [count, setCount] = useState(0)
   const socketRef = useRef<Socket | null>(null)
 
+  // Always connect to receive the count (even for anonymous users)
   useEffect(() => {
-    if (!userId) return
-
     const socket = io()
     socketRef.current = socket
 
     socket.on('connect', () => {
-      socket.emit('presence:join', userId)
+      // Subscribe to count updates (all users)
+      socket.emit('presence:subscribe')
+      // Register as a counted user if logged in
+      if (userId) {
+        socket.emit('presence:join', userId)
+      }
     })
 
     socket.on('presence:count', (data: { count: number }) => {

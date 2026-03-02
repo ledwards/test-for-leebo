@@ -6,6 +6,7 @@ import { generateShareId } from '@/lib/utils'
 import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
 import { broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
+import { postPodCreated } from '@/lib/discordLfg'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -15,6 +16,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     validateRequired(body, ['setCode'])
 
     const { setCode, isPublic } = body
+    // Default to public unless explicitly set to false
+    const podIsPublic = isPublic !== undefined ? isPublic === true : true
 
     const setConfig = getSetConfig(setCode)
     const setName = setConfig?.setName || setCode
@@ -61,7 +64,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             JSON.stringify({ phase: 'lobby' }),
             1,
             'sealed',
-            isPublic === true
+            podIsPublic
           ]
         )
         break
@@ -104,7 +107,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     )
 
     // Broadcast to multiplayer page if pod is public
-    if (isPublic === true) {
+    if (podIsPublic) {
       broadcastPublicPodsUpdate().catch(err => {
         console.error('Error broadcasting public pods update:', err)
       })
@@ -112,6 +115,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     const shareUrl = `${APP_URL}/sealed/${shareId}`
+
+    // Post to Discord LFG channel if public
+    if (podIsPublic) {
+      postPodCreated(
+        { id: pod.id, share_id: shareId, set_code: setCode, set_name: setName, name: `${setName} Sealed`, max_players: Math.min(16, Math.max(2, body.maxPlayers || 8)), current_players: 1, pod_type: 'sealed' },
+        session.username
+      ).catch(err => {
+        console.error('Error posting sealed pod to Discord:', err)
+      })
+    }
 
     return jsonResponse({
       id: pod.id,

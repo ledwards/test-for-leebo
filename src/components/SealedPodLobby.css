@@ -98,19 +98,32 @@
   border-color: rgba(33, 150, 243, 0.8);
 }
 
-.sealed-pod-settings .setting-checkbox {
+.sealed-pod-settings .setting-lock {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 0.9rem;
-  color: white;
+  transition: all 0.2s ease;
 }
 
-.sealed-pod-settings .setting-checkbox input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
+.sealed-pod-settings .setting-lock svg {
+  flex-shrink: 0;
+}
+
+.sealed-pod-settings .setting-lock-open {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.sealed-pod-settings .setting-lock-closed {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
 }
 
 .sealed-pod-players {

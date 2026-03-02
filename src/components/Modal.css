@@ -51,7 +51,7 @@
 /* Wide variant (for content that needs more horizontal space) */
 .modal-content.modal--wide {
   width: fit-content;
-  max-width: min(95vw, 900px);
+  max-width: min(95vw, 1100px);
 }
 
 /* Close button */

@@ -3,6 +3,7 @@
 ## 03.01.2026
 
 ### 🎉 New Features
+- **Carbonite Booster Packs**: Premium all-variant packs for Sets 4-7 (JTL, LOF, SEC, LAW). Every card is a foil, hyperspace, prestige, or showcase variant. Pre-LAW packs have rarity-specific foil and hyperspace slots; LAW packs use weighted mixed-rarity hyperspace. Each pack includes a guaranteed prestige card and a hyperspace leader (with a chance of showcase upgrade). Selectable in Chaos Sealed and Chaos Draft.
 - **Pod chat persistence via Discord**: Chat messages in public pods are now persisted through Discord threads. Navigate between lobby, draft, deckbuilder, and play pages without losing chat history. Private pods still have live real-time chat, but no history persistence.
 - **Discord thread lifecycle on visibility toggle**: Toggling a pod from private to public now automatically creates the Discord announcement embed and chat thread. Toggling back to private cleans up the Discord embed.
 - **Private pod chat notice**: Private pods show a notice explaining that chat history is live-only, with a "Make Pod Public" button for the host.

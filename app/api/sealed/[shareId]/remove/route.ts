@@ -1,9 +1,10 @@
 // @ts-nocheck
 // POST /api/sealed/:shareId/remove - Remove a player from sealed pod (host only)
-import { query, queryRow } from '@/lib/db'
+import { query, queryRow, queryRows } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 import { jsonResponse, errorResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
-import { broadcastSealedPodState, broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
+import { broadcastSealedPodState, broadcastPublicPodsUpdate, broadcastSystemChatMessage } from '@/src/lib/socketBroadcast'
+import { postPlayerLeft, updatePodEmbed } from '@/lib/discordLfg'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {
@@ -68,6 +69,35 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     broadcastPublicPodsUpdate().catch(err => {
       console.error('Error broadcasting public pods update:', err)
     })
+
+    // Get the removed player's username for notifications
+    const removedUser = await queryRow('SELECT username FROM users WHERE id = $1', [userId])
+
+    // Broadcast removal to web chat
+    if (removedUser) {
+      broadcastSystemChatMessage(shareId, `📤 **${removedUser.username}** was removed from the pod.`)
+    }
+
+    // Discord LFG: post leave message + update embed (fire-and-forget)
+    if (pod.is_public && pod.discord_thread_id) {
+      if (removedUser) {
+        postPlayerLeft(pod.discord_thread_id, removedUser.username).catch(() => {})
+      }
+      Promise.all([
+        queryRow('SELECT username FROM users WHERE id = $1', [pod.host_id]),
+        queryRows(
+          `SELECT u.username FROM pod_players pp JOIN users u ON pp.user_id = u.id WHERE pp.pod_id = $1 ORDER BY pp.seat_number`,
+          [pod.id]
+        ),
+      ]).then(([hostRow, updatedPlayers]) => {
+        const hostName = hostRow?.username || 'Host'
+        updatePodEmbed(
+          { ...pod, current_players: pod.current_players - 1 },
+          hostName,
+          updatedPlayers.map((p: { username: string }) => p.username)
+        ).catch(() => {})
+      }).catch(() => {})
+    }
 
     return jsonResponse({ message: 'Player removed' })
   } catch (error) {

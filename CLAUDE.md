@@ -119,10 +119,22 @@ The pack generation uses a "belt" metaphor - each card slot type has a belt that
 - **HyperspaceUpgradeBelt**: Controls HS upgrade distribution per pack (budget belt, not coin flips). Pre-determines which slots get HS upgrades in cycles of 60 packs. ~2/3 of packs get at least 1 HS, max 2.
 - **Hyperspace belts**: Various hyperspace variants (card selection after upgrade decision)
 
+**Carbonite belts** (for premium Carbonite packs where every card is a variant):
+- **CarboniteSlotBelt**: Configurable belt for rarity-locked carbonite slots. Config specifies rarities, source variant, output flags, and optional weights. Used for Common Foil, UC Foil, Common HS, UC HS, R/L HS, and LAW HS non-foil slots.
+- **CarboniteFoilRLBelt**: Weighted R/L Foil slot (70% Rare / 20% Special / 10% Legendary)
+- **CarbonitePrestigeBelt**: Prestige card slot (synthesized from R/L pool)
+- **HyperfoilBelt**: Hyperspace Foil cards (used in both standard and carbonite packs)
+
 Belts maintain a "hopper" that refills from a "filling pool" when depleted. This ensures proper distribution while preventing adjacent duplicates.
 
 ### Booster Pack Generation (`src/utils/boosterPack.ts`)
 Orchestrates belt usage to create 16-card packs. HS upgrades are belt-driven (Sets 1-6) for controlled variance. Non-HS upgrades (Showcase, Hyperfoil) remain independent coin flips.
+
+### Carbonite Pack Generation (`src/utils/carboniteBoosterPack.ts`)
+Premium 16-card packs where every card is a variant. Pre-LAW (JTL/LOF/SEC) uses rarity-specific belts:
+- [0] Leader HS, [1-4] Common Foil x4, [5-6] UC Foil x2, [7] R/L Foil, [8] Prestige, [9-11] Common HS x3, [12] UC HS, [13] R/L HS, [14-15] HSF x2
+- LAW+ uses weighted mixed-rarity HS belts (8 HS non-foil + 6 HS foil)
+- Constants in `src/utils/carboniteConstants.ts`
 
 ### Set Configs (`src/utils/setConfigs/`)
 Per-set parameters: card counts, rarity distributions, legendary drop rates. Sets 4-6 (JTL, LOF, SEC) have different rules than sets 1-3. Set 7 (LAW) is a beta set with `beta: true` flag.

@@ -10,11 +10,13 @@ interface SetInfo {
   name: string
   releaseDate: string
   beta?: boolean
+  carbonite?: boolean
   imageUrl: string | null
 }
 
 interface FetchSetsOptions {
   includeBeta?: boolean
+  includeCarbonite?: boolean
 }
 
 /**
@@ -22,8 +24,9 @@ interface FetchSetsOptions {
  * Returns array of set objects with code, name, and imageUrl
  * @param options - Options
  * @param options.includeBeta - Include beta sets (default: false)
+ * @param options.includeCarbonite - Include Carbonite pack entries (default: false)
  */
-export async function fetchSets({ includeBeta = false }: FetchSetsOptions = {}): Promise<SetInfo[]> {
+export async function fetchSets({ includeBeta = false, includeCarbonite = false }: FetchSetsOptions = {}): Promise<SetInfo[]> {
   // Use hardcoded set data for the expansion sets
   // External API calls fail due to CORS, so we use local data
   const knownSets = [
@@ -31,15 +34,23 @@ export async function fetchSets({ includeBeta = false }: FetchSetsOptions = {}):
     { code: 'SHD', name: 'Shadows of the Galaxy', releaseDate: '2024-07-12' },
     { code: 'TWI', name: 'Twilight of the Republic', releaseDate: '2024-11-08' },
     { code: 'JTL', name: 'Jump to Lightspeed', releaseDate: '2025-03-14' },
+    { code: 'JTL-CB', name: 'Jump to Lightspeed Carbonite Edition', releaseDate: '2025-03-14', carbonite: true },
     { code: 'LOF', name: 'Legends of the Force', releaseDate: '2025-07-11' },
+    { code: 'LOF-CB', name: 'Legends of the Force Carbonite Edition', releaseDate: '2025-07-11', carbonite: true },
     { code: 'SEC', name: 'Secrets of Power', releaseDate: '2025-11-07' },
+    { code: 'SEC-CB', name: 'Secrets of Power Carbonite Edition', releaseDate: '2025-11-07', carbonite: true },
     { code: 'LAW', name: 'A Lawless Time', releaseDate: '2026-03-13' },
+    { code: 'LAW-CB', name: 'A Lawless Time Carbonite Edition', releaseDate: '2026-03-13', carbonite: true },
   ]
 
-  // Filter out beta sets unless explicitly requested
-  const filteredSets = includeBeta
-    ? knownSets
-    : knownSets.filter((set) => !set.beta)
+  // Filter out beta and carbonite sets unless explicitly requested
+  let filteredSets = knownSets
+  if (!includeBeta) {
+    filteredSets = filteredSets.filter((set) => !set.beta)
+  }
+  if (!includeCarbonite) {
+    filteredSets = filteredSets.filter((set) => !set.carbonite)
+  }
 
   return filteredSets.map((set) => ({
     ...set,

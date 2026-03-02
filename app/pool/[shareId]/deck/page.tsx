@@ -3,8 +3,10 @@
 
 import { useState, useEffect, useRef, useCallback, use } from 'react'
 import DeckBuilder from '../../../../src/components/DeckBuilder'
+import ChatPanel from '../../../../src/components/ChatPanel'
 import { loadPool, updatePool } from '../../../../src/utils/poolApi'
 import '../../../../src/App.css'
+import '../../../../src/components/ChatPanel.css'
 
 interface CardType {
   id?: string
@@ -84,7 +86,7 @@ export default function DeckBuilderPage({ params }: PageProps) {
 
   useEffect(() => {
     if (error || (!loading && !pool)) {
-      window.location.href = '/sets'
+      window.location.href = '/sealed'
     }
   }, [error, loading, pool])
 
@@ -171,22 +173,29 @@ export default function DeckBuilderPage({ params }: PageProps) {
   }
   const poolName = getPoolNameFromState()
 
+  const draftShareId = pool?.draftShareId || null
+
   return (
-    <div className="app">
-      <DeckBuilder
-        cards={allCards}
-        setCode={setCode}
-        onBack={handleBack}
-        savedState={savedState}
-        onStateChange={handleDeckStateChange}
-        shareId={shareId}
-        poolCreatedAt={pool?.createdAt}
-        poolType={pool?.poolType}
-        poolName={poolName}
-        poolOwnerUsername={pool?.owner?.username}
-        poolOwnerId={pool?.owner?.id || pool?.userId}
-        draftShareId={pool?.draftShareId}
-      />
+    <div className={draftShareId ? 'page-with-chat' : ''}>
+      <div className={draftShareId ? 'page-content' : ''}>
+        <div className="app">
+          <DeckBuilder
+            cards={allCards}
+            setCode={setCode}
+            onBack={handleBack}
+            savedState={savedState}
+            onStateChange={handleDeckStateChange}
+            shareId={shareId}
+            poolCreatedAt={pool?.createdAt}
+            poolType={pool?.poolType}
+            poolName={poolName}
+            poolOwnerUsername={pool?.owner?.username}
+            poolOwnerId={pool?.owner?.id || pool?.userId}
+            draftShareId={draftShareId}
+          />
+        </div>
+      </div>
+      {draftShareId && <ChatPanel shareId={draftShareId} defaultOpen={false} />}
     </div>
   )
 }
