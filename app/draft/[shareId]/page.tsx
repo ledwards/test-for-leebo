@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { useDraftSocket } from '../../../src/hooks/useDraftSocket'
@@ -12,6 +12,7 @@ import LeaderDraftPhase from '../../../src/components/LeaderDraftPhase'
 import PackDraftPhase from '../../../src/components/PackDraftPhase'
 import { getPackArtUrl } from '../../../src/utils/packArt'
 import Button from '../../../src/components/Button'
+import Modal from '../../../src/components/Modal'
 import EditableTitle from '../../../src/components/EditableTitle'
 import ChatPanel from '../../../src/components/ChatPanel'
 import '../../../src/App.css'
@@ -52,6 +53,8 @@ export default function DraftRoomPage({ params }: PageProps) {
   const [showDropConfirm, setShowDropConfirm] = useState(false)
   const [isDropping, setIsDropping] = useState(false)
   const [hasLeft, setHasLeft] = useState(false)
+  const [removeConfirmPlayer, setRemoveConfirmPlayer] = useState<{ id: string, username: string } | null>(null)
+  const [isRemoving, setIsRemoving] = useState(false)
 
   // Get shareId from params
   useEffect(() => {
@@ -75,6 +78,17 @@ export default function DraftRoomPage({ params }: PageProps) {
 
   const isFormatsDraft = draft?.settings?.draftMode === 'chaos'
   const backPath = isFormatsDraft ? '/formats' : '/draft'
+
+  // Detect when current user is kicked (was a player, now isn't, still in waiting)
+  const wasPlayerRef = useRef(false)
+  useEffect(() => {
+    if (isPlayer) {
+      wasPlayerRef.current = true
+    } else if (wasPlayerRef.current && !isPlayer && status === 'waiting' && !hasLeft && !loading) {
+      wasPlayerRef.current = false
+      router.push(`${backPath}?removed=1`)
+    }
+  }, [isPlayer, status, hasLeft, loading, router, backPath])
 
   // Redirect if draft was deleted
   useEffect(() => {
@@ -299,6 +313,35 @@ export default function DraftRoomPage({ params }: PageProps) {
     }
   }
 
+  const handleRemovePlayer = (userId: string) => {
+    const player = players.find(p => p.id === userId)
+    if (player) {
+      setRemoveConfirmPlayer({ id: player.id, username: player.username || `Player` })
+    }
+  }
+
+  const handleConfirmRemove = async () => {
+    if (!shareId || !removeConfirmPlayer || isRemoving) return
+    setIsRemoving(true)
+    try {
+      const response = await fetch(`/api/draft/${shareId}/remove`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ playerId: removeConfirmPlayer.id }),
+      })
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.message || 'Failed to remove player')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove player')
+    } finally {
+      setIsRemoving(false)
+      setRemoveConfirmPlayer(null)
+    }
+  }
+
   // Loading auth state
   if (authLoading || !shareId) {
     return (
@@ -382,6 +425,7 @@ export default function DraftRoomPage({ params }: PageProps) {
           onAddBot={handleAddBot}
           onSettingsChange={handleSettingsChange}
           onLeave={handleLeave}
+          onRemovePlayer={isHost ? handleRemovePlayer : undefined}
           startingDraft={startingDraft}
           randomizing={randomizing}
           randomizingPacks={randomizingPacks}
@@ -568,6 +612,27 @@ export default function DraftRoomPage({ params }: PageProps) {
           </div>
         )}
       </div>
+
+      {/* Remove Player Confirmation Modal */}
+      <Modal
+        isOpen={!!removeConfirmPlayer}
+        onClose={() => setRemoveConfirmPlayer(null)}
+        title="Remove Player?"
+        variant="danger"
+      >
+        <Modal.Body>
+          <p>Are you sure you want to remove <strong>{removeConfirmPlayer?.username}</strong> from the draft?</p>
+        </Modal.Body>
+        <Modal.Actions>
+          <Button variant="secondary" onClick={() => setRemoveConfirmPlayer(null)} disabled={isRemoving}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleConfirmRemove} disabled={isRemoving}>
+            {isRemoving ? 'Removing...' : 'Remove'}
+          </Button>
+        </Modal.Actions>
+      </Modal>
+
       <ChatPanel shareId={shareId} isHost={isHost} onMakePublic={() => handleSettingsChange({ isPublic: true })} />
     </div>
   )
