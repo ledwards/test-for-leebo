@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation'
 import { generateSealedBox } from '../../../src/utils/boosterPack'
 import { getCachedCards, isCacheInitialized, initializeCardCache } from '../../../src/utils/cardCache'
 import { fetchSetCards } from '../../../src/utils/api'
+import { getBaseSetCode } from '../../../src/utils/carboniteConstants'
 import { savePool } from '../../../src/utils/poolApi'
-import { getPackImageUrl } from '../../../src/utils/packArt'
+import { getCyclingPackImageUrls, getRandomPackImageUrls } from '../../../src/utils/packArt'
 import { nanoid } from 'nanoid'
 import SealedPod from '../../../src/components/SealedPod'
 import PackOpeningAnimation from '../../../src/components/PackOpeningAnimation'
@@ -59,6 +60,7 @@ export default function NewPoolPage() {
   const [setCode, setSetCode] = useState<string | null>(null)
   const [showAnimation, setShowAnimation] = useState(true)
   const [poolReady, setPoolReady] = useState(false)
+  const [packImageUrls, setPackImageUrls] = useState<string[]>([])
 
   useEffect(() => {
     async function createNewPool() {
@@ -88,15 +90,17 @@ export default function NewPoolPage() {
         }
 
         // Load cards for the set - try cache first, then API
+        // Strip -CB suffix for carbonite codes (e.g. 'JTL-CB' -> 'JTL')
+        const baseCode = getBaseSetCode(urlSetCode)
         let cards: CardType[] = []
         if (isCacheInitialized()) {
-          cards = getCachedCards(urlSetCode)
+          cards = getCachedCards(baseCode)
         }
 
         // If no cards from cache, try API
         if (cards.length === 0) {
           try {
-            cards = await fetchSetCards(urlSetCode)
+            cards = await fetchSetCards(baseCode)
           } catch (err) {
             console.error('Failed to fetch cards from API:', err)
           }
@@ -136,6 +140,7 @@ export default function NewPoolPage() {
         // Set pool state - but don't show it yet (wait for animation)
         // Note: Pool is saved when animation completes to capture any randomization
         setPool(poolData)
+        setPackImageUrls(getCyclingPackImageUrls(urlSetCode, 6))
         setPoolReady(true)
         setLoading(false)
       } catch (err) {
@@ -149,7 +154,7 @@ export default function NewPoolPage() {
   }, [router])
 
   const handleBack = () => {
-    router.push('/sets')
+    router.push('/sealed')
   }
 
   const handleAnimationComplete = useCallback(() => {
@@ -179,12 +184,15 @@ export default function NewPoolPage() {
   }, [pool])
 
   const handleRandomize = useCallback(async () => {
-    if (!pool?.boxPacks) return
+    if (!pool?.boxPacks || !pool?.setCode) return
 
     // Generate new random indices from the 24-pack box
     const newIndices = generateRandomIndices(6, pool.boxPacks.length)
     const newPacks = newIndices.map(i => pool.boxPacks![i])
     const newCards = newPacks.flatMap(pack => pack.cards)
+
+    // Randomize pack art variants
+    setPackImageUrls(getRandomPackImageUrls(pool.setCode, 6))
 
     // Update pool state with new packs
     setPool(prev => prev ? {
@@ -193,14 +201,14 @@ export default function NewPoolPage() {
       cards: newCards,
       packIndices: newIndices,
     } : null)
-  }, [pool?.boxPacks])
+  }, [pool?.boxPacks, pool?.setCode])
 
   // Show pack opening animation
   if (showAnimation && setCode) {
     return (
       <PackOpeningAnimation
         packCount={6}
-        packImageUrl={getPackImageUrl(setCode)}
+        packImageUrls={packImageUrls}
         cardBackUrl="/card-images/card-back.png"
         onComplete={handleAnimationComplete}
         setCode={setCode}

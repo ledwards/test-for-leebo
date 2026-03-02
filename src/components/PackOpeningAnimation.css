@@ -429,7 +429,7 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 100;
+  z-index: 300;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -575,11 +575,6 @@
     background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 300% auto;
   }
 
-  /* Hide desktop packs row on mobile */
-  .packs-row {
-    display: none;
-  }
-
   .pack-wrapper,
   .pack-item {
     width: 80px;
@@ -632,11 +627,21 @@
   }
 }
 
-/* Hide carousel on desktop */
-@media (min-width: 769px) {
-  .packs-carousel {
-    display: none;
-  }
+/* Desktop carousel - larger packs, below cards area */
+.packs-carousel.desktop {
+  bottom: 160px;
+}
+
+.packs-carousel.desktop .pack-item-mobile {
+  width: 120px;
+  height: 168px;
+  transform: translateX(calc(var(--offset) * 110px))
+             scale(calc(1 - var(--abs-offset) * 0.15))
+             rotateY(calc(var(--offset) * -15deg));
+}
+
+.packs-carousel.desktop .pack-item-mobile.active {
+  transform: translateX(0) scale(1.1) rotateY(0deg);
 }
 
 /* Reduced motion preference */

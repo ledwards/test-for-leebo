@@ -47,7 +47,7 @@ describe('/beta page', () => {
       assert.strictEqual(enrollCalled, true)
     })
 
-    it('should redirect to /sets on success', async () => {
+    it('should redirect to /sealed on success', async () => {
       let redirectPath: string | null = null
       const router = {
         push: (path: string) => { redirectPath = path }
@@ -55,10 +55,10 @@ describe('/beta page', () => {
 
       const success = true
       if (success) {
-        router.push('/sets')
+        router.push('/sealed')
       }
 
-      assert.strictEqual(redirectPath, '/sets')
+      assert.strictEqual(redirectPath, '/sealed')
     })
 
     it('should not redirect on failure', async () => {
@@ -69,7 +69,7 @@ describe('/beta page', () => {
 
       const success = false
       if (success) {
-        router.push('/sets')
+        router.push('/sealed')
       }
 
       assert.strictEqual(redirectPath, null)

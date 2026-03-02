@@ -7,6 +7,7 @@ import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { getPackArtUrl } from '@/src/utils/packArt'
 import { jsonParse } from '@/src/utils/json'
 import { broadcastSealedPodState, broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
+import { deletePodMessage } from '@/lib/discordLfg'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {
@@ -105,6 +106,9 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
     if (pod.host_id !== session.id) {
       return errorResponse('Only the host can delete the sealed pod', 403)
     }
+
+    // Discord LFG: delete pod message (fire-and-forget)
+    deletePodMessage({ id: pod.id, share_id: '', set_code: '', set_name: '', name: null, max_players: 0, current_players: 0, pod_type: 'sealed' }).catch(() => {})
 
     // Delete associated card_pools
     await query('DELETE FROM card_pools WHERE pod_id = $1', [pod.id])

@@ -34,15 +34,47 @@ export default function PlayInstructions({
   messageType = null,
   showActions = true,
 }: PlayInstructionsProps) {
+  const inPod = poolType === 'draft' || poolType === 'sealed_pod'
+
   return (
     <div className="play-instructions">
       <h2>Ready to Play!</h2>
       <p>Your deck is ready. Here's how to get started:</p>
 
       <div className="play-steps">
-        {/* Step 1: Copy Your Deck */}
+        {/* Step 1: Find / Message Your Opponent */}
         <div className="play-step">
           <span className="step-number">1</span>
+          <div className="step-content">
+            {inPod ? (
+              hasBye ? (
+                <>
+                  <h3>You Have a Bye</h3>
+                  <p>You have a bye this round. Take a break or practice!</p>
+                </>
+              ) : opponentName ? (
+                <>
+                  <h3>Contact Your Opponent</h3>
+                  <p>Your opponent is <strong>{opponentName}</strong>. Reach out to them to coordinate your match!</p>
+                </>
+              ) : (
+                <>
+                  <h3>Coordinate With Your Pod</h3>
+                  <p>Reach out to your podmates to set up your match.</p>
+                </>
+              )
+            ) : (
+              <>
+                <h3>Find an Opponent</h3>
+                <p>Find an opponent in the <a href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">Protect the Pod Discord</a> or play against someone you know.</p>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Step 2: Copy Your Deck */}
+        <div className="play-step">
+          <span className="step-number">2</span>
           <div className="step-content">
             <h3>Copy Your Deck:
               {onCopyLink && (
@@ -68,25 +100,6 @@ export default function PlayInstructions({
           </div>
         </div>
 
-        {/* Step 2: Find Your Opponent */}
-        <div className="play-step">
-          <span className="step-number">2</span>
-          <div className="step-content">
-            <h3>Find Your Opponent</h3>
-            {(poolType === 'draft' || poolType === 'sealed_pod') ? (
-              hasBye ? (
-                <p>You have a bye this round.</p>
-              ) : opponentName ? (
-                <p>Your first round opponent is <strong>{opponentName}</strong>. Reach out to them on Discord to schedule your match!</p>
-              ) : (
-                <p>Find an opponent in the <a href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">Protect the Pod Discord</a> or play against someone you know.</p>
-              )
-            ) : (
-              <p>Find an opponent in the <a href={DISCORD_INVITE_URL} target="_blank" rel="noopener noreferrer">Protect the Pod Discord</a> or play against someone you know.</p>
-            )}
-          </div>
-        </div>
-
         {/* Step 3: Play on Karabast */}
         <div className="play-step">
           <span className="step-number">3</span>
@@ -95,6 +108,17 @@ export default function PlayInstructions({
             <p>Go to <a href="https://karabast.net" target="_blank" rel="noopener noreferrer">karabast.net</a> and paste your deck link or JSON. Create a <strong>Private Lobby</strong> with <strong>Open</strong> format and <strong>Mainboard minimum size of 30</strong>.</p>
           </div>
         </div>
+
+        {/* Step 4: Pod next steps (only in pod context) */}
+        {inPod && (
+          <div className="play-step">
+            <span className="step-number">4</span>
+            <div className="step-content">
+              <h3>Keep Playing</h3>
+              <p>Organize future pairings in your pod if you want to keep playing, or save your deck for later.</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Action buttons */}

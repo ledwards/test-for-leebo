@@ -4,27 +4,15 @@
 import { useState, useEffect } from 'react'
 import '../src/App.css'
 import LandingPage from '../src/components/LandingPage'
-import SetSelection from '../src/components/SetSelection'
-import SealedPod from '../src/components/SealedPod'
-import DeckBuilder from '../src/components/DeckBuilder'
 import TermsOfService from '../src/components/TermsOfService'
 import PrivacyPolicy from '../src/components/PrivacyPolicy'
 import About from '../src/components/About'
 import { initializeCardCache } from '../src/utils/cardCache'
 
-interface CardType {
-  id?: string
-  name?: string
-  [key: string]: unknown
-}
-
-type ViewType = 'landing' | 'set-selection' | 'sealed-pod' | 'deck-builder' | 'terms-of-service' | 'privacy-policy' | 'about'
+type ViewType = 'landing' | 'terms-of-service' | 'privacy-policy' | 'about'
 
 export default function Home() {
   const [view, setView] = useState<ViewType>('landing')
-  const [selectedSet, setSelectedSet] = useState<string | null>(null)
-  const [deckCards, setDeckCards] = useState<CardType[]>([])
-  const [showWarning, setShowWarning] = useState(false)
 
   // Preload all cards on initial page load
   useEffect(() => {
@@ -33,7 +21,7 @@ export default function Home() {
     })
   }, [])
 
-  // Handle URL-based routing for legal pages and set selection
+  // Handle URL-based routing for legal pages
   useEffect(() => {
     const path = window.location.pathname
     if (path === '/terms-of-service') {
@@ -43,7 +31,8 @@ export default function Home() {
     } else if (path === '/about') {
       setView('about')
     } else if (path === '/sets') {
-      setView('set-selection')
+      // Redirect /sets to /sealed
+      window.location.href = '/sealed'
     }
   }, [])
 
@@ -58,7 +47,7 @@ export default function Home() {
       } else if (path === '/about') {
         setView('about')
       } else if (path === '/sets') {
-        setView('set-selection')
+        window.location.href = '/sealed'
       } else if (path === '/' || path === '') {
         setView('landing')
       }
@@ -67,136 +56,15 @@ export default function Home() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  // Load persisted sealed pod from sessionStorage on mount
-  useEffect(() => {
-    const savedSealedPod = sessionStorage.getItem('sealedPod')
-    if (savedSealedPod) {
-      try {
-        const data = JSON.parse(savedSealedPod)
-        setSelectedSet(data.setCode)
-      } catch (e) {
-        console.error('Failed to load saved sealed pod:', e)
-      }
-    }
-  }, [])
-
-  const handleSoloClick = () => {
-    window.location.href = '/solo'
-  }
-
-  const handlePodClick = () => {
-    window.location.href = '/multiplayer'
-  }
-
-  const handleSealedClick = () => {
-    window.location.href = '/sets'
-  }
-
-  const handleDraftClick = () => {
-    window.location.href = '/draft'
-  }
-
-  const handleOtherFormatsClick = () => {
-    window.location.href = '/formats'
-  }
-
-  const handleSetSelect = (setCode: string) => {
-    // Navigate to create a new pool for this set
-    window.location.href = `/pools/new?set=${setCode}`
-  }
-
   const handleBack = () => {
-    if (view === 'terms-of-service' || view === 'privacy-policy' || view === 'about') {
-      window.history.pushState({}, '', '/')
-      setView('landing')
-    } else if (view === 'deck-builder') {
-      setView('sealed-pod')
-    } else if (view === 'sealed-pod') {
-      const savedSealedPod = sessionStorage.getItem('sealedPod')
-      if (savedSealedPod) {
-        setShowWarning(true)
-      } else {
-        setView('set-selection')
-        setSelectedSet(null)
-      }
-    } else if (view === 'set-selection') {
-      sessionStorage.removeItem('sealedPod')
-      sessionStorage.removeItem('deckBuilderState')
-      setDeckCards([])
-      setSelectedSet(null)
-      setView('landing')
-    }
-  }
-
-  const handleConfirmBack = () => {
-    sessionStorage.removeItem('sealedPod')
-    sessionStorage.removeItem('deckBuilderState')
-    setView('set-selection')
-    setSelectedSet(null)
-    setShowWarning(false)
-  }
-
-  const handleCancelBack = () => {
-    setShowWarning(false)
-  }
-
-  const handleBuildDeck = (cards: CardType[], setCode: string) => {
-    sessionStorage.removeItem('deckBuilderState')
-    setDeckCards(cards)
-    setSelectedSet(setCode)
-    setView('deck-builder')
-  }
-
-  const handleSealedPodGenerated = (packs: unknown[], setCode: string) => {
-    sessionStorage.setItem('sealedPod', JSON.stringify({
-      setCode,
-      packs,
-      timestamp: Date.now()
-    }))
+    window.history.pushState({}, '', '/')
+    setView('landing')
   }
 
   return (
     <div className="app">
-      {showWarning && (
-        <div className="warning-modal-overlay" onClick={handleCancelBack}>
-          <div className="warning-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Warning</h2>
-            <p>Going back will lose your current sealed pod and regenerate a new one. Are you sure you want to continue?</p>
-            <div className="warning-modal-buttons">
-              <button className="warning-button confirm" onClick={handleConfirmBack}>
-                Yes, Go Back
-              </button>
-              <button className="warning-button cancel" onClick={handleCancelBack}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {view === 'landing' && (
-        <LandingPage
-          onSoloClick={handleSoloClick}
-          onPodClick={handlePodClick}
-        />
-      )}
-      {view === 'set-selection' && (
-        <SetSelection onSetSelect={handleSetSelect} onBack={handleBack} />
-      )}
-      {view === 'sealed-pod' && selectedSet && (
-        <SealedPod
-          setCode={selectedSet}
-          onBack={handleBack}
-          onBuildDeck={handleBuildDeck}
-          onPacksGenerated={handleSealedPodGenerated}
-        />
-      )}
-      {view === 'deck-builder' && deckCards.length > 0 && selectedSet && (
-        <DeckBuilder
-          cards={deckCards}
-          setCode={selectedSet}
-          onBack={handleBack}
-          savedState={sessionStorage.getItem('deckBuilderState')}
-        />
+        <LandingPage />
       )}
       {view === 'terms-of-service' && (
         <TermsOfService onBack={handleBack} />

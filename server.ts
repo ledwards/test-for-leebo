@@ -5,8 +5,9 @@ import { createServer, IncomingMessage, ServerResponse } from 'http'
 import { spawn } from 'child_process'
 import next from 'next'
 import { Server } from 'socket.io'
-import { query } from './lib/db.js'
+import { query, queryRow } from './lib/db.js'
 import { broadcastPublicPodsUpdate } from './src/lib/socketBroadcast.js'
+import { postUserMessageForPod, postLobbyMessage } from './lib/discordLfg.js'
 
 declare global {
   var io: Server | undefined
@@ -127,7 +128,13 @@ app.prepare().then(() => {
   io.on('connection', (socket) => {
     console.log('[DEBUG] Socket.io client connected:', socket.id)
 
-    // Presence tracking
+    // Presence tracking - subscribe to count updates (no userId needed)
+    socket.on('presence:subscribe', () => {
+      socket.join('presence')
+      socket.emit('presence:count', { count: presenceMap.size })
+    })
+
+    // Presence tracking - join as a counted user (requires userId)
     socket.on('presence:join', (userId: string) => {
       if (!userId) return
       socket.join('presence')
@@ -170,6 +177,67 @@ app.prepare().then(() => {
 
     socket.on('leave-sealed', (shareId: string) => {
       socket.leave(`sealed:${shareId}`)
+    })
+
+    // Chat room handlers
+    socket.on('join-chat', (shareId: string) => {
+      socket.join(`chat:${shareId}`)
+    })
+
+    socket.on('leave-chat', (shareId: string) => {
+      socket.leave(`chat:${shareId}`)
+    })
+
+    socket.on('chat:send', async (data: { shareId: string; text: string; username: string; avatarUrl: string | null }) => {
+      const { shareId, text, username, avatarUrl } = data
+      if (!shareId || !text || !username) return
+
+      const message = {
+        username,
+        avatarUrl,
+        text,
+        timestamp: new Date().toISOString(),
+        isSystem: false,
+      }
+
+      // Broadcast to all web clients in the chat room
+      io.to(`chat:${shareId}`).emit('chat:message', message)
+
+      // Post to Discord thread (fire-and-forget) — Discord is the persistence layer
+      postUserMessageForPod(shareId, username, avatarUrl, text).catch(() => {})
+    })
+
+    // Lobby chat room handlers (channel-level, mirrors #draft-now / #sealed-now)
+    socket.on('join-lobby-chat', (lobbyType: string) => {
+      if (lobbyType === 'draft' || lobbyType === 'sealed') {
+        socket.join(`lobby-chat:${lobbyType}`)
+      }
+    })
+
+    socket.on('leave-lobby-chat', (lobbyType: string) => {
+      if (lobbyType === 'draft' || lobbyType === 'sealed') {
+        socket.leave(`lobby-chat:${lobbyType}`)
+      }
+    })
+
+    socket.on('lobby-chat:send', async (data: { lobbyType: string; text: string; username: string; avatarUrl: string | null }) => {
+      const { lobbyType, text, username, avatarUrl } = data
+      if (!lobbyType || !text || !username) return
+      if (lobbyType !== 'draft' && lobbyType !== 'sealed') return
+
+      const message = {
+        username,
+        avatarUrl,
+        text,
+        timestamp: new Date().toISOString(),
+        isSystem: false,
+      }
+
+      // Broadcast to all web clients in the lobby chat room
+      io.to(`lobby-chat:${lobbyType}`).emit('lobby-chat:message', message)
+
+      // Post to Discord channel (fire-and-forget)
+      postLobbyMessage(lobbyType as 'draft' | 'sealed', username, avatarUrl, text).catch(() => {})
     })
 
     socket.on('join-public-pods', () => {

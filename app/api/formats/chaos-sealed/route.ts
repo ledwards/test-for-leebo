@@ -3,9 +3,10 @@
 import { query } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { generateShareId, formatSetCodeRange } from '@/lib/utils'
-import { jsonResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
+import { jsonResponse, errorResponse, parseBody, validateRequired, handleApiError } from '@/lib/utils'
 import { getSetConfig } from '@/src/utils/setConfigs/index'
 import { generateBoosterPack } from '@/src/utils/boosterPack'
+import { isCarboniteCode, getBaseSetCode, isCarboniteSupported } from '@/src/utils/carboniteConstants'
 import { initializeCardCache } from '@/src/utils/cardCache'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -20,17 +21,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const { setCodes } = body
 
-    // Validate exactly 6 sets
-    if (!Array.isArray(setCodes) || setCodes.length !== 6) {
-      return jsonResponse({ error: 'Must select exactly 6 sets' }, 400)
+    // Validate pack count (1-12)
+    if (!Array.isArray(setCodes) || setCodes.length < 1 || setCodes.length > 12) {
+      return errorResponse('Must select between 1 and 12 packs', 400)
     }
 
     // Validate all sets exist
     const setConfigs = []
     for (const setCode of setCodes) {
-      const setConfig = getSetConfig(setCode)
+      const baseCode = isCarboniteCode(setCode) ? getBaseSetCode(setCode) : setCode
+      const setConfig = getSetConfig(baseCode)
       if (!setConfig) {
-        return jsonResponse({ error: `Invalid set code: ${setCode}` }, 400)
+        return errorResponse(`Invalid set code: ${setCode}`, 400)
+      }
+      // Validate Carbonite is only for supported sets
+      if (isCarboniteCode(setCode) && !isCarboniteSupported(baseCode)) {
+        return errorResponse(`Carbonite not available for ${baseCode}`, 400)
       }
       setConfigs.push(setConfig)
     }
@@ -38,11 +44,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Initialize card cache (needed for server-side pack generation)
     await initializeCardCache()
 
-    // Generate 6 packs (1 from each set)
+    // Generate packs (1 from each selected set)
     const packs = []
     const allCards = []
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < setCodes.length; i++) {
       const setCode = setCodes[i]
       const pack = generateBoosterPack([], setCode)
       packs.push({
@@ -61,8 +67,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const month = String(now.getMonth() + 1).padStart(2, '0')
     const day = String(now.getDate()).padStart(2, '0')
     const year = now.getFullYear()
-    const setRange = formatSetCodeRange(setCodes)
-    const defaultName = `Chaos Sealed (${setRange}) ${month}/${day}/${year}`
+    const uniqueSets = [...new Set(setCodes)]
+    const setLabel = uniqueSets.length <= 3
+      ? formatSetCodeRange(setCodes)
+      : `${setCodes.length} packs / ${uniqueSets.length} sets`
+    const defaultName = `Chaos Sealed (${setLabel}) ${month}/${day}/${year}`
 
     // Insert into card_pools table
     // cards column = flat array of all cards
@@ -75,7 +84,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         userId,
         shareId,
         setCodes.join(','),
-        `Chaos Sealed (${setRange})`,
+        `Chaos Sealed (${setLabel})`,
         'chaos_sealed',
         defaultName,
         JSON.stringify(allCards),

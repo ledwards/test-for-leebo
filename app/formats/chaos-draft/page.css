@@ -35,6 +35,60 @@
   margin-bottom: 2rem;
 }
 
+.pack-count-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  vertical-align: middle;
+}
+
+button.pack-count-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  min-height: 22px !important;
+  max-width: 22px !important;
+  max-height: 22px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  padding: 0 !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pack-count-minus:hover:not(:disabled) {
+    background: rgba(255, 50, 50, 0.35) !important;
+    border-color: rgba(255, 80, 80, 0.6) !important;
+  }
+  .pack-count-plus:hover:not(:disabled) {
+    background: rgba(50, 205, 50, 0.3) !important;
+    border-color: rgba(80, 220, 80, 0.6) !important;
+  }
+}
+
+button.pack-count-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.pack-count-value {
+  display: inline-block;
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: white;
+}
+
 .chaos-draft-section {
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.2);

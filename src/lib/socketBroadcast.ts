@@ -356,6 +356,24 @@ export async function broadcastPublicPodsUpdate(): Promise<void> {
 }
 
 /**
+ * Broadcast a system chat message to all clients in a pod's chat room.
+ * Used for event notifications (join, leave, rename, start) so they
+ * appear in both Discord threads and the web chat panel.
+ */
+export function broadcastSystemChatMessage(shareId: string, text: string): void {
+  const io = global.io
+  if (!io) return
+
+  io.to(`chat:${shareId}`).emit('chat:message', {
+    username: 'System',
+    avatarUrl: null,
+    text,
+    timestamp: new Date().toISOString(),
+    isSystem: true,
+  })
+}
+
+/**
  * Broadcast rotisserie draft state to all connected clients.
  * @param shareId - Rotisserie draft share ID
  */

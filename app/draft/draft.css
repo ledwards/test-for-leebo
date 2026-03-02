@@ -1326,6 +1326,35 @@
   }
 }
 
+/* Creation page visibility toggle (inline with set selection header) */
+.set-selection-header .setting-lock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.set-selection-header .setting-lock svg {
+  flex-shrink: 0;
+}
+
+.set-selection-header .setting-lock-open {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.set-selection-header .setting-lock-closed {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+}
+
 /* Skeleton loading styles */
 .skeleton-box {
   background: linear-gradient(90deg, rgba(40, 40, 45, 1) 0%, rgba(60, 60, 65, 1) 50%, rgba(40, 40, 45, 1) 100%);

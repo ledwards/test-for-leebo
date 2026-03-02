@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, type MouseEvent } from 'react'
 import './SealedPod.css'
 import { getCachedCards, isCacheInitialized } from '../utils/cardCache'
 import { fetchSetCards } from '../utils/api'
+import { getBaseSetCode } from '../utils/carboniteConstants'
 import { generateSealedPod } from '../utils/boosterPack'
 import { savePool, updatePool } from '../utils/poolApi'
 import { useAuth } from '../contexts/AuthContext'
@@ -115,14 +116,16 @@ function SealedPod({ setCode, onBack, onBuildDeck, onPacksGenerated, initialPack
         setLoading(true)
 
         // First try to get from cache (fast, no loading)
+        // Strip -CB suffix for carbonite codes (e.g. 'JTL-CB' -> 'JTL')
+        const baseCode = getBaseSetCode(setCode)
         let cardsData: Card[] = []
         if (isCacheInitialized()) {
-          cardsData = getCachedCards(setCode)
+          cardsData = getCachedCards(baseCode)
         }
 
         // If cache doesn't have cards, try API as fallback
         if (cardsData.length === 0) {
-          cardsData = await fetchSetCards(setCode)
+          cardsData = await fetchSetCards(baseCode)
         }
 
         if (cardsData.length === 0) {

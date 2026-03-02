@@ -120,7 +120,7 @@ export default function SealedPoolPage({ params }: PageProps) {
   useEffect(() => {
     if (error && !loading && !pool) {
       const timer = setTimeout(() => {
-        window.location.href = '/sets'
+        window.location.href = '/sealed'
       }, 2000)
       return () => clearTimeout(timer)
     }

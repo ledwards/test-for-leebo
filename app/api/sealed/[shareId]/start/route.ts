@@ -7,7 +7,8 @@ import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { generateSealedBox, clearBeltCache } from '@/src/utils/boosterPack'
 import { initializeCardCache } from '@/src/utils/cardCache'
 import { computeRandomPairings } from '@/src/utils/podPairings'
-import { broadcastSealedPodState, broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
+import { broadcastSealedPodState, broadcastPublicPodsUpdate, broadcastSystemChatMessage } from '@/src/lib/socketBroadcast'
+import { markPodStarted } from '@/lib/discordLfg'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {
@@ -129,6 +130,20 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     broadcastPublicPodsUpdate().catch(err => {
       console.error('Error broadcasting public pods update:', err)
     })
+
+    // Broadcast start to web chat
+    const podLabel = pod.name || `${pod.set_name} Sealed`
+    broadcastSystemChatMessage(shareId, `🚀 **${podLabel}** has started! Good luck everyone!`)
+
+    // Discord LFG: mark pod as started (fire-and-forget)
+    if (pod.is_public) {
+      const hostPlayer = players.find(p => p.user_id === pod.host_id)
+      markPodStarted(
+        { ...pod, current_players: players.length, pod_type: 'sealed' },
+        hostPlayer?.username || 'Host',
+        players.map(p => p.username)
+      ).catch(() => {})
+    }
 
     return jsonResponse({ message: 'Sealed pod started', status: 'complete' })
   } catch (error) {

@@ -40,6 +40,31 @@ export async function isPatron(discordId: string): Promise<boolean> {
 }
 
 /**
+ * Check if a Discord user is a member of the server.
+ * Returns false gracefully if env vars are not configured or API is unavailable.
+ */
+export async function isGuildMember(discordId: string): Promise<boolean> {
+  if (!BOT_TOKEN || !GUILD_ID) {
+    return false
+  }
+
+  try {
+    const response = await fetch(
+      `https://discord.com/api/v10/guilds/${GUILD_ID}/members/${discordId}`,
+      {
+        headers: {
+          Authorization: `Bot ${BOT_TOKEN}`,
+        },
+      }
+    )
+
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
+/**
  * Add a role to a Discord user in the server.
  * Returns true if successful, false on any error.
  */

@@ -3,7 +3,8 @@
 import { query, queryRow, queryRows } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
-import { broadcastSealedPodState, broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
+import { broadcastSealedPodState, broadcastPublicPodsUpdate, broadcastSystemChatMessage } from '@/src/lib/socketBroadcast'
+import { postPlayerJoined, updatePodEmbed } from '@/lib/discordLfg'
 import { findSpreadSeat } from '@/src/utils/seatAssignment'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -90,6 +91,36 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
     broadcastPublicPodsUpdate().catch(err => {
       console.error('Error broadcasting public pods update:', err)
     })
+
+    // Broadcast join to web chat
+    broadcastSystemChatMessage(shareId, `📥 **${session.username}** joined the pod.`)
+
+    // Discord LFG: post join message + update embed (fire-and-forget)
+    if (pod.is_public && pod.discord_thread_id) {
+      postPlayerJoined(pod.discord_thread_id, session.username).catch(err => {
+        console.error('[Sealed Join] Error posting player joined to Discord:', err)
+      })
+      Promise.all([
+        queryRow('SELECT username FROM users WHERE id = $1', [pod.host_id]),
+        queryRows(
+          `SELECT u.username FROM pod_players pp JOIN users u ON pp.user_id = u.id WHERE pp.pod_id = $1 ORDER BY pp.seat_number`,
+          [pod.id]
+        ),
+      ]).then(([hostRow, updatedPlayers]) => {
+        const hostName = hostRow?.username || 'Host'
+        updatePodEmbed(
+          { ...pod, current_players: pod.current_players + 1 },
+          hostName,
+          updatedPlayers.map((p: { username: string }) => p.username)
+        ).catch(err => {
+          console.error('[Sealed Join] Error updating pod embed:', err)
+        })
+      }).catch(err => {
+        console.error('[Sealed Join] Error fetching players for embed update:', err)
+      })
+    } else if (pod.is_public && !pod.discord_thread_id) {
+      console.warn('[Sealed Join] Pod is public but has no discord_thread_id — postPodCreated may have failed')
+    }
 
     return jsonResponse({
       message: 'Joined sealed pod',
