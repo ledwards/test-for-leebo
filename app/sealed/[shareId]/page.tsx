@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { useSealedPodSocket } from '../../../src/hooks/useSealedPodSocket'
@@ -12,6 +12,7 @@ import SealedPodLobby from '../../../src/components/SealedPodLobby'
 import PackOpeningAnimation from '../../../src/components/PackOpeningAnimation'
 import SealedPod from '../../../src/components/SealedPod'
 import Button from '../../../src/components/Button'
+import Modal from '../../../src/components/Modal'
 import ChatPanel from '../../../src/components/ChatPanel'
 import '../../../src/App.css'
 import '../../draft/draft.css'
@@ -35,6 +36,9 @@ export default function SealedPodPage({ params }: PageProps) {
   const [starting, setStarting] = useState(false)
   const [hasLeft, setHasLeft] = useState(false)
 
+  const [removeConfirmPlayer, setRemoveConfirmPlayer] = useState<{ id: string, username: string } | null>(null)
+  const [isRemoving, setIsRemoving] = useState(false)
+
   // Post-start state
   const [postStartPhase, setPostStartPhase] = useState<PostStartPhase | null>(null)
   const [poolShareId, setPoolShareId] = useState<string | null>(null)
@@ -52,6 +56,17 @@ export default function SealedPodPage({ params }: PageProps) {
     deleted,
     refresh,
   } = useSealedPodSocket(shareId, { enabled: !!shareId && isAuthenticated })
+
+  // Detect when current user is kicked (was a player, now isn't, still in waiting)
+  const wasPlayerRef = useRef(false)
+  useEffect(() => {
+    if (pod?.isPlayer) {
+      wasPlayerRef.current = true
+    } else if (wasPlayerRef.current && !pod?.isPlayer && pod?.status === 'waiting' && !hasLeft && !loading) {
+      wasPlayerRef.current = false
+      router.push('/?removed=1')
+    }
+  }, [pod?.isPlayer, pod?.status, hasLeft, loading, router])
 
   // Redirect if pod was deleted
   useEffect(() => {
@@ -175,18 +190,33 @@ export default function SealedPodPage({ params }: PageProps) {
     }
   }
 
-  const handleRemovePlayer = async (userId: string) => {
-    if (!shareId) return
+  const handleRemovePlayer = (userId: string) => {
+    const player = (pod?.players || []).find((p: { id: string }) => p.id === userId)
+    if (player) {
+      setRemoveConfirmPlayer({ id: player.id, username: player.username || 'Player' })
+    }
+  }
+
+  const handleConfirmRemove = async () => {
+    if (!shareId || !removeConfirmPlayer || isRemoving) return
+    setIsRemoving(true)
     try {
-      await fetch(`/api/sealed/${shareId}/remove`, {
+      const response = await fetch(`/api/sealed/${shareId}/remove`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ playerId: removeConfirmPlayer.id }),
       })
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.message || 'Failed to remove player')
+      }
       await refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove player')
+    } finally {
+      setIsRemoving(false)
+      setRemoveConfirmPlayer(null)
     }
   }
 
@@ -336,6 +366,26 @@ export default function SealedPodPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+      {/* Remove Player Confirmation Modal */}
+      <Modal
+        isOpen={!!removeConfirmPlayer}
+        onClose={() => setRemoveConfirmPlayer(null)}
+        title="Remove Player?"
+        variant="danger"
+      >
+        <Modal.Body>
+          <p>Are you sure you want to remove <strong>{removeConfirmPlayer?.username}</strong> from the pod?</p>
+        </Modal.Body>
+        <Modal.Actions>
+          <Button variant="secondary" onClick={() => setRemoveConfirmPlayer(null)} disabled={isRemoving}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleConfirmRemove} disabled={isRemoving}>
+            {isRemoving ? 'Removing...' : 'Remove'}
+          </Button>
+        </Modal.Actions>
+      </Modal>
+
       <ChatPanel shareId={shareId} isHost={!!pod?.isHost} onMakePublic={() => handleSettingsChange({ isPublic: true })} />
     </div>
   )
