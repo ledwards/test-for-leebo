@@ -98,18 +98,25 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
 
   // Create array of seats (filled or empty)
   let seats: Seat[] = []
-  for (let i = 1; i <= maxPlayers; i++) {
-    const player = players.find(p => p.seatNumber === i)
-    seats.push({
-      seatNumber: i,
-      player,
-      isCurrentUser: player?.id === currentUserId,
-    })
-  }
-
-  // Filter to only filled seats if hideEmptySeats is true
   if (hideEmptySeats) {
-    seats = seats.filter(seat => seat.player)
+    // Build seats from actual players — handles players in seats beyond maxPlayers
+    seats = players
+      .slice()
+      .sort((a, b) => a.seatNumber - b.seatNumber)
+      .map(p => ({
+        seatNumber: p.seatNumber,
+        player: p,
+        isCurrentUser: p.id === currentUserId,
+      }))
+  } else {
+    for (let i = 1; i <= maxPlayers; i++) {
+      const player = players.find(p => p.seatNumber === i)
+      seats.push({
+        seatNumber: i,
+        player,
+        isCurrentUser: player?.id === currentUserId,
+      })
+    }
   }
 
   // Calculate position on circle

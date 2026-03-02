@@ -105,6 +105,8 @@ export function useSealedPodSocket(
       setConnected(true)
       setError(null)
       socket.emit('join-sealed', shareId)
+      // Refresh to catch any broadcasts missed between initial fetch and socket connection
+      fetchPod(false)
     })
 
     socket.on('disconnect', () => {
