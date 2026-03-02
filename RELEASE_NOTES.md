@@ -2,6 +2,9 @@
 
 ## 03.02.2026
 
+### 📱 Mobile
+- **Chat starts collapsed**: Chat overlay no longer opens automatically on mobile. Tap outside or the close button to dismiss.
+
 ### 🐞 Bug Fixes
 - **Chaos sealed/draft naming**: Pool names now show unique sets only (e.g. "SOR-TWI" instead of "SOR, SOR, SHD, SHD, TWI, TWI") and use range format for consecutive sets.
 - **Pack opening animation**: Booster pack images are no longer clipped during the opening animation.
