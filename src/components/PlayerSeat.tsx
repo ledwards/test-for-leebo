@@ -26,6 +26,8 @@ export interface PlayerSeatProps {
   statusColor?: string | null
   isPatron?: boolean
   isHost?: boolean
+  isHostViewing?: boolean
+  onRemove?: () => void
 }
 
 function PlayerSeat({
@@ -37,6 +39,8 @@ function PlayerSeat({
   statusColor = null,
   isPatron = false,
   isHost = false,
+  isHostViewing = false,
+  onRemove,
 }: PlayerSeatProps) {
   // Status colors
   const getStatusColor = (status?: string): string => {
@@ -68,12 +72,24 @@ function PlayerSeat({
 
   const displayName = isCurrentUser ? 'You' : player?.username || `Player ${seatNumber}`
 
+  const showRemove = isHostViewing && onRemove && !isCurrentUser && !!player
+
   return (
     <div className={`player-seat ${isCurrentUser ? 'current-user' : ''}`}>
       <div
         className="seat-avatar"
         style={{ borderColor }}
       >
+        {showRemove && (
+          <button
+            className="seat-remove-btn"
+            onClick={(e) => { e.stopPropagation(); onRemove() }}
+            title="Remove player"
+            aria-label="Remove player"
+          >
+            ✕
+          </button>
+        )}
         <UserAvatar
           src={player?.avatarUrl}
           alt={player?.username}

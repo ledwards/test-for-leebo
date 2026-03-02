@@ -154,6 +154,44 @@
   object-fit: contain;
 }
 
+/* Remove player button - visible on hover only (desktop) */
+.seat-remove-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #d32f2f;
+  color: white;
+  border: 2px solid white;
+  outline: none;
+  font-size: 11px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  padding: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .player-seat:hover .seat-remove-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .seat-remove-btn:hover {
+    background: #f44336;
+    border-color: #1a1a1a;
+    transform: scale(1.1);
+  }
+}
+
 @media (max-width: 768px) {
   /* Hide name below avatar on mobile - name shows in leader info area instead */
   .seat-name {

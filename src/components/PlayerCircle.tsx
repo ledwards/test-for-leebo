@@ -51,6 +51,7 @@ export interface PlayerCircleProps {
   passDirection?: 'left' | 'right' | null
   leaderRound?: number
   hostId?: string
+  onRemovePlayer?: (userId: string) => void
 }
 
 /**
@@ -58,7 +59,7 @@ export interface PlayerCircleProps {
  * Current user is always at the bottom (6 o'clock)
  * Other players arranged clockwise from bottom-left
  */
-function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = false, draft, hideEmptySeats = false, showLeaderInfo = false, passDirection = null, leaderRound = 1, hostId }: PlayerCircleProps) {
+function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = false, draft, hideEmptySeats = false, showLeaderInfo = false, passDirection = null, leaderRound = 1, hostId, onRemovePlayer }: PlayerCircleProps) {
   const { isPatron } = useAuth()
   const [hoveredLeaderPreview, setHoveredLeaderPreview] = useState<Leader | null>(null)
   const previewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -450,14 +451,13 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
 
         {/* Player seats - middle ring */}
         {seats.map((seat, index) => {
-          const displayPosition = getDisplayPosition(seat.seatNumber)
-          const positionStyle = hideEmptySeats ? getPositionStyle(index, seats.length, seatRadius) : null
+          const positionStyle = getPositionStyle(index, seats.length, seatRadius)
 
           return (
             <div
               key={`seat-${seat.seatNumber}`}
-              className={`seat-wrapper ${!hideEmptySeats ? getPositionClass(displayPosition) : ''}`}
-              style={positionStyle || undefined}
+              className="seat-wrapper"
+              style={positionStyle}
             >
               <PlayerSeat
                 player={seat.player}
@@ -467,6 +467,8 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
                 showStatus={showStatus}
                 isPatron={seat.isCurrentUser && isPatron}
                 isHost={!!hostId && seat.player?.id === hostId}
+                isHostViewing={!!onRemovePlayer}
+                onRemove={seat.player && onRemovePlayer ? () => onRemovePlayer(seat.player.id) : undefined}
               />
             </div>
           )

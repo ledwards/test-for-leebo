@@ -38,6 +38,7 @@ interface DraftLobbyProps {
   onAddBot: () => void
   onSettingsChange: (settings: unknown) => void
   onLeave: () => void
+  onRemovePlayer?: (userId: string) => void
   startingDraft: boolean
   randomizing: boolean
   randomizingPacks?: boolean
@@ -57,6 +58,7 @@ function DraftLobby({
   onAddBot,
   onSettingsChange,
   onLeave,
+  onRemovePlayer,
   startingDraft,
   randomizing,
   randomizingPacks,
@@ -89,7 +91,8 @@ function DraftLobby({
             currentUserId={draft?.myPlayer?.id}
             enableTooltip={false}
             hostId={draft?.host?.id}
-            hideEmptySeats={true}
+            hideEmptySeats={false}
+            onRemovePlayer={onRemovePlayer}
           />
           <p className="player-count">
             {players.length} / {maxPlayers} players
