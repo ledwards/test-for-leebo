@@ -39,6 +39,14 @@ export default function DraftLandingPage() {
   const router = useRouter()
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [error, setError] = useState<string | null>(null)
+  const [wasRemoved, setWasRemoved] = useState(false)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('removed') === '1') {
+      setWasRemoved(true)
+    }
+  }, [])
   const [history, setHistory] = useState<DraftPod[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const publicPods = usePublicPodsSocket()
@@ -164,6 +172,9 @@ export default function DraftLandingPage() {
           in a rotating pick order.
         </p>
 
+        {wasRemoved && (
+          <div className="removed-banner">You were removed from the pod by the host.</div>
+        )}
         {error && <div className="error-message">{error}</div>}
 
         <div className="draft-options">
