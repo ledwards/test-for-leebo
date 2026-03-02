@@ -101,6 +101,31 @@ function buildStartedEmbed(pod: PodInfo, hostUsername: string, playerNames: stri
   }
 }
 
+function buildCancelledEmbed(pod: PodInfo, hostUsername: string, playerNames: string[]): Record<string, unknown> {
+  const podType = pod.pod_type === 'sealed' ? 'Sealed' : 'Draft'
+
+  // Build player list: crown on its own line, other players on next line
+  const otherPlayers = playerNames.filter(n => n !== hostUsername)
+  const playerLines = [`👑 ${hostUsername}`]
+  if (otherPlayers.length > 0) {
+    playerLines.push(otherPlayers.join(', '))
+  }
+
+  return {
+    title: `❌ ~~${pod.name || `${pod.set_name} ${podType}`}~~`,
+    description: [
+      `**Set:** ${pod.set_name} (${pod.set_code})`,
+      `**Seats:** ${pod.current_players}/${pod.max_players}`,
+      '',
+      ...playerLines,
+      '',
+      `❌ **Cancelled**`,
+    ].join('\n'),
+    color: 0xE74C3C, // Red
+    timestamp: new Date().toISOString(),
+  }
+}
+
 // === Public API ===
 
 /**
@@ -313,6 +338,51 @@ export async function markPodStarted(
     }
   } catch (err) {
     console.error('[Discord LFG] Error marking pod started:', err)
+  }
+}
+
+/**
+ * Edit the embed to show that the pod was cancelled.
+ * Changes emoji to ❌, color to red, removes join link.
+ * Posts cancellation notice in thread.
+ */
+export async function markPodCancelled(
+  pod: PodInfo,
+  hostUsername: string,
+  playerNames: string[]
+): Promise<void> {
+  if (!BOT_TOKEN) return
+  const channelId = getChannelId(pod.pod_type || 'draft')
+  if (!channelId) return
+
+  const podRow = await queryRow(
+    'SELECT discord_message_id, discord_thread_id FROM pods WHERE id = $1',
+    [pod.id]
+  )
+  if (!podRow?.discord_message_id) return
+
+  try {
+    // Update embed to cancelled state
+    await discordFetch(`/channels/${channelId}/messages/${podRow.discord_message_id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        embeds: [buildCancelledEmbed(pod, hostUsername, playerNames)],
+      }),
+    })
+
+    // Post cancellation notice in thread
+    if (podRow.discord_thread_id) {
+      const podType = pod.pod_type === 'sealed' ? 'Sealed' : 'Draft'
+      const podLabel = pod.name || `${pod.set_name} ${podType}`
+      await discordFetch(`/channels/${podRow.discord_thread_id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({
+          content: `❌ **${podLabel}** was cancelled by the host.`,
+        }),
+      })
+    }
+  } catch (err) {
+    console.error('[Discord LFG] Error marking pod cancelled:', err)
   }
 }
 

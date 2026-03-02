@@ -29,6 +29,10 @@
   color: white;
 }
 
+.set-selection-header-action {
+  align-self: center;
+}
+
 /* Beta sets row - displayed above main grid */
 .beta-sets-row {
   display: flex;

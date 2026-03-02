@@ -6,8 +6,8 @@ import { getSession, requireAuth } from '@/lib/auth'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { getPackArtUrl } from '@/src/utils/packArt'
 import { jsonParse } from '@/src/utils/json'
-import { broadcastSealedPodState, broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
-import { deletePodMessage } from '@/lib/discordLfg'
+import { broadcastSealedPodState, broadcastSystemChatMessage, broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
+import { markPodCancelled } from '@/lib/discordLfg'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {
@@ -95,7 +95,8 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
     const session = requireAuth(request)
 
     const pod = await queryRow(
-      `SELECT id, host_id FROM pods WHERE share_id = $1 AND pod_type = 'sealed'`,
+      `SELECT id, host_id, share_id, set_code, set_name, name, max_players, current_players, pod_type, is_public
+       FROM pods WHERE share_id = $1 AND pod_type = 'sealed'`,
       [shareId]
     )
 
@@ -107,8 +108,20 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
       return errorResponse('Only the host can delete the sealed pod', 403)
     }
 
-    // Discord LFG: delete pod message (fire-and-forget)
-    deletePodMessage({ id: pod.id, share_id: '', set_code: '', set_name: '', name: null, max_players: 0, current_players: 0, pod_type: 'sealed' }).catch(() => {})
+    // Notify web chat before deleting
+    broadcastSystemChatMessage(shareId, `❌ **${session.username}** cancelled the sealed pod.`)
+
+    // Discord LFG: update embed to show cancelled (don't delete it)
+    const players = await queryRows(
+      `SELECT u.username FROM pod_players pp JOIN users u ON pp.user_id = u.id WHERE pp.pod_id = $1 ORDER BY pp.seat_number`,
+      [pod.id]
+    )
+    const playerNames = players.map((p: { username: string }) => p.username)
+    await markPodCancelled(
+      { id: pod.id, share_id: pod.share_id, set_code: pod.set_code, set_name: pod.set_name, name: pod.name, max_players: pod.max_players, current_players: pod.current_players, pod_type: 'sealed' },
+      session.username,
+      playerNames
+    ).catch(() => {})
 
     // Delete associated card_pools
     await query('DELETE FROM card_pools WHERE pod_id = $1', [pod.id])
