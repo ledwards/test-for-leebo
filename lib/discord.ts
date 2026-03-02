@@ -45,6 +45,7 @@ export async function isPatron(discordId: string): Promise<boolean> {
  */
 export async function isGuildMember(discordId: string): Promise<boolean> {
   if (!BOT_TOKEN || !GUILD_ID) {
+    console.error('isGuildMember: missing env vars', { hasBotToken: !!BOT_TOKEN, hasGuildId: !!GUILD_ID })
     return false
   }
 
@@ -58,8 +59,14 @@ export async function isGuildMember(discordId: string): Promise<boolean> {
       }
     )
 
+    if (!response.ok) {
+      const body = await response.text()
+      console.error('isGuildMember: Discord API error', response.status, body)
+    }
+
     return response.ok
-  } catch {
+  } catch (err) {
+    console.error('isGuildMember: fetch error', err)
     return false
   }
 }
