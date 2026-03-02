@@ -74,8 +74,8 @@ function LandingPage() {
           setIsDiscordMember(data.data?.isMember || false)
         }
       } catch (err) {
-        // If check fails, show the button
-        setIsDiscordMember(false)
+        // If check fails, keep hidden (default true) — better to hide than show incorrectly
+        console.error('Discord membership check failed:', err)
       }
     }
 
@@ -133,7 +133,7 @@ function LandingPage() {
           The Star Wars Unlimited<br />
           Limited Simulator
         </h2>
-        {!isDiscordMember && (
+        {!loading && !isDiscordMember && (
           <a
             className="discord-cta"
             href={process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || 'https://discord.gg/u6fkdDzWqF'}
