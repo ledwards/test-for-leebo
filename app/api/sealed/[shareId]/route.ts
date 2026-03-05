@@ -7,7 +7,7 @@ import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { getPackArtUrl } from '@/src/utils/packArt'
 import { jsonParse } from '@/src/utils/json'
 import { broadcastSealedPodState, broadcastSystemChatMessage, broadcastPublicPodsUpdate } from '@/src/lib/socketBroadcast'
-import { markPodCancelled } from '@/lib/discordLfg'
+import { markPodCancelled, deletePodMessage } from '@/lib/discordLfg'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {
@@ -111,17 +111,27 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
     // Notify web chat before deleting
     broadcastSystemChatMessage(shareId, `❌ **${session.username}** cancelled the sealed pod.`)
 
-    // Discord LFG: update embed to show cancelled (don't delete it)
+    // Discord LFG: auto-decide based on human count
     const players = await queryRows(
-      `SELECT u.username FROM pod_players pp JOIN users u ON pp.user_id = u.id WHERE pp.pod_id = $1 ORDER BY pp.seat_number`,
+      `SELECT pp.is_bot, u.username FROM pod_players pp JOIN users u ON pp.user_id = u.id WHERE pp.pod_id = $1 ORDER BY pp.seat_number`,
       [pod.id]
     )
-    const playerNames = players.map((p: { username: string }) => p.username)
-    await markPodCancelled(
-      { id: pod.id, share_id: pod.share_id, set_code: pod.set_code, set_name: pod.set_name, name: pod.name, max_players: pod.max_players, current_players: pod.current_players, pod_type: 'sealed' },
-      session.username,
-      playerNames
-    ).catch(() => {})
+    const humanCount = players.filter((p: { is_bot: boolean }) => !p.is_bot).length
+    const podInfo = { id: pod.id, share_id: pod.share_id, set_code: pod.set_code, set_name: pod.set_name, name: pod.name, max_players: pod.max_players, current_players: pod.current_players, pod_type: 'sealed' as const }
+
+    if (humanCount < 2) {
+      // Not a real multiplayer pod — delete the Discord message entirely
+      await deletePodMessage(podInfo).catch(() => {})
+      await query(
+        `UPDATE pods SET discord_message_id = NULL, discord_thread_id = NULL,
+         discord_webhook_id = NULL, discord_webhook_token = NULL WHERE id = $1`,
+        [pod.id]
+      ).catch(() => {})
+    } else {
+      // Real multiplayer pod — mark the embed as cancelled for history
+      const playerNames = players.map((p: { username: string }) => p.username)
+      await markPodCancelled(podInfo, session.username, playerNames).catch(() => {})
+    }
 
     // Delete associated card_pools
     await query('DELETE FROM card_pools WHERE pod_id = $1', [pod.id])

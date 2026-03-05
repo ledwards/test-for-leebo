@@ -6,7 +6,7 @@ import { getSession, requireAuth } from '@/lib/auth'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { getPackArtUrl } from '@/src/utils/packArt'
 import { checkAndEnforceTimeout } from '@/src/utils/draftTimeout'
-import { markPodCancelled } from '@/lib/discordLfg'
+import { markPodCancelled, deletePodMessage } from '@/lib/discordLfg'
 import { broadcastDraftState, broadcastSystemChatMessage } from '@/src/lib/socketBroadcast'
 import { jsonParse } from '@/src/utils/json'
 import { NextRequest, NextResponse } from 'next/server'
@@ -201,7 +201,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
     // BEFORE DELETING: Fix card_generation attribution for any cards from this draft
     // This ensures showcases are attributed to the correct user even after the draft is deleted
     const players = await queryRows(
-      `SELECT pp.user_id, pp.drafted_leaders, pp.drafted_cards, u.username
+      `SELECT pp.user_id, pp.is_bot, pp.drafted_leaders, pp.drafted_cards, u.username
        FROM pod_players pp
        JOIN users u ON pp.user_id = u.id
        WHERE pp.pod_id = $1 AND pp.user_id IS NOT NULL`,
@@ -246,13 +246,25 @@ export async function DELETE(request: NextRequest, { params }: RouteContext): Pr
     // Notify all connected clients that the draft is deleted
     broadcastDraftState(shareId).catch(() => {})
 
-    // Discord LFG: update embed to show cancelled (must run before pod deletion)
-    const playerNames = players.map((p: { username: string }) => p.username)
-    await markPodCancelled(
-      { id: pod.id, share_id: pod.share_id, set_code: pod.set_code, set_name: pod.set_name, name: pod.name, max_players: pod.max_players, current_players: pod.current_players, pod_type: pod.pod_type || 'draft' },
-      session.username,
-      playerNames
-    ).catch(() => {})
+    // Discord LFG: handle Discord message (must run before pod deletion)
+    // Auto-decide: delete message entirely if <2 humans (not a real multiplayer pod),
+    // otherwise mark as cancelled with red ❌ for history
+    const humanCount = players.filter((p: { is_bot: boolean }) => !p.is_bot).length
+    const podInfo = { id: pod.id, share_id: pod.share_id, set_code: pod.set_code, set_name: pod.set_name, name: pod.name, max_players: pod.max_players, current_players: pod.current_players, pod_type: pod.pod_type || 'draft' }
+
+    if (humanCount < 2) {
+      // Not a real multiplayer pod — delete the Discord message entirely
+      await deletePodMessage(podInfo).catch(() => {})
+      await query(
+        `UPDATE pods SET discord_message_id = NULL, discord_thread_id = NULL,
+         discord_webhook_id = NULL, discord_webhook_token = NULL WHERE id = $1`,
+        [pod.id]
+      ).catch(() => {})
+    } else {
+      // Real multiplayer pod — mark the embed as cancelled for history
+      const playerNames = players.map((p: { username: string }) => p.username)
+      await markPodCancelled(podInfo, session.username, playerNames).catch(() => {})
+    }
 
     // Delete associated card_pools (dependent destroy)
     // The generations are kept for history, but pools from this draft are cleaned up
