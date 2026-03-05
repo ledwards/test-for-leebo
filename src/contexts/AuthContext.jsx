@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Load session on mount
     loadSession()
-    
+
     // Also reload session when URL has auth=success (after Discord OAuth)
     // or auth=already_logged_in (if already had session)
     const urlParams = new URLSearchParams(window.location.search)
@@ -34,6 +34,18 @@ export function AuthProvider({ children }) {
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname)
     }
+
+    // PWA fix: When OAuth completes in the system browser, the PWA still sits
+    // at the pre-auth page. Re-check the session when the app becomes visible
+    // again (e.g. user switches back to the PWA after completing Discord OAuth).
+    // Chrome PWAs share cookies with Chrome browser, so the cookie will be found.
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        loadSession()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
   async function loadSession() {
