@@ -1,5 +1,13 @@
 # Release Notes
 
+## 03.05.2026
+
+### 🎨 UI Improvements
+- **Ownership-aware play page**: When viewing someone else's shared deck, the play page now shows whose deck it is with appropriate instructions instead of "Your deck is ready." Non-owners see steps to get their own deck, and the Edit Deck button is hidden. The "Save Your Deck" login banner only shows for anonymous (unowned) pools.
+
+### 🐞 Bug Fixes
+- **Solo draft play page**: Solo drafts (1 human player + bots) now show sealed-style instructions on the play page instead of trying to find an opponent from the draft.
+
 ## 03.02.2026
 
 ### 📱 Mobile
