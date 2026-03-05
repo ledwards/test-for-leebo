@@ -11,7 +11,9 @@ import { processAllStagedPicks } from './draftAdvance'
 import { getBehavior } from '@/src/bots/behaviors/index'
 import { broadcastDraftState } from '@/src/lib/socketBroadcast'
 import { jsonParse } from './json'
+import { getDraftStats, hasEnoughData } from '@/src/bots/data/draftStats'
 import type { RawCard } from './cardData'
+import type { SetDraftStats } from '@/src/bots/data/draftStats'
 
 // Behavior instance type
 type BehaviorInstance = ReturnType<typeof getBehavior>
@@ -48,6 +50,9 @@ interface BotPlayer {
 
 // Cache behavior instances per bot to maintain state across picks
 const botBehaviors = new Map<string, BehaviorInstance>()
+
+// Cache draft stats per pod to avoid repeated DB queries within a single draft
+const podStatsCache = new Map<string, SetDraftStats | null>()
 
 /**
  * Check if any bots need to pick and make picks for them
@@ -130,6 +135,20 @@ function getBotBehavior(botId: string): BehaviorInstance {
  */
 export function clearBotBehaviors(): void {
   botBehaviors.clear()
+  podStatsCache.clear()
+}
+
+/**
+ * Load draft stats for a pod's set code, using per-pod cache
+ */
+async function loadPodStats(podId: string, setCode: string): Promise<SetDraftStats | null> {
+  if (podStatsCache.has(podId)) {
+    return podStatsCache.get(podId) || null
+  }
+  const stats = await getDraftStats(setCode)
+  const result = hasEnoughData(stats) ? stats : null
+  podStatsCache.set(podId, result)
+  return result
 }
 
 /**
@@ -150,10 +169,13 @@ async function makeBotLeaderPick(bot: BotPlayer, draftState: DraftState): Promis
 
   // Use behavior to select leader
   const behavior = getBotBehavior(bot.id)
+  const setCode = draftState.setCode || leaders[0]?.set || 'SOR'
+  const draftStats = await loadPodStats(bot.pod_id, setCode)
   const context = {
     draftedLeaders,
-    setCode: draftState.setCode || leaders[0]?.set,
-    leaderRound: draftState.leaderRound || 1
+    setCode,
+    leaderRound: draftState.leaderRound || 1,
+    draftStats,
   }
 
   const pickedLeader = behavior.selectLeader(leaders, context)
@@ -226,12 +248,15 @@ async function makeBotCardPick(bot: BotPlayer, draftState: DraftState): Promise<
 
   // Use behavior to select card
   const behavior = getBotBehavior(bot.id)
+  const setCode = draftState.setCode || currentPack[0]?.set || 'SOR'
+  const draftStats = await loadPodStats(bot.pod_id, setCode)
   const context = {
     draftedCards,
     draftedLeaders,
-    setCode: draftState.setCode || currentPack[0]?.set,
+    setCode,
     packNumber: draftState.packNumber || 1,
-    pickInPack: draftState.pickInPack || 1
+    pickInPack: draftState.pickInPack || 1,
+    draftStats,
   }
 
   const pickedCard = behavior.selectCard(currentPack, context)

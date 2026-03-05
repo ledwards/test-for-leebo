@@ -9,7 +9,7 @@
 
 import { query, queryRow, queryRows } from '@/lib/db'
 import { buildDeckFromState } from '@/lib/deckBuilder'
-import { PopularLeaderBehavior } from '@/src/bots/behaviors/PopularLeaderBehavior'
+import { DataDrivenBehavior } from '@/src/bots/behaviors/DataDrivenBehavior'
 import { getCardsBySet } from '@/src/utils/cardData'
 import { broadcastPodState } from '@/src/lib/socketBroadcast'
 import { nanoid } from 'nanoid'
@@ -71,7 +71,7 @@ async function buildSingleBotDeck(
   if (draftedLeaders.length === 0 && draftedCards.length === 0) return
 
   // 1. Select best leader using rankings
-  const behavior = new PopularLeaderBehavior()
+  const behavior = new DataDrivenBehavior()
   const selectedLeader = behavior.selectLeader(draftedLeaders, { setCode })
 
   if (!selectedLeader) return
@@ -79,15 +79,16 @@ async function buildSingleBotDeck(
   // 2. Select best common base
   const selectedBase = selectBestBase(draftedLeaders, selectedLeader, setCode)
 
-  // 3. Score and sort all drafted cards
-  const leaderColors = behavior._getColorsFromLeaders([selectedLeader])
-  behavior._chooseSecondaryColor(leaderColors)
+  // 3. Score and sort all drafted cards using the behavior's scoring
+  // Simulate a committed state so cards are scored in-color
+  behavior.committedLeader = selectedLeader
+  behavior.committedBaseColor = selectBestBaseColor(selectedLeader)
 
   const scoredCards = draftedCards
     .filter(c => !c.isLeader && !c.isBase)
     .map(card => ({
       card,
-      score: behavior._scoreCard(card, leaderColors, { setCode, draftedLeaders: [selectedLeader] })
+      score: behavior._scoreCard(card, [selectedLeader], draftedCards, 42, null, { setCode })
     }))
     .sort((a, b) => b.score - a.score)
 
@@ -251,6 +252,21 @@ async function buildSingleBotDeck(
   if (pod.share_id) {
     broadcastPodState(pod.share_id as string).catch(() => {})
   }
+}
+
+const COLOR_ASPECTS = ['Vigilance', 'Command', 'Aggression', 'Cunning']
+
+/**
+ * Pick the best non-leader color aspect for the base from the leader's aspects.
+ * Returns the first non-color aspect found, or a random missing color.
+ */
+function selectBestBaseColor(leader: Record<string, unknown>): string | null {
+  const leaderAspects = (leader.aspects as string[]) || []
+  const leaderColors = leaderAspects.filter(a => COLOR_ASPECTS.includes(a))
+  const missingColors = COLOR_ASPECTS.filter(c => !leaderColors.includes(c))
+  return missingColors.length > 0
+    ? missingColors[Math.floor(Math.random() * missingColors.length)]!
+    : null
 }
 
 /**
