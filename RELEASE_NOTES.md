@@ -6,20 +6,19 @@
 - **Data-driven bot drafting**: Bots now use real human draft data to make smarter picks. They learn from leader first-pick rates, card average pick positions, and deck profiles from actual human drafts. An exploration phase (picks 1-5) keeps options open before committing to a leader and color identity for the rest of the draft. Falls back to hardcoded rankings for sets without enough data.
 
 ### 🎮 Game Modes/Gameplay
-- **Pod mode requires 2+ humans**: Pod mode is for multiplayer — pods now require at least 2 human players to start. If you only have bots, you'll see a message with a link to Solo Mode instead. Server-side enforcement prevents bypassing.
-- **Auto-cleanup Discord embeds**: When a pod with fewer than 2 humans is cancelled, the Discord embed is automatically deleted instead of leaving a red ❌ cancelled card. Pods with 2+ humans still show the cancelled state for history.
+- **Pod mode requires 2+ humans**: People using multiplayer mode for solo draft against bots are spamming the matchmaking Discord! Pod mode is for multiplayer, Solo mode is for solo players — so pods now require at least 2 human players to start. If you start a Pod mode pod with only bots, you'll see a message with a link to Solo Mode instead. This should reduce noise in the matchamking channels on Discord.
+- **Auto-cleanup Discord embeds**: When a pod with fewer than 2 humans is cancelled, the Discord embed is automatically deleted instead of leaving a red ❌ cancelled card. Pods with 2+ humans still show the cancelled state for history and to help the human players know what happened.
 
 ### 🎨 UI Improvements
 - **Ownership-aware play page**: When viewing someone else's shared deck, the play page now shows whose deck it is with appropriate instructions instead of "Your deck is ready." Non-owners see steps to get their own deck, and the Edit Deck button is hidden. The "Save Your Deck" login banner only shows for anonymous (unowned) pools.
 
 ### 📱 Mobile
 - **PWA Discord login fix (Android)**: Logging in with Discord from the "Add to Home Screen" PWA now works correctly. Previously the OAuth flow would complete in the browser but the PWA wouldn't pick up the session.
-- **Prerelease info box positioning**: The prerelease disclaimer no longer covers booster packs on mobile — it now appears at the top of the screen.
-- **Card preview touch delay**: Increased the touch delay for card previews on mobile to reduce accidental previews when tapping quickly.
+- **Mobile UI tweaks**: A few visual bugs on the pack opening animations on mobile are now fixed.
 
 ### 🐞 Bug Fixes
 - **Draft pack passing with fewer than 8 players**: Fixed a bug where drafts with empty seats would stall during pack passing. Packs would show a loading animation instead of cards, and refreshing showed the same pack. Seat assignment now uses sequential numbering instead of spread seating.
-- **Solo draft play page**: Solo drafts (1 human player + bots) now show sealed-style instructions on the play page instead of trying to find an opponent from the draft.
+- **Solo draft play page**: Solo drafts (1 human player + several bots) now show sealed-style instructions on the play page instead of suggesting you try to find a nonexistant opponent for the draft.
 
 ## 03.02.2026
 
