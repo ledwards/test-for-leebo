@@ -6,6 +6,7 @@
 - **Ownership-aware play page**: When viewing someone else's shared deck, the play page now shows whose deck it is with appropriate instructions instead of "Your deck is ready." Non-owners see steps to get their own deck, and the Edit Deck button is hidden. The "Save Your Deck" login banner only shows for anonymous (unowned) pools.
 
 ### 🐞 Bug Fixes
+- **Draft pack passing with fewer than 8 players**: Fixed a bug where drafts with empty seats would stall during pack passing. Packs would show a loading animation instead of cards, and refreshing showed the same pack. Seat assignment now uses sequential numbering instead of spread seating.
 - **Solo draft play page**: Solo drafts (1 human player + bots) now show sealed-style instructions on the play page instead of trying to find an opponent from the draft.
 
 ## 03.02.2026
