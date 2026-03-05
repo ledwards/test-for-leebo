@@ -5,7 +5,6 @@ import { requireAuth } from '@/lib/auth'
 import { jsonResponse, errorResponse, handleApiError } from '@/lib/utils'
 import { broadcastDraftState, broadcastSystemChatMessage } from '@/src/lib/socketBroadcast'
 import { postPlayerJoined, updatePodEmbed } from '@/lib/discordLfg'
-import { findSpreadSeat } from '@/src/utils/seatAssignment'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteContext {
@@ -55,8 +54,7 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
       [pod.id]
     )
 
-    const takenSeats = new Set(players.map(p => p.seat_number))
-    const seatNumber = findSpreadSeat(takenSeats, pod.max_players)
+    const seatNumber = players.length + 1
 
     // Add player
     await query(
