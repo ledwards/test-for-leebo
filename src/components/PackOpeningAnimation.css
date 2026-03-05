@@ -691,8 +691,8 @@
 
 @media (max-width: 768px) {
   .prerelease-disclaimer {
-    top: auto;
-    bottom: 180px;
+    top: 50px;
+    bottom: auto;
     left: 50%;
     transform: translateX(-50%);
     width: calc(100% - 20px);
