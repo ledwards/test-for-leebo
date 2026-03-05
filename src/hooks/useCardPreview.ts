@@ -208,7 +208,7 @@ export function useCardPreview(): UseCardPreviewReturn {
         y: 0,
         isMobile: true,
       });
-    }, 500);
+    }, 1000);
   }, []);
 
   const handleCardTouchEnd = useCallback((e?: { preventDefault?: () => void }) => {
