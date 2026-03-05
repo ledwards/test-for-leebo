@@ -8,21 +8,23 @@
 
 import { RandomBehavior } from './RandomBehavior'
 import { PopularLeaderBehavior } from './PopularLeaderBehavior'
+import { DataDrivenBehavior } from './DataDrivenBehavior'
 
 // Behavior class type
-type BehaviorClass = typeof RandomBehavior | typeof PopularLeaderBehavior
+type BehaviorClass = typeof RandomBehavior | typeof PopularLeaderBehavior | typeof DataDrivenBehavior
 
 // Behavior instance type
-type BehaviorInstance = RandomBehavior | PopularLeaderBehavior
+type BehaviorInstance = RandomBehavior | PopularLeaderBehavior | DataDrivenBehavior
 
 // Registry of available behaviors
 export const behaviors: Record<string, BehaviorClass> = {
   random: RandomBehavior,
   popularLeader: PopularLeaderBehavior,
+  dataDriven: DataDrivenBehavior,
 }
 
 // Default behavior for all bots
-export const DEFAULT_BEHAVIOR = 'popularLeader'
+export const DEFAULT_BEHAVIOR = 'dataDriven'
 
 /**
  * Get a behavior instance by name
