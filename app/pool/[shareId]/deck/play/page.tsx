@@ -92,6 +92,7 @@ export default function PlayPage({ params }: PageProps) {
   const [messageType, setMessageType] = useState<string | null>(null)
   const [firstOpponent, setFirstOpponent] = useState<Player | null>(null)
   const [hasBye, setHasBye] = useState(false)
+  const [isSoloDraft, setIsSoloDraft] = useState(false)
   const [deckImageModal, setDeckImageModal] = useState<string | null>(null)
   const [generatingImage, setGeneratingImage] = useState(false)
   const [poolImageUrl, setPoolImageUrl] = useState<string | null>(null)
@@ -210,6 +211,12 @@ export default function PlayPage({ params }: PageProps) {
       const players = draft.players || []
       const myPlayer = players.find((p: Player) => p.id === user?.id)
       if (!myPlayer || players.length === 0) return
+
+      // Solo draft (only human player) — treat like sealed
+      if (players.length <= 1) {
+        setIsSoloDraft(true)
+        return
+      }
 
       const isOddNumber = players.length % 2 === 1
       const organizer = players.find((p: Player) => p.isHost)
@@ -1557,12 +1564,14 @@ export default function PlayPage({ params }: PageProps) {
       )}
 
       <div className="play-content">
-        <button className="edit-deck-top" onClick={() => router.push(`/pool/${shareId}/deck`)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          Edit Deck
-        </button>
+        {isOwner && (
+          <button className="edit-deck-top" onClick={() => router.push(`/pool/${shareId}/deck`)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Edit Deck
+          </button>
+        )}
 
         <div className="play-header">
           <EditableTitle
@@ -1586,8 +1595,8 @@ export default function PlayPage({ params }: PageProps) {
           </button>
         </div>
 
-        {/* Login banner for logged-out users */}
-        {!user && (
+        {/* Login banner for logged-out users viewing anonymous (unowned) pools */}
+        {!user && !pool?.owner && (
           <div className="login-banner">
             <div className="login-banner-content">
               <div className="login-banner-icon">
@@ -1615,7 +1624,7 @@ export default function PlayPage({ params }: PageProps) {
 
         <PlayInstructions
           shareId={shareId}
-          poolType={pool?.poolType || 'sealed'}
+          poolType={isSoloDraft ? 'sealed' : (pool?.poolType || 'sealed')}
           opponentName={firstOpponent?.username}
           hasBye={hasBye}
           onCopyLink={copyDeckLink}
@@ -1626,6 +1635,8 @@ export default function PlayPage({ params }: PageProps) {
           message={message}
           messageType={messageType}
           showActions={true}
+          isOwner={!pool?.owner || !!isOwner}
+          ownerName={pool?.owner?.username || pool?.owner?.name || null}
         />
       </div>
 
