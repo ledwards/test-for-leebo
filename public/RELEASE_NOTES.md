@@ -1,5 +1,18 @@
 # Release Notes
 
+## 03.05.2026
+
+### 🎨 UI Improvements
+- **Ownership-aware play page**: When viewing someone else's shared deck, the play page now shows whose deck it is with appropriate instructions instead of "Your deck is ready." Non-owners see steps to get their own deck, and the Edit Deck button is hidden. The "Save Your Deck" login banner only shows for anonymous (unowned) pools.
+
+### 📱 Mobile
+- **PWA Discord login fix (Android)**: Logging in with Discord from the "Add to Home Screen" PWA now works correctly. Previously the OAuth flow would complete in the browser but the PWA wouldn't pick up the session.
+- **Prerelease info box positioning**: The prerelease disclaimer no longer covers booster packs on mobile — it now appears at the top of the screen.
+
+### 🐞 Bug Fixes
+- **Draft pack passing with fewer than 8 players**: Fixed a bug where drafts with empty seats would stall during pack passing. Packs would show a loading animation instead of cards, and refreshing showed the same pack. Seat assignment now uses sequential numbering instead of spread seating.
+- **Solo draft play page**: Solo drafts (1 human player + bots) now show sealed-style instructions on the play page instead of trying to find an opponent from the draft.
+
 ## 03.02.2026
 
 ### 📱 Mobile
