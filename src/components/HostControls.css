@@ -250,6 +250,31 @@
   margin: 0;
 }
 
+.min-players-note p {
+  margin: 0;
+}
+
+.solo-mode-hint {
+  color: #888;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+.solo-mode-link {
+  color: #f59e0b;
+  text-decoration: underline;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.solo-mode-link:hover {
+  color: #fbbf24;
+}
+
+.solo-mode-link:visited {
+  color: #f59e0b;
+}
+
 .ready-to-start {
   text-align: center;
   color: #4CAF50;
