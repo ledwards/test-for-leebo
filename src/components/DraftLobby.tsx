@@ -16,6 +16,7 @@ const CopyIcon = () => (
 
 interface Player {
   id: string
+  isBot?: boolean
   [key: string]: unknown
 }
 
@@ -39,6 +40,7 @@ interface DraftLobbyProps {
   onSettingsChange: (settings: unknown) => void
   onLeave: () => void
   onRemovePlayer?: (userId: string) => void
+  onSwitchToSolo?: () => void
   startingDraft: boolean
   randomizing: boolean
   randomizingPacks?: boolean
@@ -59,6 +61,7 @@ function DraftLobby({
   onSettingsChange,
   onLeave,
   onRemovePlayer,
+  onSwitchToSolo,
   startingDraft,
   randomizing,
   randomizingPacks,
@@ -113,6 +116,7 @@ function DraftLobby({
             <HostControls
               draft={draft}
               playerCount={players.length}
+              humanPlayerCount={players.filter(p => !p.isBot).length}
               onStart={onStart}
               onRandomize={onRandomize}
               onRandomizePacks={onRandomizePacks}
@@ -124,6 +128,7 @@ function DraftLobby({
               addingBot={addingBot}
               isFull={isFull}
               shareId={shareId}
+              onSwitchToSolo={onSwitchToSolo}
             />
           )}
 

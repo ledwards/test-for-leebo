@@ -71,6 +71,7 @@ interface SettingsChange {
 export interface HostControlsProps {
   draft?: Draft | null
   playerCount: number
+  humanPlayerCount: number
   onStart?: () => void
   onRandomize?: () => void
   onRandomizePacks?: () => void
@@ -83,11 +84,13 @@ export interface HostControlsProps {
   isFull?: boolean
   shareId?: string
   showCancelButton?: boolean
+  onSwitchToSolo?: () => void
 }
 
 function HostControls({
   draft,
   playerCount,
+  humanPlayerCount,
   onStart,
   onRandomize,
   onRandomizePacks,
@@ -100,12 +103,14 @@ function HostControls({
   isFull,
   shareId,
   showCancelButton = true,
+  onSwitchToSolo,
 }: HostControlsProps) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
-  const canStart = playerCount >= 2
+  const canStart = playerCount >= 2 && humanPlayerCount >= 2
+  const needsMoreHumans = playerCount >= 2 && humanPlayerCount < 2
   const canAddBot = playerCount < (draft?.maxPlayers || 8)
   const isRoundTimerEnabled = draft?.timed === true
   const isLastPlayerTimerEnabled = draft?.timerEnabled !== false
@@ -317,10 +322,48 @@ function HostControls({
           </Button>
         </div>
 
-        {!canStart && (
-          <p className="min-players-note">
-            Need at least 2 players to start
-          </p>
+        {!canStart && !needsMoreHumans && (
+          <div className="min-players-note">
+            <p>Need at least 2 players to start</p>
+            {onSwitchToSolo && (
+              <p className="solo-mode-hint">
+                Want to draft alone?{' '}
+                <a
+                  href="#"
+                  className="solo-mode-link"
+                  onClick={(e: MouseEvent) => {
+                    e.preventDefault()
+                    onSwitchToSolo()
+                  }}
+                >
+                  Switch to Solo Mode
+                </a>{' '}
+                to draft against bots.
+              </p>
+            )}
+          </div>
+        )}
+
+        {needsMoreHumans && (
+          <div className="min-players-note">
+            <p>Pod mode requires at least 2 human players.</p>
+            {onSwitchToSolo && (
+              <p className="solo-mode-hint">
+                For solo play,{' '}
+                <a
+                  href="#"
+                  className="solo-mode-link"
+                  onClick={(e: MouseEvent) => {
+                    e.preventDefault()
+                    onSwitchToSolo()
+                  }}
+                >
+                  use Solo Mode
+                </a>{' '}
+                to draft against bots.
+              </p>
+            )}
+          </div>
         )}
 
         {isFull && (
