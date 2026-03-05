@@ -313,6 +313,19 @@ export default function DraftRoomPage({ params }: PageProps) {
     }
   }
 
+  const handleSwitchToSolo = async () => {
+    if (!shareId) return
+    try {
+      await fetch(`/api/draft/${shareId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+    } catch (err) {
+      // Best effort — navigate regardless
+    }
+    router.push('/draft/solo')
+  }
+
   const handleRemovePlayer = (userId: string) => {
     const player = players.find(p => p.id === userId)
     if (player) {
@@ -426,6 +439,7 @@ export default function DraftRoomPage({ params }: PageProps) {
           onSettingsChange={handleSettingsChange}
           onLeave={handleLeave}
           onRemovePlayer={isHost ? handleRemovePlayer : undefined}
+          onSwitchToSolo={handleSwitchToSolo}
           startingDraft={startingDraft}
           randomizing={randomizing}
           randomizingPacks={randomizingPacks}
