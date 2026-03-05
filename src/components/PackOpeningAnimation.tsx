@@ -252,7 +252,7 @@ export default function PackOpeningAnimation({
     if (useCarousel) {
       // Carousel mode (mobile or overflow): pack is centered
       packX = screenWidth / 2
-      packY = mobile ? screenHeight - 100 : screenHeight - 160 - packHeight / 2
+      packY = mobile ? screenHeight * 0.82 : screenHeight - 160 - packHeight / 2
     } else {
       // Desktop row: packs in a single row
       const totalPacksWidth = packCount * packWidth + (packCount - 1) * packGap
@@ -270,41 +270,58 @@ export default function PackOpeningAnimation({
     const newCards: FlyingCard[] = []
 
     if (mobile) {
-      // MOBILE LAYOUT: 4 rows
+      // MOBILE LAYOUT: 4 rows, all positions as % of screenHeight
       // Row 1: 2 leaders/bases (landscape)
       // Row 2: 5 cards
       // Row 3: 5 cards
       // Row 4: 4 cards
-      const rowGap = 8
-      const cardsStartY = 80
+      const rowGap = screenHeight * 0.01
+      const cardsStartY = screenHeight * 0.04
+
+      // Scale cards down if they don't fit in the cards zone (~55% of screen)
+      const cardsZoneHeight = screenHeight * 0.55
+      // 4 rows: 1 leader row + 3 card rows, with 3 gaps between them
+      const availableForCards = cardsZoneHeight - leaderHeight - 3 * rowGap
+      const maxCardHeight = availableForCards / 3
+      let mobileCardWidth = cardWidth
+      let mobileCardHeight = cardHeight
+      let mobileLeaderWidth = leaderWidth
+      let mobileLeaderHeight = leaderHeight
+      if (cardHeight > maxCardHeight) {
+        const scale = maxCardHeight / cardHeight
+        mobileCardWidth = Math.floor(cardWidth * scale)
+        mobileCardHeight = Math.floor(cardHeight * scale)
+        mobileLeaderWidth = Math.floor(leaderWidth * scale)
+        mobileLeaderHeight = Math.floor(leaderHeight * scale)
+      }
 
       // Row 1: First 2 cards (may be leaders/bases or regular cards)
       const row1Cards = packCards.slice(0, 2)
       const mobileLeaderCount = row1Cards.filter(c => c?.isLeader || c?.isBase).length
       const mobileRegularCount = 2 - mobileLeaderCount
-      const row1Width = mobileLeaderCount * leaderWidth + mobileRegularCount * cardWidth + cardGap
+      const row1Width = mobileLeaderCount * mobileLeaderWidth + mobileRegularCount * mobileCardWidth + cardGap
       const row1StartX = (screenWidth - row1Width) / 2
-      const row1Y = cardsStartY + leaderHeight / 2
+      const row1Y = cardsStartY + mobileLeaderHeight / 2
 
       // Rows 2-4: Regular cards (5, 5, 4)
       const row2CardsPerRow = 5
       const row3CardsPerRow = 5
       const row4CardsPerRow = 4
-      const regularRowWidth = row2CardsPerRow * cardWidth + (row2CardsPerRow - 1) * cardGap
+      const regularRowWidth = row2CardsPerRow * mobileCardWidth + (row2CardsPerRow - 1) * cardGap
       const row2StartX = (screenWidth - regularRowWidth) / 2
       const row3StartX = (screenWidth - regularRowWidth) / 2
-      const row4Width = row4CardsPerRow * cardWidth + (row4CardsPerRow - 1) * cardGap
+      const row4Width = row4CardsPerRow * mobileCardWidth + (row4CardsPerRow - 1) * cardGap
       const row4StartX = (screenWidth - row4Width) / 2
 
-      const row2Y = row1Y + leaderHeight / 2 + rowGap + cardHeight / 2
-      const row3Y = row2Y + cardHeight + rowGap
-      const row4Y = row3Y + cardHeight + rowGap
+      const row2Y = row1Y + mobileLeaderHeight / 2 + rowGap + mobileCardHeight / 2
+      const row3Y = row2Y + mobileCardHeight + rowGap
+      const row4Y = row3Y + mobileCardHeight + rowGap
 
       for (let k = 0; k < cardCount; k++) {
         const card = packCards[k]
         const isLeaderOrBase = !!(card?.isLeader || card?.isBase)
-        const w = isLeaderOrBase ? leaderWidth : cardWidth
-        const h = isLeaderOrBase ? leaderHeight : cardHeight
+        const w = isLeaderOrBase ? mobileLeaderWidth : mobileCardWidth
+        const h = isLeaderOrBase ? mobileLeaderHeight : mobileCardHeight
 
         let endX: number, endY: number
         if (k < 2) {
@@ -312,24 +329,24 @@ export default function PackOpeningAnimation({
           let xOffset = 0
           for (let j = 0; j < k; j++) {
             const jCard = packCards[j]
-            xOffset += ((jCard?.isLeader || jCard?.isBase) ? leaderWidth : cardWidth) + cardGap
+            xOffset += ((jCard?.isLeader || jCard?.isBase) ? mobileLeaderWidth : mobileCardWidth) + cardGap
           }
           endX = row1StartX + xOffset + w / 2
           endY = row1Y
         } else if (k < 7) {
           // Row 2: indices 2-6 (5 cards)
           const col = k - 2
-          endX = row2StartX + col * (cardWidth + cardGap) + cardWidth / 2
+          endX = row2StartX + col * (mobileCardWidth + cardGap) + mobileCardWidth / 2
           endY = row2Y
         } else if (k < 12) {
           // Row 3: indices 7-11 (5 cards)
           const col = k - 7
-          endX = row3StartX + col * (cardWidth + cardGap) + cardWidth / 2
+          endX = row3StartX + col * (mobileCardWidth + cardGap) + mobileCardWidth / 2
           endY = row3Y
         } else {
           // Row 4: indices 12-15 (4 cards)
           const col = k - 12
-          endX = row4StartX + col * (cardWidth + cardGap) + cardWidth / 2
+          endX = row4StartX + col * (mobileCardWidth + cardGap) + mobileCardWidth / 2
           endY = row4Y
         }
 
@@ -505,7 +522,7 @@ export default function PackOpeningAnimation({
         className="skip-button"
         onClick={handleContinue}
       >
-        &gt;&gt;
+        Skip →
       </Button>
 
       {/* Prerelease disclaimer */}
