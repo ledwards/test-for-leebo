@@ -170,7 +170,12 @@ async function makeBotLeaderPick(bot: BotPlayer, draftState: DraftState): Promis
   // Use behavior to select leader
   const behavior = getBotBehavior(bot.id)
   const setCode = draftState.setCode || leaders[0]?.set || 'SOR'
-  const draftStats = await loadPodStats(bot.pod_id, setCode)
+  let draftStats: SetDraftStats | null = null
+  try {
+    draftStats = await loadPodStats(bot.pod_id, setCode)
+  } catch (err) {
+    console.error('[BOT] Failed to load draft stats, continuing without:', err)
+  }
   const context = {
     draftedLeaders,
     setCode,
@@ -249,7 +254,12 @@ async function makeBotCardPick(bot: BotPlayer, draftState: DraftState): Promise<
   // Use behavior to select card
   const behavior = getBotBehavior(bot.id)
   const setCode = draftState.setCode || currentPack[0]?.set || 'SOR'
-  const draftStats = await loadPodStats(bot.pod_id, setCode)
+  let draftStats: SetDraftStats | null = null
+  try {
+    draftStats = await loadPodStats(bot.pod_id, setCode)
+  } catch (err) {
+    console.error('[BOT] Failed to load draft stats, continuing without:', err)
+  }
   const context = {
     draftedCards,
     draftedLeaders,
