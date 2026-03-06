@@ -55,9 +55,11 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
       return errorResponse('Need at least 2 players to start', 400)
     }
 
-    // Need at least 2 human players (pod mode is for multiplayer)
+    // Pod mode needs 2+ humans, but solo draft (1 human + bots) is allowed
     const humanCount = players.filter(p => !p.is_bot).length
-    if (humanCount < 2) {
+    const botCount = players.filter(p => p.is_bot).length
+    const isSoloDraft = humanCount === 1 && botCount >= 1
+    if (humanCount < 2 && !isSoloDraft) {
       return errorResponse('Pod mode requires at least 2 human players', 400)
     }
 
