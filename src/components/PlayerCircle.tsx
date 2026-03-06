@@ -330,7 +330,7 @@ function PlayerCircle({ players, maxPlayers = 8, currentUserId, showStatus = fal
 
   // Radii for concentric circles (in percentage of container)
   // Bring inward on mobile to fit screen
-  const seatRadius = isMobile ? 18 : 27
+  const seatRadius = isMobile ? 22 : 27
   const leaderInfoRadius = isMobile ? 43 : 52
 
   // Render leader preview portal

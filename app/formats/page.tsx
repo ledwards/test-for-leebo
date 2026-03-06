@@ -190,9 +190,11 @@ export default function OtherFormatsPage() {
   return (
     <div className="formats-page">
       <div className="formats-container">
-        <Button variant="back" onClick={() => router.push('/')}>
-          Back
-        </Button>
+        <div className="page-back-left">
+          <Button variant="back" onClick={() => router.push('/')}>
+            Back
+          </Button>
+        </div>
         <h1>Other Formats</h1>
         <p className="formats-subtitle">Alternative limited formats</p>
 

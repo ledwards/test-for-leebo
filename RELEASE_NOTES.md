@@ -14,7 +14,11 @@
 
 ### 📱 Mobile
 - **PWA Discord login fix (Android)**: Logging in with Discord from the "Add to Home Screen" PWA now works correctly. Previously the OAuth flow would complete in the browser but the PWA wouldn't pick up the session.
-- **Mobile UI tweaks**: A few visual bugs on the pack opening animations on mobile are now fixed.
+- **Mobile draft lobby overhaul**: Player circle uses all available screen width, tighter spacing between title/circle/player count/share URL, "Share URL" label and button on one line, and host control buttons (Randomize Seats, Shuffle Packs, Add Bot) flex-wrap on one row.
+- **Mobile leader draft circle fix**: Player avatars pulled inward so they don't overlap with leader pick info labels. Labels wrap instead of overflowing off-screen.
+- **Pack opening animation fixes**: Skip button now says "Skip →" instead of ">>", prerelease banner is a full-width top bar instead of a floating pill that overlapped packs, Open All/Shuffle buttons moved to top-left on mobile, and broken pack images no longer show "PACK" fallback text.
+- **Carbonite pack alignment**: Carbonite edition packs in chaos sealed now align left like normal packs instead of centering.
+- **Back button alignment**: Back button on the Other Formats page is now pinned top-left instead of centered.
 
 ### 🐞 Bug Fixes
 - **Draft pack passing with fewer than 8 players**: Fixed a bug where drafts with empty seats would stall during pack passing. Packs would show a loading animation instead of cards, and refreshing showed the same pack. Seat assignment now uses sequential numbering instead of spread seating.
