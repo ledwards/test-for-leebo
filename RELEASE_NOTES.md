@@ -1,6 +1,7 @@
 # Release Notes
 
 ## 03.05.2026
+Happy pre-release everyone! As we are able to open physical product, we will be improving the algorithm for generating A Lawless Time booster packs. Let us know in the Discord how your PR event went, and if PTP helped you prepare. Good luck, and have fun!
 
 ### 🤖 AI Players
 - **Data-driven bot drafting**: Bots now use real human draft data to make smarter picks. They learn from leader first-pick rates, card average pick positions, and deck profiles from actual human drafts. An exploration phase (picks 1-5) keeps options open before committing to a leader and color identity for the rest of the draft. Falls back to hardcoded rankings for sets without enough data.

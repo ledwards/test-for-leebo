@@ -109,8 +109,8 @@ function HostControls({
   const [copied, setCopied] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
-  // Solo draft (1 human + all bots) is allowed; pod mode needs 2+ humans
-  const isSoloDraft = humanPlayerCount === 1 && playerCount >= 2
+  // Solo mode (entered from Solo button) allows 1 human + bots; pod mode needs 2+ humans
+  const isSoloDraft = draft?.settings?.isSolo === true
   const canStart = playerCount >= 2 && (humanPlayerCount >= 2 || isSoloDraft)
   const needsMoreHumans = playerCount >= 2 && humanPlayerCount < 2 && !isSoloDraft
   const canAddBot = playerCount < (draft?.maxPlayers || 8)
