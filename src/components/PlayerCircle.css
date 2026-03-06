@@ -274,6 +274,8 @@
 
   .radial-leader-info {
     font-size: 0.7rem;
+    white-space: normal;
+    max-width: 90px;
   }
 
   /* Player name at top of leader info on mobile */
