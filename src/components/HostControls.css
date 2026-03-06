@@ -453,12 +453,29 @@
   }
 
   .settings-row {
-    flex-direction: column;
-    gap: 0.5rem;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .setting-checkbox {
+    font-size: 0.8rem;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .setting-timer-input {
+    width: 50px;
+    padding: 4px 4px;
+    font-size: 0.8rem;
+  }
+
+  .setting-timer-unit {
+    font-size: 0.8rem;
   }
 
   .setting-item {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
 
   .setting-lock {
@@ -468,7 +485,7 @@
   .timeout-settings-row {
     flex-direction: column;
     gap: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
 
   .control-button.primary {
