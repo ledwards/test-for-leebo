@@ -236,8 +236,8 @@
   }
 
   .circle-container {
-    width: 300px;
-    height: 300px;
+    width: 340px;
+    height: 340px;
   }
 
   .player-circle.with-leader-info .circle-container {
@@ -300,8 +300,8 @@
 
 @media (max-width: 400px) {
   .circle-container {
-    width: 260px;
-    height: 260px;
+    width: 300px;
+    height: 300px;
   }
 
   .center-arrow .arrow-symbol {
