@@ -55,19 +55,18 @@ export async function POST(request: NextRequest, { params }: RouteContext): Prom
       return errorResponse('Need at least 2 players to start', 400)
     }
 
-    // Pod mode needs 2+ humans, but solo draft (1 human + bots) is allowed
-    const humanCount = players.filter(p => !p.is_bot).length
-    const botCount = players.filter(p => p.is_bot).length
-    const isSoloDraft = humanCount === 1 && botCount >= 1
-    if (humanCount < 2 && !isSoloDraft) {
-      return errorResponse('Pod mode requires at least 2 human players', 400)
-    }
-
     // Initialize card cache before generating packs
     await initializeCardCache()
 
     // Check for chaos draft settings
     const settings = pod.settings || {}
+
+    // Pod mode needs 2+ humans; solo mode (entered from Solo button) allows 1 human + bots
+    const humanCount = players.filter(p => !p.is_bot).length
+    const isSoloDraft = settings.isSolo === true
+    if (humanCount < 2 && !isSoloDraft) {
+      return errorResponse('Pod mode requires at least 2 human players', 400)
+    }
     const chaosSets = settings.draftMode === 'chaos' && settings.chaosSets
       ? settings.chaosSets
       : undefined

@@ -1,6 +1,7 @@
 # Release Notes
 
 ## 03.05.2026
+Happy pre-release everyone! As we are able to open physical product, we will be improving the algorithm for generating A Lawless Time booster packs. Let us know in the Discord how your PR event went, and if PTP helped you prepare. Good luck, and have fun!
 
 ### 🤖 AI Players
 - **Data-driven bot drafting**: Bots now use real human draft data to make smarter picks. They learn from leader first-pick rates, card average pick positions, and deck profiles from actual human drafts. An exploration phase (picks 1-5) keeps options open before committing to a leader and color identity for the rest of the draft. Falls back to hardcoded rankings for sets without enough data.
@@ -14,11 +15,16 @@
 
 ### 📱 Mobile
 - **PWA Discord login fix (Android)**: Logging in with Discord from the "Add to Home Screen" PWA now works correctly. Previously the OAuth flow would complete in the browser but the PWA wouldn't pick up the session.
-- **Mobile UI tweaks**: A few visual bugs on the pack opening animations on mobile are now fixed.
+- **Mobile draft lobby overhaul**: Player circle uses all available screen width, tighter spacing between title/circle/player count/share URL, "Share URL" label and button on one line, and host control buttons (Randomize Seats, Shuffle Packs, Add Bot) flex-wrap on one row.
+- **Mobile leader draft circle fix**: Player avatars pulled inward so they don't overlap with leader pick info labels. Labels wrap instead of overflowing off-screen.
+- **Pack opening animation fixes**: Skip button now says "Skip →" instead of ">>", prerelease banner is a full-width top bar instead of a floating pill that overlapped packs, Open All/Shuffle buttons moved to top-left on mobile, and broken pack images no longer show "PACK" fallback text.
+- **Carbonite pack alignment**: Carbonite edition packs in chaos sealed now align left like normal packs instead of centering.
+- **Back button alignment**: Back button on the Other Formats page is now pinned top-left instead of centered.
 
 ### 🐞 Bug Fixes
 - **Draft pack passing with fewer than 8 players**: Fixed a bug where drafts with empty seats would stall during pack passing. Packs would show a loading animation instead of cards, and refreshing showed the same pack. Seat assignment now uses sequential numbering instead of spread seating.
 - **Solo draft play page**: Solo drafts (1 human player + several bots) now show sealed-style instructions on the play page instead of suggesting you try to find a nonexistant opponent for the draft.
+- **CORS fix for deck export API**: External tools like Karabast can now fetch deck JSON via cross-origin requests. The preflight OPTIONS request was missing CORS headers, blocking browser-based imports.
 
 ## 03.02.2026
 

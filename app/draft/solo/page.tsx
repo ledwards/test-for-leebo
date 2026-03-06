@@ -38,7 +38,7 @@ export default function SoloDraftPage() {
 
     try {
       // Create draft
-      const result = await createDraft(setCode)
+      const result = await createDraft(setCode, { isPublic: false, settings: { isSolo: true } })
       trackEvent(AnalyticsEvents.DRAFT_CREATED, { set_code: setCode, solo: true })
 
       // Auto-add 7 bots
