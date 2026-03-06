@@ -19,6 +19,7 @@
 ### 🐞 Bug Fixes
 - **Draft pack passing with fewer than 8 players**: Fixed a bug where drafts with empty seats would stall during pack passing. Packs would show a loading animation instead of cards, and refreshing showed the same pack. Seat assignment now uses sequential numbering instead of spread seating.
 - **Solo draft play page**: Solo drafts (1 human player + several bots) now show sealed-style instructions on the play page instead of suggesting you try to find a nonexistant opponent for the draft.
+- **CORS fix for deck export API**: External tools like Karabast can now fetch deck JSON via cross-origin requests. The preflight OPTIONS request was missing CORS headers, blocking browser-based imports.
 
 ## 03.02.2026
 

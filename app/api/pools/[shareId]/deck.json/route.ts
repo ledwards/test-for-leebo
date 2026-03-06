@@ -29,6 +29,18 @@ interface ExportData {
   sideboard: DeckEntry[]
 }
 
+// Handle CORS preflight requests so external tools (Karabast, SWUDB) can fetch deck JSON
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  })
+}
+
 export async function GET(request: NextRequest, { params }: RouteContext): Promise<NextResponse> {
   try {
     const { shareId } = await params
