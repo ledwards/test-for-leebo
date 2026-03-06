@@ -236,13 +236,17 @@
   }
 
   .circle-container {
-    width: 340px;
-    height: 340px;
+    width: 100%;
+    max-width: 400px;
+    aspect-ratio: 1;
+    height: auto;
   }
 
   .player-circle.with-leader-info .circle-container {
-    width: 340px;
-    height: 340px;
+    width: 100%;
+    max-width: 400px;
+    aspect-ratio: 1;
+    height: auto;
   }
 
   .center-arrow {
@@ -300,8 +304,10 @@
 
 @media (max-width: 400px) {
   .circle-container {
-    width: 300px;
-    height: 300px;
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 1;
+    height: auto;
   }
 
   .center-arrow .arrow-symbol {
