@@ -15,11 +15,11 @@
  * Pack structure (LAW+):
  * - 1 Leader (from LeaderBelt)
  * - 1 Base (common)
- * - 4 Commons (Belt A, slots 1-4)
+ * - 4 Commons (Belt A, slots 1-4; slot 4 upgrades to HS common 1/48 packs)
  * - 1 HS Common (from HyperspaceCommonBelt, slot 5)
- * - 4 Commons (Belt B, slots 6-9)
+ * - 4 Commons (Belt B, slots 6-9; slot 6 upgrades to HS common 1/48 packs)
  * - 1 Hyperspace Foil
- * - 3 Uncommons (UC3 can upgrade to Prestige OR HS R/L)
+ * - 3 Uncommons (UC3 can upgrade to Prestige OR HS UC/R/S/L via weighted selection)
  * - 1 Rare or Legendary (CANNOT upgrade)
  *
  * Total: 16 cards
@@ -46,6 +46,7 @@ import { HyperspaceUncommonBelt } from '../belts/HyperspaceUncommonBelt';
 import { HyperspaceCommonBelt } from '../belts/HyperspaceCommonBelt';
 import { HyperspaceRareLegendaryBelt } from '../belts/HyperspaceRareLegendaryBelt';
 import { HyperspaceUpgradeBelt, type UpgradePlan } from '../belts/HyperspaceUpgradeBelt';
+import { CommonUpgradeBelt, type CommonUpgradeSlot } from '../belts/CommonUpgradeBelt';
 import { getSetConfig } from './setConfigs/index';
 import { getCachedCards } from './cardCache';
 
@@ -89,6 +90,9 @@ interface SetConfig {
     prestigeInStandardPacks?: boolean;
   };
   upgradeProbabilities?: UpgradeProbabilities;
+  rarityWeights?: {
+    ucSlot3Upgraded?: Record<string, number>;
+  };
 }
 
 // === MODULE STATE ===
@@ -100,6 +104,44 @@ const beltCache = new Map<string, Belt>();
 let startWithBeltA = true;
 
 // === HELPER FUNCTIONS ===
+
+/** Weighted random rarity selection from a weights map (e.g. { Uncommon: 24, Rare: 12, ... }) */
+function weightedRaritySelect(weights: Record<string, number>): string {
+  const entries = Object.entries(weights).filter(([, w]) => w > 0);
+  const total = entries.reduce((sum, [, w]) => sum + w, 0);
+  let roll = Math.random() * total;
+  for (const [rarity, weight] of entries) {
+    roll -= weight;
+    if (roll <= 0) return rarity;
+  }
+  return entries[entries.length - 1][0];
+}
+
+/**
+ * Pick a random Hyperspace card of a specific rarity from the set.
+ * Falls back to Normal variant if no HS variant exists.
+ */
+function randomHyperspaceCardOfRarity(setCode: SetCode | string, rarity: string): RawCard | null {
+  const cards = getCachedCards(setCode);
+  let pool = cards.filter(c =>
+    c.variantType === 'Hyperspace' &&
+    c.rarity === rarity &&
+    !c.isLeader &&
+    !c.isBase
+  );
+  // Fallback to Normal if no HS variants
+  if (pool.length === 0) {
+    pool = cards.filter(c =>
+      c.variantType === 'Normal' &&
+      c.rarity === rarity &&
+      !c.isLeader &&
+      !c.isBase
+    );
+  }
+  if (pool.length === 0) return null;
+  const card = pool[Math.floor(Math.random() * pool.length)]!;
+  return { ...card, isHyperspace: true };
+}
 
 /**
  * Check if a set uses LAW+ pack rules (Set 7 onwards)
@@ -342,6 +384,19 @@ function getHyperspaceUpgradeBelt(setCode: SetCode | string): HyperspaceUpgradeB
 }
 
 /**
+ * Get or create a CommonUpgradeBelt for LAW+ sets
+ * 48-pack cycle: 1 Belt A upgrade, 1 Belt B upgrade, 46 none
+ */
+function getCommonUpgradeBelt(setCode: SetCode | string): CommonUpgradeBelt | null {
+  if (!usesLawPackRules(setCode)) return null;
+  const key = `common-upgrade-${setCode}`;
+  if (!beltCache.has(key)) {
+    beltCache.set(key, new CommonUpgradeBelt());
+  }
+  return beltCache.get(key) as CommonUpgradeBelt;
+}
+
+/**
  * Clear belt cache (useful for testing or resetting state)
  */
 export function clearBeltCache(): void {
@@ -494,13 +549,30 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
       }
     }
 
-    // b) UC3 → HS R/L (fallback if prestige didn't trigger)
+    // b) UC3 → HS upgrade (fallback if prestige didn't trigger)
+    // LAW+: weighted rarity selection (UC 60%, R 30%, S 7.5%, L 2.5%)
+    // Sets 1-6: always R/L via HyperspaceRareLegendaryBelt
     if (!uc3Upgraded) {
       const shouldUpgradeUC3 = hsPlan ? hsPlan.uc3 : (probs.thirdUCToHyperspaceRL && shouldUpgrade(probs.thirdUCToHyperspaceRL));
       if (shouldUpgradeUC3) {
-        const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode);
-        const upgraded = hsRLBelt.next();
-        if (upgraded) pack.cards[thirdUCIndex] = upgraded;
+        const uc3Weights = config?.rarityWeights?.ucSlot3Upgraded;
+        if (uc3Weights) {
+          const rarity = weightedRaritySelect(uc3Weights);
+          if (rarity === 'Uncommon') {
+            const hsUCBelt = getHyperspaceUncommonBelt(setCode);
+            const upgraded = hsUCBelt.next();
+            if (upgraded) pack.cards[thirdUCIndex] = upgraded;
+          } else {
+            // Pick a random HS card of the exact rarity selected by weights
+            const upgraded = randomHyperspaceCardOfRarity(setCode, rarity);
+            if (upgraded) pack.cards[thirdUCIndex] = upgraded;
+          }
+        } else {
+          // Sets without weights — use R/L belt directly
+          const hsRLBelt = getHyperspaceRareLegendaryBelt(setCode);
+          const upgraded = hsRLBelt.next();
+          if (upgraded) pack.cards[thirdUCIndex] = upgraded;
+        }
       }
     }
   }
@@ -625,6 +697,23 @@ export function generateBoosterPack(_cards: RawCard[], setCode: SetCode | string
 
   // Toggle alternating slot for next pack (only relevant for Block A)
   startWithBeltA = !startWithBeltA;
+
+  // LAW+ common upgrade: 1/48 packs upgrade Belt A slot 4 or Belt B slot 6
+  // to an HS common (fresh draw from HyperspaceCommonBelt, not a variant swap)
+  const commonUpgradeBelt = getCommonUpgradeBelt(setCode);
+  if (commonUpgradeBelt) {
+    const upgradeSlot = commonUpgradeBelt.next();
+    if (upgradeSlot !== 'none') {
+      const hsCommonBelt = getHyperspaceCommonBelt(setCode);
+      const hsCommon = hsCommonBelt.next();
+      if (hsCommon) {
+        // Pack indices: 0=leader, 1=base, 2-5=Belt A slots 1-4, 6=HS common, 7-10=Belt B slots 6-9
+        // Belt A slot 4 = pack index 5, Belt B slot 6 (first Belt B card) = pack index 7
+        const upgradeIndex = upgradeSlot === 'beltA' ? 5 : 7;
+        packCards[upgradeIndex] = hsCommon;
+      }
+    }
+  }
 
   // Dedup commons - belt cycling can rarely produce duplicates
   // Replace any duplicate commons with fresh cards from the appropriate belt
