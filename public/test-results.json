@@ -1,13 +1,13 @@
 {
-  "runAt": "2026-03-06T00:56:37.194Z",
-  "executionTime": 24522,
+  "runAt": "2026-03-07T01:15:11.490Z",
+  "executionTime": 20038,
   "summary": {
     "totalSuites": 22,
-    "passedSuites": 21,
-    "failedSuites": 1,
-    "totalTests": 497,
-    "passed": 495,
-    "failed": 2
+    "passedSuites": 22,
+    "failedSuites": 0,
+    "totalTests": 496,
+    "passed": 496,
+    "failed": 0
   },
   "suites": [
     {
@@ -15,7 +15,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 7272,
+      "executionTime": 6484,
       "tests": [
         {
           "suite": "utils",
@@ -220,7 +220,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 785,
+      "executionTime": 696,
       "tests": [
         {
           "suite": "utils",
@@ -315,7 +315,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 553,
+      "executionTime": 500,
       "tests": [
         {
           "suite": "utils",
@@ -330,7 +330,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 497,
+      "executionTime": 485,
       "tests": [
         {
           "suite": "utils",
@@ -343,9 +343,9 @@
     {
       "name": "Base Belt",
       "suite": "belts",
-      "status": "failed",
-      "exitCode": 1,
-      "executionTime": 827,
+      "status": "passed",
+      "exitCode": 0,
+      "executionTime": 707,
       "tests": [
         {
           "suite": "belts",
@@ -410,27 +410,22 @@
         {
           "suite": "belts",
           "name": "no repeating pattern: consecutive belt fills produce different sequences\u001b[0m",
-          "status": "failed"
-        },
-        {
-          "suite": "belts",
-          "name": "Tests passed: 12\u001b[0m",
           "status": "passed"
         },
         {
           "suite": "belts",
-          "name": "Tests failed: 1\u001b[0m",
-          "status": "failed"
+          "name": "Tests passed: 13\u001b[0m",
+          "status": "passed"
         }
       ],
-      "errorMessage": "\u001b[36m🔄 Initializing card cache...\u001b[0m"
+      "errorMessage": null
     },
     {
       "name": "Common Belt",
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 975,
+      "executionTime": 677,
       "tests": [
         {
           "suite": "belts",
@@ -530,7 +525,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1733,
+      "executionTime": 866,
       "tests": [
         {
           "suite": "belts",
@@ -625,7 +620,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 931,
+      "executionTime": 683,
       "tests": [
         {
           "suite": "belts",
@@ -705,7 +700,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 815,
+      "executionTime": 729,
       "tests": [
         {
           "suite": "belts",
@@ -720,7 +715,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 789,
+      "executionTime": 679,
       "tests": [
         {
           "suite": "belts",
@@ -795,7 +790,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1601,
+      "executionTime": 1069,
       "tests": [
         {
           "suite": "belts",
@@ -885,7 +880,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 841,
+      "executionTime": 757,
       "tests": [
         {
           "suite": "belts",
@@ -940,7 +935,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 840,
+      "executionTime": 682,
       "tests": [
         {
           "suite": "belts",
@@ -1015,7 +1010,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 485,
+      "executionTime": 459,
       "tests": [
         {
           "suite": "fixes",
@@ -1030,7 +1025,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 992,
+      "executionTime": 790,
       "tests": [
         {
           "suite": "draft",
@@ -1045,7 +1040,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 484,
+      "executionTime": 467,
       "tests": [
         {
           "suite": "bots",
@@ -1190,7 +1185,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 847,
+      "executionTime": 700,
       "tests": [
         {
           "suite": "data",
@@ -1625,7 +1620,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 829,
+      "executionTime": 681,
       "tests": [
         {
           "suite": "data",
@@ -2660,7 +2655,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 529,
+      "executionTime": 483,
       "tests": [
         {
           "suite": "hooks",
@@ -2675,7 +2670,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 516,
+      "executionTime": 483,
       "tests": [
         {
           "suite": "hooks",
@@ -2690,7 +2685,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 591,
+      "executionTime": 469,
       "tests": [
         {
           "suite": "hooks",
@@ -2705,7 +2700,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 784,
+      "executionTime": 489,
       "tests": [
         {
           "suite": "hooks",
@@ -3070,17 +3065,12 @@
     {
       "suite": "belts",
       "name": "no repeating pattern: consecutive belt fills produce different sequences\u001b[0m",
-      "status": "failed"
-    },
-    {
-      "suite": "belts",
-      "name": "Tests passed: 12\u001b[0m",
       "status": "passed"
     },
     {
       "suite": "belts",
-      "name": "Tests failed: 1\u001b[0m",
-      "status": "failed"
+      "name": "Tests passed: 13\u001b[0m",
+      "status": "passed"
     },
     {
       "suite": "belts",

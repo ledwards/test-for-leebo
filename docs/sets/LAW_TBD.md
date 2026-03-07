@@ -26,17 +26,9 @@ This document tracks things we don't know yet about Set 7 pack collation and nee
 **To verify:** Confirm prestige pull rate from physical boxes
 **File:** `src/utils/boosterPack.ts` - search for "Prestige"
 
-### 5. Common Belt Assignments
-**Current assumption:** Auto-assign based on first aspect (same as Block A)
-**Unknown:** Physical belt assignments for LAW commons
-**To verify:** Analyze common patterns from physical pack openings
-**File:** `src/belts/data/commonBeltAssignments.ts` - LAW entry uses `autoAssign: true`
+### ~~5. Common Belt Assignments~~ → RESOLVED (see below)
 
-### 6. Triple-Aspect Card Belt Assignment
-**Current assumption:** If card has ANY Belt A aspect (Vigilance, Command, Villainy) → Belt A
-**Unknown:** How FFG actually assigns double/triple-aspect cards to print belts
-**To verify:** Track triple-aspect card positions in physical packs
-**File:** `src/belts/data/commonBeltAssignments.ts` - `assignCardToBelt()`
+### ~~6. Triple-Aspect Card Belt Assignment~~ → RESOLVED (see below)
 
 ### 7. Showcase Leader Pull Rate
 **Current assumption:** ~1 in 576 packs (double the previous 1/288)
@@ -85,3 +77,13 @@ When a TBD is resolved:
 
 ### Foil Slot Is Always Hyperspace Foil
 **Resolved:** Confirmed per FFG announcement. `foilSlotIsHyperspaceFoil: true` in LAW config. No regular foils in LAW packs. Currently using Hyperspace variants as placeholder (see TBD #2 above).
+
+### Common Belt Assignments (TBD #5)
+**Resolved:** Verified from physical pack openings. LAW uses different belt rules than Block A:
+- Belt A (50): Vigilance first, Aggression first, Villainy-only, Heroism-only, + Hidden Hand Supplier (override)
+- Belt B (50): Cunning first, Command first, Neutral (no aspects) − Hidden Hand Supplier
+- Double/triple-aspect cards assigned by first-listed aspect (same as before)
+- `autoAssign: true` still used, but `assignCardToBelt()` now has Block B-specific logic
+
+### Triple-Aspect Card Belt Assignment (TBD #6)
+**Resolved:** First-listed-aspect rule confirmed from physical packs. Triple-aspect cards use first aspect for belt assignment, same as double-aspect cards.

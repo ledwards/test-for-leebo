@@ -1,5 +1,10 @@
 # Release Notes
 
+## 03.06.2026
+
+### 🃏 Pack Generation
+- **LAW common belt assignments verified from physical packs**: Belt A/B rules for A Lawless Time commons now match real-world print collation. Belt A contains blue-first, red-first, and mono-faction (Villainy-only, Heroism-only) commons. Belt B contains yellow-first, green-first, and neutral commons. This is different from Sets 4-6 which grouped by different aspect combinations.
+
 ## 03.05.2026
 Happy pre-release everyone! As we are able to open physical product, we will be improving the algorithm for generating A Lawless Time booster packs. Let us know in the Discord how your PR event went, and if PTP helped you prepare. Good luck, and have fun!
 
