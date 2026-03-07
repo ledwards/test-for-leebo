@@ -383,16 +383,17 @@ export const SET_7_PLUS_CONSTANTS: PackConstants = {
   // ---------------------------------------------------------------------------
   // UC Slot 3 Upgrade Rate
   // ---------------------------------------------------------------------------
-  ucSlot3UpgradeRate: 1 / 5,
+  ucSlot3UpgradeRate: 1 / 3,
 
   // ---------------------------------------------------------------------------
   // UC Slot 3 Upgraded Rarity Weights
+  // From 4-box (96 pack) observation: UC:R:S:L = 20:10:3:1 → weights 24:12:3:1
   // ---------------------------------------------------------------------------
   ucSlot3UpgradedWeights: {
-    Uncommon: 60,
-    Rare: 25,
-    Special: 10,
-    Legendary: 5,
+    Uncommon: 24,
+    Rare: 12,
+    Special: 3,
+    Legendary: 1,
   },
 
   // ---------------------------------------------------------------------------
@@ -539,18 +540,18 @@ export const HS_BELT_CONFIGS: Record<string, HSBeltConfig> = {
   // UC3 can still upgrade to HS R/L (if prestige doesn't trigger first).
   'LAW': {
     cycleSize: 60,
-    budgetDistribution: { 0: 28, 1: 30, 2: 2 },
+    budgetDistribution: { 0: 22, 1: 30, 2: 8 },
     slotCounts: {
       leader: 10,   // 1/6
       base: 10,     // 1/6
       common: 0,    // No common HS upgrades; dedicated belt provides HS common
       uc1: 4,       // ~1/15
       uc2: 2,       // ~1/30
-      uc3: 8,       // ~1/7.5
+      uc3: 20,      // ~1/3 (from 4-box observation: 34 HS upgrades in 96 packs)
     }
-    // total: 10+10+0+4+2+8 = 34 ✓
-    // budget: 0×28 + 1×30 + 2×2 = 34 ✓
-    // μ = 34/60 ≈ 0.57 belt upgrades + 1 guaranteed HS common = ~1.57 HS/pack
+    // total: 10+10+0+4+2+20 = 46 ✓
+    // budget: 0×22 + 1×30 + 2×8 = 46 ✓
+    // μ = 46/60 ≈ 0.77 belt upgrades + 1 guaranteed HS common = ~1.77 HS/pack
   },
 }
 

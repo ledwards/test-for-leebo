@@ -103,7 +103,7 @@ export const LAW_CONFIG: SetConfig = {
     foilToHyperfoil: 0, // Handled by foilSlotIsHyperspaceFoil rule
 
     // UC slot upgrades
-    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,      // 1/5 (belt: 8/60, fallback if prestige misses)
+    thirdUCToHyperspaceRL: constants.ucSlot3UpgradeRate,      // 1/3 (belt: 20/60, fallback if prestige misses; rarity from ucSlot3UpgradedWeights)
     firstUCToHyperspaceUC: constants.uncommonHyperspaceRate,   // 1/8 (belt: 4/60)
     secondUCToHyperspaceUC: constants.uncommonHyperspaceRate,  // 1/8 (belt: 2/60)
 

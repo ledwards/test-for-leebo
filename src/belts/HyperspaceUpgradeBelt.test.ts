@@ -211,8 +211,8 @@ function runTests(): void {
   console.log('')
   console.log('\x1b[1m\x1b[35m🤠 LAW HyperspaceUpgradeBelt Tests\x1b[0m')
 
-  test('LAW: ~47% of plans have budget 0 (HS common is from dedicated belt, not upgrade)', () => {
-    // LAW config: budget-0 = 28/60 = 46.7%
+  test('LAW: ~37% of plans have budget 0 (HS common is from dedicated belt, not upgrade)', () => {
+    // LAW config: budget-0 = 22/60 = 36.7%
     const belt = new HyperspaceUpgradeBelt('LAW')
     let zeroCount = 0
     for (let i = 0; i < TOTAL_DRAWS; i++) {
@@ -220,22 +220,22 @@ function runTests(): void {
       if (countTrueSlots(plan) === 0) zeroCount++
     }
     const rate = zeroCount / TOTAL_DRAWS
-    console.log(`\x1b[36m   LAW budget-0 rate: ${(rate * 100).toFixed(1)}% (expected 46.7%)\x1b[0m`)
+    console.log(`\x1b[36m   LAW budget-0 rate: ${(rate * 100).toFixed(1)}% (expected 36.7%)\x1b[0m`)
     assert(
-      Math.abs(rate - 28 / 60) < 0.02,
-      `Budget-0 rate ${(rate * 100).toFixed(1)}% should be ~46.7%`
+      Math.abs(rate - 22 / 60) < 0.02,
+      `Budget-0 rate ${(rate * 100).toFixed(1)}% should be ~36.7%`
     )
   })
 
-  test('LAW: total upgrades per cycle approximately equals 34', () => {
-    // common: 0 (dedicated belt), so total = leader:10 + base:10 + uc1:4 + uc2:2 + uc3:8 = 34
+  test('LAW: total upgrades per cycle approximately equals 46', () => {
+    // common: 0 (dedicated belt), so total = leader:10 + base:10 + uc1:4 + uc2:2 + uc3:20 = 46
     const belt = new HyperspaceUpgradeBelt('LAW')
     let totalUpgrades = 0
     for (let i = 0; i < CYCLE_SIZE; i++) {
       totalUpgrades += countTrueSlots(belt.next())
     }
-    console.log(`\x1b[36m   LAW upgrades per cycle: ${totalUpgrades} (expected 34)\x1b[0m`)
-    assert(Math.abs(totalUpgrades - 34) <= 1, `Total upgrades per cycle = ${totalUpgrades}, expected 34 ±1`)
+    console.log(`\x1b[36m   LAW upgrades per cycle: ${totalUpgrades} (expected 46)\x1b[0m`)
+    assert(Math.abs(totalUpgrades - 46) <= 1, `Total upgrades per cycle = ${totalUpgrades}, expected 46 ±1`)
   })
 
   test('LAW: leader + base never co-occur', () => {

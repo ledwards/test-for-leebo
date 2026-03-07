@@ -53,11 +53,11 @@ LAW introduces significant pack construction changes per [official FFG announcem
 ### Standard Pack (16 cards)
 1. **Leader** (1) - From LeaderBelt, alternating Common/Rare
 2. **Base** (1) - Common from BaseBelt (always common)
-3. **Commons** (4) - Slots 1-4 from Belt A (NO HS upgrade)
+3. **Commons** (4) - Slots 1-4 from Belt A (slot 4 upgrades to HS common 1/48 packs)
 4. **HS Common** (1) - Slot 5 from dedicated HyperspaceCommonBelt (always HS, equal distribution)
-5. **Commons** (4) - Slots 6-9 from Belt B (NO HS upgrade)
+5. **Commons** (4) - Slots 6-9 from Belt B (slot 6 upgrades to HS common 1/48 packs)
 6. **Hyperspace Foil** (1) - **Always Hyperspace Foil** (no regular foils)
-7. **Uncommons** (3) - UC1, UC2 can upgrade to HS UC; UC3 can upgrade to Prestige (~1/18) OR HS R/L
+7. **Uncommons** (3) - UC1, UC2 can upgrade to HS UC; UC3 can upgrade to Prestige (~1/18) OR HS (weighted: 60% UC, 30% R, 7.5% S, 2.5% L)
 8. **Rare/Legendary** (1) - 5:1 ratio, CANNOT upgrade
 
 > **Note:** In sets 1-6, the foil is at the end of the pack (index 15). In LAW+, the HS Foil is at index 11 (after 9 commons), before the 3 uncommons and R/L.
@@ -75,8 +75,14 @@ LAW introduces significant pack construction changes per [official FFG announcem
 - Position: Slot 5 (1-indexed), Pack Index: 6 (after leader + base + 4 commons)
 - Drawn from `HyperspaceCommonBelt` — always HS, equal distribution across all HS commons
 - NOT an upgrade of a normal common — it's a dedicated belt
-- The other 8 common spots (Belt A slots 1-4, Belt B slots 6-9) do NOT upgrade to HS
 - No alternating slot in Block B (slot 5 is always HS common)
+
+### Common Slot HS Upgrades (1/48 each)
+- Belt A slot 4 (pack index 5): 1 in 48 packs, replaced with a draw from `HyperspaceCommonBelt`
+- Belt B slot 6 (pack index 7): 1 in 48 packs, replaced with a draw from `HyperspaceCommonBelt`
+- Controlled by `CommonUpgradeBelt` (48-pack cycle, not random), giving exactly 1 upgrade per box (24 packs)
+- The normal common is discarded, NOT transformed — the HS card is a fresh draw from the HS belt
+- A pack with this upgrade has 2 HS commons (slot 5 dedicated + the upgraded slot)
 
 ## Upgrade Probabilities
 
@@ -89,14 +95,16 @@ LAW uses a **HyperspaceUpgradeBelt** with `common: 0` (HS common comes from dedi
 | Base → Hyperspace | 1/6 (~16.7%) | 10/60 | Same as Sets 1-6 |
 | Foil → Hyperfoil | **N/A** | — | Foil IS Hyperspace Foil |
 | Common → Hyperspace | **0** | — | HS common is dedicated belt (slot 5), not an upgrade |
-| UC3 → Prestige | **~1/18 (~5.6%)** | independent | Checked FIRST before HS R/L |
-| UC3 → HS R/L/S | ~13% | 8/60 | Fallback if prestige misses |
+| Belt A slot 4 → HS Common | **1/48 (~2.1%)** | CommonUpgradeBelt | Fresh draw from HyperspaceCommonBelt |
+| Belt B slot 6 → HS Common | **1/48 (~2.1%)** | CommonUpgradeBelt | Fresh draw from HyperspaceCommonBelt |
+| UC3 → Prestige | **~1/18 (~5.6%)** | independent | Checked FIRST before HS upgrade |
+| UC3 → HS (weighted) | **~1/3 (~33%)** | 20/60 | Fallback if prestige misses; rarity from weights |
 | UC1 → Hyperspace UC | ~7% | 4/60 | Same as Sets 1-6 |
 | UC2 → Hyperspace UC | ~3% | 2/60 | Same as Sets 1-6 |
 | R/L → Prestige | **0** | — | R/L slot CANNOT upgrade |
 | R/L → Hyperspace | **0** | — | R/L slot NEVER upgrades to HS |
 
-**Belt stats:** μ = 34/60 ≈ 0.57 belt upgrades + 1 dedicated HS common = ~1.57 HS/pack
+**Belt stats:** μ = 46/60 ≈ 0.77 belt upgrades + 1 dedicated HS common = ~1.77 HS/pack
 
 ## Rarity Weights
 
@@ -109,13 +117,13 @@ LAW uses a **HyperspaceUpgradeBelt** with `common: 0` (HS common comes from dedi
 | Special | 4 | 4% |
 | Legendary | 3 | 3% |
 
-### UC Slot 3 (When Upgraded)
+### UC Slot 3 (When Upgraded to HS)
 | Rarity | Weight | Percentage |
 |--------|--------|------------|
-| Uncommon | 60 | 60% |
-| Rare | 25 | 25% |
-| Special | 10 | 10% |
-| Legendary | 5 | 5% |
+| Uncommon | 24 | 60% |
+| Rare | 12 | 30% |
+| Special | 3 | 7.5% |
+| Legendary | 1 | 2.5% |
 
 ### Hyperspace Non-Foil
 | Rarity | Weight | Percentage |
@@ -192,9 +200,10 @@ Example: Vigilance+Cunning → first is Vigilance → Belt A
 
 ### Pack Generation Flow
 1. Generate base pack: leader, base, 4 commons (Belt A), 1 HS common (HyperspaceCommonBelt), 4 commons (Belt B)
-2. Insert HS Foil (from HyperfoilBelt) at index 11 (after commons, before uncommons)
-3. Generate 3 uncommons, then R/L
-4. Upgrade pass:
+2. Common upgrade pass: CommonUpgradeBelt decides if Belt A slot 4 or Belt B slot 6 gets replaced with HS common draw (1/48 each)
+3. Insert HS Foil (from HyperfoilBelt) at index 11 (after commons, before uncommons)
+4. Generate 3 uncommons, then R/L
+5. Upgrade pass:
    - Leader: Showcase (independent) or HS (belt-driven)
    - Base: HS (belt-driven)
    - UC1, UC2: HS UC (belt-driven)
@@ -233,6 +242,7 @@ See **[LAW_TBD.md](LAW_TBD.md)** for all temporary placeholders, estimated rates
 
 - `src/utils/setConfigs/LAW.ts` - Set configuration
 - `src/belts/data/commonBeltAssignments.ts` - Belt assignments and helpers
+- `src/belts/CommonUpgradeBelt.ts` - 48-pack cycle for common slot HS upgrades
 - `src/belts/HyperfoilBelt.ts` - HSF belt (with Normal variant fallback for LAW)
 - `src/utils/packConstants.ts` - `SET_7_PLUS_CONSTANTS`
 - `src/utils/boosterPack.ts` - `usesLawPackRules()`, `findHyperspaceVariant()` (with LAW fallback)
