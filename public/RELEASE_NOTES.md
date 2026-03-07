@@ -1,9 +1,16 @@
 # Release Notes
 
+## 03.07.2026
+
+### 🃏 Pack Generation
+- **LAW UC3 upgrade rate and rarity distribution updated from physical data collection**: Based on observation from #community-box-mapping, the UC3 slot now upgrades to Hyperspace at ~1/3 rate (was 1/5), and upgraded cards follow weighted rarity distribution: 60% Uncommon, 30% Rare, 7.5% Special, 2.5% Legendary. Previously UC3 could only upgrade to R/L — now it correctly produces HS Uncommons ~60% of the time, matching real-world packs. Prestige rate remains ~1/18 (checked first, takes priority).
+- **LAW Carbonite rarity distribution updated from physical data collection**: Carbonite pack HS and HSF slots now use a tiered architecture verified from a real LAW carbonite case opening. HS slots: 4 fixed Common + 3 weighted flex (63% UC, 32% C, 3% R, 1% S, 1% L) + 1 guaranteed R/S/L top slot. HSF slots: 4 weighted flex (44% UC, 43% C, 10% R, 1.5% S, 1.5% L) + 2 fixed Common. Overall distribution now closely matches observed rates (~62% C, ~24% UC, ~9% R, ~3% S, ~3% L for HS).
+
 ## 03.06.2026
 
 ### 🃏 Pack Generation
 - **LAW common belt assignments verified from physical packs**: Belt A/B rules for A Lawless Time commons now match real-world print collation. Belt A contains blue-first, red-first, and mono-faction (Villainy-only, Heroism-only) commons. Belt B contains yellow-first, green-first, and neutral commons. This is different from Sets 4-6 which grouped by different aspect combinations.
+- **LAW common slot HS upgrades**: 1 in 48 packs upgrades Belt A's 4th common to a Hyperspace common; same for Belt B's 1st common. Controlled by a 48-pack collation belt so every box (24 packs) gets exactly 1 of these upgrades. The upgraded slot gets a fresh card from the Hyperspace common belt.
 
 ## 03.05.2026
 Happy pre-release everyone! As we are able to open physical product, we will be improving the algorithm for generating A Lawless Time booster packs. Let us know in the Discord how your PR event went, and if PTP helped you prepare. Good luck, and have fun!
@@ -385,7 +392,7 @@ Additionally, we've got a Discord now: [https://discord.gg/u6fkdDzWqF](https://d
    - 🔒 Security
    - 📝 Documentation
    - 🔧 Maintenance
-   - 📦 Pack Changes
+   - 🃏 Pack Changes
    - 💽 Data Changes
    - 🤖 AI Players
    - 🎮 Game Modes/Gameplay
