@@ -63,13 +63,13 @@ LAW introduces significant pack construction changes per [official FFG announcem
 > **Note:** In sets 1-6, the foil is at the end of the pack (index 15). In LAW+, the HS Foil is at index 11 (after 9 commons), before the 3 uncommons and R/L.
 > **Note:** UC3 prestige check runs FIRST; if it misses, HS R/L check runs. Cannot be both.
 
-### Belt Configuration (Block B)
+### Belt Configuration (Block B) — Verified from Physical Packs
 
-| Belt | Aspects | Target Size | Slots |
-|------|---------|-------------|-------|
-| A | Vigilance, Command, Villainy | 50 | 1-4 |
+| Belt | Assignment Rule | Target Size | Slots |
+|------|----------------|-------------|-------|
+| A | Vigilance first, Aggression first, Villainy-only, Heroism-only, + Hidden Hand Supplier | 50 | 1-4 |
 | HS Common | All commons (equal) | — | 5 (dedicated HyperspaceCommonBelt) |
-| B | Aggression, Cunning, Heroism, Neutral | 50 | 6-9 |
+| B | Cunning first, Command first, Neutral (no aspects) − Hidden Hand Supplier | 50 | 6-9 |
 
 ### Dedicated HS Common Slot
 - Position: Slot 5 (1-indexed), Pack Index: 6 (after leader + base + 4 commons)
@@ -126,44 +126,34 @@ LAW uses a **HyperspaceUpgradeBelt** with `common: 0` (HS common comes from dedi
 | Special | 3 | 3% |
 | Legendary | 1 | 1% |
 
-## Belt Assignments
+## Belt Assignments — Verified from Physical Packs
 
-Belt assignments use **auto-assignment** based on aspects until static assignments are created.
+Belt assignments use **aspect-based auto-assignment** with rules verified from physical LAW pack openings.
 
-### Auto-Assignment Rules
-Cards are assigned to belts based on their aspects:
-- If card has ANY Belt A aspect (Vigilance, Command, Villainy) → **Belt A**
-- Otherwise → **Belt B**
+### Belt A Rules (50 cards)
+- **Vigilance (Blue) as first aspect** — 22 cards (includes multi-aspect like Vigilance+Cunning)
+- **Aggression (Red) as first aspect** — 21 cards (includes multi-aspect like Aggression+Villainy)
+- **Villainy-only** (mono-aspect) — 3 cards
+- **Heroism-only** (mono-aspect) — 3 cards
+- **Override**: Hidden Hand Supplier (neutral, manually assigned to Belt A) — 1 card
 
-This handles triple-aspect cards (see below).
+### Belt B Rules (50 cards)
+- **Cunning (Yellow) as first aspect** — 21 cards (includes multi-aspect like Cunning+Villainy)
+- **Command (Green) as first aspect** — 22 cards (includes multi-aspect like Command+Aggression)
+- **Neutral** (no aspects) — 7 cards (8 total minus Hidden Hand Supplier override)
 
-### Belt A Aspects
-- Vigilance (Blue)
-- Command (Green)
-- Villainy
-
-### Belt B Aspects
-- Aggression (Red)
-- Cunning (Yellow)
-- Heroism
-- Neutral
+### Key Differences from Block A (Sets 4-6)
+Block A used Vigilance/Command/Villainy vs Aggression/Cunning/Heroism/Neutral. LAW's physical belt assignment is different: it groups by **color axis** (blue+red vs yellow+green) with mono-faction cards (Villainy-only, Heroism-only) on Belt A.
 
 ## Multi-Aspect Cards
 
 LAW introduces cards with **multiple primary aspects**:
 
 ### Double-Aspect Cards
-Cards with two primary color aspects (e.g., Vigilance+Command, Vigilance+Cunning).
+Cards with two primary color aspects (e.g., Vigilance+Command, Vigilance+Cunning). Assigned by **first-listed aspect**.
 
 ### Triple-Aspect Cards
-Cards with three aspects — double primary + faction (e.g., Vigilance+Aggression+Heroism).
-
-### Belt Assignment Strategy (Common Belts Only)
-
-**First-Listed-Aspect Rule** (assumption — see [LAW_TBD.md](LAW_TBD.md)):
-- Use the **first aspect** in the card's aspects array to determine belt
-- If first aspect is Belt A (Vigilance, Command, Villainy) → Belt A
-- Otherwise → Belt B
+Cards with three aspects — double primary + faction (e.g., Vigilance+Aggression+Heroism). Assigned by **first-listed aspect**.
 
 Example: Vigilance+Cunning → first is Vigilance → Belt A
 

@@ -27,20 +27,16 @@
  * - Belt B fills common slots 6-9 (4 cards per pack)
  * - Hyperspace upgrades happen in slot 4
  *
- * Block B (Sets 7+: LAW):
- * - Same belt structure as Block A (50/50 split)
- * - Belt A: Vigilance, Command, Villainy - 50 cards
- * - Belt B: Aggression, Cunning, Heroism, Neutral - 50 cards
+ * Block B (Sets 7+: LAW) — verified from physical pack openings:
+ * - 50/50 split
+ * - Belt A: Vigilance first, Aggression first, Villainy-only, Heroism-only - 50 cards
+ * - Belt B: Cunning first, Command first, Neutral (no aspects) - 50 cards
  * - Belt A fills common slots 1-4 (4 cards per pack)
  * - Slot 5 is a DEDICATED Hyperspace common from HyperspaceCommonBelt (not from Belt A/B)
  * - Belt B fills common slots 6-9 (4 cards per pack)
  * - No alternating slot (slot 5 is always HS)
- * - Triple-aspect cards (new in LAW) are assigned based on primary aspect priority
- *
- * TRIPLE-ASPECT CARDS:
- * LAW introduces cards with 3 aspects (e.g., Vigilance + Command + Heroism)
- * Assignment rule: If card has ANY Belt A aspect (Vigilance, Command, Villainy) -> Belt A
- * This is configurable in the set config if needed
+ * - One card override: Hidden Hand Supplier (neutral) goes to Belt A
+ * - Double/triple-aspect cards assigned by first-listed aspect
  *
  * To edit: Simply add or remove card names from the arrays below.
  * Run the test suite after editing to verify no duplicates and correct sizes.
@@ -737,12 +733,35 @@ export function getBeltConfig(block: BlockType): BeltConfig {
 }
 
 /**
+ * Cards that are exceptions to the aspect-based belt assignment rules.
+ * Verified from physical pack openings.
+ */
+const BELT_OVERRIDES: Record<string, Record<string, 'A' | 'B'>> = {
+  // LAW: Hidden Hand Supplier is neutral (no aspects) but goes on Belt A
+  'LAW': {
+    'Hidden Hand Supplier': 'A',
+  },
+}
+
+/**
  * Determine which belt a card should be assigned to based on its aspects.
- * Used for auto-assignment of cards (LAW double/triple-aspect cards).
+ * Used for auto-assignment of cards (LAW+ sets).
  *
- * Uses first-listed-aspect rule: the first aspect in the card's aspects array
- * determines belt assignment. This is a TBD assumption — we don't yet know
- * how FFG actually assigns double-aspect cards to print belts.
+ * Rules verified from physical LAW pack openings:
+ *
+ * Block 0 (SOR, SHD, TWI):
+ *   Belt A: Vigilance, Command, Aggression (first aspect)
+ *   Belt B: Cunning, Villainy, Heroism, Neutral
+ *
+ * Block A (JTL, LOF, SEC):
+ *   Belt A: Vigilance, Command, Villainy (first aspect)
+ *   Belt B: Aggression, Cunning, Heroism, Neutral
+ *
+ * Block B (LAW+) — verified from physical packs:
+ *   Belt A: Vigilance first aspect, Aggression first aspect,
+ *           Villainy-only, Heroism-only, + per-card overrides
+ *   Belt B: Cunning first aspect, Command first aspect,
+ *           Neutral (no aspects), - per-card overrides
  *
  * @param card - Card object with aspects array
  * @param block - Block identifier ('0', 'A', or 'B')
@@ -751,21 +770,56 @@ export function getBeltConfig(block: BlockType): BeltConfig {
 export function assignCardToBelt(card: RawCard, block: BlockType): 'A' | 'B' {
   const aspects = card.aspects || []
 
-  // Belt A aspects vary by block
-  let beltAAspects: string[]
-  if (block === 0) {
-    beltAAspects = ['Vigilance', 'Command', 'Aggression']
-  } else {
-    // Block A and B
-    beltAAspects = ['Vigilance', 'Command', 'Villainy']
+  // Check per-card overrides first
+  const setCode = card.set || ''
+  if (BELT_OVERRIDES[setCode] && BELT_OVERRIDES[setCode][card.name]) {
+    return BELT_OVERRIDES[setCode][card.name]
   }
 
-  // First-listed-aspect rule: use the first aspect to determine belt
-  // For double-aspect cards (e.g., Vigilance+Cunning), first aspect wins
-  if (aspects.length > 0 && beltAAspects.includes(aspects[0])) {
+  if (block === 0) {
+    // Block 0: Belt A = Blue, Green, Red
+    const beltAAspects = ['Vigilance', 'Command', 'Aggression']
+    if (aspects.length > 0 && beltAAspects.includes(aspects[0])) {
+      return 'A'
+    }
+    return 'B'
+  }
+
+  if (block === 'A') {
+    // Block A: Belt A = Blue, Green, Villainy (first aspect)
+    const beltAAspects = ['Vigilance', 'Command', 'Villainy']
+    if (aspects.length > 0 && beltAAspects.includes(aspects[0])) {
+      return 'A'
+    }
+    return 'B'
+  }
+
+  // Block B (LAW+) — verified from physical pack openings:
+  // Belt A: Vigilance first, Aggression first, Villainy-only, Heroism-only
+  // Belt B: Cunning first, Command first, Neutral (no aspects)
+  const firstAspect = aspects[0]
+
+  // Blue (Vigilance) or Red (Aggression) as first aspect → Belt A
+  if (firstAspect === 'Vigilance' || firstAspect === 'Aggression') {
     return 'A'
   }
 
+  // Mono-aspect Villainy or Heroism → Belt A
+  if (aspects.length === 1 && (firstAspect === 'Villainy' || firstAspect === 'Heroism')) {
+    return 'A'
+  }
+
+  // Yellow (Cunning) or Green (Command) as first aspect → Belt B
+  if (firstAspect === 'Cunning' || firstAspect === 'Command') {
+    return 'B'
+  }
+
+  // Neutral (no aspects) → Belt B
+  if (aspects.length === 0) {
+    return 'B'
+  }
+
+  // Fallback for any edge cases
   return 'B'
 }
 
