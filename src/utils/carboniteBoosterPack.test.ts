@@ -218,21 +218,65 @@ async function runTests(): Promise<void> {
     assert(prestige.isPrestige === true, 'Slot 1 should have isPrestige flag')
   })
 
-  test('LAW-CB: slots 2-9 are HS non-foil (8 total)', () => {
+  test('LAW-CB: slots 2-5 are Common HS (fixed)', () => {
     clearCarboniteBeltCache()
-    const pack = generateCarboniteBoosterPack('LAW-CB')
-    for (let i = 2; i <= 9; i++) {
-      assert(pack.cards[i].isHyperspace === true, `Slot ${i} should be hyperspace`)
-      assert(!pack.cards[i].isFoil, `Slot ${i} should NOT be foil`)
+    for (let p = 0; p < 10; p++) {
+      const pack = generateCarboniteBoosterPack('LAW-CB')
+      for (let i = 2; i <= 5; i++) {
+        assert(pack.cards[i].isHyperspace === true, `Pack ${p}, slot ${i} should be hyperspace`)
+        assert(!pack.cards[i].isFoil, `Pack ${p}, slot ${i} should NOT be foil`)
+        assertEqual(pack.cards[i].rarity, 'Common',
+          `Pack ${p}, slot ${i}: should be Common, got ${pack.cards[i].rarity}`)
+      }
     }
   })
 
-  test('LAW-CB: slots 10-15 are HS foil (6 total)', () => {
+  test('LAW-CB: slots 6-8 are HS flex (any rarity)', () => {
     clearCarboniteBeltCache()
-    const pack = generateCarboniteBoosterPack('LAW-CB')
-    for (let i = 10; i <= 15; i++) {
-      assert(pack.cards[i].isFoil === true, `Slot ${i} should be foil`)
-      assert(pack.cards[i].isHyperspace === true, `Slot ${i} should be hyperspace`)
+    for (let p = 0; p < 10; p++) {
+      const pack = generateCarboniteBoosterPack('LAW-CB')
+      for (let i = 6; i <= 8; i++) {
+        assert(pack.cards[i].isHyperspace === true, `Pack ${p}, slot ${i} should be hyperspace`)
+        assert(!pack.cards[i].isFoil, `Pack ${p}, slot ${i} should NOT be foil`)
+      }
+    }
+  })
+
+  test('LAW-CB: slot 9 is R/S/L HS (top slot)', () => {
+    clearCarboniteBeltCache()
+    for (let p = 0; p < 20; p++) {
+      const pack = generateCarboniteBoosterPack('LAW-CB')
+      const card = pack.cards[9]
+      assert(card.isHyperspace === true, `Pack ${p}: slot 9 should be hyperspace`)
+      assert(!card.isFoil, `Pack ${p}: slot 9 should NOT be foil`)
+      assert(
+        card.rarity === 'Rare' || card.rarity === 'Legendary' || card.rarity === 'Special',
+        `Pack ${p}: slot 9 should be R/S/L, got ${card.rarity}`
+      )
+    }
+  })
+
+  test('LAW-CB: slots 10-13 are HSF flex (any rarity)', () => {
+    clearCarboniteBeltCache()
+    for (let p = 0; p < 10; p++) {
+      const pack = generateCarboniteBoosterPack('LAW-CB')
+      for (let i = 10; i <= 13; i++) {
+        assert(pack.cards[i].isFoil === true, `Pack ${p}, slot ${i} should be foil`)
+        assert(pack.cards[i].isHyperspace === true, `Pack ${p}, slot ${i} should be hyperspace`)
+      }
+    }
+  })
+
+  test('LAW-CB: slots 14-15 are Common HSF (fixed)', () => {
+    clearCarboniteBeltCache()
+    for (let p = 0; p < 10; p++) {
+      const pack = generateCarboniteBoosterPack('LAW-CB')
+      for (let i = 14; i <= 15; i++) {
+        assert(pack.cards[i].isFoil === true, `Pack ${p}, slot ${i} should be foil`)
+        assert(pack.cards[i].isHyperspace === true, `Pack ${p}, slot ${i} should be hyperspace`)
+        assertEqual(pack.cards[i].rarity, 'Common',
+          `Pack ${p}, slot ${i}: should be Common, got ${pack.cards[i].rarity}`)
+      }
     }
   })
 
@@ -411,6 +455,74 @@ async function runTests(): Promise<void> {
       `Rare (${counts.Rare}) should exceed Special (${counts.Special})`)
     assert(counts.Rare > 100,
       `Rare should be majority (>50%), got ${counts.Rare}/200`)
+  })
+
+  test('LAW-CB HS rarity distribution over 500 packs', () => {
+    // SPEC: 4 fixed C + 3 flex (C:32,UC:63,R:3,S:1,L:1) + 1 top (R:60,S:20,L:20)
+    // Expected overall per 8 cards: ~62% C, ~24% UC, ~9% R, ~3% S, ~3% L
+    clearCarboniteBeltCache()
+    const counts: Record<string, number> = {}
+    const sampleSize = 500
+    let totalCards = 0
+    for (let i = 0; i < sampleSize; i++) {
+      const pack = generateCarboniteBoosterPack('LAW-CB')
+      for (let j = 2; j <= 9; j++) {
+        const card = pack.cards[j]
+        counts[card.rarity] = (counts[card.rarity] || 0) + 1
+        totalCards++
+      }
+    }
+    const cPct = ((counts.Common || 0) / totalCards) * 100
+    const ucPct = ((counts.Uncommon || 0) / totalCards) * 100
+    const rPct = ((counts.Rare || 0) / totalCards) * 100
+
+    // Common should be majority (~62%), allow 50-75%
+    assert(cPct > 50 && cPct < 75,
+      `HS Common should be ~62%, got ${cPct.toFixed(1)}%`)
+    // UC should be significant (~24%), allow 15-35%
+    assert(ucPct > 15 && ucPct < 35,
+      `HS Uncommon should be ~24%, got ${ucPct.toFixed(1)}%`)
+    // Rare should be present (~9%), allow 3-18%
+    assert(rPct > 3 && rPct < 18,
+      `HS Rare should be ~9%, got ${rPct.toFixed(1)}%`)
+  })
+
+  test('LAW-CB HSF rarity distribution over 500 packs', () => {
+    // SPEC: 4 flex (C:43,UC:44,R:10,S:1.5,L:1.5) + 2 fixed C
+    // Expected overall per 6 cards: ~62% C, ~29% UC, ~7% R, ~1% S, ~1% L
+    clearCarboniteBeltCache()
+    const counts: Record<string, number> = {}
+    const sampleSize = 500
+    let totalCards = 0
+    for (let i = 0; i < sampleSize; i++) {
+      const pack = generateCarboniteBoosterPack('LAW-CB')
+      for (let j = 10; j <= 15; j++) {
+        const card = pack.cards[j]
+        counts[card.rarity] = (counts[card.rarity] || 0) + 1
+        totalCards++
+      }
+    }
+    const cPct = ((counts.Common || 0) / totalCards) * 100
+    const ucPct = ((counts.Uncommon || 0) / totalCards) * 100
+
+    // Common should be majority (~62%), allow 50-75%
+    assert(cPct > 50 && cPct < 75,
+      `HSF Common should be ~62%, got ${cPct.toFixed(1)}%`)
+    // UC should be significant (~29%), allow 18-40%
+    assert(ucPct > 18 && ucPct < 40,
+      `HSF Uncommon should be ~29%, got ${ucPct.toFixed(1)}%`)
+  })
+
+  test('LAW-CB: HS top slot (9) is always R/S/L over 200 packs', () => {
+    clearCarboniteBeltCache()
+    for (let i = 0; i < 200; i++) {
+      const pack = generateCarboniteBoosterPack('LAW-CB')
+      const card = pack.cards[9]
+      assert(
+        card.rarity === 'Rare' || card.rarity === 'Legendary' || card.rarity === 'Special',
+        `Pack ${i}: slot 9 should always be R/S/L, got ${card.rarity}`
+      )
+    }
   })
 
   console.log('')

@@ -19,8 +19,11 @@
  * LAW+ Carbonite (LAW) — 16 cards:
  * [0]     Leader — always Hyperspace (showcase upgrade ~1/48)
  * [1]     Prestige (synthesized from R/L pool)
- * [2-9]   Hyperspace non-foil x 8 (weighted rarity via CarboniteSlotBelt)
- * [10-15] Hyperspace Foil x 6 (weighted rarity)
+ * [2-5]   HS Common x 4 (fixed Common, from CarboniteSlotBelt)
+ * [6-8]   HS Flex x 3 (weighted: C:32, UC:63, R:3, S:1, L:1)
+ * [9]     HS Top x 1 (always R/S/L, weighted: R:60, S:20, L:20)
+ * [10-13] HSF Flex x 4 (weighted: C:43, UC:44, R:10, S:1.5, L:1.5)
+ * [14-15] HSF Common x 2 (fixed Common)
  */
 
 import type { SetCode } from '../types'
@@ -76,12 +79,35 @@ const RL_HS_CONFIG: CarboniteSlotBeltConfig = {
   weights: CARBONITE_CONSTANTS.hsRLWeights,
 }
 
-// LAW+ uses a single weighted mixed-rarity HS belt (same behavior as old CarboniteHSBelt)
-const LAW_HS_NONFOIL_CONFIG: CarboniteSlotBeltConfig = {
+// LAW+ HS flex slots (3 of 8): weighted mixed-rarity
+const LAW_HS_FLEX_CONFIG: CarboniteSlotBeltConfig = {
   rarities: ['Common', 'Uncommon', 'Rare', 'Special', 'Legendary'],
   sourceVariant: 'Hyperspace',
   outputFlags: { isHyperspace: true },
-  weights: CARBONITE_CONSTANTS.hsNonFoilWeights,
+  weights: CARBONITE_CONSTANTS.hsFlexWeights,
+}
+
+// LAW+ HS top slot (1 of 8): always R/S/L
+const LAW_HS_TOP_CONFIG: CarboniteSlotBeltConfig = {
+  rarities: ['Rare', 'Special', 'Legendary'],
+  sourceVariant: 'Hyperspace',
+  outputFlags: { isHyperspace: true },
+  weights: CARBONITE_CONSTANTS.hsTopWeights,
+}
+
+// LAW+ HSF fixed Common slots (2 of 6)
+const LAW_HSF_COMMON_CONFIG: CarboniteSlotBeltConfig = {
+  rarities: ['Common'],
+  sourceVariant: 'Hyperspace',
+  outputFlags: { isFoil: true, isHyperspace: true },
+}
+
+// LAW+ HSF flex slots (4 of 6): weighted mixed-rarity
+const LAW_HSF_FLEX_CONFIG: CarboniteSlotBeltConfig = {
+  rarities: ['Common', 'Uncommon', 'Rare', 'Special', 'Legendary'],
+  sourceVariant: 'Hyperspace',
+  outputFlags: { isFoil: true, isHyperspace: true },
+  weights: CARBONITE_CONSTANTS.hsfFlexWeights,
 }
 
 // === Belt Cache ===
@@ -225,25 +251,46 @@ export function generateCarboniteBoosterPack(compositeCode: string): Pack {
   }
 
   if (isLawPlus) {
-    // LAW+ Carbonite: Prestige, 8 HS non-foil, 6 HS foil
+    // LAW+ Carbonite: Prestige, tiered HS (4C + 3flex + 1top), tiered HSF (4flex + 2C)
     const prestigeBelt = getCBPrestigeBelt(baseCode)
-    const hsBelt = getCBSlotBelt(baseCode, 'hs-nonfoil', LAW_HS_NONFOIL_CONFIG)
-    const hyperfoilBelt = getCBHyperfoilBelt(baseCode)
+    const hsCommonBelt = getCBSlotBelt(baseCode, 'hs-common', COMMON_HS_CONFIG)
+    const hsFlexBelt = getCBSlotBelt(baseCode, 'hs-flex', LAW_HS_FLEX_CONFIG)
+    const hsTopBelt = getCBSlotBelt(baseCode, 'hs-top', LAW_HS_TOP_CONFIG)
+    const hsfFlexBelt = getCBSlotBelt(baseCode, 'hsf-flex', LAW_HSF_FLEX_CONFIG)
+    const hsfCommonBelt = getCBSlotBelt(baseCode, 'hsf-common', LAW_HSF_COMMON_CONFIG)
 
-    // Prestige card
+    // [1] Prestige
     const prestige = prestigeBelt.next()
     if (prestige) packCards.push(prestige)
 
-    // 8 Hyperspace non-foil
-    for (let i = 0; i < CARBONITE_CONSTANTS.law.hsNonFoil; i++) {
-      const hsCard = hsBelt.next()
-      if (hsCard) packCards.push(hsCard)
+    // [2-5] HS Common x 4 (fixed)
+    for (let i = 0; i < CARBONITE_CONSTANTS.law.hsCommon; i++) {
+      const card = hsCommonBelt.next()
+      if (card) packCards.push(card)
     }
 
-    // 6 Hyperspace Foil
-    for (let i = 0; i < CARBONITE_CONSTANTS.law.hsFoil; i++) {
-      const hfCard = hyperfoilBelt.next()
-      if (hfCard) packCards.push(hfCard)
+    // [6-8] HS Flex x 3 (weighted rarity)
+    for (let i = 0; i < CARBONITE_CONSTANTS.law.hsFlex; i++) {
+      const card = hsFlexBelt.next()
+      if (card) packCards.push(card)
+    }
+
+    // [9] HS Top x 1 (always R/S/L)
+    for (let i = 0; i < CARBONITE_CONSTANTS.law.hsTop; i++) {
+      const card = hsTopBelt.next()
+      if (card) packCards.push(card)
+    }
+
+    // [10-13] HSF Flex x 4 (weighted rarity)
+    for (let i = 0; i < CARBONITE_CONSTANTS.law.hsfFlex; i++) {
+      const card = hsfFlexBelt.next()
+      if (card) packCards.push(card)
+    }
+
+    // [14-15] HSF Common x 2 (fixed)
+    for (let i = 0; i < CARBONITE_CONSTANTS.law.hsfCommon; i++) {
+      const card = hsfCommonBelt.next()
+      if (card) packCards.push(card)
     }
   } else {
     // Pre-LAW Carbonite: rarity-specific belts
