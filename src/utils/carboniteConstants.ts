@@ -24,8 +24,11 @@
  * LAW+ Carbonite (LAW) — 16 cards:
  * [0]     Leader — always Hyperspace (showcase upgrade ~1/48)
  * [1]     Prestige (synthesized from R/L pool)
- * [2-9]   Hyperspace non-foil x 8 (weighted rarity)
- * [10-15] Hyperspace Foil x 6 (weighted rarity)
+ * [2-5]   HS Common x 4 (fixed Common, from CarboniteSlotBelt)
+ * [6-8]   HS Flex x 3 (weighted: C:32, UC:63, R:3, S:1, L:1)
+ * [9]     HS Top x 1 (always R/S/L, weighted: R:60, S:20, L:20)
+ * [10-13] HSF Flex x 4 (weighted: C:43, UC:44, R:10, S:1.5, L:1.5)
+ * [14-15] HSF Common x 2 (fixed Common)
  */
 
 export const CARBONITE_CONSTANTS = {
@@ -59,13 +62,29 @@ export const CARBONITE_CONSTANTS = {
     Legendary: 10,
   } as Record<string, number>,
 
-  // HS non-foil rarity weights for LAW+ Carbonite packs (weighted mixed-rarity belt)
-  hsNonFoilWeights: {
-    Common: 85,
-    Uncommon: 7,
-    Rare: 4,
-    Special: 3,
+  // LAW+ HS flex slot weights (3 of 8 HS slots — middle flex positions)
+  hsFlexWeights: {
+    Common: 32,
+    Uncommon: 63,
+    Rare: 3,
+    Special: 1,
     Legendary: 1,
+  } as Record<string, number>,
+
+  // LAW+ HS top slot weights (1 of 8 HS slots — always R/S/L)
+  hsTopWeights: {
+    Rare: 60,
+    Special: 20,
+    Legendary: 20,
+  } as Record<string, number>,
+
+  // LAW+ HSF flex slot weights (4 of 6 HSF slots)
+  hsfFlexWeights: {
+    Common: 43,
+    Uncommon: 44,
+    Rare: 10,
+    Special: 1.5,
+    Legendary: 1.5,
   } as Record<string, number>,
 
   // Pre-LAW pack slot counts (rarity-specific belts)
@@ -80,11 +99,14 @@ export const CARBONITE_CONSTANTS = {
     hsFoil: 2,          // Hyperspace Foil slots
   },
 
-  // LAW+ pack slot counts
+  // LAW+ pack slot counts (tiered: fixed C + flex + top)
   law: {
     prestige: 1,
-    hsNonFoil: 8,
-    hsFoil: 6,
+    hsCommon: 4,    // [2-5]   fixed Common HS
+    hsFlex: 3,      // [6-8]   flex HS (weighted rarity)
+    hsTop: 1,       // [9]     guaranteed R/S/L HS
+    hsfFlex: 4,     // [10-13] flex HSF (weighted rarity)
+    hsfCommon: 2,   // [14-15] fixed Common HSF
   },
 } as const
 

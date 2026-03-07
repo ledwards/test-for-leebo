@@ -125,14 +125,20 @@ LAW uses a **HyperspaceUpgradeBelt** with `common: 0` (HS common comes from dedi
 | Special | 3 | 7.5% |
 | Legendary | 1 | 2.5% |
 
-### Hyperspace Non-Foil
-| Rarity | Weight | Percentage |
-|--------|--------|------------|
-| Common | 85 | 85% |
-| Uncommon | 7 | 7% |
-| Rare | 4 | 4% |
-| Special | 3 | 3% |
-| Legendary | 1 | 1% |
+### Carbonite HS Non-Foil (Tiered Slots)
+LAW carbonite uses per-slot-tier weights instead of a single distribution:
+
+| Slot | Count | Rarity | Weights |
+|------|-------|--------|---------|
+| [2-5] HS Common | 4 | Always Common | Fixed |
+| [6-8] HS Flex | 3 | Weighted | C:32, UC:63, R:3, S:1, L:1 |
+| [9] HS Top | 1 | Always R/S/L | R:60, S:20, L:20 |
+
+### Carbonite HSF (Tiered Slots, Descending)
+| Slot | Count | Rarity | Weights |
+|------|-------|--------|---------|
+| [10-13] HSF Flex | 4 | Weighted | C:43, UC:44, R:10, S:1.5, L:1.5 |
+| [14-15] HSF Common | 2 | Always Common | Fixed |
 
 ## Belt Assignments — Verified from Physical Packs
 

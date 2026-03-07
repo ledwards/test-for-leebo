@@ -133,7 +133,9 @@ Orchestrates belt usage to create 16-card packs. HS upgrades are belt-driven (Se
 ### Carbonite Pack Generation (`src/utils/carboniteBoosterPack.ts`)
 Premium 16-card packs where every card is a variant. Pre-LAW (JTL/LOF/SEC) uses rarity-specific belts:
 - [0] Leader HS, [1-4] Common Foil x4, [5-6] UC Foil x2, [7] R/L Foil, [8] Prestige, [9-11] Common HS x3, [12] UC HS, [13] R/L HS, [14-15] HSF x2
-- LAW+ uses weighted mixed-rarity HS belts (8 HS non-foil + 6 HS foil)
+
+LAW+ uses tiered slot architecture (verified from physical carbonite case):
+- [0] Leader HS, [1] Prestige, [2-5] HS Common x4 (fixed), [6-8] HS Flex x3 (weighted: C:32, UC:63, R:3, S:1, L:1), [9] HS Top x1 (always R/S/L: R:60, S:20, L:20), [10-13] HSF Flex x4 (weighted: C:43, UC:44, R:10, S:1.5, L:1.5), [14-15] HSF Common x2 (fixed)
 - Constants in `src/utils/carboniteConstants.ts`
 
 ### Set Configs (`src/utils/setConfigs/`)
