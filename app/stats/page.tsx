@@ -349,15 +349,17 @@ function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, startDat
     Promise.all([
       fetch(`/api/stats/draft-picks?${params}`)
         .then(r => r.json())
-        .then(result => setCardData(result.data || result)),
+        .then(result => setCardData(result.data || result))
+        .catch(err => console.error('Error fetching card draft picks:', err)),
       fetch(`/api/stats/draft-picks?${params}&type=leaders`)
         .then(r => r.json())
-        .then(result => setLeaderData(result.data || result)),
+        .then(result => setLeaderData(result.data || result))
+        .catch(err => console.error('Error fetching leader draft picks:', err)),
       fetch(`/api/stats/leader-selection?${params}&poolType=draft`)
         .then(r => r.json())
-        .then(result => setLeaderSelData(result.data || result)),
+        .then(result => setLeaderSelData(result.data || result))
+        .catch(err => console.error('Error fetching leader selection:', err)),
     ])
-      .catch(err => console.error('Error fetching draft stats:', err))
       .finally(() => setLoading(false))
   }, [setCode, includeBots, includeHumans, builtDeckOnly, startDate, endDate])
 
@@ -681,12 +683,13 @@ function SealedTab({ setCode, includeBots, includeHumans, startDate, endDate }: 
     Promise.all([
       fetch(`/api/stats/deck-inclusion?${params}`)
         .then(r => r.json())
-        .then(result => setCardData(result.data || result)),
+        .then(result => setCardData(result.data || result))
+        .catch(err => console.error('Error fetching deck inclusion:', err)),
       fetch(`/api/stats/leader-selection?${params}`)
         .then(r => r.json())
-        .then(result => setLeaderSelData(result.data || result)),
+        .then(result => setLeaderSelData(result.data || result))
+        .catch(err => console.error('Error fetching leader selection:', err)),
     ])
-      .catch(err => console.error('Error fetching sealed stats:', err))
       .finally(() => setLoading(false))
   }, [setCode, includeBots, includeHumans, startDate, endDate])
 
