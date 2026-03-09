@@ -25,7 +25,7 @@ const todayStr = () => new Date().toISOString().slice(0, 10)
 
 export default function StatsPage() {
   const [activeTab, setActiveTab] = useState('LAW')
-  const [includeBots, setIncludeBots] = useState(true)
+  const [includeBots, setIncludeBots] = useState(false)
   const [includeHumans, setIncludeHumans] = useState(true)
   const [startDate, setStartDate] = useState(DEFAULT_START_DATE)
   const [endDate, setEndDate] = useState(todayStr())
