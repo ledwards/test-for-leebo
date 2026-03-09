@@ -3,6 +3,7 @@
 import { queryRows, queryRow } from '@/lib/db'
 import { jsonResponse, handleApiError } from '@/lib/utils'
 import { getAllCards } from '@/src/utils/cardData'
+import tournamentUserIds from '@/src/data/tournament-user-ids.json'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -15,6 +16,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const includeBots = url.searchParams.get('includeBots') !== 'false'
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
     const builtDeckOnly = url.searchParams.get('builtDeckOnly') === 'true'
+    const tournamentOnly = url.searchParams.get('tournamentOnly') === 'true'
 
     // Build card lookup map for enrichment, keyed by both CMS id and normalized cardId
     const allCards = getAllCards()
@@ -49,6 +51,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       JOIN built_decks bd ON bd.card_pool_id = cp_bd.id`
     }
 
+    // Tournament player filter
+    let tournamentFilter = ''
+    const queryParams: (string | string[])[] = [setCode, since, until]
+    if (tournamentOnly) {
+      queryParams.push(tournamentUserIds)
+      tournamentFilter = `AND dp.user_id = ANY($${queryParams.length}::uuid[])`
+    }
+
     // Per-card pick analytics (non-leader cards only, merge variants by card_name)
     // Only count picks from completed drafts
     const cardStats = await queryRows(
@@ -68,9 +78,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       WHERE dp.set_code = $1 AND dp.is_leader = ${type === 'leaders' ? 'TRUE' : 'FALSE'} AND dp.picked_at >= $2 AND dp.picked_at < ($3::date + interval '1 day')
         AND pod.status = 'complete'
         ${botFilter}
+        ${tournamentFilter}
       GROUP BY dp.card_name, dp.rarity, dp.card_type
       ORDER BY avg_pick_position ASC`,
-      [setCode, since, until]
+      queryParams
     )
 
     // Summary stats (completed drafts only)
@@ -85,8 +96,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ${builtDeckJoin}
       WHERE dp.set_code = $1 AND dp.is_leader = ${type === 'leaders' ? 'TRUE' : 'FALSE'} AND dp.picked_at >= $2 AND dp.picked_at < ($3::date + interval '1 day')
         AND pod.status = 'complete'
-        ${botFilter}`,
-      [setCode, since, until]
+        ${botFilter}
+        ${tournamentFilter}`,
+      queryParams
     )
 
     // Enrich cards with aspects, subtitle, cost from card cache

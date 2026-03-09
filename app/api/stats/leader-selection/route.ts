@@ -3,6 +3,7 @@
 import { queryRows, queryRow } from '@/lib/db'
 import { jsonResponse, handleApiError } from '@/lib/utils'
 import { getAllCards } from '@/src/utils/cardData'
+import tournamentUserIds from '@/src/data/tournament-user-ids.json'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const poolType = url.searchParams.get('poolType') || null
     const includeBots = url.searchParams.get('includeBots') !== 'false'
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
+    const tournamentOnly = url.searchParams.get('tournamentOnly') === 'true'
 
     // Build card lookup map for enrichment, keyed by normalized cardId
     const allCards = getAllCards()
@@ -43,7 +45,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       : ''
 
     const poolTypeFilter = poolType ? `AND bd.pool_type = $4` : ''
-    const queryParams = poolType ? [setCode, since, until, poolType] : [setCode, since, until]
+    const queryParams: (string | string[])[] = poolType ? [setCode, since, until, poolType] : [setCode, since, until]
+
+    let tournamentFilter = ''
+    if (tournamentOnly) {
+      queryParams.push(tournamentUserIds)
+      tournamentFilter = `AND bd.user_id = ANY($${queryParams.length}::uuid[])`
+    }
 
     // Get total built decks count
     const summary = await queryRow(
@@ -52,7 +60,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
        ${joinClause}
        WHERE bd.set_code = $1 AND bd.built_at >= $2 AND bd.built_at < ($3::date + interval '1 day')
          ${poolTypeFilter}
-         ${botFilter}`,
+         ${botFilter}
+         ${tournamentFilter}`,
       queryParams
     )
 
@@ -63,7 +72,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
        ${joinClause}
        WHERE bd.set_code = $1 AND bd.built_at >= $2 AND bd.built_at < ($3::date + interval '1 day')
          ${poolTypeFilter}
-         ${botFilter}`,
+         ${botFilter}
+         ${tournamentFilter}`,
       queryParams
     )
 
