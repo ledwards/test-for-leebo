@@ -16,11 +16,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
     const builtDeckOnly = url.searchParams.get('builtDeckOnly') === 'true'
 
-    // Build card lookup map for enrichment
+    // Build card lookup map for enrichment, keyed by both CMS id and normalized cardId
     const allCards = getAllCards()
     const cardMap = new Map()
     allCards.forEach(card => {
       cardMap.set(card.id, card)
+      if (card.cardId) {
+        const [set, num] = card.cardId.split('-')
+        if (set && num) {
+          cardMap.set(`${set}_${num.padStart(3, '0')}`, card)
+          cardMap.set(card.cardId, card)
+        }
+      }
     })
 
     // Build bot/human filter
