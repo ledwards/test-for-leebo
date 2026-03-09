@@ -3,6 +3,7 @@
 import { queryRows } from '@/lib/db'
 import { jsonResponse, handleApiError } from '@/lib/utils'
 import { getAllCards } from '@/src/utils/cardData'
+import tournamentUserIds from '@/src/data/tournament-user-ids.json'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const poolType = url.searchParams.get('poolType') || null
     const includeBots = url.searchParams.get('includeBots') !== 'false'
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
+    const tournamentOnly = url.searchParams.get('tournamentOnly') === 'true'
 
     // Build card lookup map for enrichment, keyed by both CMS id and normalized cardId
     const allCards = getAllCards()
@@ -48,6 +50,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ? `LEFT JOIN pod_players dpp ON cp.pod_id = dpp.pod_id AND cp.user_id = dpp.user_id`
       : ''
 
+    const queryParams: (string | string[])[] = poolType ? [setCode, since, until, poolType] : [setCode, since, until]
+    let tournamentFilter = ''
+    if (tournamentOnly) {
+      queryParams.push(tournamentUserIds)
+      tournamentFilter = `AND cp.user_id = ANY($${queryParams.length}::uuid[])`
+    }
+
     const rows = await queryRows(
       `SELECT cp.cards AS pool_cards, bd.deck AS deck_entries
        FROM card_pools cp
@@ -55,8 +64,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
        ${joinClause}
        WHERE cp.set_code = $1 AND cp.created_at >= $2 AND cp.created_at < ($3::date + interval '1 day')
          ${poolType ? `AND cp.pool_type = $4` : ''}
-         ${botFilter}`,
-      poolType ? [setCode, since, until, poolType] : [setCode, since, until]
+         ${botFilter}
+         ${tournamentFilter}`,
+      queryParams
     )
 
     // Normalize a cardId to a canonical key: SOR-59 → SOR_059, SOR_059 stays SOR_059

@@ -28,6 +28,7 @@ export default function StatsPage() {
   const [includeBots, setIncludeBots] = useState(false)
   const [includeHumans, setIncludeHumans] = useState(true)
   const [builtDeckOnly, setBuiltDeckOnly] = useState(false)
+  const [tournamentOnly, setTournamentOnly] = useState(false)
   const [startDate, setStartDate] = useState(DEFAULT_START_DATE)
   const [endDate, setEndDate] = useState(todayStr())
   const [editingStart, setEditingStart] = useState(false)
@@ -142,6 +143,14 @@ export default function StatsPage() {
           />
           Completed Pods Only
         </label>
+        <label className="stats-filter-checkbox">
+          <input
+            type="checkbox"
+            checked={tournamentOnly}
+            onChange={(e) => setTournamentOnly(e.target.checked)}
+          />
+          Tournament Players Only
+        </label>
       </div>
 
       <div className="stats-tabs">
@@ -174,6 +183,7 @@ export default function StatsPage() {
             includeBots={includeBots}
             includeHumans={includeHumans}
             builtDeckOnly={builtDeckOnly}
+            tournamentOnly={tournamentOnly}
             startDate={startDate}
             endDate={endDate}
           />
@@ -188,11 +198,12 @@ interface SetStatsTabProps {
   includeBots: boolean
   includeHumans: boolean
   builtDeckOnly: boolean
+  tournamentOnly: boolean
   startDate: string
   endDate: string
 }
 
-function SetStatsTab({ setCode, includeBots, includeHumans, builtDeckOnly, startDate, endDate }: SetStatsTabProps) {
+function SetStatsTab({ setCode, includeBots, includeHumans, builtDeckOnly, tournamentOnly, startDate, endDate }: SetStatsTabProps) {
   const [subTab, setSubTab] = useState('draft')
 
   return (
@@ -213,9 +224,9 @@ function SetStatsTab({ setCode, includeBots, includeHumans, builtDeckOnly, start
       </div>
 
       {subTab === 'draft' ? (
-        <DraftTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} builtDeckOnly={builtDeckOnly} startDate={startDate} endDate={endDate} />
+        <DraftTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} builtDeckOnly={builtDeckOnly} tournamentOnly={tournamentOnly} startDate={startDate} endDate={endDate} />
       ) : (
-        <SealedTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} startDate={startDate} endDate={endDate} />
+        <SealedTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} tournamentOnly={tournamentOnly} startDate={startDate} endDate={endDate} />
       )}
     </div>
   )
@@ -309,11 +320,12 @@ interface TabProps {
   includeBots: boolean
   includeHumans: boolean
   builtDeckOnly?: boolean
+  tournamentOnly?: boolean
   startDate: string
   endDate: string
 }
 
-function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, startDate, endDate }: TabProps) {
+function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, tournamentOnly, startDate, endDate }: TabProps) {
   const [cardData, setCardData] = useState<DraftPickStats | null>(null)
   const [leaderData, setLeaderData] = useState<DraftPickStats | null>(null)
   const [leaderSelData, setLeaderSelData] = useState<{ totalDecks: number; leaders: LeaderSelection[] } | null>(null)
@@ -345,6 +357,7 @@ function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, startDat
       includeHumans: String(includeHumans),
     })
     if (builtDeckOnly) params.set('builtDeckOnly', 'true')
+    if (tournamentOnly) params.set('tournamentOnly', 'true')
 
     Promise.all([
       fetch(`/api/stats/draft-picks?${params}`)
@@ -361,7 +374,7 @@ function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, startDat
         .catch(err => console.error('Error fetching leader selection:', err)),
     ])
       .finally(() => setLoading(false))
-  }, [setCode, includeBots, includeHumans, builtDeckOnly, startDate, endDate])
+  }, [setCode, includeBots, includeHumans, builtDeckOnly, tournamentOnly, startDate, endDate])
 
   const handleCardSort = (key: SortKey) => {
     if (cardSortKey === key) setCardSortAsc(!cardSortAsc)
@@ -650,7 +663,7 @@ function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, startDat
 
 // === Sealed Tab ===
 
-function SealedTab({ setCode, includeBots, includeHumans, startDate, endDate }: TabProps) {
+function SealedTab({ setCode, includeBots, includeHumans, tournamentOnly, startDate, endDate }: TabProps) {
   const [cardData, setCardData] = useState<DeckInclusionStats | null>(null)
   const [leaderSelData, setLeaderSelData] = useState<{ totalDecks: number; leaders: LeaderSelection[] } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -679,6 +692,7 @@ function SealedTab({ setCode, includeBots, includeHumans, startDate, endDate }: 
       includeHumans: String(includeHumans),
       poolType: 'sealed',
     })
+    if (tournamentOnly) params.set('tournamentOnly', 'true')
 
     Promise.all([
       fetch(`/api/stats/deck-inclusion?${params}`)
@@ -691,7 +705,7 @@ function SealedTab({ setCode, includeBots, includeHumans, startDate, endDate }: 
         .catch(err => console.error('Error fetching leader selection:', err)),
     ])
       .finally(() => setLoading(false))
-  }, [setCode, includeBots, includeHumans, startDate, endDate])
+  }, [setCode, includeBots, includeHumans, tournamentOnly, startDate, endDate])
 
   const handleCardSort = (key: DeckSortKey) => {
     if (cardSortKey === key) setCardSortAsc(!cardSortAsc)
