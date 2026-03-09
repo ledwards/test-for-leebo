@@ -113,153 +113,158 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 /**
- * Build a constrained boot where any window of N consecutive cards has required aspects.
+ * Get the primary aspect (first listed) of a card, or null if no aspects.
+ */
+function getPrimaryAspect(card: RawCard): string | null {
+  const aspects = card.aspects || []
+  return aspects.length > 0 ? aspects[0]! : null
+}
+
+/**
+ * Build an aspect-interleaved sequence of cards.
+ * Groups cards by primary aspect and round-robins through groups (largest first),
+ * ensuring no two adjacent cards share primary aspect.
+ * The first card's aspect will differ from lastAspect if possible.
+ */
+function buildInterleavedSequence(cards: RawCard[], lastAspect: string | null): RawCard[] {
+  if (cards.length === 0) return []
+
+  // Group by primary aspect
+  const groups = new Map<string | null, RawCard[]>()
+  for (const card of cards) {
+    const a = getPrimaryAspect(card)
+    if (!groups.has(a)) groups.set(a, [])
+    groups.get(a)!.push(card)
+  }
+
+  // Shuffle within each group
+  groups.forEach(pool => shuffle(pool))
+
+  // Sort groups by size descending for round-robin (largest first prevents end clustering)
+  const sortedKeys = [...groups.keys()].sort((a, b) =>
+    (groups.get(b)?.length || 0) - (groups.get(a)?.length || 0)
+  )
+
+  // Rotate sortedKeys so the first group's aspect differs from lastAspect
+  if (lastAspect !== null) {
+    const startIdx = sortedKeys.findIndex(k => k !== lastAspect)
+    if (startIdx > 0) {
+      const rotated = [...sortedKeys.slice(startIdx), ...sortedKeys.slice(0, startIdx)]
+      sortedKeys.splice(0, sortedKeys.length, ...rotated)
+    }
+  }
+
+  // Round-robin: pick from each aspect group in turn, skipping empty groups
+  const result: RawCard[] = []
+  let prevAspect: string | null = lastAspect
+  let totalRemaining = cards.length
+
+  while (totalRemaining > 0) {
+    let placed = false
+    // Re-sort by remaining count each round to keep largest-first
+    sortedKeys.sort((a, b) =>
+      (groups.get(b)?.length || 0) - (groups.get(a)?.length || 0)
+    )
+
+    for (const key of sortedKeys) {
+      const pool = groups.get(key)!
+      if (pool.length === 0) continue
+      if (key === prevAspect) continue  // Skip same aspect as previous
+
+      const card = pool.shift()!
+      result.push(card)
+      prevAspect = key
+      totalRemaining--
+      placed = true
+      break
+    }
+
+    if (!placed) {
+      // All remaining cards have same aspect as previous — forced adjacency
+      // Pick from the largest remaining group
+      for (const key of sortedKeys) {
+        const pool = groups.get(key)!
+        if (pool.length > 0) {
+          const card = pool.shift()!
+          result.push(card)
+          prevAspect = key
+          totalRemaining--
+          break
+        }
+      }
+    }
+  }
+
+  return result
+}
+
+/**
+ * Build a constrained boot with all cards from the belt.
  *
- * SEAM-AWARE CONSTRUCTION:
- * When seamCards are provided, the first segment of the new boot is constructed
- * to complement them. This ensures draws that span the seam still satisfy constraints.
+ * CONSTRAINTS:
+ * 1. Every card appears exactly once (no exclusion — equal occurrence rate)
+ * 2. No adjacent cards share primary aspect (aspects[0])
+ * 3. Per-card minimum position based on how recently they appeared (seam dedup)
+ * 4. First card's primary aspect differs from lastAspect (seam aspect continuity)
  *
- * Example: If drawSize=6, seamCards=[B,B,G] (3 cards), and we need B,G,R:
- * - The seam window is [seam0, seam1, seam2, boot0, boot1, boot2]
- * - Seam has B,G but no R
- * - So boot[0:3] must include at least R
+ * APPROACH:
+ * - Split cards into early-eligible (minPos=0) and late-only (minPos>0) groups
+ * - Build an interleaved sequence for early zone using early cards only
+ * - Build an interleaved sequence for the remaining positions using all leftover cards
+ * - This ensures both aspect and dedup constraints are satisfied simultaneously
  */
 function buildConstrainedBoot(
   cards: RawCard[],
   drawSize: number,
   requiredAspects: string[],
-  excludedIds: Set<string> = new Set(),
-  seamCards: RawCard[] = []
+  cardMinPositions: Map<string, number>,
+  lastAspect: string | null
 ): RawCard[] {
   if (cards.length === 0) return []
 
-  // Filter out excluded cards first
-  const availableCards = cards.filter(c => !excludedIds.has(c.id))
+  const beltSize = cards.length
 
-  if (requiredAspects.length === 0 || availableCards.length === 0) {
-    return shuffle([...availableCards])
+  // Find the highest minPosition to determine where early zone ends
+  let maxMinPos = 0
+  for (const [, minPos] of cardMinPositions) {
+    if (minPos > maxMinPos) maxMinPos = minPos
   }
 
-  const beltSize = availableCards.length
-
-  // Categorize cards by their aspect coverage
-  const aspectCards = new Map<string, RawCard[]>() // aspect -> cards with this aspect
-  requiredAspects.forEach(a => aspectCards.set(a, []))
-  const otherCards: RawCard[] = [] // cards with no required aspects
-
-  for (const card of availableCards) {
-    const cardAspects = card.aspects || []
-    const matchingRequired = requiredAspects.filter(a => cardAspects.includes(a))
-
-    if (matchingRequired.length === 0) {
-      otherCards.push(card)
+  // Split cards into early-eligible and late-only
+  const earlyCards: RawCard[] = []
+  const lateCards: RawCard[] = []
+  for (const card of cards) {
+    const minPos = cardMinPositions.get(card.id) || 0
+    if (minPos === 0) {
+      earlyCards.push(card)
     } else {
-      // Add to each matching aspect's pool
-      for (const aspect of matchingRequired) {
-        aspectCards.get(aspect)?.push(card)
-      }
+      lateCards.push(card)
     }
   }
 
-  // Shuffle all pools
-  shuffle(otherCards)
-  aspectCards.forEach(pool => shuffle(pool))
+  // Build early zone: only early-eligible cards, interleaved by aspect
+  const earlySequence = buildInterleavedSequence(earlyCards, lastAspect)
 
-  // Build the belt
-  const belt: (RawCard | null)[] = new Array(beltSize).fill(null)
-  const usedCards = new Set<string>() // Track cards already placed (by id)
+  // Take just enough early cards to fill before the first late card can appear
+  // The early zone size = maxMinPos (all positions before any late card is allowed)
+  const earlyZoneSize = Math.min(maxMinPos, earlySequence.length)
+  const result = earlySequence.slice(0, earlyZoneSize)
 
-  // SEAM-AWARE: First, handle the seam window
-  // If we have seam cards, figure out what aspects are missing and
-  // ensure the first (drawSize - seamCards.length) positions have them
-  if (seamCards.length > 0 && seamCards.length < drawSize) {
-    // Find which aspects the seam cards already have
-    const seamAspects = new Set<string>()
-    for (const card of seamCards) {
-      const cardAspects = card.aspects || []
-      for (const aspect of cardAspects) {
-        if (requiredAspects.includes(aspect)) {
-          seamAspects.add(aspect)
-        }
-      }
-    }
-
-    // Find missing aspects that must appear in the first part of the boot
-    const missingAspects = requiredAspects.filter(a => !seamAspects.has(a))
-    const seamWindowSize = drawSize - seamCards.length
-
-    // Place cards with missing aspects in the first seamWindowSize positions
-    let pos = 0
-    for (const aspect of missingAspects) {
-      if (pos >= seamWindowSize) break
-
-      const pool = aspectCards.get(aspect)
-      // Find a card with this aspect that hasn't been used
-      const card = pool?.find(c => !usedCards.has(c.id))
-      if (card) {
-        belt[pos] = card
-        usedCards.add(card.id)
-        pos++
-      }
-    }
-  }
-
-  // Now place remaining aspect cards at evenly distributed positions
-  // Use a staggered offset for each aspect to avoid clustering
-  let aspectIndex = 0
-  for (const aspect of requiredAspects) {
-    const pool = aspectCards.get(aspect)
-    if (!pool) continue
-    const unusedPool = pool.filter(c => !usedCards.has(c.id))
-    if (unusedPool.length === 0) continue
-
-    // Calculate ideal spacing
-    const numCards = unusedPool.length
-    const idealSpacing = beltSize / numCards
-
-    // Offset each aspect slightly to spread them out
-    const offset = Math.floor((aspectIndex * idealSpacing) / requiredAspects.length)
-
-    let poolIdx = 0
-    for (let i = 0; i < numCards; i++) {
-      // Calculate target position
-      const basePos = Math.floor(i * idealSpacing + offset) % beltSize
-
-      // Find the nearest empty slot (search forward)
-      let targetPos = basePos
-      let attempts = 0
-      while (belt[targetPos] !== null && attempts < beltSize) {
-        targetPos = (targetPos + 1) % beltSize
-        attempts++
-      }
-
-      if (belt[targetPos] === null && poolIdx < unusedPool.length) {
-        belt[targetPos] = unusedPool[poolIdx]!
-        usedCards.add(unusedPool[poolIdx]!.id)
-        poolIdx++
-      }
-    }
-
-    aspectIndex++
-  }
-
-  // Fill remaining empty positions with other cards, then leftover aspect cards
+  // Remaining cards = unused early cards + all late cards
+  const usedEarlyIds = new Set(result.map(c => c.id))
   const remainingCards = [
-    ...otherCards.filter(c => !usedCards.has(c.id)),
-    ...availableCards.filter(c => !usedCards.has(c.id))
+    ...earlyCards.filter(c => !usedEarlyIds.has(c.id)),
+    ...lateCards
   ]
-  shuffle(remainingCards)
 
-  let fillIdx = 0
-  for (let i = 0; i < beltSize; i++) {
-    if (belt[i] === null && fillIdx < remainingCards.length) {
-      belt[i] = remainingCards[fillIdx]!
-      fillIdx++
-    }
-  }
+  // Build the remaining zone: interleave all remaining cards
+  const prevAspect = result.length > 0
+    ? getPrimaryAspect(result[result.length - 1]!)
+    : lastAspect
+  const lateSequence = buildInterleavedSequence(remainingCards, prevAspect)
+  result.push(...lateSequence)
 
-  // Remove any remaining nulls (shouldn't happen if we have enough cards)
-  return belt.filter((c): c is RawCard => c !== null)
+  return result
 }
 
 /**
@@ -321,7 +326,8 @@ export class CommonBelt {
   hopper: RawCard[]
   beltCards: RawCard[]
   segmentConfig: SegmentConfig
-  recentIds: string[]
+  recentServed: string[]  // Last N card IDs served via next()
+  lastServedAspect: string | null  // Primary aspect of last card served
   DEDUP_WINDOW: number
   totalDraws: number
 
@@ -336,10 +342,13 @@ export class CommonBelt {
     // Get segment configuration for constrained boot building
     this.segmentConfig = getSegmentConfig(setCode, beltId)
 
-    // Track recently used card IDs across refills to avoid close duplicates
-    // This persists between boot fills to handle the seam
-    this.recentIds = []
-    this.DEDUP_WINDOW = 12  // Slightly larger than max pack draw (9 commons)
+    // Track recently served card IDs (persists across boot fills)
+    this.recentServed = []
+    // Dedup window: min(24, floor(beltSize/2)) to ensure feasibility
+    this.DEDUP_WINDOW = Math.min(24, Math.floor(this.beltCards.length / 2))
+
+    // Track last served aspect for seam continuity
+    this.lastServedAspect = null
 
     // Track total draws
     this.totalDraws = 0
@@ -357,79 +366,67 @@ export class CommonBelt {
 
   /**
    * Fill the hopper if it needs more cards
-   *
-   * SEAM-AWARE REFILL:
-   * We refill when hopper has exactly drawSize cards left.
-   * This means the remaining cards will be drawn as one complete pack,
-   * then the new boot starts fresh. The new boot's first segment is
-   * constructed to complement the seam cards.
    */
   _fillIfNeeded(): void {
-    // Safety check: if no cards in belt, can't fill
-    if (this.beltCards.length === 0) {
-      return
-    }
+    if (this.beltCards.length === 0) return
 
     const { drawSize } = this.segmentConfig
-
-    // Refill when we have drawSize or fewer cards left
     if (this.hopper.length <= drawSize) {
       this._fill()
     }
   }
 
   /**
-   * Fill the hopper with constrained shuffled cards from this belt
-   *
-   * SEAM-AWARE CONSTRUCTION:
-   * The remaining cards in the hopper (the "seam cards") will be drawn next.
-   * We pass them to the boot builder so it can construct the first segment
-   * to complement them - ensuring the seam satisfies aspect constraints.
+   * Fill the hopper with a new boot of ALL belt cards.
+   * Every card appears exactly once per boot (no exclusion).
+   * Cards recently served are placed at the back of the boot (seam dedup).
+   * No adjacent cards share primary aspect.
    */
   _fill(): void {
-    // The seam cards are what's left in the hopper
-    // These will be drawn before the new boot's cards
-    const seamCards = [...this.hopper]
-
-    // Seed recentIds with seam cards for deduplication
-    this.recentIds = seamCards.map(c => c.id)
-
-    // Build constrained boot, aware of seam cards
-    const boot = this._buildConstrainedBoot(seamCards)
-    this.hopper.push(...boot)
-  }
-
-  /**
-   * Build a constrained boot where every segment has required aspects.
-   *
-   * SEAM-AWARE:
-   * The first segment is constructed to complement the seam cards,
-   * ensuring draws that span the seam still have required aspects.
-   */
-  _buildConstrainedBoot(seamCards: RawCard[] = []): RawCard[] {
     const { drawSize, requiredAspects } = this.segmentConfig
+    const seamCards = [...this.hopper]
+    const numSeam = seamCards.length
 
-    // Create exclusion set from recent IDs for deduplication
-    const excludedIds = new Set(this.recentIds)
+    // Compute per-card minimum position in the new boot.
+    // Each card's min position = max(0, dedupWindow - distance_from_boot_start)
+    // Seam cards: distances numSeam (first seam) down to 1 (last seam)
+    // RecentServed: distances numSeam+1 (most recent) through numSeam+recentServed.length (oldest)
+    const cardMinPositions = new Map<string, number>()
 
-    // Build the constrained belt with exclusions and seam awareness
+    // Seam cards
+    for (let i = 0; i < seamCards.length; i++) {
+      const distance = numSeam - i  // first seam card = distance numSeam, last = distance 1
+      const minPos = Math.max(0, this.DEDUP_WINDOW - distance)
+      const existing = cardMinPositions.get(seamCards[i]!.id) || 0
+      cardMinPositions.set(seamCards[i]!.id, Math.max(existing, minPos))
+    }
+
+    // Recently served cards (most recent = index length-1, oldest = index 0)
+    for (let i = 0; i < this.recentServed.length; i++) {
+      const distance = numSeam + (this.recentServed.length - i)
+      const minPos = Math.max(0, this.DEDUP_WINDOW - distance)
+      if (minPos > 0) {
+        const id = this.recentServed[i]!
+        const existing = cardMinPositions.get(id) || 0
+        cardMinPositions.set(id, Math.max(existing, minPos))
+      }
+    }
+
+    // Last aspect: from hopper tail (last seam card), or from last served
+    let lastAspect = this.lastServedAspect
+    if (seamCards.length > 0) {
+      lastAspect = getPrimaryAspect(seamCards[seamCards.length - 1]!)
+    }
+
     const boot = buildConstrainedBoot(
       this.beltCards,
       drawSize,
       requiredAspects,
-      excludedIds,
-      seamCards
+      cardMinPositions,
+      lastAspect
     )
 
-    // Update recent IDs with the new boot cards
-    for (const card of boot) {
-      this.recentIds.push(card.id)
-      if (this.recentIds.length > this.DEDUP_WINDOW) {
-        this.recentIds.shift()
-      }
-    }
-
-    return boot
+    this.hopper.push(...boot)
   }
 
   /**
@@ -445,7 +442,18 @@ export class CommonBelt {
 
     const card = this.hopper.shift()
     this.totalDraws++
-    return card ? { ...card } : null // Return a copy
+
+    if (card) {
+      // Track for seam dedup across refills
+      this.recentServed.push(card.id)
+      if (this.recentServed.length > this.DEDUP_WINDOW) {
+        this.recentServed.shift()
+      }
+      this.lastServedAspect = getPrimaryAspect(card)
+      return { ...card }
+    }
+
+    return null
   }
 
   /**

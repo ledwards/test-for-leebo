@@ -1,5 +1,10 @@
 # Release Notes
 
+## 03.08.2026
+
+### 🃏 Pack Generation
+- **Improved belt collation from physical pack research**: Common and uncommon belts now match real-world printing behavior more closely. Same card never repeats within 24 positions (was 4-12), and adjacent cards on the belt never share the same primary aspect. Fixed a bug where recent cards were excluded from boots entirely, causing unequal occurrence rates — every card now appears exactly once per belt cycle as intended. These improvements apply to all sets.
+
 ## 03.07.2026
 
 ### 🃏 Pack Generation

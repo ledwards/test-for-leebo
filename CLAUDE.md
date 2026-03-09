@@ -125,7 +125,10 @@ The pack generation uses a "belt" metaphor - each card slot type has a belt that
 - **CarbonitePrestigeBelt**: Prestige card slot (synthesized from R/L pool)
 - **HyperfoilBelt**: Hyperspace Foil cards (used in both standard and carbonite packs)
 
-Belts maintain a "hopper" that refills from a "filling pool" when depleted. This ensures proper distribution while preventing adjacent duplicates.
+Belts maintain a "hopper" that refills from a "filling pool" when depleted. Every card appears exactly once per boot cycle (no exclusion). Key constraints:
+- **24-position dedup window**: Same card never repeats within min(24, floor(beltSize/2)) positions, including across seam boundaries. Per-card minimum positions ensure the constraint holds even at the seam.
+- **Primary aspect interleaving**: No adjacent cards share the same primary aspect (aspects[0]). Cards are grouped by aspect and round-robin interleaved, largest group first.
+- **Equal occurrence rate**: Every card appears exactly once per boot. Cards are NEVER excluded from boots — dedup is achieved by placement, not exclusion.
 
 ### Booster Pack Generation (`src/utils/boosterPack.ts`)
 Orchestrates belt usage to create 16-card packs. HS upgrades are belt-driven (Sets 1-6) for controlled variance. Non-HS upgrades (Showcase, Hyperfoil) remain independent coin flips.

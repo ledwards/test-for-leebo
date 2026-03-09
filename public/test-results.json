@@ -1,12 +1,12 @@
 {
-  "runAt": "2026-03-07T22:25:44.100Z",
-  "executionTime": 20184,
+  "runAt": "2026-03-09T01:51:15.346Z",
+  "executionTime": 20460,
   "summary": {
     "totalSuites": 22,
     "passedSuites": 22,
     "failedSuites": 0,
-    "totalTests": 496,
-    "passed": 496,
+    "totalTests": 507,
+    "passed": 507,
     "failed": 0
   },
   "suites": [
@@ -15,7 +15,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 6379,
+      "executionTime": 6640,
       "tests": [
         {
           "suite": "utils",
@@ -220,7 +220,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 730,
+      "executionTime": 692,
       "tests": [
         {
           "suite": "utils",
@@ -315,7 +315,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 491,
+      "executionTime": 504,
       "tests": [
         {
           "suite": "utils",
@@ -330,7 +330,7 @@
       "suite": "utils",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 482,
+      "executionTime": 502,
       "tests": [
         {
           "suite": "utils",
@@ -345,7 +345,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 719,
+      "executionTime": 745,
       "tests": [
         {
           "suite": "belts",
@@ -425,7 +425,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 721,
+      "executionTime": 704,
       "tests": [
         {
           "suite": "belts",
@@ -509,12 +509,52 @@
         },
         {
           "suite": "belts",
+          "name": "SPEC: no duplicate card within 24 positions on Belt A (large belt)\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "SPEC: no duplicate card within max safe window on Belt B (small belt, 30 cards)\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "SPEC: dedup window holds across seam boundary specifically\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "SPEC: every card in the belt appears with equal frequency (no exclusion)\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "SPEC: no adjacent cards share primary aspect on Belt A\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "SPEC: no adjacent cards share primary aspect on Belt B\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "SPEC: no adjacent same primary aspect across seam boundary\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "SPEC: neutral cards (no aspects) do not cause false violations\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
           "name": "getCommonPools returns structured pools (legacy)\u001b[0m",
           "status": "passed"
         },
         {
           "suite": "belts",
-          "name": "Tests passed: 17\u001b[0m",
+          "name": "Tests passed: 25\u001b[0m",
           "status": "passed"
         }
       ],
@@ -525,7 +565,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 870,
+      "executionTime": 860,
       "tests": [
         {
           "suite": "belts",
@@ -620,7 +660,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 703,
+      "executionTime": 725,
       "tests": [
         {
           "suite": "belts",
@@ -700,7 +740,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 704,
+      "executionTime": 705,
       "tests": [
         {
           "suite": "belts",
@@ -715,7 +755,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 682,
+      "executionTime": 694,
       "tests": [
         {
           "suite": "belts",
@@ -790,7 +830,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 1089,
+      "executionTime": 1110,
       "tests": [
         {
           "suite": "belts",
@@ -880,7 +920,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 700,
+      "executionTime": 760,
       "tests": [
         {
           "suite": "belts",
@@ -935,7 +975,7 @@
       "suite": "belts",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 691,
+      "executionTime": 692,
       "tests": [
         {
           "suite": "belts",
@@ -994,12 +1034,27 @@
         },
         {
           "suite": "belts",
+          "name": "SPEC: no duplicate uncommon within 24 positions\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "SPEC: every uncommon appears with equal frequency (no exclusion)\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
+          "name": "SPEC: no adjacent uncommons share primary aspect\u001b[0m",
+          "status": "passed"
+        },
+        {
+          "suite": "belts",
           "name": "no repeating pattern: consecutive belt fills produce different sequences\u001b[0m",
           "status": "passed"
         },
         {
           "suite": "belts",
-          "name": "Tests passed: 12\u001b[0m",
+          "name": "Tests passed: 15\u001b[0m",
           "status": "passed"
         }
       ],
@@ -1010,7 +1065,7 @@
       "suite": "fixes",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 458,
+      "executionTime": 455,
       "tests": [
         {
           "suite": "fixes",
@@ -1025,7 +1080,7 @@
       "suite": "draft",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 778,
+      "executionTime": 771,
       "tests": [
         {
           "suite": "draft",
@@ -1040,7 +1095,7 @@
       "suite": "bots",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 479,
+      "executionTime": 462,
       "tests": [
         {
           "suite": "bots",
@@ -1185,7 +1240,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 803,
+      "executionTime": 706,
       "tests": [
         {
           "suite": "data",
@@ -1620,7 +1675,7 @@
       "suite": "data",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 740,
+      "executionTime": 700,
       "tests": [
         {
           "suite": "data",
@@ -2655,7 +2710,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 504,
+      "executionTime": 543,
       "tests": [
         {
           "suite": "hooks",
@@ -2670,7 +2725,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 490,
+      "executionTime": 504,
       "tests": [
         {
           "suite": "hooks",
@@ -2685,7 +2740,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 480,
+      "executionTime": 506,
       "tests": [
         {
           "suite": "hooks",
@@ -2700,7 +2755,7 @@
       "suite": "hooks",
       "status": "passed",
       "exitCode": 0,
-      "executionTime": 488,
+      "executionTime": 477,
       "tests": [
         {
           "suite": "hooks",
@@ -3154,12 +3209,52 @@
     },
     {
       "suite": "belts",
+      "name": "SPEC: no duplicate card within 24 positions on Belt A (large belt)\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "SPEC: no duplicate card within max safe window on Belt B (small belt, 30 cards)\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "SPEC: dedup window holds across seam boundary specifically\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "SPEC: every card in the belt appears with equal frequency (no exclusion)\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "SPEC: no adjacent cards share primary aspect on Belt A\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "SPEC: no adjacent cards share primary aspect on Belt B\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "SPEC: no adjacent same primary aspect across seam boundary\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "SPEC: neutral cards (no aspects) do not cause false violations\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
       "name": "getCommonPools returns structured pools (legacy)\u001b[0m",
       "status": "passed"
     },
     {
       "suite": "belts",
-      "name": "Tests passed: 17\u001b[0m",
+      "name": "Tests passed: 25\u001b[0m",
       "status": "passed"
     },
     {
@@ -3569,12 +3664,27 @@
     },
     {
       "suite": "belts",
+      "name": "SPEC: no duplicate uncommon within 24 positions\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "SPEC: every uncommon appears with equal frequency (no exclusion)\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
+      "name": "SPEC: no adjacent uncommons share primary aspect\u001b[0m",
+      "status": "passed"
+    },
+    {
+      "suite": "belts",
       "name": "no repeating pattern: consecutive belt fills produce different sequences\u001b[0m",
       "status": "passed"
     },
     {
       "suite": "belts",
-      "name": "Tests passed: 12\u001b[0m",
+      "name": "Tests passed: 15\u001b[0m",
       "status": "passed"
     },
     {

@@ -3,10 +3,13 @@
  * UncommonBelt
  *
  * A belt that provides uncommon cards for booster packs.
- * Shuffles all uncommons from the set with seam deduplication
- * to ensure no duplicates within 3 slots of each other.
- *
  * One belt serves all 3 uncommon slots in a pack.
+ *
+ * CONSTRAINTS:
+ * - Every card appears exactly once per boot (equal occurrence rate)
+ * - No duplicate card within 24 positions (min(24, floor(beltSize/2)))
+ * - No adjacent cards share primary aspect (aspects[0])
+ * - Seam deduplication ensures constraints hold across boot boundaries
  */
 
 import { getCachedCards } from '../utils/cardCache'
@@ -27,22 +30,101 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 /**
- * Check if two cards are the same (by id or name)
+ * Get the primary aspect (first listed) of a card, or null if no aspects.
  */
-function isSameCard(a: RawCard | undefined, b: RawCard | undefined): boolean {
-  if (!a || !b) return false
-  return a.id === b.id || a.name === b.name
+function getPrimaryAspect(card: RawCard): string | null {
+  const aspects = card.aspects || []
+  return aspects.length > 0 ? aspects[0]! : null
+}
+
+/**
+ * Build an aspect-interleaved sequence of cards.
+ * Groups cards by primary aspect and round-robins through groups (largest first),
+ * ensuring no two adjacent cards share primary aspect.
+ */
+function buildInterleavedSequence(cards: RawCard[], lastAspect: string | null): RawCard[] {
+  if (cards.length === 0) return []
+
+  // Group by primary aspect
+  const groups = new Map<string | null, RawCard[]>()
+  for (const card of cards) {
+    const a = getPrimaryAspect(card)
+    if (!groups.has(a)) groups.set(a, [])
+    groups.get(a)!.push(card)
+  }
+
+  // Shuffle within each group
+  groups.forEach(pool => shuffle(pool))
+
+  // Sort groups by size descending
+  const sortedKeys = [...groups.keys()].sort((a, b) =>
+    (groups.get(b)?.length || 0) - (groups.get(a)?.length || 0)
+  )
+
+  // Rotate so first group's aspect differs from lastAspect
+  if (lastAspect !== null) {
+    const startIdx = sortedKeys.findIndex(k => k !== lastAspect)
+    if (startIdx > 0) {
+      const rotated = [...sortedKeys.slice(startIdx), ...sortedKeys.slice(0, startIdx)]
+      sortedKeys.splice(0, sortedKeys.length, ...rotated)
+    }
+  }
+
+  // Round-robin: pick from each aspect group in turn
+  const result: RawCard[] = []
+  let prevAspect: string | null = lastAspect
+  let totalRemaining = cards.length
+
+  while (totalRemaining > 0) {
+    let placed = false
+    sortedKeys.sort((a, b) =>
+      (groups.get(b)?.length || 0) - (groups.get(a)?.length || 0)
+    )
+
+    for (const key of sortedKeys) {
+      const pool = groups.get(key)!
+      if (pool.length === 0) continue
+      if (key === prevAspect) continue
+
+      const card = pool.shift()!
+      result.push(card)
+      prevAspect = key
+      totalRemaining--
+      placed = true
+      break
+    }
+
+    if (!placed) {
+      for (const key of sortedKeys) {
+        const pool = groups.get(key)!
+        if (pool.length > 0) {
+          const card = pool.shift()!
+          result.push(card)
+          prevAspect = key
+          totalRemaining--
+          break
+        }
+      }
+    }
+  }
+
+  return result
 }
 
 export class UncommonBelt {
   setCode: SetCode
   hopper: RawCard[]
   fillingPool: RawCard[]
+  recentServed: string[]
+  lastServedAspect: string | null
+  DEDUP_WINDOW: number
 
   constructor(setCode: SetCode | string) {
     this.setCode = setCode as SetCode
     this.hopper = []
     this.fillingPool = []
+    this.recentServed = []
+    this.lastServedAspect = null
 
     this._initialize()
   }
@@ -61,6 +143,8 @@ export class UncommonBelt {
       !c.isBase
     )
 
+    this.DEDUP_WINDOW = Math.min(24, Math.floor(this.fillingPool.length / 2))
+
     // Initial fill
     this._fillIfNeeded()
   }
@@ -69,78 +153,84 @@ export class UncommonBelt {
    * Fill the hopper if it needs more cards
    */
   _fillIfNeeded(): void {
-    // Safety check: if no cards in filling pool, can't fill
-    if (this.fillingPool.length === 0) {
-      return
-    }
+    if (this.fillingPool.length === 0) return
     while (this.hopper.length < this.fillingPool.length) {
       this._fill()
     }
   }
 
   /**
-   * Fill the hopper with a shuffled batch of uncommons
+   * Fill the hopper with a new boot of ALL uncommon cards.
+   * Every card appears exactly once per boot (no exclusion).
    */
   _fill(): void {
-    const wasEmpty = this.hopper.length === 0
-    const bootStart = this.hopper.length
+    const seamCards = [...this.hopper]
+    const numSeam = seamCards.length
 
-    const boot = shuffle([...this.fillingPool])
+    // Compute per-card minimum positions
+    const cardMinPositions = new Map<string, number>()
+
+    // Seam cards
+    for (let i = 0; i < seamCards.length; i++) {
+      const distance = numSeam - i
+      const minPos = Math.max(0, this.DEDUP_WINDOW - distance)
+      const existing = cardMinPositions.get(seamCards[i]!.id) || 0
+      cardMinPositions.set(seamCards[i]!.id, Math.max(existing, minPos))
+    }
+
+    // Recently served cards
+    for (let i = 0; i < this.recentServed.length; i++) {
+      const distance = numSeam + (this.recentServed.length - i)
+      const minPos = Math.max(0, this.DEDUP_WINDOW - distance)
+      if (minPos > 0) {
+        const id = this.recentServed[i]!
+        const existing = cardMinPositions.get(id) || 0
+        cardMinPositions.set(id, Math.max(existing, minPos))
+      }
+    }
+
+    // Last aspect from seam or last served
+    let lastAspect = this.lastServedAspect
+    if (seamCards.length > 0) {
+      lastAspect = getPrimaryAspect(seamCards[seamCards.length - 1]!)
+    }
+
+    // Find max minPosition
+    let maxMinPos = 0
+    for (const [, minPos] of cardMinPositions) {
+      if (minPos > maxMinPos) maxMinPos = minPos
+    }
+
+    // Split cards into early-eligible and late-only
+    const earlyCards: RawCard[] = []
+    const lateCards: RawCard[] = []
+    for (const card of this.fillingPool) {
+      const minPos = cardMinPositions.get(card.id) || 0
+      if (minPos === 0) {
+        earlyCards.push(card)
+      } else {
+        lateCards.push(card)
+      }
+    }
+
+    // Build early zone
+    const earlySequence = buildInterleavedSequence(earlyCards, lastAspect)
+    const earlyZoneSize = Math.min(maxMinPos, earlySequence.length)
+    const boot: RawCard[] = earlySequence.slice(0, earlyZoneSize)
+
+    // Build late zone with remaining cards
+    const usedEarlyIds = new Set(boot.map(c => c.id))
+    const remainingCards = [
+      ...earlyCards.filter(c => !usedEarlyIds.has(c.id)),
+      ...lateCards
+    ]
+    const prevAspect = boot.length > 0
+      ? getPrimaryAspect(boot[boot.length - 1]!)
+      : lastAspect
+    const lateSequence = buildInterleavedSequence(remainingCards, prevAspect)
+    boot.push(...lateSequence)
+
     this.hopper.push(...boot)
-
-    // Run seam dedup if hopper wasn't empty
-    if (!wasEmpty) {
-      this._seamDedup(bootStart, boot.length)
-    }
-  }
-
-  /**
-   * Seam deduplication
-   * Look at the first 4 cards in the segment (the seam).
-   * For each, check if it has a duplicate within 4 slots.
-   * If so, swap with a random card from the back half of the segment.
-   */
-  _seamDedup(segmentStart: number, segmentLength: number, depth = 0): void {
-    // Prevent infinite recursion
-    if (depth > 10) return
-
-    const seamSize = Math.min(4, segmentLength)
-    const backHalfStart = segmentStart + Math.floor(segmentLength / 2)
-    const backHalfEnd = segmentStart + segmentLength
-
-    for (let i = 0; i < seamSize; i++) {
-      const cardIndex = segmentStart + i
-      const card = this.hopper[cardIndex]
-
-      // Check for duplicates within 4 slots (before and after)
-      let hasDuplicate = false
-      for (let offset = -4; offset <= 4; offset++) {
-        if (offset === 0) continue
-        const checkIndex = cardIndex + offset
-        if (checkIndex < 0 || checkIndex >= this.hopper.length) continue
-        if (checkIndex >= segmentStart + segmentLength) continue // Don't check beyond segment
-
-        if (isSameCard(card, this.hopper[checkIndex])) {
-          hasDuplicate = true
-          break
-        }
-      }
-
-      if (hasDuplicate) {
-        // Swap with a random card from the back half of the segment
-        const backHalfLength = backHalfEnd - backHalfStart
-        if (backHalfLength > 0) {
-          const swapIndex = backHalfStart + Math.floor(Math.random() * backHalfLength)
-          const temp = this.hopper[cardIndex]
-          this.hopper[cardIndex] = this.hopper[swapIndex]!
-          this.hopper[swapIndex] = temp!
-
-          // Run dedup again
-          this._seamDedup(segmentStart, segmentLength, depth + 1)
-          return
-        }
-      }
-    }
   }
 
   /**
@@ -150,7 +240,16 @@ export class UncommonBelt {
     this._fillIfNeeded()
 
     const card = this.hopper.shift()
-    return card ? { ...card } : null // Return a copy
+    if (card) {
+      this.recentServed.push(card.id)
+      if (this.recentServed.length > this.DEDUP_WINDOW) {
+        this.recentServed.shift()
+      }
+      this.lastServedAspect = getPrimaryAspect(card)
+      return { ...card }
+    }
+
+    return null
   }
 
   /**

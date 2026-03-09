@@ -753,12 +753,13 @@ async function runQA(silentMode: boolean = false): Promise<TestResult[]> {
       tripBase: { mean: number; stdDev: number };
       tripAny: { mean: number; stdDev: number };
     }> = {
-      SOR: { dupBase: { mean: 1.14, stdDev: 0.82 }, dupAny: { mean: 4.14, stdDev: 1.46 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.13, stdDev: 0.35 } },
-      SHD: { dupBase: { mean: 0.70, stdDev: 0.67 }, dupAny: { mean: 3.68, stdDev: 1.26 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.09, stdDev: 0.29 } },
-      TWI: { dupBase: { mean: 1.11, stdDev: 0.82 }, dupAny: { mean: 4.07, stdDev: 1.41 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.12, stdDev: 0.35 } },
-      JTL: { dupBase: { mean: 0.67, stdDev: 0.69 }, dupAny: { mean: 3.36, stdDev: 1.30 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.07, stdDev: 0.25 } },
-      LOF: { dupBase: { mean: 1.08, stdDev: 0.83 }, dupAny: { mean: 3.72, stdDev: 1.43 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.07, stdDev: 0.26 } },
-      SEC: { dupBase: { mean: 1.06, stdDev: 0.83 }, dupAny: { mean: 3.64, stdDev: 1.44 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.11, stdDev: 0.33 } },
+      // Recalibrated after 24-position dedup window (was 12). Fewer cross-pack duplicates.
+      SOR: { dupBase: { mean: 0.0, stdDev: 0.10 }, dupAny: { mean: 2.96, stdDev: 1.20 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.04, stdDev: 0.20 } },
+      SHD: { dupBase: { mean: 0.0, stdDev: 0.10 }, dupAny: { mean: 3.12, stdDev: 1.20 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.05, stdDev: 0.22 } },
+      TWI: { dupBase: { mean: 0.0, stdDev: 0.10 }, dupAny: { mean: 3.10, stdDev: 1.20 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.07, stdDev: 0.26 } },
+      JTL: { dupBase: { mean: 0.0, stdDev: 0.10 }, dupAny: { mean: 2.76, stdDev: 1.20 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.09, stdDev: 0.29 } },
+      LOF: { dupBase: { mean: 0.0, stdDev: 0.10 }, dupAny: { mean: 2.47, stdDev: 1.20 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.02, stdDev: 0.14 } },
+      SEC: { dupBase: { mean: 0.0, stdDev: 0.10 }, dupAny: { mean: 2.68, stdDev: 1.30 }, tripBase: { mean: 0.0, stdDev: 0.05 }, tripAny: { mean: 0.04, stdDev: 0.20 } },
     }
     const EXPECTED = EXPECTED_BY_SET[setCode] || EXPECTED_BY_SET.SOR
 
