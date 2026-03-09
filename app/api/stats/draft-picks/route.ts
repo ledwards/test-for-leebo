@@ -10,6 +10,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const url = new URL(request.url)
     const setCode = url.searchParams.get('setCode') || 'SOR'
     const since = url.searchParams.get('since') || '2020-01-01'
+    const until = url.searchParams.get('until') || '2099-12-31'
     const includeBots = url.searchParams.get('includeBots') !== 'false'
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
 
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     let botJoin = ''
     let botFilter = ''
     if (!includeBots || !includeHumans) {
-      botJoin = `JOIN pod_players dpp ON dp.pod_id = dpp.pod_id AND dp.user_id = dpp.user_id`
+      botJoin = `JOIN pod_players dpp ON dp.draft_pod_id = dpp.pod_id AND dp.user_id = dpp.user_id`
       if (!includeBots && includeHumans) {
         botFilter = `AND (dpp.is_bot = false OR dpp.is_bot IS NULL)`
       } else if (includeBots && !includeHumans) {
@@ -43,31 +44,31 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         COUNT(*) AS times_picked,
         COUNT(*) FILTER (WHERE dp.pick_in_pack = 1) AS first_picks,
         ROUND(AVG(dp.pick_in_pack)::numeric, 2) AS avg_pick_position,
-        COUNT(DISTINCT dp.pod_id) AS drafts_seen_in
+        COUNT(DISTINCT dp.draft_pod_id) AS drafts_seen_in
       FROM draft_picks dp
-      JOIN pods pod ON pod.id = dp.pod_id
+      JOIN pods pod ON pod.id = dp.draft_pod_id
       ${botJoin}
-      WHERE dp.set_code = $1 AND dp.is_leader = FALSE AND dp.picked_at >= $2
+      WHERE dp.set_code = $1 AND dp.is_leader = FALSE AND dp.picked_at >= $2 AND dp.picked_at < ($3::date + interval '1 day')
         AND pod.status = 'complete'
         ${botFilter}
       GROUP BY dp.card_name, dp.rarity, dp.card_type
       ORDER BY avg_pick_position ASC`,
-      [setCode, since]
+      [setCode, since, until]
     )
 
     // Summary stats (completed drafts only)
     const summary = await queryRow(
       `SELECT
         COUNT(*) AS total_picks,
-        COUNT(DISTINCT dp.pod_id) AS total_drafts,
+        COUNT(DISTINCT dp.draft_pod_id) AS total_drafts,
         COUNT(DISTINCT dp.user_id) AS total_drafters
       FROM draft_picks dp
-      JOIN pods pod ON pod.id = dp.pod_id
+      JOIN pods pod ON pod.id = dp.draft_pod_id
       ${botJoin}
-      WHERE dp.set_code = $1 AND dp.is_leader = FALSE AND dp.picked_at >= $2
+      WHERE dp.set_code = $1 AND dp.is_leader = FALSE AND dp.picked_at >= $2 AND dp.picked_at < ($3::date + interval '1 day')
         AND pod.status = 'complete'
         ${botFilter}`,
-      [setCode, since]
+      [setCode, since, until]
     )
 
     // Enrich cards with aspects, subtitle, cost from card cache
