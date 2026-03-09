@@ -120,7 +120,8 @@ async function runTests(): Promise<void> {
     clearCarboniteBeltCache()
     const pack = generateCarboniteBoosterPack('JTL-CB')
     const prestige = pack.cards[8]
-    assert(prestige.variantType === 'Prestige', `Slot 8 should be Prestige, got ${prestige.variantType}`)
+    const prestigeVariants = ['Standard Prestige', 'Foil Prestige', 'Serialized Prestige']
+    assert(prestigeVariants.includes(prestige.variantType), `Slot 8 should be Prestige, got ${prestige.variantType}`)
     assert(prestige.isPrestige === true, 'Slot 8 should have isPrestige flag')
   })
 
@@ -214,7 +215,8 @@ async function runTests(): Promise<void> {
     clearCarboniteBeltCache()
     const pack = generateCarboniteBoosterPack('LAW-CB')
     const prestige = pack.cards[1]
-    assert(prestige.variantType === 'Prestige', `Slot 1 should be Prestige, got ${prestige.variantType}`)
+    const prestigeVariants = ['Standard Prestige', 'Foil Prestige', 'Serialized Prestige']
+    assert(prestigeVariants.includes(prestige.variantType), `Slot 1 should be Prestige, got ${prestige.variantType}`)
     assert(prestige.isPrestige === true, 'Slot 1 should have isPrestige flag')
   })
 
@@ -280,14 +282,14 @@ async function runTests(): Promise<void> {
     }
   })
 
-  test('LAW-CB: no traditional foils (isFoil without isHyperspace)', () => {
+  test('LAW-CB: no traditional foils (isFoil without isHyperspace or isPrestige)', () => {
     clearCarboniteBeltCache()
     for (let i = 0; i < 10; i++) {
       const pack = generateCarboniteBoosterPack('LAW-CB')
       for (const card of pack.cards) {
         if (card.isFoil) {
-          assert(card.isHyperspace === true,
-            `LAW-CB should have no traditional foils, found foil "${card.name}" without HS flag`)
+          assert(card.isHyperspace === true || card.isPrestige === true,
+            `LAW-CB should have no traditional foils, found foil "${card.name}" without HS or Prestige flag`)
         }
       }
     }

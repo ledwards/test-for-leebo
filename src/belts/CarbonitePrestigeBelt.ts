@@ -2,16 +2,18 @@
 /**
  * CarbonitePrestigeBelt
  *
- * A belt that synthesizes Prestige variant cards from the Normal R/L card pool.
- * No actual Prestige card data exists in cards.json, so we copy Normal cards
- * and set variantType to 'Prestige'.
+ * A belt that draws real Prestige variant cards from cards.json.
+ * Three tiers exist as separate variant types in the data:
+ *   - 'Standard Prestige' (tier1): 80% — most common, no foil treatment
+ *   - 'Foil Prestige' (tier2): 18% — foil treatment
+ *   - 'Serialized Prestige' (serialized): 2% — serialized/250, foil treatment
  *
- * Each card gets a prestigeTier:
- *   - 'tier1': 80% — most common, no foil treatment
- *   - 'tier2': 18% — foil treatment
- *   - 'serialized': 2% — serialized/250, foil treatment
+ * Each tier has its own hopper/filling pool. next() rolls a tier then draws
+ * from that tier's hopper. nextTier1() always draws from tier1 (used by
+ * standard pack UC3 prestige upgrade).
  *
- * Uses standard hopper/filling pool pattern.
+ * Fallback: if a set has no real prestige cards, synthesizes from Normal R/L
+ * pool (safety net for sets not yet in the API).
  */
 
 import { getCachedCards } from '../utils/cardCache'
@@ -45,15 +47,33 @@ function rollPrestigeTier(): string {
   return 'serialized'
 }
 
+/** Map tier key to variantType in cards.json */
+const TIER_VARIANT_MAP: Record<string, string> = {
+  tier1: 'Standard Prestige',
+  tier2: 'Foil Prestige',
+  serialized: 'Serialized Prestige',
+}
+
+interface TierPool {
+  fillingPool: RawCard[]
+  hopper: RawCard[]
+}
+
 export class CarbonitePrestigeBelt {
   setCode: SetCode
-  hopper: RawCard[]
-  fillingPool: RawCard[]
+  tiers: Record<string, TierPool>
+  useSynthesis: boolean
+
+  // Synthesis fallback fields (used only when no real prestige cards exist)
+  _synthFillingPool: RawCard[]
+  _synthHopper: RawCard[]
 
   constructor(setCode: SetCode | string) {
     this.setCode = setCode as SetCode
-    this.hopper = []
-    this.fillingPool = []
+    this.tiers = {}
+    this.useSynthesis = false
+    this._synthFillingPool = []
+    this._synthHopper = []
 
     this._initialize()
   }
@@ -61,53 +81,124 @@ export class CarbonitePrestigeBelt {
   _initialize(): void {
     const cards = getCachedCards(this.setCode)
 
-    // Filter to Normal variant R/L cards (source for Prestige synthesis)
-    this.fillingPool = cards.filter(c =>
-      c.variantType === 'Normal' &&
-      !c.isLeader &&
-      !c.isBase &&
-      (c.rarity === 'Rare' || c.rarity === 'Legendary' || c.rarity === 'Special')
-    )
+    // Build per-tier filling pools from real prestige cards
+    let totalPrestige = 0
+    for (const [tierKey, variantType] of Object.entries(TIER_VARIANT_MAP)) {
+      const pool = cards.filter(c =>
+        c.variantType === variantType &&
+        !c.isLeader &&
+        !c.isBase
+      )
+      this.tiers[tierKey] = { fillingPool: pool, hopper: [] }
+      totalPrestige += pool.length
+    }
 
-    this._fillIfNeeded()
-  }
-
-  _fillIfNeeded(): void {
-    if (this.fillingPool.length === 0) return
-    while (this.hopper.length < this.fillingPool.length) {
-      this._fill()
+    if (totalPrestige > 0) {
+      // Real prestige cards found — use them
+      this.useSynthesis = false
+      for (const tierKey of Object.keys(this.tiers)) {
+        this._fillTierIfNeeded(tierKey)
+      }
+    } else {
+      // Fallback: synthesize from Normal R/L cards
+      this.useSynthesis = true
+      this._synthFillingPool = cards.filter(c =>
+        c.variantType === 'Normal' &&
+        !c.isLeader &&
+        !c.isBase &&
+        (c.rarity === 'Rare' || c.rarity === 'Legendary' || c.rarity === 'Special')
+      )
+      this._fillSynthIfNeeded()
     }
   }
 
-  _fill(): void {
-    const boot = shuffle([...this.fillingPool])
-    this.hopper.push(...boot)
+  _fillTierIfNeeded(tierKey: string): void {
+    const tier = this.tiers[tierKey]
+    if (!tier || tier.fillingPool.length === 0) return
+    while (tier.hopper.length < tier.fillingPool.length) {
+      const boot = shuffle([...tier.fillingPool])
+      tier.hopper.push(...boot)
+    }
   }
 
-  next(): RawCard | null {
-    this._fillIfNeeded()
-    const card = this.hopper.shift()
-    if (!card) return null
+  _fillSynthIfNeeded(): void {
+    if (this._synthFillingPool.length === 0) return
+    while (this._synthHopper.length < this._synthFillingPool.length) {
+      const boot = shuffle([...this._synthFillingPool])
+      this._synthHopper.push(...boot)
+    }
+  }
 
+  _drawFromTier(tierKey: string): RawCard | null {
+    const tier = this.tiers[tierKey]
+    if (!tier) return null
+    this._fillTierIfNeeded(tierKey)
+    return tier.hopper.shift() || null
+  }
+
+  _drawSynthesized(tierKey: string): RawCard | null {
+    this._fillSynthIfNeeded()
+    const card = this._synthHopper.shift()
+    if (!card) return null
     return {
       ...card,
-      variantType: 'Prestige',
+      variantType: TIER_VARIANT_MAP[tierKey] || 'Standard Prestige',
       isPrestige: true,
-      prestigeTier: rollPrestigeTier(),
+      prestigeTier: tierKey,
     }
+  }
+
+  /**
+   * Draw a prestige card with random tier (weighted by CARBONITE_CONSTANTS).
+   * Used by carbonite packs.
+   */
+  next(): RawCard | null {
+    const tierKey = rollPrestigeTier()
+
+    if (this.useSynthesis) {
+      return this._drawSynthesized(tierKey)
+    }
+
+    const card = this._drawFromTier(tierKey)
+    if (!card) return this._drawSynthesized(tierKey) // fallback
+    return card
+  }
+
+  /**
+   * Draw a tier1 (Standard Prestige) card.
+   * Used by standard pack UC3 and rare slot prestige upgrades.
+   */
+  nextTier1(): RawCard | null {
+    if (this.useSynthesis) {
+      return this._drawSynthesized('tier1')
+    }
+
+    const card = this._drawFromTier('tier1')
+    if (!card) return this._drawSynthesized('tier1') // fallback
+    return card
   }
 
   peek(count = 1): RawCard[] {
-    this._fillIfNeeded()
-    return this.hopper.slice(0, count).map(c => ({
-      ...c,
-      variantType: 'Prestige',
-      isPrestige: true,
-      prestigeTier: 'tier1', // Peek doesn't roll tier
-    }))
+    if (this.useSynthesis) {
+      this._fillSynthIfNeeded()
+      return this._synthHopper.slice(0, count).map(c => ({
+        ...c,
+        variantType: 'Standard Prestige',
+        isPrestige: true,
+        prestigeTier: 'tier1',
+      }))
+    }
+
+    const tier = this.tiers['tier1']
+    if (!tier) return []
+    this._fillTierIfNeeded('tier1')
+    return tier.hopper.slice(0, count)
   }
 
   get size(): number {
-    return this.hopper.length
+    if (this.useSynthesis) {
+      return this._synthHopper.length
+    }
+    return Object.values(this.tiers).reduce((sum, t) => sum + t.hopper.length, 0)
   }
 }

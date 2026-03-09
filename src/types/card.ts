@@ -15,7 +15,8 @@ export type Aspect = 'Vigilance' | 'Command' | 'Aggression' | 'Cunning' | 'Villa
 
 export type Arena = 'Ground' | 'Space';
 
-export type VariantType = 'Normal' | 'Foil' | 'Hyperspace' | 'Hyperspace Foil' | 'Showcase' | 'Prestige';
+export type VariantType = 'Normal' | 'Foil' | 'Hyperspace' | 'Hyperspace Foil' | 'Showcase'
+  | 'Standard Prestige' | 'Foil Prestige' | 'Serialized Prestige';
 
 // === CARD INTERFACES ===
 
@@ -62,6 +63,8 @@ export interface Card {
   isFoil: boolean;
   isHyperspace: boolean;
   isShowcase: boolean;
+  isPrestige: boolean;
+  prestigeTier: string | null;
 
   // Assets
   imageUrl: string;

@@ -113,6 +113,30 @@ export const batchFixes: BatchFix[] = [
     value: true,
     reason: 'Auto-fix: Showcase variant missing isShowcase flag'
   },
+
+  // Set isPrestige=true for all Prestige variants
+  {
+    condition: (card: Card) => (card.variantType === 'Standard Prestige' || card.variantType === 'Foil Prestige' || card.variantType === 'Serialized Prestige') && !card.isPrestige,
+    field: 'isPrestige',
+    value: true,
+    reason: 'Auto-fix: Prestige variant missing isPrestige flag'
+  },
+
+  // Set isFoil=true for Foil Prestige variants
+  {
+    condition: (card: Card) => card.variantType === 'Foil Prestige' && !card.isFoil,
+    field: 'isFoil',
+    value: true,
+    reason: 'Auto-fix: Foil Prestige variant missing isFoil flag'
+  },
+
+  // Set isFoil=true for Serialized Prestige variants
+  {
+    condition: (card: Card) => card.variantType === 'Serialized Prestige' && !card.isFoil,
+    field: 'isFoil',
+    value: true,
+    reason: 'Auto-fix: Serialized Prestige variant missing isFoil flag'
+  },
 ]
 
 /**
@@ -131,7 +155,10 @@ export const customTransforms: CustomTransform[] = [
         'Hyperspace',
         'Foil',
         'Hyperspace Foil',
-        'Showcase'
+        'Showcase',
+        'Standard Prestige',
+        'Foil Prestige',
+        'Serialized Prestige',
       ])
       return cards.filter(card => {
         const vt = card.variantType || ''
@@ -172,6 +199,11 @@ export const customTransforms: CustomTransform[] = [
       // Ensure isShowcase is explicitly true or false
       if (card.isShowcase === undefined || card.isShowcase === null) {
         card.isShowcase = false
+      }
+
+      // Ensure isPrestige is explicitly true or false
+      if (card.isPrestige === undefined || card.isPrestige === null) {
+        card.isPrestige = false
       }
 
       // Ensure isLeader is explicitly true or false

@@ -44,6 +44,8 @@ interface RawCard {
   isFoil: boolean;
   isHyperspace: boolean;
   isShowcase: boolean;
+  isPrestige: boolean;
+  prestigeTier: string | null;
   imageUrl: string;
   backImageUrl: string | null;
   marketPrice: number | null;

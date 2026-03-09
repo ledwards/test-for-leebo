@@ -81,6 +81,8 @@ interface TransformedCard {
   isFoil: boolean
   isHyperspace: boolean
   isShowcase: boolean
+  isPrestige: boolean
+  prestigeTier: string | null
   imageUrl: string | null
   backImageUrl: string | null
 }
@@ -139,7 +141,17 @@ function transformCard(apiCard: ApiCard): TransformedCard {
   }
 
   // Determine isFoil based on variantType (not the hasFoil flag which indicates if foil exists)
-  const isFoil = variantType === 'Foil' || variantType === 'Hyperspace Foil'
+  const isFoil = variantType === 'Foil' || variantType === 'Hyperspace Foil' ||
+    variantType === 'Foil Prestige' || variantType === 'Serialized Prestige'
+
+  // Determine prestige fields
+  const isPrestige = variantType === 'Standard Prestige' || variantType === 'Foil Prestige' || variantType === 'Serialized Prestige'
+  const prestigeTierMap: Record<string, string> = {
+    'Standard Prestige': 'tier1',
+    'Foil Prestige': 'tier2',
+    'Serialized Prestige': 'serialized',
+  }
+  const prestigeTier = prestigeTierMap[variantType] || null
 
   return {
     id,
@@ -171,6 +183,8 @@ function transformCard(apiCard: ApiCard): TransformedCard {
     isFoil,
     isHyperspace: variantType === 'Hyperspace' || variantType === 'Hyperspace Foil',
     isShowcase: variantType === 'Showcase',
+    isPrestige,
+    prestigeTier,
     imageUrl: apiCard.frontImageUrl || null,
     backImageUrl: apiCard.backImageUrl || null,
   }
