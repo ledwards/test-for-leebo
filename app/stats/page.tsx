@@ -199,12 +199,20 @@ function SetStatsTab({ setCode, includeBots, includeHumans, startDate, endDate }
         >
           Deck Building
         </button>
+        <button
+          className={`stats-subtab ${subTab === 'leaders' ? 'active' : ''}`}
+          onClick={() => setSubTab('leaders')}
+        >
+          Leaders
+        </button>
       </div>
 
       {subTab === 'draft' ? (
         <CardsSubTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} startDate={startDate} endDate={endDate} />
-      ) : (
+      ) : subTab === 'deckbuilding' ? (
         <DeckBuildingSubTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} startDate={startDate} endDate={endDate} />
+      ) : (
+        <LeadersSubTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} startDate={startDate} endDate={endDate} />
       )}
     </div>
   )
@@ -603,6 +611,280 @@ function DeckBuildingSubTab({ setCode, includeBots, includeHumans, startDate, en
           </tbody>
         </table>
       </div>
+
+      {hoveredCardPreview && (
+        <CardPreview
+          card={hoveredCardPreview.card}
+          x={hoveredCardPreview.x}
+          y={hoveredCardPreview.y}
+          isMobile={hoveredCardPreview.isMobile}
+          onMouseEnter={handlePreviewMouseEnter}
+          onMouseLeave={handlePreviewMouseLeave}
+          onDismiss={dismissPreview}
+        />
+      )}
+    </div>
+  )
+}
+
+// === Leaders Sub-Tab ===
+
+interface LeaderDraftPick {
+  cardName: string
+  cardId: string
+  rarity: string
+  cardType: string
+  timesPicked: number
+  firstPicks: number
+  firstPickPct: number | null
+  avgPickPosition: number
+  draftsSeenIn: number
+  aspects: string[]
+  subtitle: string | null
+  imageUrl: string | null
+}
+
+interface LeaderSelection {
+  cardName: string
+  cardId: string
+  timesSelected: number
+  selectionRate: number
+  aspects: string[]
+  subtitle: string | null
+  imageUrl: string | null
+}
+
+interface LeadersSubTabProps {
+  setCode: string
+  includeBots: boolean
+  includeHumans: boolean
+  startDate: string
+  endDate: string
+}
+
+type LeaderSortKey = 'cardName' | 'avgPickPosition' | 'firstPickPct' | 'timesPicked'
+type LeaderSelSortKey = 'cardName' | 'timesSelected' | 'selectionRate'
+
+function LeadersSubTab({ setCode, includeBots, includeHumans, startDate, endDate }: LeadersSubTabProps) {
+  const [draftData, setDraftData] = useState<{ totalPicks: number; totalDrafts: number; cards: LeaderDraftPick[] } | null>(null)
+  const [selData, setSelData] = useState<{ totalDecks: number; leaders: LeaderSelection[] } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [draftSortKey, setDraftSortKey] = useState<LeaderSortKey>('avgPickPosition')
+  const [draftSortAsc, setDraftSortAsc] = useState(true)
+  const [selSortKey, setSelSortKey] = useState<LeaderSelSortKey>('timesSelected')
+  const [selSortAsc, setSelSortAsc] = useState(false)
+  const {
+    hoveredCardPreview,
+    handleCardMouseEnter,
+    handleCardMouseLeave,
+    handlePreviewMouseEnter,
+    handlePreviewMouseLeave,
+    handleCardTouchStart,
+    handleCardTouchEnd,
+    dismissPreview,
+  } = useCardPreview()
+
+  useEffect(() => {
+    setLoading(true)
+    const params = new URLSearchParams({
+      setCode,
+      since: startDate,
+      until: endDate,
+      includeBots: String(includeBots),
+      includeHumans: String(includeHumans),
+    })
+
+    Promise.all([
+      fetch(`/api/stats/draft-picks?${params}&type=leaders`)
+        .then(r => r.json())
+        .then(result => setDraftData(result.data || result)),
+      fetch(`/api/stats/leader-selection?${params}`)
+        .then(r => r.json())
+        .then(result => setSelData(result.data || result)),
+    ])
+      .catch(err => console.error('Error fetching leader stats:', err))
+      .finally(() => setLoading(false))
+  }, [setCode, includeBots, includeHumans, startDate, endDate])
+
+  const handleDraftSort = (key: LeaderSortKey) => {
+    if (draftSortKey === key) {
+      setDraftSortAsc(!draftSortAsc)
+    } else {
+      setDraftSortKey(key)
+      setDraftSortAsc(key === 'avgPickPosition' || key === 'cardName')
+    }
+  }
+
+  const handleSelSort = (key: LeaderSelSortKey) => {
+    if (selSortKey === key) {
+      setSelSortAsc(!selSortAsc)
+    } else {
+      setSelSortKey(key)
+      setSelSortAsc(key === 'cardName')
+    }
+  }
+
+  const sortedDraftCards = useMemo(() => {
+    if (!draftData?.cards) return []
+    return [...draftData.cards].sort((a, b) => {
+      let cmp = 0
+      switch (draftSortKey) {
+        case 'cardName': cmp = a.cardName.localeCompare(b.cardName); break
+        case 'avgPickPosition': cmp = a.avgPickPosition - b.avgPickPosition; break
+        case 'firstPickPct': cmp = (a.firstPickPct ?? -1) - (b.firstPickPct ?? -1); break
+        case 'timesPicked': cmp = a.timesPicked - b.timesPicked; break
+      }
+      return draftSortAsc ? cmp : -cmp
+    })
+  }, [draftData?.cards, draftSortKey, draftSortAsc])
+
+  const sortedSelLeaders = useMemo(() => {
+    if (!selData?.leaders) return []
+    return [...selData.leaders].sort((a, b) => {
+      let cmp = 0
+      switch (selSortKey) {
+        case 'cardName': cmp = a.cardName.localeCompare(b.cardName); break
+        case 'timesSelected': cmp = a.timesSelected - b.timesSelected; break
+        case 'selectionRate': cmp = a.selectionRate - b.selectionRate; break
+      }
+      return selSortAsc ? cmp : -cmp
+    })
+  }, [selData?.leaders, selSortKey, selSortAsc])
+
+  if (loading) return (
+    <div className="stats-loading-skeleton">
+      {[1, 2, 3, 4, 5, 6].map(i => (
+        <div key={i} className="skeleton-row">
+          <div className="skeleton-line" style={{ maxWidth: '140px' }} />
+          <div className="skeleton-line" style={{ maxWidth: '60px' }} />
+          <div className="skeleton-line" style={{ maxWidth: '60px' }} />
+        </div>
+      ))}
+    </div>
+  )
+
+  const pickClass = (avg: number) =>
+    avg <= 1.5 ? 'pick-early' : avg <= 3 ? 'pick-mid' : 'pick-late'
+
+  const DraftSortHeader = ({ label, col, title }: { label: string, col: LeaderSortKey, title?: string }) => (
+    <th className={`sortable ${draftSortKey === col ? 'active' : ''}`} onClick={() => handleDraftSort(col)} title={title}>
+      {label}
+      {draftSortKey === col && <span className="sort-indicator">{draftSortAsc ? ' ▲' : ' ▼'}</span>}
+    </th>
+  )
+
+  const SelSortHeader = ({ label, col, title }: { label: string, col: LeaderSelSortKey, title?: string }) => (
+    <th className={`sortable ${selSortKey === col ? 'active' : ''}`} onClick={() => handleSelSort(col)} title={title}>
+      {label}
+      {selSortKey === col && <span className="sort-indicator">{selSortAsc ? ' ▲' : ' ▼'}</span>}
+    </th>
+  )
+
+  return (
+    <div className="cards-subtab">
+      {/* Leader Draft Picks */}
+      {draftData && draftData.cards && draftData.cards.length > 0 && (
+        <>
+          <h3 style={{ marginBottom: '0.5rem' }}>Draft Pick Order</h3>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+            How early leaders are picked in leader rounds ({fmt(draftData.totalDrafts)} drafts, {fmt(draftData.totalPicks)} leader picks)
+          </p>
+          <div className="stats-table-container" style={{ marginBottom: '2rem' }}>
+            <table className="stats-table">
+              <thead>
+                <tr>
+                  <DraftSortHeader label="Leader" col="cardName" />
+                  <DraftSortHeader label="Avg Pick" col="avgPickPosition" title="Average position this leader is picked in leader rounds (1 = first pick)" />
+                  <DraftSortHeader label="1st Pick" col="firstPickPct" title="How often this leader is picked first overall in leader rounds" />
+                  <th>Aspects</th>
+                  <DraftSortHeader label="# Drafted" col="timesPicked" />
+                </tr>
+              </thead>
+              <tbody>
+                {sortedDraftCards.map(card => (
+                  <tr key={card.cardId}>
+                    <td
+                      className="card-name-cell"
+                      onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity }, e)}
+                      onMouseLeave={handleCardMouseLeave}
+                      onTouchStart={() => handleCardTouchStart({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity })}
+                      onTouchEnd={handleCardTouchEnd}
+                    >
+                      <span className="card-name">{card.cardName}</span>
+                      {card.subtitle && <span className="card-subtitle-inline">, {card.subtitle}</span>}
+                    </td>
+                    <td className={pickClass(card.avgPickPosition)}>{card.avgPickPosition.toFixed(1)}</td>
+                    <td className={card.firstPickPct && card.firstPickPct >= 20 ? 'first-pick-high' : ''}>
+                      {card.firstPicks}/{card.timesPicked} ({card.firstPickPct !== null ? `${card.firstPickPct}%` : '—'})
+                    </td>
+                    <td>
+                      <div className="aspects-cell">
+                        {card.aspects.map((aspect, i) => (
+                          <img key={i} src={`/icons/${aspect.toLowerCase()}.png`} alt={aspect} className="aspect-icon" />
+                        ))}
+                      </div>
+                    </td>
+                    <td>{fmt(card.timesPicked)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {/* Leader Deck Selection */}
+      {selData && selData.leaders && selData.leaders.length > 0 && (
+        <>
+          <h3 style={{ marginBottom: '0.5rem' }}>Deck Selection Rate</h3>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+            How often each leader is chosen for built decks ({fmt(selData.totalDecks)} decks)
+          </p>
+          <div className="stats-table-container">
+            <table className="stats-table">
+              <thead>
+                <tr>
+                  <SelSortHeader label="Leader" col="cardName" />
+                  <SelSortHeader label="Selection %" col="selectionRate" title="Percentage of all built decks that chose this leader" />
+                  <th>Aspects</th>
+                  <SelSortHeader label="# Selected" col="timesSelected" />
+                </tr>
+              </thead>
+              <tbody>
+                {sortedSelLeaders.map(leader => (
+                  <tr key={leader.cardId}>
+                    <td
+                      className="card-name-cell"
+                      onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: leader.imageUrl || undefined, name: leader.cardName, rarity: 'Legendary' }, e)}
+                      onMouseLeave={handleCardMouseLeave}
+                      onTouchStart={() => handleCardTouchStart({ imageUrl: leader.imageUrl || undefined, name: leader.cardName, rarity: 'Legendary' })}
+                      onTouchEnd={handleCardTouchEnd}
+                    >
+                      <span className="card-name">{leader.cardName}</span>
+                      {leader.subtitle && <span className="card-subtitle-inline">, {leader.subtitle}</span>}
+                    </td>
+                    <td className={leader.selectionRate >= 5 ? 'pick-early' : leader.selectionRate >= 2 ? 'pick-mid' : ''}>{leader.selectionRate.toFixed(1)}%</td>
+                    <td>
+                      <div className="aspects-cell">
+                        {leader.aspects.map((aspect, i) => (
+                          <img key={i} src={`/icons/${aspect.toLowerCase()}.png`} alt={aspect} className="aspect-icon" />
+                        ))}
+                      </div>
+                    </td>
+                    <td>{fmt(leader.timesSelected)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {(!draftData?.cards?.length && !selData?.leaders?.length) && (
+        <div className="stats-empty">
+          <p>No leader data available for {setCode} yet.</p>
+        </div>
+      )}
 
       {hoveredCardPreview && (
         <CardPreview
