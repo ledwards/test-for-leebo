@@ -27,6 +27,7 @@ export default function StatsPage() {
   const [activeTab, setActiveTab] = useState('LAW')
   const [includeBots, setIncludeBots] = useState(false)
   const [includeHumans, setIncludeHumans] = useState(true)
+  const [builtDeckOnly, setBuiltDeckOnly] = useState(false)
   const [startDate, setStartDate] = useState(DEFAULT_START_DATE)
   const [endDate, setEndDate] = useState(todayStr())
   const [editingStart, setEditingStart] = useState(false)
@@ -133,6 +134,14 @@ export default function StatsPage() {
           />
           Include Bots
         </label>
+        <label className="stats-filter-checkbox">
+          <input
+            type="checkbox"
+            checked={builtDeckOnly}
+            onChange={(e) => setBuiltDeckOnly(e.target.checked)}
+          />
+          Built Deck Only
+        </label>
       </div>
 
       <div className="stats-tabs">
@@ -164,6 +173,7 @@ export default function StatsPage() {
             setCode={activeTab}
             includeBots={includeBots}
             includeHumans={includeHumans}
+            builtDeckOnly={builtDeckOnly}
             startDate={startDate}
             endDate={endDate}
           />
@@ -177,11 +187,12 @@ interface SetStatsTabProps {
   setCode: string
   includeBots: boolean
   includeHumans: boolean
+  builtDeckOnly: boolean
   startDate: string
   endDate: string
 }
 
-function SetStatsTab({ setCode, includeBots, includeHumans, startDate, endDate }: SetStatsTabProps) {
+function SetStatsTab({ setCode, includeBots, includeHumans, builtDeckOnly, startDate, endDate }: SetStatsTabProps) {
   const [subTab, setSubTab] = useState('draft')
 
   return (
@@ -202,7 +213,7 @@ function SetStatsTab({ setCode, includeBots, includeHumans, startDate, endDate }
       </div>
 
       {subTab === 'draft' ? (
-        <DraftTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} startDate={startDate} endDate={endDate} />
+        <DraftTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} builtDeckOnly={builtDeckOnly} startDate={startDate} endDate={endDate} />
       ) : (
         <SealedTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} startDate={startDate} endDate={endDate} />
       )}
@@ -297,11 +308,12 @@ interface TabProps {
   setCode: string
   includeBots: boolean
   includeHumans: boolean
+  builtDeckOnly?: boolean
   startDate: string
   endDate: string
 }
 
-function DraftTab({ setCode, includeBots, includeHumans, startDate, endDate }: TabProps) {
+function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, startDate, endDate }: TabProps) {
   const [cardData, setCardData] = useState<DraftPickStats | null>(null)
   const [leaderData, setLeaderData] = useState<DraftPickStats | null>(null)
   const [leaderSelData, setLeaderSelData] = useState<{ totalDecks: number; leaders: LeaderSelection[] } | null>(null)
@@ -332,6 +344,7 @@ function DraftTab({ setCode, includeBots, includeHumans, startDate, endDate }: T
       includeBots: String(includeBots),
       includeHumans: String(includeHumans),
     })
+    if (builtDeckOnly) params.set('builtDeckOnly', 'true')
 
     Promise.all([
       fetch(`/api/stats/draft-picks?${params}`)
@@ -346,7 +359,7 @@ function DraftTab({ setCode, includeBots, includeHumans, startDate, endDate }: T
     ])
       .catch(err => console.error('Error fetching draft stats:', err))
       .finally(() => setLoading(false))
-  }, [setCode, includeBots, includeHumans, startDate, endDate])
+  }, [setCode, includeBots, includeHumans, builtDeckOnly, startDate, endDate])
 
   const handleCardSort = (key: SortKey) => {
     if (cardSortKey === key) setCardSortAsc(!cardSortAsc)

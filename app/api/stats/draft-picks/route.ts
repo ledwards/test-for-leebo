@@ -14,6 +14,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const type = url.searchParams.get('type') || 'cards' // 'cards' or 'leaders'
     const includeBots = url.searchParams.get('includeBots') !== 'false'
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
+    const builtDeckOnly = url.searchParams.get('builtDeckOnly') === 'true'
 
     // Build card lookup map for enrichment
     const allCards = getAllCards()
@@ -34,6 +35,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }
     }
 
+    // Built deck filter - only include picks from drafters who built a deck
+    let builtDeckJoin = ''
+    if (builtDeckOnly) {
+      builtDeckJoin = `JOIN card_pools cp_bd ON cp_bd.pod_id = dp.draft_pod_id AND cp_bd.user_id = dp.user_id
+      JOIN built_decks bd ON bd.card_pool_id = cp_bd.id`
+    }
+
     // Per-card pick analytics (non-leader cards only, merge variants by card_name)
     // Only count picks from completed drafts
     const cardStats = await queryRows(
@@ -49,6 +57,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       FROM draft_picks dp
       JOIN pods pod ON pod.id = dp.draft_pod_id
       ${botJoin}
+      ${builtDeckJoin}
       WHERE dp.set_code = $1 AND dp.is_leader = ${type === 'leaders' ? 'TRUE' : 'FALSE'} AND dp.picked_at >= $2 AND dp.picked_at < ($3::date + interval '1 day')
         AND pod.status = 'complete'
         ${botFilter}
@@ -66,6 +75,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       FROM draft_picks dp
       JOIN pods pod ON pod.id = dp.draft_pod_id
       ${botJoin}
+      ${builtDeckJoin}
       WHERE dp.set_code = $1 AND dp.is_leader = ${type === 'leaders' ? 'TRUE' : 'FALSE'} AND dp.picked_at >= $2 AND dp.picked_at < ($3::date + interval '1 day')
         AND pod.status = 'complete'
         ${botFilter}`,
