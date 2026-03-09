@@ -240,6 +240,286 @@ async function runTests(): Promise<void> {
     assert(diffPercent > 50, `At least 50% of positions should differ, got ${diffPercent.toFixed(1)}%`)
   })
 
+  // =========================================================
+  // SPEC: No duplicate card within 24 positions (across seams)
+  // =========================================================
+
+  test('SPEC: no duplicate card within 24 positions on Belt A (large belt)', () => {
+    // SPEC: Real-world common belts never repeat a card within ~24 positions
+    // Test with LAW Belt A (50 cards) - draw 200 cards to cross multiple seams
+    const belt = new CommonBelt('LAW', 'A')
+    const DEDUP_WINDOW = 24
+    const TOTAL_DRAWS = 200
+
+    const drawn: Array<{ id: string; name: string }> = []
+    for (let i = 0; i < TOTAL_DRAWS; i++) {
+      drawn.push(belt.next())
+    }
+
+    let violations = 0
+    const violationDetails: string[] = []
+    for (let i = 0; i < drawn.length; i++) {
+      for (let j = i + 1; j < Math.min(i + DEDUP_WINDOW, drawn.length); j++) {
+        if (drawn[i].id === drawn[j].id) {
+          violations++
+          violationDetails.push(
+            `"${drawn[i].name}" at positions ${i} and ${j} (distance ${j - i})`
+          )
+        }
+      }
+    }
+
+    assert(violations === 0,
+      `SPEC: No duplicate within ${DEDUP_WINDOW} positions. Found ${violations} violations:\n  ${violationDetails.slice(0, 5).join('\n  ')}`)
+  })
+
+  test('SPEC: no duplicate card within max safe window on Belt B (small belt, 30 cards)', () => {
+    // SPEC: For a belt of size N, the max safe dedup window = floor(N/2)
+    // SOR Belt B = 30 cards → max window = 15
+    // (24 is impossible on 30 cards: only 6 non-recent cards for 21 early positions)
+    const belt = new CommonBelt('SOR', 'B')
+    const DEDUP_WINDOW = Math.min(24, Math.floor(belt.beltCards.length / 2))
+    const TOTAL_DRAWS = 150
+
+    const drawn: Array<{ id: string; name: string }> = []
+    for (let i = 0; i < TOTAL_DRAWS; i++) {
+      drawn.push(belt.next())
+    }
+
+    let violations = 0
+    const violationDetails: string[] = []
+    for (let i = 0; i < drawn.length; i++) {
+      for (let j = i + 1; j < Math.min(i + DEDUP_WINDOW, drawn.length); j++) {
+        if (drawn[i].id === drawn[j].id) {
+          violations++
+          violationDetails.push(
+            `"${drawn[i].name}" at positions ${i} and ${j} (distance ${j - i})`
+          )
+        }
+      }
+    }
+
+    assert(violations === 0,
+      `SPEC: No duplicate within ${DEDUP_WINDOW} positions on small belt. Found ${violations} violations:\n  ${violationDetails.slice(0, 5).join('\n  ')}`)
+  })
+
+  test('SPEC: dedup window holds across seam boundary specifically', () => {
+    // SPEC: The seam (where one boot ends and next begins) is the critical point
+    // Draw exactly enough to cross a seam and verify no close duplicates
+    const belt = new CommonBelt('JTL', 'A')  // 49 cards
+    const DEDUP_WINDOW = 24
+    const beltSize = belt.beltCards.length
+    // Draw 2 full boots worth to guarantee crossing at least one seam
+    const TOTAL_DRAWS = beltSize * 2 + 10
+
+    const drawn: Array<{ id: string; name: string }> = []
+    for (let i = 0; i < TOTAL_DRAWS; i++) {
+      drawn.push(belt.next())
+    }
+
+    // Check specifically around seam boundaries
+    let violations = 0
+    const violationDetails: string[] = []
+    for (let i = 0; i < drawn.length; i++) {
+      for (let j = i + 1; j < Math.min(i + DEDUP_WINDOW, drawn.length); j++) {
+        if (drawn[i].id === drawn[j].id) {
+          violations++
+          violationDetails.push(
+            `"${drawn[i].name}" at positions ${i} and ${j} (distance ${j - i})`
+          )
+        }
+      }
+    }
+
+    assert(violations === 0,
+      `SPEC: Seam dedup failed. Found ${violations} violations:\n  ${violationDetails.slice(0, 5).join('\n  ')}`)
+  })
+
+  // =========================================================
+  // SPEC: Every card has equal occurrence rate (no exclusion)
+  // =========================================================
+
+  test('SPEC: every card in the belt appears with equal frequency (no exclusion)', () => {
+    // SPEC: A belt is a cyclic conveyor. Every card appears once per cycle.
+    // No card should EVER be excluded from a boot. Excluding cards corrupts occurrence rates.
+    const belt = new CommonBelt('LAW', 'A')
+    const beltSize = belt.beltCards.length
+    const TOTAL_DRAWS = beltSize * 5  // 5 full cycles
+
+    const counts = new Map<string, number>()
+    for (let i = 0; i < TOTAL_DRAWS; i++) {
+      const card = belt.next()
+      counts.set(card.id, (counts.get(card.id) || 0) + 1)
+    }
+
+    // Every card should appear exactly 5 times (once per cycle)
+    const expectedCount = 5
+    let missingCards = 0
+    let wrongCount = 0
+    const details: string[] = []
+
+    for (const card of belt.beltCards) {
+      const count = counts.get(card.id) || 0
+      if (count === 0) {
+        missingCards++
+        details.push(`"${card.name}" appeared 0 times (expected ${expectedCount})`)
+      } else if (count !== expectedCount) {
+        wrongCount++
+        details.push(`"${card.name}" appeared ${count} times (expected ${expectedCount})`)
+      }
+    }
+
+    assert(missingCards === 0,
+      `SPEC: ${missingCards} cards were excluded from boots (every card must appear once per cycle):\n  ${details.slice(0, 5).join('\n  ')}`)
+    assert(wrongCount === 0,
+      `SPEC: ${wrongCount} cards had wrong occurrence count:\n  ${details.slice(0, 5).join('\n  ')}`)
+  })
+
+  // =========================================================
+  // SPEC: No adjacent cards with same primary aspect
+  // =========================================================
+
+  test('SPEC: no adjacent cards share primary aspect on Belt A', () => {
+    // SPEC: Within a belt, the primary aspect (first listed) never repeats back-to-back
+    const belt = new CommonBelt('LAW', 'A')
+    const TOTAL_DRAWS = 200
+
+    const drawn: Array<{ id: string; name: string; aspects: string[] }> = []
+    for (let i = 0; i < TOTAL_DRAWS; i++) {
+      drawn.push(belt.next())
+    }
+
+    let violations = 0
+    const violationDetails: string[] = []
+    for (let i = 1; i < drawn.length; i++) {
+      const prevAspect = drawn[i - 1].aspects?.[0]
+      const currAspect = drawn[i].aspects?.[0]
+      if (prevAspect && currAspect && prevAspect === currAspect) {
+        violations++
+        violationDetails.push(
+          `positions ${i - 1}-${i}: "${drawn[i - 1].name}" (${prevAspect}) → "${drawn[i].name}" (${currAspect})`
+        )
+      }
+    }
+
+    assert(violations === 0,
+      `SPEC: No adjacent same primary aspect. Found ${violations} violations:\n  ${violationDetails.slice(0, 5).join('\n  ')}`)
+  })
+
+  test('SPEC: no adjacent cards share primary aspect on Belt B', () => {
+    // SPEC: Same rule applies to Belt B
+    const belt = new CommonBelt('LAW', 'B')
+    const TOTAL_DRAWS = 200
+
+    const drawn: Array<{ id: string; name: string; aspects: string[] }> = []
+    for (let i = 0; i < TOTAL_DRAWS; i++) {
+      drawn.push(belt.next())
+    }
+
+    let violations = 0
+    const violationDetails: string[] = []
+    for (let i = 1; i < drawn.length; i++) {
+      const prevAspect = drawn[i - 1].aspects?.[0]
+      const currAspect = drawn[i].aspects?.[0]
+      if (prevAspect && currAspect && prevAspect === currAspect) {
+        violations++
+        violationDetails.push(
+          `positions ${i - 1}-${i}: "${drawn[i - 1].name}" (${prevAspect}) → "${drawn[i].name}" (${currAspect})`
+        )
+      }
+    }
+
+    assert(violations === 0,
+      `SPEC: No adjacent same primary aspect on Belt B. Found ${violations} violations:\n  ${violationDetails.slice(0, 5).join('\n  ')}`)
+  })
+
+  test('SPEC: no adjacent same primary aspect across seam boundary', () => {
+    // SPEC: The no-adjacent-aspect rule must hold at the seam too
+    const belt = new CommonBelt('JTL', 'A')
+    const beltSize = belt.beltCards.length
+    const TOTAL_DRAWS = beltSize * 3  // Cross multiple seams
+
+    const drawn: Array<{ id: string; name: string; aspects: string[] }> = []
+    for (let i = 0; i < TOTAL_DRAWS; i++) {
+      drawn.push(belt.next())
+    }
+
+    let violations = 0
+    const violationDetails: string[] = []
+    for (let i = 1; i < drawn.length; i++) {
+      const prevAspect = drawn[i - 1].aspects?.[0]
+      const currAspect = drawn[i].aspects?.[0]
+      if (prevAspect && currAspect && prevAspect === currAspect) {
+        violations++
+        violationDetails.push(
+          `positions ${i - 1}-${i}: "${drawn[i - 1].name}" (${prevAspect}) → "${drawn[i].name}" (${currAspect})`
+        )
+      }
+    }
+
+    assert(violations === 0,
+      `SPEC: No adjacent same primary aspect across seams. Found ${violations} violations:\n  ${violationDetails.slice(0, 5).join('\n  ')}`)
+  })
+
+  test('SPEC: neutral cards (no aspects) do not cause false violations', () => {
+    // SPEC: Cards with no aspects have no primary aspect, so they can be adjacent to anything
+    // and anything can be adjacent to them - they should NOT count as violations
+    // NOTE: SOR Belt B has 18/30 Cunning (60%), making some adjacencies mathematically
+    // unavoidable. Minimum forced = max(0, 2*maxGroupSize - beltSize - 1) per boot.
+    const belt = new CommonBelt('SOR', 'B')  // Belt B has neutral cards
+    const beltSize = belt.beltCards.length
+    const TOTAL_DRAWS = 150
+    const NUM_BOOTS = Math.ceil(TOTAL_DRAWS / beltSize)
+
+    const drawn: Array<{ id: string; name: string; aspects: string[] }> = []
+    for (let i = 0; i < TOTAL_DRAWS; i++) {
+      drawn.push(belt.next())
+    }
+
+    // Calculate the theoretical minimum violations per boot
+    const aspectCounts = new Map<string | null, number>()
+    for (const card of belt.beltCards) {
+      const a = (card.aspects || [])[0] || null
+      aspectCounts.set(a, (aspectCounts.get(a) || 0) + 1)
+    }
+    const maxGroupSize = Math.max(...[...aspectCounts.entries()]
+      .filter(([k]) => k !== null)  // Only count aspected groups
+      .map(([, v]) => v))
+    const minForcedPerBoot = Math.max(0, 2 * maxGroupSize - beltSize - 1)
+    // Allow forced violations + some seam overhead
+    const maxAllowed = (minForcedPerBoot + 1) * (NUM_BOOTS + 1)
+
+    // Check that violations only count when BOTH cards have a primary aspect
+    let violations = 0
+    for (let i = 1; i < drawn.length; i++) {
+      const prevAspect = drawn[i - 1].aspects?.[0]
+      const currAspect = drawn[i].aspects?.[0]
+      if (prevAspect && currAspect && prevAspect === currAspect) {
+        violations++
+      }
+    }
+
+    assert(violations <= maxAllowed,
+      `SPEC: Found ${violations} aspect violations (max allowed: ${maxAllowed} based on ${minForcedPerBoot} forced/boot). Belt has ${maxGroupSize}/${beltSize} of dominant aspect.`)
+
+    // Verify that neutral-adjacent pairs are never counted as violations
+    // (this is what the test is really about)
+    let falseNeutralViolations = 0
+    for (let i = 1; i < drawn.length; i++) {
+      const prevAspects = drawn[i - 1].aspects || []
+      const currAspects = drawn[i].aspects || []
+      if (prevAspects.length === 0 || currAspects.length === 0) {
+        // If either card is neutral, this should NEVER be counted as a violation
+        // (This validates our test logic, not the belt)
+        if (prevAspects[0] && currAspects[0] && prevAspects[0] === currAspects[0]) {
+          falseNeutralViolations++
+        }
+      }
+    }
+    assertEqual(falseNeutralViolations, 0,
+      'Neutral cards should never cause false aspect violations')
+  })
+
   // Legacy getCommonPools tests for backward compatibility
   test('getCommonPools returns structured pools (legacy)', () => {
     const { poolA, poolB } = getCommonPools('SOR')

@@ -168,6 +168,95 @@ async function runTests(): Promise<void> {
     assert(packsWithDuplicates <= 2, `${packsWithDuplicates} packs had duplicate uncommons (max allowed: 2)`)
   })
 
+  // =========================================================
+  // SPEC: No duplicate card within 24 positions (across seams)
+  // =========================================================
+
+  test('SPEC: no duplicate uncommon within 24 positions', () => {
+    // SPEC: Real-world belts never repeat a card within ~24 positions
+    const belt = new UncommonBelt('LAW')
+    const DEDUP_WINDOW = 24
+    const TOTAL_DRAWS = 300  // 5 full cycles
+
+    const drawn: Array<{ id: string; name: string }> = []
+    for (let i = 0; i < TOTAL_DRAWS; i++) {
+      drawn.push(belt.next())
+    }
+
+    let violations = 0
+    const violationDetails: string[] = []
+    for (let i = 0; i < drawn.length; i++) {
+      for (let j = i + 1; j < Math.min(i + DEDUP_WINDOW, drawn.length); j++) {
+        if (drawn[i].id === drawn[j].id) {
+          violations++
+          violationDetails.push(
+            `"${drawn[i].name}" at positions ${i} and ${j} (distance ${j - i})`
+          )
+        }
+      }
+    }
+
+    assert(violations === 0,
+      `SPEC: No duplicate within ${DEDUP_WINDOW} positions. Found ${violations} violations:\n  ${violationDetails.slice(0, 5).join('\n  ')}`)
+  })
+
+  test('SPEC: every uncommon appears with equal frequency (no exclusion)', () => {
+    // SPEC: Every card appears once per cycle. No card is ever excluded.
+    const belt = new UncommonBelt('LAW')
+    const beltSize = belt.fillingPool.length
+    const CYCLES = 5
+    const TOTAL_DRAWS = beltSize * CYCLES
+
+    const counts = new Map<string, number>()
+    for (let i = 0; i < TOTAL_DRAWS; i++) {
+      const card = belt.next()
+      counts.set(card.id, (counts.get(card.id) || 0) + 1)
+    }
+
+    let wrongCount = 0
+    const details: string[] = []
+    for (const card of belt.fillingPool) {
+      const count = counts.get(card.id) || 0
+      if (count !== CYCLES) {
+        wrongCount++
+        details.push(`"${card.name}" appeared ${count} times (expected ${CYCLES})`)
+      }
+    }
+
+    assert(wrongCount === 0,
+      `SPEC: ${wrongCount} cards had wrong occurrence count:\n  ${details.slice(0, 5).join('\n  ')}`)
+  })
+
+  // =========================================================
+  // SPEC: No adjacent cards with same primary aspect
+  // =========================================================
+
+  test('SPEC: no adjacent uncommons share primary aspect', () => {
+    const belt = new UncommonBelt('LAW')
+    const TOTAL_DRAWS = 300
+
+    const drawn: Array<{ id: string; name: string; aspects: string[] }> = []
+    for (let i = 0; i < TOTAL_DRAWS; i++) {
+      drawn.push(belt.next())
+    }
+
+    let violations = 0
+    const violationDetails: string[] = []
+    for (let i = 1; i < drawn.length; i++) {
+      const prevAspect = drawn[i - 1].aspects?.[0]
+      const currAspect = drawn[i].aspects?.[0]
+      if (prevAspect && currAspect && prevAspect === currAspect) {
+        violations++
+        violationDetails.push(
+          `positions ${i - 1}-${i}: "${drawn[i - 1].name}" (${prevAspect}) → "${drawn[i].name}" (${currAspect})`
+        )
+      }
+    }
+
+    assert(violations === 0,
+      `SPEC: No adjacent same primary aspect. Found ${violations} violations:\n  ${violationDetails.slice(0, 5).join('\n  ')}`)
+  })
+
   test('no repeating pattern: consecutive belt fills produce different sequences', () => {
     const belt = new UncommonBelt('SOR')
     const fillSize = belt.fillingPool.length
