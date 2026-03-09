@@ -11,6 +11,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const setCode = url.searchParams.get('setCode') || 'SOR'
     const since = url.searchParams.get('since') || '2020-01-01'
     const until = url.searchParams.get('until') || '2099-12-31'
+    const poolType = url.searchParams.get('poolType') || null
     const includeBots = url.searchParams.get('includeBots') !== 'false'
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
 
@@ -46,8 +47,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
        JOIN built_decks bd ON bd.card_pool_id = cp.id
        ${joinClause}
        WHERE cp.set_code = $1 AND cp.created_at >= $2 AND cp.created_at < ($3::date + interval '1 day')
+         ${poolType ? `AND cp.pool_type = $4` : ''}
          ${botFilter}`,
-      [setCode, since, until]
+      poolType ? [setCode, since, until, poolType] : [setCode, since, until]
     )
 
     // Normalize a cardId to a canonical key: SOR-59 → SOR_059, SOR_059 stays SOR_059

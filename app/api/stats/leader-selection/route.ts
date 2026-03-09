@@ -11,6 +11,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const setCode = url.searchParams.get('setCode') || 'SOR'
     const since = url.searchParams.get('since') || '2020-01-01'
     const until = url.searchParams.get('until') || '2099-12-31'
+    const poolType = url.searchParams.get('poolType') || null
     const includeBots = url.searchParams.get('includeBots') !== 'false'
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
 
@@ -41,14 +42,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ? `LEFT JOIN card_pools cp ON cp.id = bd.card_pool_id LEFT JOIN pod_players dpp ON cp.pod_id = dpp.pod_id AND bd.user_id = dpp.user_id`
       : ''
 
+    const poolTypeFilter = poolType ? `AND bd.pool_type = $4` : ''
+    const queryParams = poolType ? [setCode, since, until, poolType] : [setCode, since, until]
+
     // Get total built decks count
     const summary = await queryRow(
       `SELECT COUNT(*) AS total_decks
        FROM built_decks bd
        ${joinClause}
        WHERE bd.set_code = $1 AND bd.built_at >= $2 AND bd.built_at < ($3::date + interval '1 day')
+         ${poolTypeFilter}
          ${botFilter}`,
-      [setCode, since, until]
+      queryParams
     )
 
     // Get all leader JSONB values from built_decks
@@ -57,8 +62,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
        FROM built_decks bd
        ${joinClause}
        WHERE bd.set_code = $1 AND bd.built_at >= $2 AND bd.built_at < ($3::date + interval '1 day')
+         ${poolTypeFilter}
          ${botFilter}`,
-      [setCode, since, until]
+      queryParams
     )
 
     // Aggregate leader selections by name
