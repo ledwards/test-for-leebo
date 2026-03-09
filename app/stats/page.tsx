@@ -140,7 +140,7 @@ export default function StatsPage() {
             checked={builtDeckOnly}
             onChange={(e) => setBuiltDeckOnly(e.target.checked)}
           />
-          Built Deck Only
+          Completed Pods Only
         </label>
       </div>
 
