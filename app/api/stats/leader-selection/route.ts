@@ -104,10 +104,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       })
       .sort((a, b) => b.timesSelected - a.timesSelected)
 
+    // Include sample raw leader values for debugging if requested
+    const debug = url.searchParams.get('debug') === 'true'
+    const sampleLeaders = debug ? rows.slice(0, 5).map(r => r.leader) : undefined
+
     return jsonResponse({
       setCode,
       totalDecks,
       leaders,
+      ...(sampleLeaders ? { sampleLeaders } : {}),
     })
   } catch (error) {
     return handleApiError(error)
