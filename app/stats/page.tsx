@@ -6,22 +6,31 @@ import { useCardPreview } from '@/src/hooks/useCardPreview'
 import { CardPreview } from '@/src/components/DeckBuilder/CardPreview'
 import './stats.css'
 
-// Stats start date - default to 2026-02-12 when position-based slot_type tracking was deployed.
-const STATS_START_DATE = process.env.NEXT_PUBLIC_STATS_START_DATE || '2026-02-12'
+// Stats start date - default to env var, or 2026-02-12 when position-based slot_type tracking was deployed.
+const DEFAULT_START_DATE = process.env.NEXT_PUBLIC_STATS_START_DATE || '2026-02-12'
 
 // Format numbers with commas
 const fmt = (n: number) => n.toLocaleString()
+
+// Format a YYYY-MM-DD date for display
+const formatDate = (dateStr: string) =>
+  new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+
+// Get today as YYYY-MM-DD
+const todayStr = () => new Date().toISOString().slice(0, 10)
 
 export default function StatsPage() {
   const [activeTab, setActiveTab] = useState('SOR')
   const [includeBots, setIncludeBots] = useState(true)
   const [includeHumans, setIncludeHumans] = useState(true)
-
-  const formattedDate = new Date(STATS_START_DATE).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  const [startDate, setStartDate] = useState(DEFAULT_START_DATE)
+  const [endDate, setEndDate] = useState(todayStr())
+  const [editingStart, setEditingStart] = useState(false)
+  const [editingEnd, setEditingEnd] = useState(false)
 
   useEffect(() => {
     const hash = window.location.hash.slice(1)
@@ -59,7 +68,51 @@ export default function StatsPage() {
       <div className="stats-header">
         <h1>Stats</h1>
         <p>Card performance across drafts and sealed</p>
-        <h3 className="stats-date-range">Since {formattedDate}</h3>
+        <div className="stats-date-range">
+          <span className="date-field">
+            {editingStart ? (
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                onBlur={() => setEditingStart(false)}
+                autoFocus
+                className="date-input"
+              />
+            ) : (
+              <>
+                <span className="date-display">{formatDate(startDate)}</span>
+                <button className="date-edit-btn" onClick={() => setEditingStart(true)} title="Change start date">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                  </svg>
+                </button>
+              </>
+            )}
+          </span>
+          <span className="date-separator"> to </span>
+          <span className="date-field">
+            {editingEnd ? (
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                onBlur={() => setEditingEnd(false)}
+                autoFocus
+                className="date-input"
+              />
+            ) : (
+              <>
+                <span className="date-display">{formatDate(endDate)}</span>
+                <button className="date-edit-btn" onClick={() => setEditingEnd(true)} title="Change end date">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                  </svg>
+                </button>
+              </>
+            )}
+          </span>
+        </div>
       </div>
 
       {/* Bot/Human filter checkboxes */}
@@ -111,6 +164,8 @@ export default function StatsPage() {
             setCode={activeTab}
             includeBots={includeBots}
             includeHumans={includeHumans}
+            startDate={startDate}
+            endDate={endDate}
           />
         )}
       </div>
@@ -122,9 +177,11 @@ interface SetStatsTabProps {
   setCode: string
   includeBots: boolean
   includeHumans: boolean
+  startDate: string
+  endDate: string
 }
 
-function SetStatsTab({ setCode, includeBots, includeHumans }: SetStatsTabProps) {
+function SetStatsTab({ setCode, includeBots, includeHumans, startDate, endDate }: SetStatsTabProps) {
   const [subTab, setSubTab] = useState('draft')
 
   return (
@@ -145,9 +202,9 @@ function SetStatsTab({ setCode, includeBots, includeHumans }: SetStatsTabProps) 
       </div>
 
       {subTab === 'draft' ? (
-        <CardsSubTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} />
+        <CardsSubTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} startDate={startDate} endDate={endDate} />
       ) : (
-        <DeckBuildingSubTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} />
+        <DeckBuildingSubTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} startDate={startDate} endDate={endDate} />
       )}
     </div>
   )
@@ -187,9 +244,11 @@ interface CardsSubTabProps {
   setCode: string
   includeBots: boolean
   includeHumans: boolean
+  startDate: string
+  endDate: string
 }
 
-function CardsSubTab({ setCode, includeBots, includeHumans }: CardsSubTabProps) {
+function CardsSubTab({ setCode, includeBots, includeHumans, startDate, endDate }: CardsSubTabProps) {
   const [data, setData] = useState<DraftPickStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [sortKey, setSortKey] = useState<SortKey>('avgPickPosition')
@@ -209,7 +268,8 @@ function CardsSubTab({ setCode, includeBots, includeHumans }: CardsSubTabProps) 
     setLoading(true)
     const params = new URLSearchParams({
       setCode,
-      since: STATS_START_DATE,
+      since: startDate,
+      until: endDate,
       includeBots: String(includeBots),
       includeHumans: String(includeHumans),
     })
@@ -218,7 +278,7 @@ function CardsSubTab({ setCode, includeBots, includeHumans }: CardsSubTabProps) 
       .then(result => setData(result.data || result))
       .catch(err => console.error('Error fetching draft picks:', err))
       .finally(() => setLoading(false))
-  }, [setCode, includeBots, includeHumans])
+  }, [setCode, includeBots, includeHumans, startDate, endDate])
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -390,9 +450,11 @@ interface DeckBuildingSubTabProps {
   setCode: string
   includeBots: boolean
   includeHumans: boolean
+  startDate: string
+  endDate: string
 }
 
-function DeckBuildingSubTab({ setCode, includeBots, includeHumans }: DeckBuildingSubTabProps) {
+function DeckBuildingSubTab({ setCode, includeBots, includeHumans, startDate, endDate }: DeckBuildingSubTabProps) {
   const [data, setData] = useState<DeckInclusionStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [sortKey, setSortKey] = useState<DeckSortKey>('inclusionRate')
@@ -412,6 +474,8 @@ function DeckBuildingSubTab({ setCode, includeBots, includeHumans }: DeckBuildin
     setLoading(true)
     const params = new URLSearchParams({
       setCode,
+      since: startDate,
+      until: endDate,
       includeBots: String(includeBots),
       includeHumans: String(includeHumans),
     })
@@ -420,7 +484,7 @@ function DeckBuildingSubTab({ setCode, includeBots, includeHumans }: DeckBuildin
       .then(result => setData(result.data || result))
       .catch(err => console.error('Error fetching deck inclusion:', err))
       .finally(() => setLoading(false))
-  }, [setCode, includeBots, includeHumans])
+  }, [setCode, includeBots, includeHumans, startDate, endDate])
 
   const handleSort = (key: DeckSortKey) => {
     if (sortKey === key) {
