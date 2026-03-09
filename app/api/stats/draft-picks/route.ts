@@ -11,6 +11,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const setCode = url.searchParams.get('setCode') || 'SOR'
     const since = url.searchParams.get('since') || '2020-01-01'
     const until = url.searchParams.get('until') || '2099-12-31'
+    const type = url.searchParams.get('type') || 'cards' // 'cards' or 'leaders'
     const includeBots = url.searchParams.get('includeBots') !== 'false'
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
 
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       FROM draft_picks dp
       JOIN pods pod ON pod.id = dp.draft_pod_id
       ${botJoin}
-      WHERE dp.set_code = $1 AND dp.is_leader = FALSE AND dp.picked_at >= $2 AND dp.picked_at < ($3::date + interval '1 day')
+      WHERE dp.set_code = $1 AND dp.is_leader = ${type === 'leaders' ? 'TRUE' : 'FALSE'} AND dp.picked_at >= $2 AND dp.picked_at < ($3::date + interval '1 day')
         AND pod.status = 'complete'
         ${botFilter}
       GROUP BY dp.card_name, dp.rarity, dp.card_type
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       FROM draft_picks dp
       JOIN pods pod ON pod.id = dp.draft_pod_id
       ${botJoin}
-      WHERE dp.set_code = $1 AND dp.is_leader = FALSE AND dp.picked_at >= $2 AND dp.picked_at < ($3::date + interval '1 day')
+      WHERE dp.set_code = $1 AND dp.is_leader = ${type === 'leaders' ? 'TRUE' : 'FALSE'} AND dp.picked_at >= $2 AND dp.picked_at < ($3::date + interval '1 day')
         AND pod.status = 'complete'
         ${botFilter}`,
       [setCode, since, until]
