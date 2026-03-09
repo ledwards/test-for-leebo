@@ -6,6 +6,17 @@
 - **Real prestige card data**: Prestige cards in Carbonite and standard packs now use real card data from the API instead of synthesized clones of Normal cards. This means correct prestige artwork, accurate collector numbers, and the real prestige card pool — which includes Uncommons, not just Rares and Legendaries. All three tiers (Standard Prestige, Foil Prestige, Serialized Prestige) are now distinct variant types with real images. Affects JTL, LOF, SEC, and LAW.
 - **Improved belt collation from physical pack research**: Common and uncommon belts now match real-world printing behavior more closely. Same card never repeats within 24 positions (was 4-12), and adjacent cards on the belt never share the same primary aspect. Fixed a bug where recent cards were excluded from boots entirely, causing unequal occurrence rates — every card now appears exactly once per belt cycle as intended. These improvements apply to all sets.
 
+### 📊 Stats Page
+- **Stats page restructured**: The stats page now has Draft and Sealed tabs per set. The Draft tab shows leader draft pick order, leader deck selection rates, and card draft pick analytics. The Sealed tab shows leader selection rates and card inclusion rates (how often a card is included in a deck when it appears in a pool).
+- **Leader stats**: New leader analytics showing draft pick order (average pick position, first pick rate) and deck selection rates (how often each leader is chosen when building a deck). Leader card previews display in landscape orientation.
+- **Editable date range**: Stats can now be filtered by date range with an inline date picker UI.
+- **Default to LAW**: Stats page now defaults to LAW (latest set) and lists sets in reverse chronological order.
+- **Default to humans only**: Bot data is excluded by default — toggle bots back on with the filter checkbox.
+- **Pool type filtering**: Deck inclusion and leader selection APIs now support filtering by pool type (draft vs sealed), so Draft and Sealed tabs show format-specific data.
+
+### 🐞 Bug Fixes
+- **Draft picks API fix**: Fixed a column reference bug (`pod_id` → `draft_pod_id`) in the draft picks stats endpoint that caused all draft pick queries to fail.
+
 ## 03.07.2026
 
 ### 🃏 Pack Generation
