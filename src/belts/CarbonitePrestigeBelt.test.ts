@@ -11,6 +11,8 @@ import { initializeCardCache } from '../utils/cardCache'
 let passed = 0
 let failed = 0
 
+const PRESTIGE_VARIANTS = ['Standard Prestige', 'Foil Prestige', 'Serialized Prestige']
+
 function test(name: string, fn: () => void): void {
   try {
     fn()
@@ -34,21 +36,24 @@ async function runTests(): Promise<void> {
   console.log('\x1b[1m\x1b[35m🏆 CarbonitePrestigeBelt Tests\x1b[0m')
   console.log('\x1b[35m' + '='.repeat(40) + '\x1b[0m')
 
-  test('initializes with R/L/Special Normal variant cards', () => {
+  test('initializes with real prestige cards from cards.json', () => {
     const belt = new CarbonitePrestigeBelt('JTL')
-    assert(belt.fillingPool.length > 0, 'Filling pool should not be empty')
-    assert(belt.fillingPool.every(c =>
-      c.rarity === 'Rare' || c.rarity === 'Legendary' || c.rarity === 'Special'
-    ), 'Pool should only contain Rare, Legendary, or Special cards')
-    assert(belt.fillingPool.every(c => !c.isLeader), 'No leaders in filling pool')
-    assert(belt.fillingPool.every(c => !c.isBase), 'No bases in filling pool')
+    assert(!belt.useSynthesis, 'Should use real prestige cards, not synthesis')
+    assert(belt.size > 0, 'Belt should have cards')
+    // Verify all three tiers have cards
+    for (const tierKey of ['tier1', 'tier2', 'serialized']) {
+      const tier = belt.tiers[tierKey]
+      assert(tier !== undefined, `Tier ${tierKey} should exist`)
+      assert(tier.fillingPool.length > 0, `Tier ${tierKey} filling pool should not be empty`)
+    }
   })
 
-  test('next() returns a Prestige variant card', () => {
+  test('next() returns a real Prestige variant card', () => {
     const belt = new CarbonitePrestigeBelt('JTL')
     const card = belt.next()
     assert(card !== null, 'next() should return a card')
-    assert(card.variantType === 'Prestige', `variantType should be Prestige, got ${card.variantType}`)
+    assert(PRESTIGE_VARIANTS.includes(card.variantType),
+      `variantType should be a prestige type, got ${card.variantType}`)
     assert(card.isPrestige === true, 'Card should have isPrestige flag')
     assert(
       card.prestigeTier === 'tier1' || card.prestigeTier === 'tier2' || card.prestigeTier === 'serialized',
@@ -56,12 +61,13 @@ async function runTests(): Promise<void> {
     )
   })
 
-  test('all cards have Prestige variantType', () => {
+  test('all cards have prestige variantType', () => {
     const belt = new CarbonitePrestigeBelt('JTL')
     for (let i = 0; i < 50; i++) {
       const card = belt.next()
       assert(card !== null, `Card ${i} should not be null`)
-      assert(card.variantType === 'Prestige', `Card ${i} should be Prestige variant`)
+      assert(PRESTIGE_VARIANTS.includes(card.variantType),
+        `Card ${i} should be Prestige variant, got ${card.variantType}`)
       assert(card.isPrestige === true, `Card ${i} should have isPrestige flag`)
     }
   })
@@ -97,11 +103,36 @@ async function runTests(): Promise<void> {
   test('works for all supported Carbonite sets', () => {
     for (const setCode of ['JTL', 'LOF', 'SEC', 'LAW']) {
       const belt = new CarbonitePrestigeBelt(setCode)
-      assert(belt.fillingPool.length > 0, `${setCode} should have cards in pool`)
+      assert(!belt.useSynthesis, `${setCode} should use real prestige cards`)
+      assert(belt.size > 0, `${setCode} should have cards in belt`)
       const card = belt.next()
       assert(card !== null, `${setCode} should return a card`)
-      assert(card.variantType === 'Prestige', `${setCode} card should be Prestige`)
+      assert(PRESTIGE_VARIANTS.includes(card.variantType),
+        `${setCode} card should be Prestige variant, got ${card.variantType}`)
     }
+  })
+
+  test('nextTier1() always returns Standard Prestige', () => {
+    const belt = new CarbonitePrestigeBelt('JTL')
+    for (let i = 0; i < 50; i++) {
+      const card = belt.nextTier1()
+      assert(card !== null, `nextTier1 draw ${i} should not be null`)
+      assert(card.variantType === 'Standard Prestige',
+        `nextTier1 should return Standard Prestige, got ${card.variantType}`)
+      assert(card.prestigeTier === 'tier1',
+        `nextTier1 should return tier1, got ${card.prestigeTier}`)
+    }
+  })
+
+  test('prestige cards include uncommons (not just R/L)', () => {
+    // Real prestige data includes Uncommons — synthesis only had R/L
+    const belt = new CarbonitePrestigeBelt('JTL')
+    const rarities = new Set<string>()
+    for (let i = 0; i < 200; i++) {
+      const card = belt.next()
+      if (card) rarities.add(card.rarity)
+    }
+    assert(rarities.has('Uncommon'), 'Prestige cards should include Uncommons')
   })
 
   test('hopper refills when depleted', () => {

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-06T00:06:18.580Z",
+  "timestamp": "2026-03-09T03:12:44.620Z",
   "totalFixes": 2,
   "byType": {
     "individual": 0,
@@ -11,7 +11,7 @@
     {
       "type": "custom",
       "transform": "Keep only draft-relevant variants",
-      "cardsRemoved": 487
+      "cardsRemoved": 104
     },
     {
       "type": "custom",

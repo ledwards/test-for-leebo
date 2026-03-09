@@ -3,6 +3,7 @@
 ## 03.08.2026
 
 ### 🃏 Pack Generation
+- **Real prestige card data**: Prestige cards in Carbonite and standard packs now use real card data from the API instead of synthesized clones of Normal cards. This means correct prestige artwork, accurate collector numbers, and the real prestige card pool — which includes Uncommons, not just Rares and Legendaries. All three tiers (Standard Prestige, Foil Prestige, Serialized Prestige) are now distinct variant types with real images. Affects JTL, LOF, SEC, and LAW.
 - **Improved belt collation from physical pack research**: Common and uncommon belts now match real-world printing behavior more closely. Same card never repeats within 24 positions (was 4-12), and adjacent cards on the belt never share the same primary aspect. Fixed a bug where recent cards were excluded from boots entirely, causing unequal occurrence rates — every card now appears exactly once per belt cycle as intended. These improvements apply to all sets.
 
 ## 03.07.2026

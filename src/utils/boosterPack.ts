@@ -540,9 +540,8 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
     if (probs.uc3ToPrestige && shouldUpgrade(probs.uc3ToPrestige)) {
       const prestigeBelt = getPrestigeBelt(setCode);
       if (prestigeBelt) {
-        const prestige = (prestigeBelt as CarbonitePrestigeBelt).next();
+        const prestige = (prestigeBelt as CarbonitePrestigeBelt).nextTier1();
         if (prestige) {
-          prestige.prestigeTier = 'tier1';
           pack.cards[thirdUCIndex] = prestige;
           uc3Upgraded = true;
         }
@@ -604,9 +603,8 @@ function applyUpgradePass(pack: Pack, setCode: SetCode | string): Pack {
   if (config?.packRules?.prestigeInStandardPacks && probs.rareToPrestige && shouldUpgrade(probs.rareToPrestige)) {
     const prestigeBelt = getPrestigeBelt(setCode);
     if (prestigeBelt && rareIndex >= 0) {
-      const prestige = (prestigeBelt as CarbonitePrestigeBelt).next();
+      const prestige = (prestigeBelt as CarbonitePrestigeBelt).nextTier1();
       if (prestige) {
-        prestige.prestigeTier = 'tier1'; // Standard packs always tier 1
         pack.cards[rareIndex] = prestige;
       }
     }
