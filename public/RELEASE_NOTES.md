@@ -7,6 +7,7 @@
 - **Improved belt collation from physical pack research**: Common and uncommon belts now match real-world printing behavior more closely. Same card never repeats within 24 positions (was 4-12), and adjacent cards on the belt never share the same primary aspect. Fixed a bug where recent cards were excluded from boots entirely, causing unequal occurrence rates — every card now appears exactly once per belt cycle as intended. These improvements apply to all sets.
 
 ### 📊 Stats Page
+- **"Built Deck Only" filter**: New checkbox to filter draft pick stats to only include data from players who actually built a deck and hit Play. Helps distinguish serious drafters from those who abandoned their pools.
 - **Stats page restructured**: The stats page now has Draft and Sealed tabs per set. The Draft tab shows leader draft pick order, leader deck selection rates, and card draft pick analytics. The Sealed tab shows leader selection rates and card inclusion rates (how often a card is included in a deck when it appears in a pool).
 - **Leader stats**: New leader analytics showing draft pick order (average pick position, first pick rate) and deck selection rates (how often each leader is chosen when building a deck). Leader card previews display in landscape orientation.
 - **Editable date range**: Stats can now be filtered by date range with an inline date picker UI.
