@@ -14,11 +14,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const includeBots = url.searchParams.get('includeBots') !== 'false'
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
 
-    // Build card lookup map for enrichment
+    // Build card lookup map for enrichment, keyed by normalized cardId
     const allCards = getAllCards()
     const cardMap = new Map()
     allCards.forEach(card => {
       cardMap.set(card.id, card)
+      // Also index by normalized cardId (e.g. LAW_003)
+      if (card.cardId) {
+        const [set, num] = card.cardId.split('-')
+        if (set && num) {
+          cardMap.set(`${set}_${num.padStart(3, '0')}`, card)
+        }
+      }
     })
 
     // Build bot/human filter clause
@@ -64,11 +71,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     for (const row of rows) {
       const leader = row.leader
       if (!leader) continue
-      const name = leader.name || leader.cardName || 'Unknown'
-      const cardId = leader.cardId || leader.id || ''
+      const leaderId = leader.id || leader.cardId || ''
+      const cardData = cardMap.get(leaderId)
+      const name = cardData?.name || leader.name || leader.cardName || 'Unknown'
 
       if (!leaderStats.has(name)) {
-        leaderStats.set(name, { count: 0, cardName: name, cardId })
+        leaderStats.set(name, { count: 0, cardName: name, cardId: leaderId })
       }
       leaderStats.get(name)!.count++
     }
