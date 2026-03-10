@@ -121,6 +121,18 @@
   cursor: pointer;
 }
 
+.stats-filter-info {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: help;
+  margin-left: 2px;
+}
+
+.stats-filter-info:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 /* Tabs - folder/tab style with rounded top corners */
 .stats-tabs {
   display: flex;

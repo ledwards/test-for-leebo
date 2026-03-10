@@ -4,7 +4,10 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useCardPreview } from '@/src/hooks/useCardPreview'
 import { CardPreview } from '@/src/components/DeckBuilder/CardPreview'
+import tournamentUserIds from '@/src/data/tournament-user-ids.json'
 import './stats.css'
+
+const tournamentPlayerCount = tournamentUserIds.length
 
 // Stats start date - default to env var, or 2026-02-12 when position-based slot_type tracking was deployed.
 const DEFAULT_START_DATE = process.env.NEXT_PUBLIC_STATS_START_DATE || '2026-02-12'
@@ -150,6 +153,13 @@ export default function StatsPage() {
             onChange={(e) => setTournamentOnly(e.target.checked)}
           />
           Tournament Players Only
+          <span className="stats-filter-info" title={`Filters to ${tournamentPlayerCount} app users who have competed in melee.gg tournaments (matched by username from swumetastats.com).`}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+          </span>
         </label>
       </div>
 
