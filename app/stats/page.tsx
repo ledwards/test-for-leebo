@@ -4,6 +4,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useCardPreview } from '@/src/hooks/useCardPreview'
 import { CardPreview } from '@/src/components/DeckBuilder/CardPreview'
+import { useAuth } from '@/src/contexts/AuthContext'
+import Button from '@/src/components/Button'
 import tournamentUserIds from '@/src/data/tournament-user-ids.json'
 import './stats.css'
 
@@ -26,16 +28,129 @@ const formatDate = (dateStr: string) =>
 // Get today as YYYY-MM-DD
 const todayStr = () => new Date().toISOString().slice(0, 10)
 
+// === StatsCell: Stacked You/All/Top values ===
+
+function StatsCell({ you, all, top, format, className, showYou, showAll, showTop, isBlurred }: {
+  you: string | number | null | undefined
+  all: string | number | null | undefined
+  top: string | number | null | undefined
+  format?: (v: any) => string
+  className?: string
+  showYou: boolean
+  showAll: boolean
+  showTop: boolean
+  isBlurred?: boolean
+}) {
+  const f = format || String
+  return (
+    <td className={`stats-stacked-cell ${className || ''}`}>
+      {showYou && (
+        <div className="stats-row-you">
+          <span className="stats-row-label">You:</span> {you != null ? f(you) : '—'}
+        </div>
+      )}
+      {showAll && (
+        <div className="stats-row-all">
+          <span className="stats-row-label">All:</span> {isBlurred ? <span className="stats-blur-value">{all != null ? f(all) : '—'}</span> : (all != null ? f(all) : '—')}
+        </div>
+      )}
+      {showTop && (
+        <div className="stats-row-top">
+          <span className="stats-row-label">Top:</span> {isBlurred ? <span className="stats-blur-value">{top != null ? f(top) : '—'}</span> : (top != null ? f(top) : '—')}
+        </div>
+      )}
+    </td>
+  )
+}
+
+// === StatsLegend: Toggleable You/All/Top with filters ===
+
+function StatsLegend({ user, showYou, showAll, showTop, onToggleYou, onToggleAll, onToggleTop, includeBots, includeHumans, onToggleBots, onToggleHumans, isBlurred }: {
+  user: any
+  showYou: boolean
+  showAll: boolean
+  showTop: boolean
+  onToggleYou: () => void
+  onToggleAll: () => void
+  onToggleTop: () => void
+  includeBots: boolean
+  includeHumans: boolean
+  onToggleBots: () => void
+  onToggleHumans: () => void
+  isBlurred?: boolean
+}) {
+  return (
+    <div className="stats-legend-bar">
+      <div className="stats-legend-group">
+        {user ? (
+          <label className="stats-legend-toggle stats-legend-you">
+            <input type="checkbox" checked={showYou} onChange={onToggleYou} />
+            You
+          </label>
+        ) : (
+          <a href="/api/auth/signin/discord?return_to=/stats" className="stats-legend-login">Log in</a>
+        )}
+      </div>
+      <span className="stats-legend-sep">&middot;</span>
+      <div className="stats-legend-group">
+        <label className={`stats-legend-toggle stats-legend-all ${isBlurred ? 'stats-legend-locked' : ''}`}>
+          <input type="checkbox" checked={showAll} onChange={onToggleAll} disabled={isBlurred} />
+          All {isBlurred && '🔒'}
+        </label>
+        <label className="stats-legend-filter">
+          <input type="checkbox" checked={includeHumans} onChange={onToggleHumans} disabled={isBlurred} />
+          Humans
+        </label>
+        <label className="stats-legend-filter">
+          <input type="checkbox" checked={includeBots} onChange={onToggleBots} disabled={isBlurred} />
+          Bots
+        </label>
+      </div>
+      <span className="stats-legend-sep">&middot;</span>
+      <div className="stats-legend-group">
+        <label className={`stats-legend-toggle stats-legend-top ${isBlurred ? 'stats-legend-locked' : ''}`}>
+          <input type="checkbox" checked={showTop} onChange={onToggleTop} disabled={isBlurred} />
+          Top {isBlurred && '🔒'}
+          <span className="stats-filter-info" title={`"Top" filters to ${tournamentPlayerCount} app users who have competed in melee.gg tournaments (matched by username from swumetastats.com).`}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+          </span>
+        </label>
+      </div>
+    </div>
+  )
+}
+
+// === Aspects cell helper ===
+
+function AspectsCell({ aspects }: { aspects: string[] }) {
+  return (
+    <td>
+      <div className="aspects-cell">
+        {aspects.map((aspect, i) => (
+          <img key={i} src={`/icons/${aspect.toLowerCase()}.png`} alt={aspect} className="aspect-icon" />
+        ))}
+      </div>
+    </td>
+  )
+}
+
 export default function StatsPage() {
   const [activeTab, setActiveTab] = useState('LAW')
   const [includeBots, setIncludeBots] = useState(false)
   const [includeHumans, setIncludeHumans] = useState(true)
-  const [builtDeckOnly, setBuiltDeckOnly] = useState(false)
-  const [tournamentOnly, setTournamentOnly] = useState(false)
+  const [showYou, setShowYou] = useState(true)
+  const [showAll, setShowAll] = useState(true)
+  const [showTop, setShowTop] = useState(true)
   const [startDate, setStartDate] = useState(DEFAULT_START_DATE)
   const [endDate, setEndDate] = useState(todayStr())
   const [editingStart, setEditingStart] = useState(false)
   const [editingEnd, setEditingEnd] = useState(false)
+  const { user, isPatron } = useAuth()
+  const canSeeFullStats = isPatron === true || user?.is_admin
 
   useEffect(() => {
     const hash = window.location.hash.slice(1)
@@ -66,6 +181,20 @@ export default function StatsPage() {
     'LOF': '#16A34A',
     'SEC': '#7C3AED',
     'LAW': '#D93600'
+  }
+
+  const isBlurred = !canSeeFullStats
+
+  const legendProps = {
+    user,
+    showYou, showAll, showTop,
+    onToggleYou: () => setShowYou(!showYou),
+    onToggleAll: () => setShowAll(!showAll),
+    onToggleTop: () => setShowTop(!showTop),
+    includeBots, includeHumans,
+    onToggleBots: () => setIncludeBots(!includeBots),
+    onToggleHumans: () => setIncludeHumans(!includeHumans),
+    isBlurred,
   }
 
   return (
@@ -120,49 +249,6 @@ export default function StatsPage() {
         </div>
       </div>
 
-      {/* Bot/Human filter checkboxes */}
-      <div className="stats-filters">
-        <label className="stats-filter-checkbox">
-          <input
-            type="checkbox"
-            checked={includeHumans}
-            onChange={(e) => setIncludeHumans(e.target.checked)}
-          />
-          Include Humans
-        </label>
-        <label className="stats-filter-checkbox">
-          <input
-            type="checkbox"
-            checked={includeBots}
-            onChange={(e) => setIncludeBots(e.target.checked)}
-          />
-          Include Bots
-        </label>
-        <label className="stats-filter-checkbox">
-          <input
-            type="checkbox"
-            checked={builtDeckOnly}
-            onChange={(e) => setBuiltDeckOnly(e.target.checked)}
-          />
-          Completed Pods Only
-        </label>
-        <label className="stats-filter-checkbox">
-          <input
-            type="checkbox"
-            checked={tournamentOnly}
-            onChange={(e) => setTournamentOnly(e.target.checked)}
-          />
-          Tournament Players Only
-          <span className="stats-filter-info" title={`Filters to ${tournamentPlayerCount} app users who have competed in melee.gg tournaments (matched by username from swumetastats.com).`}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="16" x2="12" y2="12"/>
-              <line x1="12" y1="8" x2="12.01" y2="8"/>
-            </svg>
-          </span>
-        </label>
-      </div>
-
       <div className="stats-tabs">
         {tabs.map(tab => (
           <button
@@ -183,21 +269,35 @@ export default function StatsPage() {
       </div>
 
       <div className="stats-content">
-        {!includeHumans && !includeBots ? (
-          <div className="stats-empty">
-            <p>Select at least one player type to view statistics.</p>
+        {isBlurred && (
+          <div className="stats-patron-cta">
+            <div className="stats-patron-cta-content">
+              <div className="stats-patron-cta-text">
+                <span className="stats-patron-cta-icon">🔒</span>
+                <div>
+                  <h3 className="stats-patron-cta-heading">Unlock full stats</h3>
+                  <p className="stats-patron-cta-desc">Support Protect the Pod to see aggregate data across all players and top tournament competitors.</p>
+                </div>
+              </div>
+              <a href="https://www.patreon.com/protectthepod" target="_blank" rel="noopener noreferrer">
+                <Button variant="primary">Support on Patreon</Button>
+              </a>
+            </div>
           </div>
-        ) : (
-          <SetStatsTab
-            setCode={activeTab}
-            includeBots={includeBots}
-            includeHumans={includeHumans}
-            builtDeckOnly={builtDeckOnly}
-            tournamentOnly={tournamentOnly}
-            startDate={startDate}
-            endDate={endDate}
-          />
         )}
+        <SetStatsTab
+          setCode={activeTab}
+          includeBots={includeBots}
+          includeHumans={includeHumans}
+          startDate={startDate}
+          endDate={endDate}
+          user={user}
+          showYou={showYou}
+          showAll={showAll}
+          showTop={showTop}
+          legendProps={legendProps}
+          isBlurred={isBlurred}
+        />
       </div>
     </div>
   )
@@ -207,13 +307,17 @@ interface SetStatsTabProps {
   setCode: string
   includeBots: boolean
   includeHumans: boolean
-  builtDeckOnly: boolean
-  tournamentOnly: boolean
   startDate: string
   endDate: string
+  user: any
+  showYou: boolean
+  showAll: boolean
+  showTop: boolean
+  legendProps: any
+  isBlurred?: boolean
 }
 
-function SetStatsTab({ setCode, includeBots, includeHumans, builtDeckOnly, tournamentOnly, startDate, endDate }: SetStatsTabProps) {
+function SetStatsTab({ setCode, includeBots, includeHumans, startDate, endDate, user, showYou, showAll, showTop, legendProps, isBlurred }: SetStatsTabProps) {
   const [subTab, setSubTab] = useState('draft')
 
   return (
@@ -234,9 +338,9 @@ function SetStatsTab({ setCode, includeBots, includeHumans, builtDeckOnly, tourn
       </div>
 
       {subTab === 'draft' ? (
-        <DraftTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} builtDeckOnly={builtDeckOnly} tournamentOnly={tournamentOnly} startDate={startDate} endDate={endDate} />
+        <DraftTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} startDate={startDate} endDate={endDate} user={user} showYou={showYou} showAll={showAll} showTop={showTop} legendProps={legendProps} isBlurred={isBlurred} />
       ) : (
-        <SealedTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} tournamentOnly={tournamentOnly} startDate={startDate} endDate={endDate} />
+        <SealedTab setCode={setCode} includeBots={includeBots} includeHumans={includeHumans} startDate={startDate} endDate={endDate} user={user} showYou={showYou} showAll={showAll} showTop={showTop} legendProps={legendProps} isBlurred={isBlurred} />
       )}
     </div>
   )
@@ -323,22 +427,47 @@ function LoadingSkeleton() {
   )
 }
 
+// === Helper: build lookup map keyed by cardName ===
+
+function buildLookupMap<T extends { cardName: string }>(items: T[] | undefined): Map<string, T> {
+  const map = new Map<string, T>()
+  if (!items) return map
+  for (const item of items) {
+    map.set(item.cardName, item)
+  }
+  return map
+}
+
 // === Draft Tab (Cards + Leaders) ===
 
 interface TabProps {
   setCode: string
   includeBots: boolean
   includeHumans: boolean
-  builtDeckOnly?: boolean
-  tournamentOnly?: boolean
   startDate: string
   endDate: string
+  user: any
+  showYou: boolean
+  showAll: boolean
+  showTop: boolean
+  legendProps: any
+  isBlurred?: boolean
 }
 
-function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, tournamentOnly, startDate, endDate }: TabProps) {
+function DraftTab({ setCode, includeBots, includeHumans, startDate, endDate, user, showYou, showAll, showTop, legendProps, isBlurred }: TabProps) {
+  // All Players data
   const [cardData, setCardData] = useState<DraftPickStats | null>(null)
   const [leaderData, setLeaderData] = useState<DraftPickStats | null>(null)
   const [leaderSelData, setLeaderSelData] = useState<{ totalDecks: number; leaders: LeaderSelection[] } | null>(null)
+  // Top Players data
+  const [cardDataTop, setCardDataTop] = useState<DraftPickStats | null>(null)
+  const [leaderDataTop, setLeaderDataTop] = useState<DraftPickStats | null>(null)
+  const [leaderSelDataTop, setLeaderSelDataTop] = useState<{ totalDecks: number; leaders: LeaderSelection[] } | null>(null)
+  // You data
+  const [cardDataYou, setCardDataYou] = useState<DraftPickStats | null>(null)
+  const [leaderDataYou, setLeaderDataYou] = useState<DraftPickStats | null>(null)
+  const [leaderSelDataYou, setLeaderSelDataYou] = useState<{ totalDecks: number; leaders: LeaderSelection[] } | null>(null)
+
   const [loading, setLoading] = useState(true)
   const [cardSortKey, setCardSortKey] = useState<SortKey>('avgPickPosition')
   const [cardSortAsc, setCardSortAsc] = useState(true)
@@ -359,32 +488,82 @@ function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, tourname
 
   useEffect(() => {
     setLoading(true)
-    const params = new URLSearchParams({
+    const baseParams = new URLSearchParams({
       setCode,
       since: startDate,
       until: endDate,
       includeBots: String(includeBots),
       includeHumans: String(includeHumans),
     })
-    if (builtDeckOnly) params.set('builtDeckOnly', 'true')
-    if (tournamentOnly) params.set('tournamentOnly', 'true')
+    baseParams.set('builtDeckOnly', 'true')
 
-    Promise.all([
-      fetch(`/api/stats/draft-picks?${params}`)
-        .then(r => r.json())
-        .then(result => setCardData(result.data || result))
+    const topParams = new URLSearchParams({
+      setCode,
+      since: startDate,
+      until: endDate,
+      tournamentOnly: 'true',
+      builtDeckOnly: 'true',
+    })
+
+    const fetches: Promise<void>[] = [
+      // All Players
+      fetch(`/api/stats/draft-picks?${baseParams}`)
+        .then(r => r.json()).then(result => setCardData(result.data || result))
         .catch(err => console.error('Error fetching card draft picks:', err)),
-      fetch(`/api/stats/draft-picks?${params}&type=leaders`)
-        .then(r => r.json())
-        .then(result => setLeaderData(result.data || result))
+      fetch(`/api/stats/draft-picks?${baseParams}&type=leaders`)
+        .then(r => r.json()).then(result => setLeaderData(result.data || result))
         .catch(err => console.error('Error fetching leader draft picks:', err)),
-      fetch(`/api/stats/leader-selection?${params}&poolType=draft`)
-        .then(r => r.json())
-        .then(result => setLeaderSelData(result.data || result))
+      fetch(`/api/stats/leader-selection?${baseParams}&poolType=draft`)
+        .then(r => r.json()).then(result => setLeaderSelData(result.data || result))
         .catch(err => console.error('Error fetching leader selection:', err)),
-    ])
-      .finally(() => setLoading(false))
-  }, [setCode, includeBots, includeHumans, builtDeckOnly, tournamentOnly, startDate, endDate])
+      // Top Players (not affected by Humans/Bots filter)
+      fetch(`/api/stats/draft-picks?${topParams}`)
+        .then(r => r.json()).then(result => setCardDataTop(result.data || result))
+        .catch(err => console.error('Error fetching top card draft picks:', err)),
+      fetch(`/api/stats/draft-picks?${topParams}&type=leaders`)
+        .then(r => r.json()).then(result => setLeaderDataTop(result.data || result))
+        .catch(err => console.error('Error fetching top leader draft picks:', err)),
+      fetch(`/api/stats/leader-selection?${topParams}&poolType=draft`)
+        .then(r => r.json()).then(result => setLeaderSelDataTop(result.data || result))
+        .catch(err => console.error('Error fetching top leader selection:', err)),
+    ]
+
+    // You fetches (only if logged in, not affected by Humans/Bots filter)
+    if (user?.id) {
+      const youParams = new URLSearchParams({
+        setCode,
+        since: startDate,
+        until: endDate,
+        userId: user.id,
+      })
+      youParams.set('builtDeckOnly', 'true')
+      fetches.push(
+        fetch(`/api/stats/draft-picks?${youParams}`)
+          .then(r => r.json()).then(result => setCardDataYou(result.data || result))
+          .catch(err => console.error('Error fetching your card draft picks:', err)),
+        fetch(`/api/stats/draft-picks?${youParams}&type=leaders`)
+          .then(r => r.json()).then(result => setLeaderDataYou(result.data || result))
+          .catch(err => console.error('Error fetching your leader draft picks:', err)),
+        fetch(`/api/stats/leader-selection?${youParams}&poolType=draft`)
+          .then(r => r.json()).then(result => setLeaderSelDataYou(result.data || result))
+          .catch(err => console.error('Error fetching your leader selection:', err)),
+      )
+    } else {
+      setCardDataYou(null)
+      setLeaderDataYou(null)
+      setLeaderSelDataYou(null)
+    }
+
+    Promise.all(fetches).finally(() => setLoading(false))
+  }, [setCode, includeBots, includeHumans, startDate, endDate, user?.id])
+
+  // Build lookup maps for Top and You data
+  const cardTopMap = useMemo(() => buildLookupMap(cardDataTop?.cards), [cardDataTop?.cards])
+  const cardYouMap = useMemo(() => buildLookupMap(cardDataYou?.cards), [cardDataYou?.cards])
+  const leaderTopMap = useMemo(() => buildLookupMap(leaderDataTop?.cards), [leaderDataTop?.cards])
+  const leaderYouMap = useMemo(() => buildLookupMap(leaderDataYou?.cards), [leaderDataYou?.cards])
+  const leaderSelTopMap = useMemo(() => buildLookupMap(leaderSelDataTop?.leaders), [leaderSelDataTop?.leaders])
+  const leaderSelYouMap = useMemo(() => buildLookupMap(leaderSelDataYou?.leaders), [leaderSelDataYou?.leaders])
 
   const handleCardSort = (key: SortKey) => {
     if (cardSortKey === key) setCardSortAsc(!cardSortAsc)
@@ -445,10 +624,6 @@ function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, tourname
 
   if (loading) return <LoadingSkeleton />
 
-  const pickClass = (avg: number) =>
-    avg <= 3 ? 'pick-early' : avg <= 7 ? 'pick-mid' : 'pick-late'
-  const leaderPickClass = (avg: number) =>
-    avg <= 1.5 ? 'pick-early' : avg <= 3 ? 'pick-mid' : 'pick-late'
   const rarityClass = (r: string) => `rarity-${r.toLowerCase()}`
 
   const CardSortHeader = ({ label, col, title }: { label: string, col: SortKey, title?: string }) => (
@@ -480,6 +655,8 @@ function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, tourname
     )
   }
 
+  const cellProps = { showYou, showAll, showTop, isBlurred }
+
   return (
     <div className="cards-subtab">
       {/* Leaders Section */}
@@ -493,44 +670,58 @@ function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, tourname
               <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', marginBottom: '1rem' }}>
                 Draft pick order ({fmt(leaderData.totalDrafts)} drafts, {fmt(leaderData.totalPicks)} leader picks)
               </p>
+              <StatsLegend {...legendProps} showBuiltDeckFilter={true} />
               <div className="stats-table-container" style={{ marginBottom: '1.5rem' }}>
                 <table className="stats-table">
                   <thead>
                     <tr>
                       <LeaderSortHeader label="Leader" col="cardName" />
+                      <th>Aspects</th>
                       <LeaderSortHeader label="Avg Pick" col="avgPickPosition" title="Average position this leader is picked in leader rounds (1 = first pick)" />
                       <LeaderSortHeader label="1st Pick" col="firstPickPct" title="How often this leader is picked first overall in leader rounds" />
-                      <th>Aspects</th>
                       <LeaderSortHeader label="# Drafted" col="timesPicked" />
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedLeaders.map(card => (
-                      <tr key={card.cardId}>
-                        <td
-                          className="card-name-cell"
-                          onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity, isLeader: true }, e)}
-                          onMouseLeave={handleCardMouseLeave}
-                          onTouchStart={() => handleCardTouchStart({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity, isLeader: true })}
-                          onTouchEnd={handleCardTouchEnd}
-                        >
-                          <span className="card-name">{card.cardName}</span>
-                          {card.subtitle && <span className="card-subtitle-inline">, {card.subtitle}</span>}
-                        </td>
-                        <td className={leaderPickClass(card.avgPickPosition)}>{card.avgPickPosition.toFixed(1)}</td>
-                        <td className={card.firstPickPct && card.firstPickPct >= 20 ? 'first-pick-high' : ''}>
-                          {card.firstPicks}/{card.timesPicked} ({card.firstPickPct !== null ? `${card.firstPickPct}%` : '—'})
-                        </td>
-                        <td>
-                          <div className="aspects-cell">
-                            {card.aspects.map((aspect, i) => (
-                              <img key={i} src={`/icons/${aspect.toLowerCase()}.png`} alt={aspect} className="aspect-icon" />
-                            ))}
-                          </div>
-                        </td>
-                        <td>{fmt(card.timesPicked)}</td>
-                      </tr>
-                    ))}
+                    {sortedLeaders.map(card => {
+                      const topCard = leaderTopMap.get(card.cardName)
+                      const youCard = leaderYouMap.get(card.cardName)
+                      return (
+                        <tr key={card.cardId}>
+                          <td
+                            className="card-name-cell"
+                            onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity, isLeader: true }, e)}
+                            onMouseLeave={handleCardMouseLeave}
+                            onTouchStart={() => handleCardTouchStart({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity, isLeader: true })}
+                            onTouchEnd={handleCardTouchEnd}
+                          >
+                            <span className="card-name">{card.cardName}</span>
+                            {card.subtitle && <span className="card-subtitle">{card.subtitle}</span>}
+                          </td>
+                          <AspectsCell aspects={card.aspects} />
+                          <StatsCell
+                            {...cellProps}
+                            you={youCard?.avgPickPosition}
+                            all={card.avgPickPosition}
+                            top={topCard?.avgPickPosition}
+                            format={(v: number) => v.toFixed(1)}
+                          />
+                          <StatsCell
+                            {...cellProps}
+                            you={youCard ? `${youCard.firstPicks}/${youCard.timesPicked} (${youCard.firstPickPct !== null ? `${youCard.firstPickPct}%` : '—'})` : null}
+                            all={`${card.firstPicks}/${card.timesPicked} (${card.firstPickPct !== null ? `${card.firstPickPct}%` : '—'})`}
+                            top={topCard ? `${topCard.firstPicks}/${topCard.timesPicked} (${topCard.firstPickPct !== null ? `${topCard.firstPickPct}%` : '—'})` : null}
+                          />
+                          <StatsCell
+                            {...cellProps}
+                            you={youCard?.timesPicked}
+                            all={card.timesPicked}
+                            top={topCard?.timesPicked}
+                            format={fmt}
+                          />
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -543,40 +734,51 @@ function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, tourname
               <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', marginBottom: '1rem' }}>
                 Deck selection rate ({fmt(leaderSelData.totalDecks)} draft decks built)
               </p>
+              <StatsLegend {...legendProps} showBuiltDeckFilter={true} />
               <div className="stats-table-container" style={{ marginBottom: '2rem' }}>
                 <table className="stats-table">
                   <thead>
                     <tr>
                       <LeaderSelSortHeader label="Leader" col="cardName" />
-                      <LeaderSelSortHeader label="Selection %" col="selectionRate" title="Percentage of all built decks that chose this leader" />
                       <th>Aspects</th>
+                      <LeaderSelSortHeader label="Selection %" col="selectionRate" title="Percentage of all built decks that chose this leader" />
                       <LeaderSelSortHeader label="# Selected" col="timesSelected" />
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedLeaderSel.map(leader => (
-                      <tr key={leader.cardId}>
-                        <td
-                          className="card-name-cell"
-                          onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: leader.imageUrl || undefined, name: leader.cardName, rarity: 'Legendary', isLeader: true }, e)}
-                          onMouseLeave={handleCardMouseLeave}
-                          onTouchStart={() => handleCardTouchStart({ imageUrl: leader.imageUrl || undefined, name: leader.cardName, rarity: 'Legendary', isLeader: true })}
-                          onTouchEnd={handleCardTouchEnd}
-                        >
-                          <span className="card-name">{leader.cardName}</span>
-                          {leader.subtitle && <span className="card-subtitle-inline">, {leader.subtitle}</span>}
-                        </td>
-                        <td className={leader.selectionRate >= 5 ? 'pick-early' : leader.selectionRate >= 2 ? 'pick-mid' : ''}>{leader.selectionRate.toFixed(1)}%</td>
-                        <td>
-                          <div className="aspects-cell">
-                            {leader.aspects.map((aspect, i) => (
-                              <img key={i} src={`/icons/${aspect.toLowerCase()}.png`} alt={aspect} className="aspect-icon" />
-                            ))}
-                          </div>
-                        </td>
-                        <td>{fmt(leader.timesSelected)}</td>
-                      </tr>
-                    ))}
+                    {sortedLeaderSel.map(leader => {
+                      const topLeader = leaderSelTopMap.get(leader.cardName)
+                      const youLeader = leaderSelYouMap.get(leader.cardName)
+                      return (
+                        <tr key={leader.cardId}>
+                          <td
+                            className="card-name-cell"
+                            onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: leader.imageUrl || undefined, name: leader.cardName, rarity: 'Legendary', isLeader: true }, e)}
+                            onMouseLeave={handleCardMouseLeave}
+                            onTouchStart={() => handleCardTouchStart({ imageUrl: leader.imageUrl || undefined, name: leader.cardName, rarity: 'Legendary', isLeader: true })}
+                            onTouchEnd={handleCardTouchEnd}
+                          >
+                            <span className="card-name">{leader.cardName}</span>
+                            {leader.subtitle && <span className="card-subtitle">{leader.subtitle}</span>}
+                          </td>
+                          <AspectsCell aspects={leader.aspects} />
+                          <StatsCell
+                            {...cellProps}
+                            you={youLeader?.selectionRate}
+                            all={leader.selectionRate}
+                            top={topLeader?.selectionRate}
+                            format={(v: number) => `${v.toFixed(1)}%`}
+                          />
+                          <StatsCell
+                            {...cellProps}
+                            you={youLeader?.timesSelected}
+                            all={leader.timesSelected}
+                            top={topLeader?.timesSelected}
+                            format={fmt}
+                          />
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -610,46 +812,60 @@ function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, tourname
             </p>
           )}
 
+          <StatsLegend {...legendProps} showBuiltDeckFilter={true} />
           <div className="stats-table-container">
             <table className="stats-table">
               <thead>
                 <tr>
                   <CardSortHeader label="Name" col="cardName" />
+                  <th>Aspects</th>
+                  <CardSortHeader label="Rarity" col="rarity" />
                   <CardSortHeader label="Avg Pick" col="avgPickPosition" title="Average position this card is picked within a pack (1 = first pick, 14 = last). Lower is better." />
                   <CardSortHeader label="1st Pick" col="firstPickPct" title="How often this card is the first pick out of a fresh pack (pick position 1 of 14)." />
-                  <CardSortHeader label="Rarity" col="rarity" />
-                  <th>Aspects</th>
                   <CardSortHeader label="# Drafted" col="timesPicked" title="Total number of times this card was drafted across all drafts." />
                 </tr>
               </thead>
               <tbody>
-                {sortedCards.map(card => (
-                  <tr key={card.cardId}>
-                    <td
-                      className="card-name-cell"
-                      onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity }, e)}
-                      onMouseLeave={handleCardMouseLeave}
-                      onTouchStart={() => handleCardTouchStart({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity })}
-                      onTouchEnd={handleCardTouchEnd}
-                    >
-                      <span className="card-name">{card.cardName}</span>
-                      {card.subtitle && <span className="card-subtitle-inline">, {card.subtitle}</span>}
-                    </td>
-                    <td className={pickClass(card.avgPickPosition)}>{Math.round(card.avgPickPosition)}</td>
-                    <td className={card.firstPickPct && card.firstPickPct >= 10 ? 'first-pick-high' : ''}>
-                      {card.firstPicks}/{card.timesPicked} ({card.firstPickPct !== null ? `${card.firstPickPct}%` : '—'})
-                    </td>
-                    <td><span className={rarityClass(card.rarity)}>{card.rarity}</span></td>
-                    <td>
-                      <div className="aspects-cell">
-                        {card.aspects.map((aspect, i) => (
-                          <img key={i} src={`/icons/${aspect.toLowerCase()}.png`} alt={aspect} className="aspect-icon" />
-                        ))}
-                      </div>
-                    </td>
-                    <td>{fmt(card.timesPicked)}</td>
-                  </tr>
-                ))}
+                {sortedCards.map(card => {
+                  const topCard = cardTopMap.get(card.cardName)
+                  const youCard = cardYouMap.get(card.cardName)
+                  return (
+                    <tr key={card.cardId}>
+                      <td
+                        className="card-name-cell"
+                        onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity }, e)}
+                        onMouseLeave={handleCardMouseLeave}
+                        onTouchStart={() => handleCardTouchStart({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity })}
+                        onTouchEnd={handleCardTouchEnd}
+                      >
+                        <span className="card-name">{card.cardName}</span>
+                        {card.subtitle && <span className="card-subtitle">{card.subtitle}</span>}
+                      </td>
+                      <AspectsCell aspects={card.aspects} />
+                      <td><span className={rarityClass(card.rarity)}>{card.rarity}</span></td>
+                      <StatsCell
+                        {...cellProps}
+                        you={youCard?.avgPickPosition}
+                        all={card.avgPickPosition}
+                        top={topCard?.avgPickPosition}
+                        format={(v: number) => String(Math.round(v))}
+                      />
+                      <StatsCell
+                        {...cellProps}
+                        you={youCard ? `${youCard.firstPicks}/${youCard.timesPicked} (${youCard.firstPickPct !== null ? `${youCard.firstPickPct}%` : '—'})` : null}
+                        all={`${card.firstPicks}/${card.timesPicked} (${card.firstPickPct !== null ? `${card.firstPickPct}%` : '—'})`}
+                        top={topCard ? `${topCard.firstPicks}/${topCard.timesPicked} (${topCard.firstPickPct !== null ? `${topCard.firstPickPct}%` : '—'})` : null}
+                      />
+                      <StatsCell
+                        {...cellProps}
+                        you={youCard?.timesPicked}
+                        all={card.timesPicked}
+                        top={topCard?.timesPicked}
+                        format={fmt}
+                      />
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -673,9 +889,17 @@ function DraftTab({ setCode, includeBots, includeHumans, builtDeckOnly, tourname
 
 // === Sealed Tab ===
 
-function SealedTab({ setCode, includeBots, includeHumans, tournamentOnly, startDate, endDate }: TabProps) {
+function SealedTab({ setCode, includeBots, includeHumans, startDate, endDate, user, showYou, showAll, showTop, legendProps, isBlurred }: TabProps) {
+  // All Players data
   const [cardData, setCardData] = useState<DeckInclusionStats | null>(null)
   const [leaderSelData, setLeaderSelData] = useState<{ totalDecks: number; leaders: LeaderSelection[] } | null>(null)
+  // Top Players data
+  const [cardDataTop, setCardDataTop] = useState<DeckInclusionStats | null>(null)
+  const [leaderSelDataTop, setLeaderSelDataTop] = useState<{ totalDecks: number; leaders: LeaderSelection[] } | null>(null)
+  // You data
+  const [cardDataYou, setCardDataYou] = useState<DeckInclusionStats | null>(null)
+  const [leaderSelDataYou, setLeaderSelDataYou] = useState<{ totalDecks: number; leaders: LeaderSelection[] } | null>(null)
+
   const [loading, setLoading] = useState(true)
   const [cardSortKey, setCardSortKey] = useState<DeckSortKey>('inclusionRate')
   const [cardSortAsc, setCardSortAsc] = useState(false)
@@ -694,7 +918,7 @@ function SealedTab({ setCode, includeBots, includeHumans, tournamentOnly, startD
 
   useEffect(() => {
     setLoading(true)
-    const params = new URLSearchParams({
+    const baseParams = new URLSearchParams({
       setCode,
       since: startDate,
       until: endDate,
@@ -702,20 +926,62 @@ function SealedTab({ setCode, includeBots, includeHumans, tournamentOnly, startD
       includeHumans: String(includeHumans),
       poolType: 'sealed',
     })
-    if (tournamentOnly) params.set('tournamentOnly', 'true')
 
-    Promise.all([
-      fetch(`/api/stats/deck-inclusion?${params}`)
-        .then(r => r.json())
-        .then(result => setCardData(result.data || result))
+    const topParams = new URLSearchParams({
+      setCode,
+      since: startDate,
+      until: endDate,
+      poolType: 'sealed',
+      tournamentOnly: 'true',
+    })
+
+    const fetches: Promise<void>[] = [
+      // All Players
+      fetch(`/api/stats/deck-inclusion?${baseParams}`)
+        .then(r => r.json()).then(result => setCardData(result.data || result))
         .catch(err => console.error('Error fetching deck inclusion:', err)),
-      fetch(`/api/stats/leader-selection?${params}`)
-        .then(r => r.json())
-        .then(result => setLeaderSelData(result.data || result))
+      fetch(`/api/stats/leader-selection?${baseParams}`)
+        .then(r => r.json()).then(result => setLeaderSelData(result.data || result))
         .catch(err => console.error('Error fetching leader selection:', err)),
-    ])
-      .finally(() => setLoading(false))
-  }, [setCode, includeBots, includeHumans, tournamentOnly, startDate, endDate])
+      // Top Players (not affected by Humans/Bots filter)
+      fetch(`/api/stats/deck-inclusion?${topParams}`)
+        .then(r => r.json()).then(result => setCardDataTop(result.data || result))
+        .catch(err => console.error('Error fetching top deck inclusion:', err)),
+      fetch(`/api/stats/leader-selection?${topParams}`)
+        .then(r => r.json()).then(result => setLeaderSelDataTop(result.data || result))
+        .catch(err => console.error('Error fetching top leader selection:', err)),
+    ]
+
+    // You fetches (only if logged in, not affected by Humans/Bots filter)
+    if (user?.id) {
+      const youParams = new URLSearchParams({
+        setCode,
+        since: startDate,
+        until: endDate,
+        poolType: 'sealed',
+        userId: user.id,
+      })
+      fetches.push(
+        fetch(`/api/stats/deck-inclusion?${youParams}`)
+          .then(r => r.json()).then(result => setCardDataYou(result.data || result))
+          .catch(err => console.error('Error fetching your deck inclusion:', err)),
+        fetch(`/api/stats/leader-selection?${youParams}`)
+          .then(r => r.json()).then(result => setLeaderSelDataYou(result.data || result))
+          .catch(err => console.error('Error fetching your leader selection:', err)),
+      )
+    } else {
+      setCardDataYou(null)
+      setLeaderSelDataYou(null)
+    }
+
+    Promise.all(fetches).finally(() => setLoading(false))
+  }, [setCode, includeBots, includeHumans, startDate, endDate, user?.id])
+
+  // Build lookup maps
+  const cardTopMap = useMemo(() => buildLookupMap(cardDataTop?.cards), [cardDataTop?.cards])
+  const cardYouMap = useMemo(() => buildLookupMap(cardDataYou?.cards), [cardDataYou?.cards])
+  const leaderSelTopMap = useMemo(() => buildLookupMap(leaderSelDataTop?.leaders), [leaderSelDataTop?.leaders])
+  const leaderSelYouMap = useMemo(() => buildLookupMap(leaderSelDataYou?.leaders), [leaderSelDataYou?.leaders])
 
   const handleCardSort = (key: DeckSortKey) => {
     if (cardSortKey === key) setCardSortAsc(!cardSortAsc)
@@ -769,9 +1035,8 @@ function SealedTab({ setCode, includeBots, includeHumans, tournamentOnly, startD
     )
   }
 
-  const inclusionClass = (rate: number) =>
-    rate >= 75 ? 'pick-early' : rate >= 40 ? 'pick-mid' : 'pick-late'
   const rarityClass = (r: string) => `rarity-${r.toLowerCase()}`
+  const cellProps = { showYou, showAll, showTop, isBlurred }
 
   const CardSortHeader = ({ label, col, title }: { label: string, col: DeckSortKey, title?: string }) => (
     <th className={`sortable ${cardSortKey === col ? 'active' : ''}`} onClick={() => handleCardSort(col)} title={title}>
@@ -793,40 +1058,51 @@ function SealedTab({ setCode, includeBots, includeHumans, tournamentOnly, startD
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', marginBottom: '1rem' }}>
             How often each leader is chosen for sealed decks ({fmt(leaderSelData.totalDecks)} decks)
           </p>
+          <StatsLegend {...legendProps} showBuiltDeckFilter={false} />
           <div className="stats-table-container" style={{ marginBottom: '2rem' }}>
             <table className="stats-table">
               <thead>
                 <tr>
                   <LeaderSelSortHeader label="Leader" col="cardName" />
-                  <LeaderSelSortHeader label="Selection %" col="selectionRate" title="Percentage of sealed decks that chose this leader" />
                   <th>Aspects</th>
+                  <LeaderSelSortHeader label="Selection %" col="selectionRate" title="Percentage of sealed decks that chose this leader" />
                   <LeaderSelSortHeader label="# Selected" col="timesSelected" />
                 </tr>
               </thead>
               <tbody>
-                {sortedLeaderSel.map(leader => (
-                  <tr key={leader.cardId}>
-                    <td
-                      className="card-name-cell"
-                      onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: leader.imageUrl || undefined, name: leader.cardName, rarity: 'Legendary', isLeader: true }, e)}
-                      onMouseLeave={handleCardMouseLeave}
-                      onTouchStart={() => handleCardTouchStart({ imageUrl: leader.imageUrl || undefined, name: leader.cardName, rarity: 'Legendary', isLeader: true })}
-                      onTouchEnd={handleCardTouchEnd}
-                    >
-                      <span className="card-name">{leader.cardName}</span>
-                      {leader.subtitle && <span className="card-subtitle-inline">, {leader.subtitle}</span>}
-                    </td>
-                    <td className={leader.selectionRate >= 5 ? 'pick-early' : leader.selectionRate >= 2 ? 'pick-mid' : ''}>{leader.selectionRate.toFixed(1)}%</td>
-                    <td>
-                      <div className="aspects-cell">
-                        {leader.aspects.map((aspect, i) => (
-                          <img key={i} src={`/icons/${aspect.toLowerCase()}.png`} alt={aspect} className="aspect-icon" />
-                        ))}
-                      </div>
-                    </td>
-                    <td>{fmt(leader.timesSelected)}</td>
-                  </tr>
-                ))}
+                {sortedLeaderSel.map(leader => {
+                  const topLeader = leaderSelTopMap.get(leader.cardName)
+                  const youLeader = leaderSelYouMap.get(leader.cardName)
+                  return (
+                    <tr key={leader.cardId}>
+                      <td
+                        className="card-name-cell"
+                        onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: leader.imageUrl || undefined, name: leader.cardName, rarity: 'Legendary', isLeader: true }, e)}
+                        onMouseLeave={handleCardMouseLeave}
+                        onTouchStart={() => handleCardTouchStart({ imageUrl: leader.imageUrl || undefined, name: leader.cardName, rarity: 'Legendary', isLeader: true })}
+                        onTouchEnd={handleCardTouchEnd}
+                      >
+                        <span className="card-name">{leader.cardName}</span>
+                        {leader.subtitle && <span className="card-subtitle">{leader.subtitle}</span>}
+                      </td>
+                      <AspectsCell aspects={leader.aspects} />
+                      <StatsCell
+                        {...cellProps}
+                        you={youLeader?.selectionRate}
+                        all={leader.selectionRate}
+                        top={topLeader?.selectionRate}
+                        format={(v: number) => `${v.toFixed(1)}%`}
+                      />
+                      <StatsCell
+                        {...cellProps}
+                        you={youLeader?.timesSelected}
+                        all={leader.timesSelected}
+                        top={topLeader?.timesSelected}
+                        format={fmt}
+                      />
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -850,44 +1126,61 @@ function SealedTab({ setCode, includeBots, includeHumans, tournamentOnly, startD
             </p>
           )}
 
+          <StatsLegend {...legendProps} showBuiltDeckFilter={false} />
           <div className="stats-table-container">
             <table className="stats-table">
               <thead>
                 <tr>
                   <CardSortHeader label="Name" col="cardName" />
+                  <th>Aspects</th>
+                  <CardSortHeader label="Rarity" col="rarity" />
                   <CardSortHeader label="Inclusion %" col="inclusionRate" title="When this card is in your pool, how often does it make your deck?" />
                   <CardSortHeader label="Avg Copies" col="avgCopiesPlayed" title="When you include this card, how many copies do you run?" />
-                  <CardSortHeader label="Rarity" col="rarity" />
-                  <th>Aspects</th>
                   <CardSortHeader label="Pools" col="poolsWithCard" title="Number of sealed pools that contained this card" />
                 </tr>
               </thead>
               <tbody>
-                {sortedCards.map(card => (
-                  <tr key={card.cardId}>
-                    <td
-                      className="card-name-cell"
-                      onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity }, e)}
-                      onMouseLeave={handleCardMouseLeave}
-                      onTouchStart={() => handleCardTouchStart({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity })}
-                      onTouchEnd={handleCardTouchEnd}
-                    >
-                      <span className="card-name">{card.cardName}</span>
-                      {card.subtitle && <span className="card-subtitle-inline">, {card.subtitle}</span>}
-                    </td>
-                    <td className={inclusionClass(card.inclusionRate)}>{card.inclusionRate.toFixed(1)}%</td>
-                    <td>{card.avgCopiesPlayed.toFixed(1)}</td>
-                    <td><span className={rarityClass(card.rarity)}>{card.rarity}</span></td>
-                    <td>
-                      <div className="aspects-cell">
-                        {card.aspects.map((aspect, i) => (
-                          <img key={i} src={`/icons/${aspect.toLowerCase()}.png`} alt={aspect} className="aspect-icon" />
-                        ))}
-                      </div>
-                    </td>
-                    <td>{fmt(card.poolsWithCard)}</td>
-                  </tr>
-                ))}
+                {sortedCards.map(card => {
+                  const topCard = cardTopMap.get(card.cardName)
+                  const youCard = cardYouMap.get(card.cardName)
+                  return (
+                    <tr key={card.cardId}>
+                      <td
+                        className="card-name-cell"
+                        onMouseEnter={(e) => handleCardMouseEnter({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity }, e)}
+                        onMouseLeave={handleCardMouseLeave}
+                        onTouchStart={() => handleCardTouchStart({ imageUrl: card.imageUrl || undefined, name: card.cardName, rarity: card.rarity })}
+                        onTouchEnd={handleCardTouchEnd}
+                      >
+                        <span className="card-name">{card.cardName}</span>
+                        {card.subtitle && <span className="card-subtitle">{card.subtitle}</span>}
+                      </td>
+                      <AspectsCell aspects={card.aspects} />
+                      <td><span className={rarityClass(card.rarity)}>{card.rarity}</span></td>
+                      <StatsCell
+                        {...cellProps}
+                        you={youCard?.inclusionRate}
+                        all={card.inclusionRate}
+                        top={topCard?.inclusionRate}
+                        format={(v: number) => `${v.toFixed(1)}%`}
+                      />
+                      <StatsCell
+                        {...cellProps}
+                        you={youCard?.avgCopiesPlayed}
+                        all={card.avgCopiesPlayed}
+                        top={topCard?.avgCopiesPlayed}
+                        format={(v: number) => v.toFixed(1)}
+                      />
+                      <StatsCell
+                        {...cellProps}
+                        you={youCard?.poolsWithCard}
+                        all={card.poolsWithCard}
+                        top={topCard?.poolsWithCard}
+                        format={fmt}
+                      />
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
