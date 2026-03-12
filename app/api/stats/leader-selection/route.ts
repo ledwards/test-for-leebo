@@ -16,6 +16,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const includeBots = url.searchParams.get('includeBots') !== 'false'
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
     const tournamentOnly = url.searchParams.get('tournamentOnly') === 'true'
+    const userId = url.searchParams.get('userId') || null
 
     // Build card lookup map for enrichment, keyed by normalized cardId
     const allCards = getAllCards()
@@ -53,6 +54,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       tournamentFilter = `AND bd.user_id = ANY($${queryParams.length}::uuid[])`
     }
 
+    // Single user filter
+    let userFilter = ''
+    if (userId) {
+      queryParams.push(userId)
+      userFilter = `AND bd.user_id = $${queryParams.length}::uuid`
+    }
+
     // Get total built decks count
     const summary = await queryRow(
       `SELECT COUNT(*) AS total_decks
@@ -61,7 +69,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
        WHERE bd.set_code = $1 AND bd.built_at >= $2 AND bd.built_at < ($3::date + interval '1 day')
          ${poolTypeFilter}
          ${botFilter}
-         ${tournamentFilter}`,
+         ${tournamentFilter}
+         ${userFilter}`,
       queryParams
     )
 
@@ -73,7 +82,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
        WHERE bd.set_code = $1 AND bd.built_at >= $2 AND bd.built_at < ($3::date + interval '1 day')
          ${poolTypeFilter}
          ${botFilter}
-         ${tournamentFilter}`,
+         ${tournamentFilter}
+         ${userFilter}`,
       queryParams
     )
 

@@ -1,8 +1,8 @@
 /**
  * Tests for draft-picks stats API query building logic.
  *
- * Verifies that the builtDeckOnly parameter correctly adds JOIN clauses
- * to filter draft picks to only drafters who built a deck.
+ * Verifies that the builtDeckOnly, tournamentOnly, and userId parameters
+ * correctly add JOIN/WHERE clauses to filter draft picks.
  */
 
 import { describe, it } from 'node:test'
@@ -15,12 +15,18 @@ interface QueryParts {
   botJoin: string
   botFilter: string
   builtDeckJoin: string
+  tournamentFilter: string
+  userFilter: string
+  queryParams: (string | string[])[]
 }
 
 function buildQueryParts(opts: {
   includeBots: boolean
   includeHumans: boolean
   builtDeckOnly: boolean
+  tournamentOnly?: boolean
+  userId?: string | null
+  tournamentUserIds?: string[]
 }): QueryParts {
   let botJoin = ''
   let botFilter = ''
@@ -39,7 +45,21 @@ function buildQueryParts(opts: {
       JOIN built_decks bd ON bd.card_pool_id = cp_bd.id`
   }
 
-  return { botJoin, botFilter, builtDeckJoin }
+  const queryParams: (string | string[])[] = ['SOR', '2020-01-01', '2099-12-31']
+
+  let tournamentFilter = ''
+  if (opts.tournamentOnly && opts.tournamentUserIds) {
+    queryParams.push(opts.tournamentUserIds)
+    tournamentFilter = `AND dp.user_id = ANY($${queryParams.length}::uuid[])`
+  }
+
+  let userFilter = ''
+  if (opts.userId) {
+    queryParams.push(opts.userId)
+    userFilter = `AND dp.user_id = $${queryParams.length}::uuid`
+  }
+
+  return { botJoin, botFilter, builtDeckJoin, tournamentFilter, userFilter, queryParams }
 }
 
 describe('draft-picks query building', () => {
@@ -85,6 +105,68 @@ describe('draft-picks query building', () => {
       assert.strictEqual(parse('false'), false)
       assert.strictEqual(parse('1'), false)
       assert.strictEqual(parse(''), false)
+    })
+  })
+
+  describe('userId filter', () => {
+    it('adds no filter when userId is null', () => {
+      const parts = buildQueryParts({ includeBots: true, includeHumans: true, builtDeckOnly: false, userId: null })
+      assert.strictEqual(parts.userFilter, '')
+      assert.strictEqual(parts.queryParams.length, 3, 'should only have base params')
+    })
+
+    it('adds user_id WHERE clause with correct param index when userId is set', () => {
+      const parts = buildQueryParts({ includeBots: true, includeHumans: true, builtDeckOnly: false, userId: 'abc-123' })
+      assert.ok(parts.userFilter.includes('dp.user_id = $4::uuid'), 'should filter by user_id at $4')
+      assert.strictEqual(parts.queryParams.length, 4, 'should have 4 params')
+      assert.strictEqual(parts.queryParams[3], 'abc-123', 'should include userId in params')
+    })
+
+    it('userId param index accounts for tournamentOnly param', () => {
+      const parts = buildQueryParts({
+        includeBots: true,
+        includeHumans: true,
+        builtDeckOnly: false,
+        tournamentOnly: true,
+        tournamentUserIds: ['user-1', 'user-2'],
+        userId: 'abc-123',
+      })
+      assert.ok(parts.tournamentFilter.includes('$4::uuid[]'), 'tournament filter at $4')
+      assert.ok(parts.userFilter.includes('$5::uuid'), 'user filter at $5')
+      assert.strictEqual(parts.queryParams.length, 5)
+    })
+
+    it('composes correctly with all filters', () => {
+      const parts = buildQueryParts({
+        includeBots: false,
+        includeHumans: true,
+        builtDeckOnly: true,
+        tournamentOnly: true,
+        tournamentUserIds: ['user-1'],
+        userId: 'my-user-id',
+      })
+      assert.ok(parts.botJoin.includes('JOIN pod_players'), 'has bot join')
+      assert.ok(parts.botFilter.includes('dpp.is_bot = false'), 'has bot filter')
+      assert.ok(parts.builtDeckJoin.includes('JOIN built_decks'), 'has built deck join')
+      assert.ok(parts.tournamentFilter.includes('ANY($4::uuid[])'), 'has tournament filter')
+      assert.ok(parts.userFilter.includes('$5::uuid'), 'has user filter')
+    })
+  })
+
+  describe('userId param parsing', () => {
+    // Mirrors: const userId = url.searchParams.get('userId') || null
+    const parse = (val: string | null) => val || null
+
+    it('defaults to null when param is absent', () => {
+      assert.strictEqual(parse(null), null)
+    })
+
+    it('defaults to null when param is empty string', () => {
+      assert.strictEqual(parse(''), null)
+    })
+
+    it('returns the userId when present', () => {
+      assert.strictEqual(parse('abc-123-def'), 'abc-123-def')
     })
   })
 })
