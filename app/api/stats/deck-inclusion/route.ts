@@ -1,6 +1,6 @@
 // @ts-nocheck
 // GET /api/stats/deck-inclusion - Get deck inclusion metrics per card
-import { queryRows } from '@/lib/db'
+import { queryRows, queryRow } from '@/lib/db'
 import { jsonResponse, handleApiError } from '@/lib/utils'
 import { getAllCards } from '@/src/utils/cardData'
 import tournamentUserIds from '@/src/data/tournament-user-ids.json'
@@ -16,6 +16,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const includeBots = url.searchParams.get('includeBots') !== 'false'
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
     const tournamentOnly = url.searchParams.get('tournamentOnly') === 'true'
+    const userId = url.searchParams.get('userId') || null
 
     // Build card lookup map for enrichment, keyed by both CMS id and normalized cardId
     const allCards = getAllCards()
@@ -42,10 +43,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Need the LEFT JOIN to pod_players for bot filtering on draft pools
     // For non-draft pools (sealed), there's no pod_players entry, so those are always "human"
     const needsBotJoin = !includeBots || !includeHumans
-
-    // Fetch card_pools with built_decks, filtered by set
-    // card_pools.cards is a JSONB array of card objects with cardId field
-    // built_decks.deck is a JSONB array of {id, count} objects where id = SOR_059 format
     const joinClause = needsBotJoin
       ? `LEFT JOIN pod_players dpp ON cp.pod_id = dpp.pod_id AND cp.user_id = dpp.user_id`
       : ''
@@ -57,113 +54,117 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       tournamentFilter = `AND cp.user_id = ANY($${queryParams.length}::uuid[])`
     }
 
-    const rows = await queryRows(
-      `SELECT cp.cards AS pool_cards, bd.deck AS deck_entries
-       FROM card_pools cp
-       JOIN built_decks bd ON bd.card_pool_id = cp.id
-       ${joinClause}
-       WHERE cp.set_code = $1 AND cp.created_at >= $2 AND cp.created_at < ($3::date + interval '1 day')
-         ${poolType ? `AND cp.pool_type = $4` : ''}
-         ${botFilter}
-         ${tournamentFilter}`,
-      queryParams
-    )
-
-    // Normalize a cardId to a canonical key: SOR-59 → SOR_059, SOR_059 stays SOR_059
-    function normalizeCardId(id: string): string {
-      if (!id) return id
-      // Handle hyphen format: SOR-59 → SOR_059
-      if (id.includes('-')) {
-        const [set, num] = id.split('-')
-        return `${set}_${num.padStart(3, '0')}`
-      }
-      // Handle underscore format: ensure zero-padded
-      if (id.includes('_')) {
-        const [set, num] = id.split('_')
-        return `${set}_${num.padStart(3, '0')}`
-      }
-      return id
+    // Single user filter
+    let userFilter = ''
+    if (userId) {
+      queryParams.push(userId)
+      userFilter = `AND cp.user_id = $${queryParams.length}::uuid`
     }
 
-    // Aggregate: for each card, count pools and decks
-    const cardStats = new Map<string, {
-      poolsWithCard: number
-      decksWithCard: number
-      totalCopiesInDecks: number
-      cardName: string
-      cardId: string // original cardId for lookup
-    }>()
+    const baseWhere = `cp.set_code = $1 AND cp.created_at >= $2 AND cp.created_at < ($3::date + interval '1 day')
+          ${poolType ? `AND cp.pool_type = $4` : ''}
+          ${botFilter}
+          ${tournamentFilter}
+          ${userFilter}`
 
-    for (const row of rows) {
-      const poolCards = row.pool_cards || []
-      const deckEntries = row.deck_entries || []
+    // Run count and aggregation queries in parallel.
+    // Previously fetched full JSONB card objects (images, text, traits) for every row
+    // and processed in JS — caused 30+ second response times.
+    // Now pushes aggregation to SQL via CTEs, returning only per-card summary rows.
+    const [countResult, cardRows] = await Promise.all([
+      // Query 1: Count total pool-deck pairs (fast, no JSONB processing)
+      queryRow(
+        `SELECT COUNT(*) AS total
+         FROM card_pools cp
+         JOIN built_decks bd ON bd.card_pool_id = cp.id
+         ${joinClause}
+         WHERE ${baseWhere}`,
+        queryParams
+      ),
+      // Query 2: Aggregate per-card inclusion stats via SQL CTEs.
+      // Step 1: lightweight pool_ids CTE gets matching IDs without touching JSONB.
+      // Step 2: pool_cards unnests cp.cards via index lookup on cp.id.
+      // Step 3: deck_cards unnests bd.deck via index lookup on bd.card_pool_id.
+      // Step 4: LEFT JOIN + GROUP BY produces per-card aggregates.
+      queryRows(
+        `WITH pool_ids AS (
+          SELECT cp.id AS pool_id
+          FROM card_pools cp
+          JOIN built_decks bd ON bd.card_pool_id = cp.id
+          ${joinClause}
+          WHERE ${baseWhere}
+        ),
+        pool_cards AS (
+          SELECT DISTINCT
+            cp.id AS pool_id,
+            CASE
+              WHEN position('-' in c->>'cardId') > 0 THEN
+                split_part(c->>'cardId', '-', 1) || '_' || lpad(split_part(c->>'cardId', '-', 2), 3, '0')
+              WHEN position('_' in c->>'cardId') > 0 THEN
+                split_part(c->>'cardId', '_', 1) || '_' || lpad(split_part(c->>'cardId', '_', 2), 3, '0')
+              ELSE c->>'cardId'
+            END AS norm_id,
+            c->>'cardId' AS raw_card_id
+          FROM pool_ids pi
+          JOIN card_pools cp ON cp.id = pi.pool_id,
+          LATERAL jsonb_array_elements(cp.cards) AS c
+          WHERE COALESCE(c->>'type', '') NOT IN ('Leader', 'Base')
+            AND c->>'isLeader' IS DISTINCT FROM 'true'
+            AND c->>'isBase' IS DISTINCT FROM 'true'
+            AND c->>'cardId' IS NOT NULL
+        ),
+        deck_cards AS (
+          SELECT
+            bd.card_pool_id AS pool_id,
+            CASE
+              WHEN position('-' in e->>'id') > 0 THEN
+                split_part(e->>'id', '-', 1) || '_' || lpad(split_part(e->>'id', '-', 2), 3, '0')
+              WHEN position('_' in e->>'id') > 0 THEN
+                split_part(e->>'id', '_', 1) || '_' || lpad(split_part(e->>'id', '_', 2), 3, '0')
+              ELSE e->>'id'
+            END AS norm_id,
+            COALESCE((e->>'count')::int, 1) AS copy_count
+          FROM pool_ids pi
+          JOIN built_decks bd ON bd.card_pool_id = pi.pool_id,
+          LATERAL jsonb_array_elements(bd.deck) AS e
+          WHERE e->>'id' IS NOT NULL
+        )
+        SELECT
+          pc.norm_id,
+          MIN(pc.raw_card_id) AS card_id,
+          COUNT(DISTINCT pc.pool_id) AS pools_with_card,
+          COUNT(DISTINCT dc.pool_id) AS decks_with_card,
+          COALESCE(SUM(dc.copy_count), 0) AS total_copies_in_decks
+        FROM pool_cards pc
+        LEFT JOIN deck_cards dc ON pc.pool_id = dc.pool_id AND pc.norm_id = dc.norm_id
+        GROUP BY pc.norm_id`,
+        queryParams
+      ),
+    ])
 
-      // Get unique non-leader/base card IDs in this pool
-      const poolCardIds = new Set<string>()
-      const poolCardInfo = new Map<string, { name: string; cardId: string }>()
-      for (const card of poolCards) {
-        if (card.isLeader || card.isBase || card.type === 'Leader' || card.type === 'Base') continue
-        const normalId = normalizeCardId(card.cardId)
-        if (normalId) {
-          poolCardIds.add(normalId)
-          if (!poolCardInfo.has(normalId)) {
-            poolCardInfo.set(normalId, { name: card.name, cardId: card.cardId })
-          }
-        }
-      }
+    const totalPoolsWithDecks = parseInt(countResult?.total || '0')
 
-      // Get deck card IDs with counts
-      const deckCardCounts = new Map<string, number>()
-      for (const entry of deckEntries) {
-        const normalId = normalizeCardId(entry.id)
-        if (normalId) {
-          deckCardCounts.set(normalId, (entry.count || 1))
-        }
-      }
+    // Enrich with card data from cache and compute rates
+    const cards = cardRows
+      .filter(row => parseInt(row.pools_with_card) > 0)
+      .map(row => {
+        const poolsWithCard = parseInt(row.pools_with_card)
+        const decksWithCard = parseInt(row.decks_with_card)
+        const totalCopiesInDecks = parseInt(row.total_copies_in_decks)
+        const inclusionRate = poolsWithCard > 0 ? (decksWithCard / poolsWithCard) * 100 : 0
+        const avgCopiesPlayed = decksWithCard > 0 ? totalCopiesInDecks / decksWithCard : 0
 
-      // Update stats for each card in the pool
-      for (const normalId of poolCardIds) {
-        if (!cardStats.has(normalId)) {
-          const info = poolCardInfo.get(normalId) || { name: 'Unknown', cardId: normalId }
-          cardStats.set(normalId, {
-            poolsWithCard: 0,
-            decksWithCard: 0,
-            totalCopiesInDecks: 0,
-            cardName: info.name,
-            cardId: info.cardId,
-          })
-        }
-        const stat = cardStats.get(normalId)!
-        stat.poolsWithCard++
-        if (deckCardCounts.has(normalId)) {
-          stat.decksWithCard++
-          stat.totalCopiesInDecks += deckCardCounts.get(normalId)!
-        }
-      }
-    }
-
-    // Enrich and format results
-    const cards = Array.from(cardStats.values())
-      .filter(s => s.poolsWithCard > 0)
-      .map(stat => {
-        const inclusionRate = stat.poolsWithCard > 0
-          ? (stat.decksWithCard / stat.poolsWithCard) * 100
-          : 0
-        const avgCopiesPlayed = stat.decksWithCard > 0
-          ? stat.totalCopiesInDecks / stat.decksWithCard
-          : 0
-
-        // Look up card data for enrichment
-        const cardData = cardMap.get(stat.cardId) || cardMap.get(stat.cardId.replace(/-/g, '_'))
+        // Look up card data for enrichment (try normalized ID first, then raw)
+        const cardData = cardMap.get(row.norm_id) || cardMap.get(row.card_id)
 
         return {
-          cardName: stat.cardName,
-          cardId: stat.cardId,
+          cardName: cardData?.name || 'Unknown',
+          cardId: row.card_id,
           rarity: cardData?.rarity || 'Unknown',
           cardType: cardData?.type || 'Unknown',
           aspects: cardData?.aspects || [],
-          poolsWithCard: stat.poolsWithCard,
-          decksWithCard: stat.decksWithCard,
+          poolsWithCard,
+          decksWithCard,
           inclusionRate: Math.round(inclusionRate * 10) / 10,
           avgCopiesPlayed: Math.round(avgCopiesPlayed * 10) / 10,
           subtitle: cardData?.subtitle || null,
@@ -175,7 +176,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return jsonResponse({
       setCode,
-      totalPoolsWithDecks: rows.length,
+      totalPoolsWithDecks,
       cards,
     })
   } catch (error) {

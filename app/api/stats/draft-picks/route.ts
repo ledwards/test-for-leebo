@@ -17,6 +17,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const includeHumans = url.searchParams.get('includeHumans') !== 'false'
     const builtDeckOnly = url.searchParams.get('builtDeckOnly') === 'true'
     const tournamentOnly = url.searchParams.get('tournamentOnly') === 'true'
+    const userId = url.searchParams.get('userId') || null
 
     // Build card lookup map for enrichment, keyed by both CMS id and normalized cardId
     const allCards = getAllCards()
@@ -59,6 +60,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       tournamentFilter = `AND dp.user_id = ANY($${queryParams.length}::uuid[])`
     }
 
+    // Single user filter
+    let userFilter = ''
+    if (userId) {
+      queryParams.push(userId)
+      userFilter = `AND dp.user_id = $${queryParams.length}::uuid`
+    }
+
     // Per-card pick analytics (non-leader cards only, merge variants by card_name)
     // Only count picks from completed drafts
     const cardStats = await queryRows(
@@ -79,6 +87,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         AND pod.status = 'complete'
         ${botFilter}
         ${tournamentFilter}
+        ${userFilter}
       GROUP BY dp.card_name, dp.rarity, dp.card_type
       ORDER BY avg_pick_position ASC`,
       queryParams
@@ -97,7 +106,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       WHERE dp.set_code = $1 AND dp.is_leader = ${type === 'leaders' ? 'TRUE' : 'FALSE'} AND dp.picked_at >= $2 AND dp.picked_at < ($3::date + interval '1 day')
         AND pod.status = 'complete'
         ${botFilter}
-        ${tournamentFilter}`,
+        ${tournamentFilter}
+        ${userFilter}`,
       queryParams
     )
 
