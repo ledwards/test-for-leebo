@@ -101,6 +101,18 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
     return name && name.length > maxLength ? name.substring(0, maxLength) + '...' : name
   }
 
+  const isPatreonSubscriber = Boolean(
+    user?.is_patreon ||
+    user?.is_patreon_subscriber ||
+    user?.patreon_status ||
+    user?.patreon_tier
+  )
+  const patreonStatusLabel =
+    user?.patreon_tier ||
+    user?.patreon_status ||
+    (isPatreonSubscriber ? 'Supporter' : null)
+  const patreonBannerUrl = user?.patreon_banner_url || user?.patreon_banner
+
   if (loading) {
     if (showOnlyWhenLoggedIn) {
       return null
@@ -187,8 +199,22 @@ export default function AuthWidget({ showOnlyWhenLoggedIn = false }) {
                     {user.email}
                   </div>
                 )}
+                {isPatreonSubscriber && (
+                  <div className="auth-widget-patreon-status">
+                    Patreon: {patreonStatusLabel}
+                  </div>
+                )}
               </div>
             </div>
+            {isPatreonSubscriber && patreonBannerUrl && (
+              <div className="auth-widget-patreon-banner-wrap">
+                <img
+                  src={patreonBannerUrl}
+                  alt="Patreon supporter banner"
+                  className="auth-widget-patreon-banner"
+                />
+              </div>
+            )}
 
             <div className="auth-widget-drawer-menu">
               <a

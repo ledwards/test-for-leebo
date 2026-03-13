@@ -1,6 +1,7 @@
 // GET /api/auth/session - Get current session
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth.js'
+import { toSessionUser } from '@/src/utils/sessionUser.js'
 
 export async function GET(request) {
   try {
@@ -17,12 +18,7 @@ export async function GET(request) {
     return NextResponse.json({
       success: true,
       data: {
-        user: {
-          id: session.id,
-          email: session.email,
-          username: session.username,
-          avatar_url: session.avatar_url || null,
-        },
+        user: toSessionUser(session),
       },
     })
   } catch (error) {
